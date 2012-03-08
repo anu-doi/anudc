@@ -8,7 +8,7 @@
 		<param-name>com.sun.jersey.config.property.packages</param-name>
 		<param-value>au.edu.anu.datacommons.services</param-value>
 		</init-param>
-		<load-on-startup>1</load-on-startup>
+		<load-on-startup>-1</load-on-startup>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Jersey REST Service</servlet-name>

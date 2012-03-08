@@ -45,7 +45,7 @@ public class FedoraBroker {
 	
 	static {
 		try {
-			FedoraCredentials fedoraCredentials = new FedoraCredentials(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_SERVER), 
+			FedoraCredentials fedoraCredentials = new FedoraCredentials(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI), 
 					GlobalProps.getProperty(GlobalProps.PROP_FEDORA_USERNAME),
 					GlobalProps.getProperty(GlobalProps.PROP_FEDORA_PASSWORD));
 			fedoraClient_ = new FedoraClient(fedoraCredentials);
