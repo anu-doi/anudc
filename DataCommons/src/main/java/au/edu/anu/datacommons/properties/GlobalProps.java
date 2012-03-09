@@ -40,6 +40,14 @@ public final class GlobalProps
 	public static final String PROP_FEDORA_PASSWORD = "FedoraPassword";
 	public static final String PROP_FILEUPLOAD_DIR = "FileUploadDir";
 	public static final String PROP_FILEUPLOAD_TEMPDIR = "FileUploadTempDir";
+	public static final String PROP_LDAP_URI = "LdapUri";
+	public static final String PROP_LDAP_BASEDN = "LdapBaseDn";
+	public static final String PROP_LDAPATTR_UNIID = "UniId";
+	public static final String PROP_LDAPATTR_DISPLAYNAME = "DisplayName";
+	public static final String PROP_LDAPATTR_GIVENNAME = "GivenName";
+	public static final String PROP_LDAPATTR_FAMILYNAME = "FamilyName";
+	public static final String PROP_LDAPATTR_EMAIL = "Email";
+	public static final String PROP_LDAPATTR_PHONE = "Phone";
 
 	static
 	{
