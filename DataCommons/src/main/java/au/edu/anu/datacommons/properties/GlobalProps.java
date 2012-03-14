@@ -23,7 +23,7 @@ import java.util.Properties;
  * <pre>
  * Version	Date		Developer			Description
  * 0.1		8/03/2012	Rahul Khanna (RK)	Initial.
- * 
+ * 0.2		14/03/2012	Rahul Khanna (RK)	Added Search properties.
  * <pre>
  * 
  */
@@ -42,12 +42,15 @@ public final class GlobalProps
 	public static final String PROP_FILEUPLOAD_TEMPDIR = "FileUploadTempDir";
 	public static final String PROP_LDAP_URI = "LdapUri";
 	public static final String PROP_LDAP_BASEDN = "LdapBaseDn";
-	public static final String PROP_LDAPATTR_UNIID = "UniId";
-	public static final String PROP_LDAPATTR_DISPLAYNAME = "DisplayName";
-	public static final String PROP_LDAPATTR_GIVENNAME = "GivenName";
-	public static final String PROP_LDAPATTR_FAMILYNAME = "FamilyName";
-	public static final String PROP_LDAPATTR_EMAIL = "Email";
-	public static final String PROP_LDAPATTR_PHONE = "Phone";
+	public static final String PROP_LDAP_ATTRLIST = "LdapPerson.AttrList";
+	public static final String PROP_LDAPATTR_UNIID = "LdapAttr.UniId";
+	public static final String PROP_LDAPATTR_DISPLAYNAME = "LdapAttr.DisplayName";
+	public static final String PROP_LDAPATTR_GIVENNAME = "LdapAttr.GivenName";
+	public static final String PROP_LDAPATTR_FAMILYNAME = "LdapAttr.FamilyName";
+	public static final String PROP_LDAPATTR_EMAIL = "LdapAttr.Email";
+	public static final String PROP_LDAPATTR_PHONE = "LdapAttr.Phone";
+	public static final String PROP_SEARCH_SEARCHFIELDS = "Search.DcSearchFields";
+	public static final String PROP_SEARCH_RETURNFIELDS = "Search.DcReturnFields";
 
 	static
 	{

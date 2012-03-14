@@ -6,6 +6,18 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>DataCommons Maven Webapp</name>
 	<url>http://maven.apache.org</url>
+	<repositories>
+		<repository>
+			<id>es-maven</id>
+			<url>https://es-maven.anu.edu.au/maven2</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -64,6 +76,23 @@
 			<artifactId>cas-client-core</artifactId>
 			<version>3.2.1</version>
 			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>tomcat-jsp-api</artifactId>
+			<version>7.0.26</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.2</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>au.edu.anu.taglib</groupId>
+			<artifactId>anu-taglib</artifactId>
+			<version>1.7.1</version>
 		</dependency>
 	</dependencies>
 	<build>

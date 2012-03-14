@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import au.edu.anu.datacommons.ldap.LdapPerson;
-import au.edu.anu.datacommons.ldap.LdapSearch;
+import au.edu.anu.datacommons.ldap.LdapRequest;
 
 /**
  * Servlet implementation class LoginServlet
@@ -43,11 +43,22 @@ public class LoginServlet extends HttpServlet
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
+		String username = request.getParameter("username");
+		String password = request.getParameter("password");
+
 		try
 		{
-			LdapPerson user = new LdapSearch().uniId(request.getParameter("username"));
-			request.getSession().setAttribute("user", user);
-			log.info("User : " + user.getDisplayName());
+			LdapRequest authReq = new LdapRequest();
+			if (authReq.authenticate(username, password))
+			{
+				LdapPerson user = new LdapRequest().uniId(request.getParameter("username"));
+				request.getSession().setAttribute("user", user);
+				log.info("User : " + user.getDisplayName());
+			}
+			else
+			{
+				log.info("Invalid credentials.");
+			}
 		}
 		catch (Exception e)
 		{
@@ -57,5 +68,4 @@ public class LoginServlet extends HttpServlet
 
 		response.sendRedirect(request.getContextPath() + "/");
 	}
-
 }

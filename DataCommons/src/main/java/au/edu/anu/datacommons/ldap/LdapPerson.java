@@ -100,4 +100,25 @@ public class LdapPerson
 		
 		return displayName;
 	}
+	
+	/**
+	 * 
+	 * @return
+	 * Given name from the LDAP person entry.
+	 */
+	public String getGivenName()
+	{
+		String givenName;
+		
+		try
+		{
+			givenName = (String) attributes.get(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_GIVENNAME, "givenName")).get(0);
+		}
+		catch (NamingException e)
+		{
+			givenName = "";
+		}
+		
+		return givenName;
+	}
 }

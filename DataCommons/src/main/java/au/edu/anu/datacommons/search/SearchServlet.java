@@ -20,12 +20,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
 
 import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.utils.Utils;
 
 /**
  * Servlet implementation class SearchServlet
@@ -34,6 +39,7 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 public final class SearchServlet extends HttpServlet
 {
 	private static final long serialVersionUID = 1L;
+	private static final int BUFFER_BYTES = 1024;
 	private final Logger log = Logger.getLogger(this.getClass().getName());
 
 	/**
@@ -97,7 +103,7 @@ public final class SearchServlet extends HttpServlet
 		{
 			ServletOutputStream servletOutStream = response.getOutputStream();
 			int bytesRead;
-			byte[] bytes = new byte[10240];
+			byte[] bytes = new byte[BUFFER_BYTES];
 			while ((bytesRead = riSearchUrlInStream.read(bytes)) != -1)
 			{
 				servletOutStream.write(bytes, 0, bytesRead);
@@ -110,11 +116,13 @@ public final class SearchServlet extends HttpServlet
 		{
 			Document resultsXmlDoc = null;
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware(true);
+			// factory.setNamespaceAware(true);
 			try
 			{
 				resultsXmlDoc = factory.newDocumentBuilder().parse(riSearchUrlInStream);
-				request.setAttribute("Results", resultsXmlDoc);
+				SparqlResultSet resultSet = new SparqlResultSet(resultsXmlDoc);
+
+				request.setAttribute("resultSet", resultSet);
 				request.getRequestDispatcher("/search/").forward(request, response);
 			}
 			catch (SAXException e)
@@ -127,7 +135,7 @@ public final class SearchServlet extends HttpServlet
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 		}
 
 		// Flush and close streams.

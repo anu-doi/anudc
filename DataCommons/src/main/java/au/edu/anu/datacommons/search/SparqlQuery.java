@@ -8,25 +8,50 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import au.edu.anu.datacommons.properties.GlobalProps;
+
 /**
- * @author Rahul Khanna
- *
+ * SparqlQuery
+ * 
+ * Australian National University Data Commons
+ * 
+ * Creates a SPARQL query for execution with words to search as input.
+ * 
+ * Usage:
+ * 
+ * <code>
+ * Sparql query = new SparqlQuery();
+ * query.setTerms("term1 term2 etc...");
+ * String queryToExec = query.generateQuery();
+ * </code>
+ * 
+ * <pre>
+ * Version	Date		Developer				Description
+ * 0.1		14/03/2012	Rahul Khanna (RK)		Initial
+ * </pre>
  */
 public final class SparqlQuery
 {
 	private StringBuilder sparqlQuery;
-	private String termsString;
 	private ArrayList<String> terms;
-	private String[] heads;
+	private String[] retFields;
 	private String[] dcFieldsToSearch;
-	
+
 	private final Logger log = Logger.getLogger(this.getClass().getName());
-	
+
+	/**
+	 * Constructor for SparqlQuery
+	 */
 	public SparqlQuery()
 	{
 		terms = new ArrayList<String>();
 	}
-	
+
+	/**
+	 * Provided terms are
+	 * 
+	 * @param termsString
+	 */
 	public void setTerms(String termsString)
 	{
 		// Seperate out the phrases from individual words.
@@ -36,50 +61,71 @@ public final class SparqlQuery
 			terms.add(matcher.group(0).replaceAll("\"", ""));
 			log.info(terms.get(terms.size() - 1));
 		}
+
+		// Read the list of fields to search terms in.
+		dcFieldsToSearch = GlobalProps.getProperty(GlobalProps.PROP_SEARCH_SEARCHFIELDS).split(",");
+
+		// Read the list of fields that are returned by the query.
+		retFields = GlobalProps.getProperty(GlobalProps.PROP_SEARCH_RETURNFIELDS).split(",");
 	}
-	
+
+	/**
+	 * Generates the SPARQL query that searches for the terms specified.
+	 * 
+	 * @return The SPARQL query as a String.
+	 */
 	public String generateQuery()
 	{
 		// TODO: Evaluate use of Jena instead of building a query using strings.
 		sparqlQuery = new StringBuilder();
+
 		sparqlQuery.append("PREFIX  dc:  <http://purl.org/dc/elements/1.1/>\r\n");
-		// TODO: Replace select values with elements of array head.
-		sparqlQuery.append("SELECT ?item ?title ?description\r\n");
-		sparqlQuery.append("{\r\n");
-		sparqlQuery.append("?item dc:title ?title\r\n");
-		// TODO: Replace the following with elements of array dcFields to Search.
-		sparqlQuery.append("OPTIONAL {?item dc:creator ?creator}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:description ?description}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:subject ?subject}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:publisher ?publisher}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:contributor ?contributor}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:date ?date}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:type ?type}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:format ?format}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:identifier ?identifier}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:source ?source}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:language ?language}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:relation ?relation}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:coverage ?coverage}\r\n");
-		sparqlQuery.append("OPTIONAL {?item dc:rights ?rights}\r\n");
-		
+		sparqlQuery.append("SELECT ");
+		for (int i = 0; i < retFields.length; i++)
+		{
+			sparqlQuery.append("?");
+			sparqlQuery.append(retFields[i]);
+			sparqlQuery.append(" ");
+		}
+
 		sparqlQuery.append("\r\n");
+		sparqlQuery.append("{\r\n");
+		for (int i = 0; i < dcFieldsToSearch.length; i++)
+		{
+			if (!dcFieldsToSearch[i].equalsIgnoreCase("title"))
+			{
+				sparqlQuery.append("OPTIONAL {");
+			}
+
+			sparqlQuery.append("?item dc:");
+			sparqlQuery.append(dcFieldsToSearch[i]);
+			sparqlQuery.append(" ?");
+			sparqlQuery.append(dcFieldsToSearch[i]);
+
+			if (!dcFieldsToSearch[i].equalsIgnoreCase("title"))
+			{
+				sparqlQuery.append("}");
+			}
+
+			sparqlQuery.append("\r\n");
+		}
+
 		sparqlQuery.append("FILTER\r\n");
 		sparqlQuery.append("(\r\n");
-		
-		for (int i = 0; i < terms.size(); i++)
+
+		for (int iTerm = 0; iTerm < terms.size(); iTerm++)
 		{
-			if (i > 0)
+			if (iTerm > 0)
 			{
-				if (terms.get(i).equals("OR"))
+				if (terms.get(iTerm).equals("OR"))
 				{
 					sparqlQuery.append("||\r\n");
-					i++;
+					iTerm++;
 				}
-				else if (terms.get(i).equals("AND"))
+				else if (terms.get(iTerm).equals("AND"))
 				{
 					sparqlQuery.append("&&\r\n");
-					i++;
+					iTerm++;
 				}
 				else
 				{
@@ -88,30 +134,25 @@ public final class SparqlQuery
 			}
 
 			sparqlQuery.append("(\r\n");
-			// TODO: Replace the following with only the fields that need to be searched.
-			sparqlQuery.append("regex(?title, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?creator, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?subject, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?description, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?publisher, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?contributor, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?date, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?type, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?format, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?identifier, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?source, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?language, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?relation, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?coverage, \"" + terms.get(i) + "\", \"i\")\r\n");
-			sparqlQuery.append("|| regex(?rights, \"" + terms.get(i) + "\", \"i\")\r\n");
+
+			for (int jSrchFld = 0; jSrchFld < dcFieldsToSearch.length; jSrchFld++)
+			{
+				if (jSrchFld > 0)
+					sparqlQuery.append("|| ");
+
+				sparqlQuery.append("regex(?");
+				sparqlQuery.append(dcFieldsToSearch[jSrchFld]);
+				sparqlQuery.append(", \"");
+				sparqlQuery.append(terms.get(iTerm));
+				sparqlQuery.append("\", \"i\")\r\n");
+			}
 			sparqlQuery.append(")\r\n");
-			
 		}
-		
+
 		sparqlQuery.append(")\r\n");
 		sparqlQuery.append("}\r\n");
-		
-		log.info("returned SPARQL query:\r\n" + sparqlQuery);
+
+		log.info("Returning SPARQL query:\r\n" + sparqlQuery);
 		return sparqlQuery.toString();
 	}
 }
