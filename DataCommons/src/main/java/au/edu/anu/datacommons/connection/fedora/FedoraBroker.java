@@ -36,6 +36,7 @@ import com.yourmediashelf.fedora.client.response.PurgeDatastreamResponse;
  * 
  * Version - Date - Developer
  * 0.1 - 08/03/2012 - Genevieve Turner - Initial build
+ * 0.2 - 14/03/2012 - Genevieve Turner - Updated getDatastreamAsStream method to be static
  * 
  */
 public class FedoraBroker {
@@ -173,6 +174,7 @@ public class FedoraBroker {
 	 * 
 	 * Version - Date - Dev - Description
 	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * 0.2 - 14/03/2012 - Genevieve Turner - Updated method to be static
 	 * 
 	 * Returns the specified datastream as an InputStream
 	 * 
@@ -181,7 +183,7 @@ public class FedoraBroker {
 	 * @return The inputstream of the objects datastream
 	 * @throws FedoraClientException
 	 */
-	public InputStream getDatastreamAsStream (String pid, String streamId) throws FedoraClientException {
+	public static InputStream getDatastreamAsStream (String pid, String streamId) throws FedoraClientException {
 		FedoraResponse sourceResponse = new GetDatastreamDissemination (pid, streamId).execute(fedoraClient_);
 		return sourceResponse.getEntityInputStream();
 	}
