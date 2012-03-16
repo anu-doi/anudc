@@ -10,23 +10,40 @@ import javax.naming.directory.Attributes;
 import au.edu.anu.datacommons.properties.GlobalProps;
 
 /**
- * @author Rahul Khanna
+ * LdapPerson
  * 
+ * Autralian National University Data Commons
+ * 
+ * This class contains the attributes of a person who has a record in the LDAP server. The list of attributes is limited to what's extracted by the LDAP query.
+ * For example, if the LDAP query requests only givenName and UniId to be retrieved for records that match the criteria, other attributes will not be stored.
+ * 
+ * <pre>
+ * Version	Date		Developer			Description
+ * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
+ * </pre>
  */
 public class LdapPerson
 {
 	private Attributes attributes;
 
 	/**
-	 * Constructor
+	 * Constructor that accepts an Attributes object as parameter.
+	 * 
+	 * Autralian National University Data Commons
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
 	 * @param attrs
-	 * Attributes object containing attribute-value pairs of an LDAP entry.
+	 *            Attributes object containing attribute-value pairs of an LDAP entry.
 	 */
 	public LdapPerson(Attributes attrs)
 	{
 		this.attributes = attrs;
 	}
-	
+
 	/**
 	 * Gets the value of an attribute.
 	 * 
@@ -54,7 +71,7 @@ public class LdapPerson
 	 * 
 	 * @param attrName
 	 *            The LDAP attribute name. E.g. displayName.
-	 * @return true if the attribute was pulled from the LDAP server, false otherwise.
+	 * @return true if the attribute was pulled from the LDAP server as part of the query, false otherwise.
 	 */
 	public boolean attrExists(String attrName)
 	{
@@ -79,46 +96,45 @@ public class LdapPerson
 		}
 		return attrExists;
 	}
-	
+
 	/**
-	 *  
-	 * @return
-	 * The display name of the LDAP Person.
+	 * getDisplayName
+	 * 
+	 * Autralian National University Data Commons
+	 * 
+	 * Convenience method that returns Display Name property of an LDAP entry. Used in JSP files:
+	 * 
+	 * <c:out value="${user.displayName} />
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return The display name of the LDAP Person.
 	 */
 	public String getDisplayName()
 	{
-		String displayName;
-		
-		try
-		{
-			displayName = (String) attributes.get(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_DISPLAYNAME, "displayName")).get(0);
-		}
-		catch (NamingException e)
-		{
-			displayName = "";
-		}
-		
-		return displayName;
+		return getAttribute(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_DISPLAYNAME));
 	}
-	
+
 	/**
+	 * getGivenName
 	 * 
-	 * @return
-	 * Given name from the LDAP person entry.
+	 * Autralian National University Data Commons
+	 * 
+	 * Convenience method that returns Display Name property of an LDAP entry. Used in JSP files:
+	 * 
+	 * <c:out value="${user.givenName}" />
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * @return Given name from the LDAP person entry.
 	 */
 	public String getGivenName()
 	{
-		String givenName;
-		
-		try
-		{
-			givenName = (String) attributes.get(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_GIVENNAME, "givenName")).get(0);
-		}
-		catch (NamingException e)
-		{
-			givenName = "";
-		}
-		
-		return givenName;
+		return getAttribute(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_GIVENNAME, "givenName"));
 	}
 }

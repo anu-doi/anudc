@@ -35,9 +35,10 @@ public final class GlobalProps
 	private static final String GLOBAL_PROPERTIES_FILENAME = "global.properties";
 
 	// List of valid Keys in global.properties file that can be used as parameters in the methods of this class.
-	public static final String PROP_FEDORA_URI = "FedoraBaseURI";
-	public static final String PROP_FEDORA_USERNAME = "FedoraUsername";
-	public static final String PROP_FEDORA_PASSWORD = "FedoraPassword";
+	public static final String PROP_FEDORA_URI = "Fedora.BaseURI";
+	public static final String PROP_FEDORA_USERNAME = "Fedora.Username";
+	public static final String PROP_FEDORA_PASSWORD = "Fedora.Password";
+	public static final String PROP_FEDORA_RISEARCHURL = "Fedora.RISearchURI";
 	public static final String PROP_FILEUPLOAD_DIR = "FileUploadDir";
 	public static final String PROP_FILEUPLOAD_TEMPDIR = "FileUploadTempDir";
 	public static final String PROP_LDAP_URI = "LdapUri";

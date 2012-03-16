@@ -78,7 +78,8 @@ public final class SearchServlet extends HttpServlet
 		riSearchQuery.append(URLEncoder.encode(sparqlQuery.generateQuery(), Charset.defaultCharset().name()));
 
 		// Open connection and send POST request.
-		HttpURLConnection connection = (HttpURLConnection) new URL(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI) + "/risearch").openConnection();
+		HttpURLConnection connection = (HttpURLConnection) new URL(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI)
+				+ GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RISEARCHURL)).openConnection();
 		connection.setDoOutput(true);
 		connection.setRequestMethod("POST");
 		connection.setRequestProperty("Content-Length", "" + riSearchQuery.length());
@@ -123,7 +124,7 @@ public final class SearchServlet extends HttpServlet
 				SparqlResultSet resultSet = new SparqlResultSet(resultsXmlDoc);
 
 				request.setAttribute("resultSet", resultSet);
-				request.getRequestDispatcher("/search/").forward(request, response);
+				request.getRequestDispatcher("/jsp/search.jsp").forward(request, response);
 			}
 			catch (SAXException e)
 			{

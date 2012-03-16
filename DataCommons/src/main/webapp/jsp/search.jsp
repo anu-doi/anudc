@@ -1,20 +1,19 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<script type="text/javascript" src="<%=request.getContextPath()%>/js/global.js"></script>
-<title>Search</title>
-</head>
-<body>
-	<h1>Search</h1>
+<%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
+
+<anu:header id="1998" title="Search" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
+	ssl="true">
+</anu:header>
+
+<jsp:include page="/jsp/header.jsp" />
+
+<anu:content layout="doublenarrow" extraClass="nopadbottom" title="Search">
 	<div id="divBasicSearch">
-		<form name="frmBasicSearch" action="<%=request.getContextPath()%>/search/search.do" method="get">
+		<form class="anuform" name="frmBasicSearch" action="<c:url value='/search/search.do' />" method="get">
 			<label for="basicSearchTerms">Search for: </label>
 			<input type="text" name="terms" id="idBasicSearchTerms" size="30" value="<c:out value="${param.terms}" />" />
-			&nbsp;
 			<input type="hidden" name="dt" value="on" />
 			<input type="hidden" name="format" value="Sparql" />
 			<input type="hidden" name="lang" value="sparql" />
@@ -23,6 +22,9 @@
 			<input type="hidden" name="resultsfmt" value="doc" />
 			<input type="submit" value="Search" />
 		</form>
+		<script type="text/javascript">
+			document.frmBasicSearch.terms.focus();
+		</script>
 	</div>
 	<div id="divSearchResults">
 		<c:if test="${resultSet != null}">
@@ -32,7 +34,6 @@
 					<c:choose>
 						<c:when test="${iCol == 1}">
 							<!-- Label -->
-							<!-- Change URL href to the item details page. -->
 							<a href="<c:url value="${row[0]}" />"><c:out value="${row[iCol]}" /></a>
 						</c:when>
 						<c:when test="${iCol == 2}">
@@ -51,8 +52,9 @@
 					<br />
 				</c:forEach>
 			</c:forEach>
-
+			<p><c:out value="${resultSet.numResults}" /> result(s) found.</p>
 		</c:if>
 	</div>
-</body>
-</html>
+</anu:content>
+
+<jsp:include page="/jsp/footer.jsp" />

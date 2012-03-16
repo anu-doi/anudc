@@ -15,7 +15,15 @@ import au.edu.anu.datacommons.properties.GlobalProps;
  * 
  * Australian National University Data Commons
  * 
- * Creates a SPARQL query for execution with words to search as input.
+ * Generates a SPARQL query with words to search as input. The terms can be words or phrases (enclosed in double quotes) and have 'AND' and 'OR' as
+ * binary operators. The default binary operator is AND, which means when two words are provided without a binary operator, results containing both the terms
+ * will be returned. The following are valid term strings:
+ * 
+ * <ul>
+ * <li>first second "third fourth"</li>
+ * <li>first OR "second third"</li>
+ * <li>first AND second OR third</li>
+ * </ul>
  * 
  * Usage:
  * 
@@ -32,15 +40,24 @@ import au.edu.anu.datacommons.properties.GlobalProps;
  */
 public final class SparqlQuery
 {
+	private final Logger log = Logger.getLogger(this.getClass().getName());
+
 	private StringBuilder sparqlQuery;
 	private ArrayList<String> terms;
 	private String[] retFields;
 	private String[] dcFieldsToSearch;
 
-	private final Logger log = Logger.getLogger(this.getClass().getName());
-
 	/**
-	 * Constructor for SparqlQuery
+	 * SparqlQuery
+	 * 
+	 * Autralian National University Data Commons
+	 * 
+	 * Constructor for this class.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
 	 */
 	public SparqlQuery()
 	{
@@ -48,9 +65,19 @@ public final class SparqlQuery
 	}
 
 	/**
-	 * Provided terms are
+	 * setTerms
+	 * 
+	 * Autralian National University Data Commons
+	 * 
+	 * Accepts a String of terms and splits them into individual terms.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
 	 * 
 	 * @param termsString
+	 *            Keywords to search. For example:
 	 */
 	public void setTerms(String termsString)
 	{
@@ -70,7 +97,16 @@ public final class SparqlQuery
 	}
 
 	/**
-	 * Generates the SPARQL query that searches for the terms specified.
+	 * generateQuery
+	 * 
+	 * Autralian National University Data Commons
+	 * 
+	 * Generates the SPARQL query that searches for the terms set using setTerms method.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
 	 * 
 	 * @return The SPARQL query as a String.
 	 */

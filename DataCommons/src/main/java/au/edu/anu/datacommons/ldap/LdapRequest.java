@@ -24,7 +24,7 @@ import au.edu.anu.datacommons.properties.GlobalProps;
  * 
  * Australian National University Data Commons
  * 
- * Class that performs a search on the LDAP directory.
+ * This class wraps a request to be submitted to an LDAP server. URL and BaseDN values of LDAP server are retrieved from the properties file.
  * 
  * <pre>
  * Version	Date		Developer			Description
@@ -41,25 +41,34 @@ public class LdapRequest
 	private static final Hashtable<String, String> searchCtxEnv = new Hashtable<String, String>();
 
 	private final Logger log = Logger.getLogger(this.getClass().getName());
-	
+
 	private StringBuilder ldapQuery;
 	private SearchControls ldapSearchControl;
 	// TODO: Check if ArrayList is the best type to use for a collection of this kind.
 	private ArrayList<LdapPerson> results;
 
+	// Initialise the Search and Authenticate context environments.
 	static
 	{
 		searchCtxEnv.put(Context.INITIAL_CONTEXT_FACTORY, LdapContextFactoryName);
 		searchCtxEnv.put(Context.PROVIDER_URL, LdapUri);
-		
+
 		authCtxEnv.put(Context.INITIAL_CONTEXT_FACTORY, LdapContextFactoryName);
 		authCtxEnv.put(Context.PROVIDER_URL, LdapUri);
 		authCtxEnv.put(Context.SECURITY_AUTHENTICATION, "simple");
 	}
 
-
 	/**
+	 * LdapRequest
+	 * 
+	 * Autralian National University Data Commons
+	 * 
 	 * Constructor
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
 	 */
 	public LdapRequest()
 	{
@@ -68,7 +77,16 @@ public class LdapRequest
 	}
 
 	/**
-	 * Sets the maximum number of search results that will be returned.
+	 * setMaxResults
+	 * 
+	 * Autralian National University Data Commons
+	 * 
+	 * Sets the maximum number of search results that will be returned when the LDAP query is executed. DEFAULT_MAX_SEARCH_RESULTS is used if not specified.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
 	 * 
 	 * @param maxResults
 	 *            Number of maximum search results accepted.
@@ -79,24 +97,89 @@ public class LdapRequest
 	}
 
 	/**
-	 * A convenience method that searches for the specified Uni Id in the LDAP and returns an LdapPerson object with the entry details.
+	 * setQuery
+	 * 
+	 * Autralian National University Data Commons
+	 * 
+	 * Sets the query passed as the parameter to be run.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param query
+	 *            LDAP Query to be run
+	 */
+	public void setQuery(String query)
+	{
+		ldapQuery = new StringBuilder(query);
+	}
+
+	/**
+	 * search
+	 * 
+	 * Autralian National University Data Commons
+	 * 
+	 * Executes the LDAP query. Requires the LDAP query to be assigned.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @throws NamingException
+	 *             When the LDAP query is either blank or invalid.
+	 */
+	public long search() throws NamingException
+	{
+		DirContext dirContext;
+		NamingEnumeration<SearchResult> searchResults = null;
+		long numResults = 0L;
+
+		// Perform search.
+		dirContext = new InitialDirContext(searchCtxEnv);
+		searchResults = dirContext.search(LdapBaseDn, ldapQuery.toString(), ldapSearchControl);
+
+		// Iterate through the results returned, stored each one in results.
+		while (searchResults.hasMore())
+		{
+			results.add(new LdapPerson(searchResults.next().getAttributes()));
+			numResults++;
+		}
+
+		dirContext.close();
+
+		// Return number of results returned.
+		return numResults;
+	}
+
+	/**
+	 * searchUniId
+	 * 
+	 * Autralian National University Data Commons
+	 * 
+	 * A method that searches for the specified Uni Id in the LDAP and returns an LdapPerson object with the entry details. Attributes to be retrieved are
+	 * specified in properties file.
 	 * 
 	 * @param uniId
 	 *            A valid ANU university ID.
 	 * @return An LdapPerson object containing attributes of the person whose Uni Id was provided as parameter.
 	 * @throws Exception
 	 */
-	public LdapPerson uniId(String uniId) throws Exception
+	public LdapPerson searchUniId(String uniId) throws Exception
 	{
 		DirContext dirContext;
 		NamingEnumeration<SearchResult> searchResults = null;
 
 		ldapSearchControl.setCountLimit(DEFAULT_MAX_SEARCH_RESULTS);
 		ldapSearchControl.setReturningAttributes(GlobalProps.getProperty(GlobalProps.PROP_LDAP_ATTRLIST).split(","));
+		ldapSearchControl.setTimeLimit(10000);
 
+		// ldapQuery = "(uid=[uniId])". Where uniId is the parameter passed to this function.
 		ldapQuery = new StringBuilder();
 		ldapQuery.append("(");
-		ldapQuery.append(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_UNIID, "uid"));
+		ldapQuery.append(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_UNIID));
 		ldapQuery.append("=");
 		ldapQuery.append(uniId);
 		ldapQuery.append(")");
@@ -113,6 +196,7 @@ public class LdapRequest
 			e.printStackTrace();
 		}
 
+		// If no results returned or multiple results returned, throw exception.
 		SearchResult firstResult = searchResults.next();
 		if (firstResult == null || searchResults.hasMore())
 			throw new Exception("No results or multiple results returned for Uni Id. Only one expected.");
@@ -121,66 +205,50 @@ public class LdapRequest
 	}
 
 	/**
-	 * Sets the query passed as the parameter to be run.
+	 * authenticate
 	 * 
-	 * @param query
-	 *            Query to be run
-	 */
-	public void setQuery(String query)
-	{
-		ldapQuery = new StringBuilder(query);
-	}
-
-	/**
-	 * Executes the LDAP query.
+	 * Autralian National University Data Commons
 	 * 
-	 * @throws NamingException
+	 * Queries the LDAP server if a set of username and password are valid.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial.
+	 * </pre>
+	 * 
+	 * @param username
+	 *            Username
+	 * @param password
+	 *            Password
+	 * @return true if credentials are correct, false otherwise.
 	 */
-	public long search() throws NamingException
-	{
-		DirContext dirContext;
-		NamingEnumeration<SearchResult> searchResults = null;
-		long numResults = 0L;
-
-		dirContext = new InitialDirContext(searchCtxEnv);
-		searchResults = dirContext.search(LdapBaseDn, ldapQuery.toString(), ldapSearchControl);
-
-		while (searchResults.hasMore())
-		{
-			results.add(new LdapPerson(searchResults.next().getAttributes()));
-			numResults++;
-		}
-
-		return numResults;
-	}
-
 	public boolean authenticate(String username, String password)
 	{
 		boolean isAuthenticated = false;
 		DirContext dirContext = null;
-		
-		// Add addition environment key values in the environment Hashtable.
-		authCtxEnv.put(Context.SECURITY_PRINCIPAL, "uid=" + username + ", " + GlobalProps.getProperty(GlobalProps.PROP_LDAP_BASEDN));
+
+		// Parameter password must never be blank. A user gets authenticated if password is blank.
+		if (password.equals(""))
+			return isAuthenticated;
+
+		// Include username and password in the directory context environment.
+		authCtxEnv.put(Context.SECURITY_PRINCIPAL,
+				GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_UNIID) + "=" + username + ", " + GlobalProps.getProperty(GlobalProps.PROP_LDAP_BASEDN));
 		authCtxEnv.put(Context.SECURITY_CREDENTIALS, password);
 
 		try
 		{
 			dirContext = new InitialDirContext(authCtxEnv);
-
 			// If no exception thrown then credentials are valid.
 			isAuthenticated = true;
 		}
-		catch (AuthenticationException e)
+		catch (AuthenticationException e)		// Invalid credentials
 		{
-			// When credentials are not valid.
 			isAuthenticated = false;
 		}
-		catch (NamingException e)
+		catch (NamingException e)		// Some other error
 		{
-			// TODO Change catch code.
-			e.printStackTrace();
-			
-			// Can't be sure if credentials are valid when this exception's thrown. Status set to false.
+			// Can't be sure if credentials are valid when this exception's thrown. Flagged false to be safe.
 			isAuthenticated = false;
 		}
 		finally
