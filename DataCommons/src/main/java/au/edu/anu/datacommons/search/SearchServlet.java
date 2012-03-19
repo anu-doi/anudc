@@ -30,7 +30,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.datacommons.utils.Utils;
+import au.edu.anu.datacommons.util.Utils;
 
 /**
  * Servlet implementation class SearchServlet

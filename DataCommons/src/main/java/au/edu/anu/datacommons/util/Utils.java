@@ -1,7 +1,7 @@
 /**
  * 
  */
-package au.edu.anu.datacommons.utils;
+package au.edu.anu.datacommons.util;
 
 import java.io.StringWriter;
 import java.io.Writer;
