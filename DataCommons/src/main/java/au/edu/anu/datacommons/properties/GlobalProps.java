@@ -1,6 +1,3 @@
-/**
- * 
- */
 package au.edu.anu.datacommons.properties;
 
 import java.io.IOException;

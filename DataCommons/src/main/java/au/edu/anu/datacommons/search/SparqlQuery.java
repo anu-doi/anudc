@@ -1,6 +1,3 @@
-/**
- * 
- */
 package au.edu.anu.datacommons.search;
 
 import java.util.ArrayList;

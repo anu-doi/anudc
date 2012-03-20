@@ -1,6 +1,8 @@
 package au.edu.anu.datacommons.login;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletException;
@@ -40,7 +42,9 @@ public class LoginServlet extends HttpServlet
 			log.info("Invalidating Session ID: " + request.getSession().getId());
 			request.getSession().invalidate();
 		}
-		response.sendRedirect(request.getContextPath() + "/");
+		// response.sendRedirect(request.getContextPath() + "/");
+		response.sendRedirect("https://login-test.anu.edu.au/logout?url="
+				+ URLEncoder.encode((String) request.getHeader("referer"), Charset.defaultCharset().name()));
 	}
 
 	/**
@@ -50,7 +54,7 @@ public class LoginServlet extends HttpServlet
 	{
 		String username = request.getParameter("username");
 		String password = request.getParameter("password");
-		
+
 		if (username.equals("") || password.equals(""))
 			response.sendRedirect(request.getContextPath() + "/jsp/login.jsp?err=blank");
 

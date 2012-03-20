@@ -99,6 +99,4 @@ public class FedoraReference {
 	public void setIsLiteral_(Boolean isLiteral_) {
 		this.isLiteral_ = isLiteral_;
 	}
-	
-	
 }

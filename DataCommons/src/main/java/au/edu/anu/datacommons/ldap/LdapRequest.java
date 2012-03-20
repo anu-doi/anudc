@@ -1,6 +1,3 @@
-/**
- * 
- */
 package au.edu.anu.datacommons.ldap;
 
 import java.util.ArrayList;
