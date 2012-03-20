@@ -8,6 +8,10 @@
       <param-name>com.sun.jersey.config.property.packages</param-name>
       <param-value>au.edu.anu.datacommons.services</param-value>
     </init-param>
+    <init-param>
+    	<param-name>com.sun.jersey.config.property.JSPTemplatesBasePath</param-name>
+    	<param-value>/jsp</param-value>
+    </init-param>
     <load-on-startup>-1</load-on-startup>
   </servlet>
   <servlet-mapping>

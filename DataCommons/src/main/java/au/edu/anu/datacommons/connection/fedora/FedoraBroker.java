@@ -34,9 +34,9 @@ import com.yourmediashelf.fedora.client.response.PurgeDatastreamResponse;
  * 
  * Performs actions with the fedora commons repository
  * 
- * Version - Date - Developer
- * 0.1 - 08/03/2012 - Genevieve Turner - Initial build
- * 0.2 - 14/03/2012 - Genevieve Turner - Updated getDatastreamAsStream method to be static
+ * Version	Date		Developer			Description
+ * 0.1		08/03/2012	Genevieve Turner	Initial build
+ * 0.2		14/03/2012	Genevieve Turner	Updated getDatastreamAsStream method to be static
  * 
  */
 public class FedoraBroker {
@@ -158,6 +158,19 @@ public class FedoraBroker {
 		return true;
 	}
 	
+	/**
+	 * modifyDatastreamByReference
+	 * 
+	 * Updates the datastream with the supplied reference to the source
+	 * 
+	 * Version - Date - Dev - Description
+	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * 
+	 * @param pid The pid of the object
+	 * @param references A list of references to place in the system
+	 * @return true if the action has completed
+	 * @throws FedoraClientException
+	 */
 	public static boolean addRelationships (String pid, List<FedoraReference> references) throws FedoraClientException {
 		PurgeDatastreamResponse purgeDatastreamResponse = new PurgeDatastream(pid, "RELS-EXT").execute(fedoraClient_);
 		
@@ -187,6 +200,4 @@ public class FedoraBroker {
 		FedoraResponse sourceResponse = new GetDatastreamDissemination (pid, streamId).execute(fedoraClient_);
 		return sourceResponse.getEntityInputStream();
 	}
-	
-	//public static void 
 }

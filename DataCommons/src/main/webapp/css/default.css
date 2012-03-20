@@ -1,29 +1,3 @@
-body {
-	padding-left: 11em;
-	color: black;
-	top: 2em;
-}
-
-div.menu {
-	padding: 0;
-	position: absolute;
-	top: 2em;
-	left: 1em;
-	width: 9em;
-	color: black;
-	background: white;
-}
-div.menu ul{
-	list-style-type: none;
-	padding: 0;
-	margin: 0;
-}
-div.menu li{
-	border-top-style: solid;
-}
-a:link {
-	color: black
-}
-a:visited {
-	color: black
+select {
+	width: 150px;
 }
