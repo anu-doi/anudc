@@ -37,6 +37,7 @@ import com.yourmediashelf.fedora.client.response.PurgeDatastreamResponse;
  * Version - Date - Developer
  * 0.1 - 08/03/2012 - Genevieve Turner - Initial build
  * 0.2 - 14/03/2012 - Genevieve Turner - Updated getDatastreamAsStream method to be static
+ * 0.3 - 21/03/2012	- Rahul Khanna (RK) - Added getClient method
  * 
  */
 public class FedoraBroker {
@@ -188,5 +189,8 @@ public class FedoraBroker {
 		return sourceResponse.getEntityInputStream();
 	}
 	
-	//public static void 
+	public static FedoraClient getClient()
+	{
+		return fedoraClient_;
+	}
 }

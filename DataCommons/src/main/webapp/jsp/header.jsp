@@ -32,6 +32,7 @@
 	<anu:submenu title="Data Commons">
 		<li><a href="<c:url value='/jsp/welcome.jsp' />">Home</a></li>
 		<li><a href="<c:url value='/jsp/search.jsp' />">Search</a></li>
+		<li><a href="<c:url value='/jsp/upload.jsp' />">Upload</a></li>
 	</anu:submenu>
 
 	<anu:submenu title="ANU">

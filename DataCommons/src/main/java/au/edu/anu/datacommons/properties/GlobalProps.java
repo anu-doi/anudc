@@ -24,6 +24,7 @@ import java.util.Properties;
  * Version	Date		Developer			Description
  * 0.1		8/03/2012	Rahul Khanna (RK)	Initial.
  * 0.2		14/03/2012	Rahul Khanna (RK)	Added Search properties.
+ * 0.3		20/03/2012	Rahul Khanna (RK)	Added File Upload properties.
  * <pre>
  * 
  */
@@ -39,8 +40,6 @@ public final class GlobalProps
 	public static final String PROP_FEDORA_USERNAME = "Fedora.Username";
 	public static final String PROP_FEDORA_PASSWORD = "Fedora.Password";
 	public static final String PROP_FEDORA_RISEARCHURL = "Fedora.RISearchURI";
-	public static final String PROP_FILEUPLOAD_DIR = "FileUploadDir";
-	public static final String PROP_FILEUPLOAD_TEMPDIR = "FileUploadTempDir";
 	public static final String PROP_LDAP_URI = "LdapUri";
 	public static final String PROP_LDAP_BASEDN = "LdapBaseDn";
 	public static final String PROP_LDAP_ATTRLIST = "LdapPerson.AttrList";
@@ -52,6 +51,10 @@ public final class GlobalProps
 	public static final String PROP_LDAPATTR_PHONE = "LdapAttr.Phone";
 	public static final String PROP_SEARCH_SEARCHFIELDS = "Search.DcSearchFields";
 	public static final String PROP_SEARCH_RETURNFIELDS = "Search.DcReturnFields";
+	public static final String PROP_UPLOAD_DIR = "Upload.UploadDir";
+	public static final String PROP_UPLOAD_TEMPDIR = "Upload.TempDir";
+	public static final String PROP_UPLOAD_MAXSIZEINMEM = "Upload.MaxSizeInMemInBytes";
+	public static final String PROP_UPLOAD_HTTPBASEURI = "Upload.UploadHttpBaseURI";
 
 	static
 	{

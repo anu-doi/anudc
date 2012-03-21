@@ -61,6 +61,7 @@ public final class SearchServlet extends HttpServlet
 		SparqlQuery sparqlQuery = new SparqlQuery();
 
 		// Create the URL query string.
+		@SuppressWarnings("unchecked")
 		Set<Entry<String, String[]>> paramSet = ((Map<String, String[]>) request.getParameterMap()).entrySet();
 		for (Entry<String, String[]> iParam : paramSet)
 		{
