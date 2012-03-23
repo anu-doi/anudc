@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<foxml:digitalObject PID="def:new" VERSION="1.1"
+  xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
+  <foxml:objectProperties>
+    <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+    <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="New Form XSL"/>
+  </foxml:objectProperties>
+  <foxml:datastream CONTROL_GROUP="X" ID="DC" STATE="A" VERSIONABLE="true">
+    <foxml:datastreamVersion FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/"
+      ID="DC1.0" LABEL="Dublin Core Record for this object" MIMETYPE="text/xml">
+      <foxml:xmlContent>
+        <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/"
+          xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+          <dc:title>New Form XSL</dc:title>
+          <dc:identifier>def:new</dc:identifier>
+        </oai_dc:dc>
+      </foxml:xmlContent>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+  <foxml:datastream CONTROL_GROUP="X" ID="XSL_SOURCE" STATE="A" VERSIONABLE="true">
+    <foxml:datastreamVersion ID="XSL_SOURCE.0" LABEL="XSL Source" MIMETYPE="text/xml" >
+      <foxml:xmlContent>
+        <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+          <xsl:param name="item"/>
+          <xsl:param name="tmplt"/>
+          <xsl:param name="data"/>
+          <xsl:variable name="mData" select="$data"/>
+          <xsl:template match="/">
+            <html>
+              <head>
+                <link href="/DataCommons/css/default.css" rel="stylesheet" type="text/css"/>
+                <script src="/DataCommons/js/global.js" type="text/javascript"/>
+              </head>
+              <body>
+                <h1>
+                  <xsl:value-of select="template/name"/>
+                </h1>
+                <form action="display/new?layout=def:test2&amp;tmplt={$tmplt}&amp;item={$item}" method="post" onsubmit="return validateForm()">
+                  <table>
+                    <xsl:for-each select="template/item">
+                      <tr>
+                        <xsl:choose>
+                          <xsl:when test="@fieldType='TextField'">
+                            <xsl:call-template name="Label"/>
+                            <xsl:call-template name="TextField"/>
+                          </xsl:when>
+                          <xsl:when test="@fieldType='TextFieldMulti'">
+                            <xsl:call-template name="Label"/>
+                            <xsl:call-template name="TextFieldMulti"/>
+                          </xsl:when>
+                          <xsl:when test="@fieldType='TextArea'">
+                            <xsl:call-template name="Label"/>
+                            <xsl:call-template name="TextArea"/>
+                          </xsl:when>
+                          <xsl:when test="@fieldType='Combobox'">
+                            <xsl:call-template name="Label"/>
+                            <xsl:call-template name="ComboBox"/>
+                          </xsl:when>
+                          <xsl:when test="@fieldType='Table'">
+                            <xsl:call-template name="Label"/>
+                            <xsl:call-template name="Table"/>
+                          </xsl:when>
+                          <xsl:when test="@fieldType='TableVertical'">
+                            <xsl:call-template name="Label"/>
+                            <xsl:call-template name="Table"/>
+                          </xsl:when>
+                        </xsl:choose>
+                      </tr>
+                    </xsl:for-each>
+                  </table>
+                  <input type="submit" value="Submit"/>
+                </form>
+              </body>
+            </html>
+          </xsl:template>
+          <xsl:template name="Label">
+            <td>
+              <label for="{@name}">
+                <xsl:value-of select="@label"/>
+              </label>
+            </td>
+          </xsl:template>
+          <xsl:template name="TextField">
+            <td>
+              <input class="{@class}" maxlength="{@maxLength}" name="{@name}" type="text">
+                <xsl:if test="@disabled = 'disabled'">
+                  <xsl:attribute name="disabled">
+                    <xsl:value-of select="@disabled"/>
+                  </xsl:attribute>
+                  <xsl:attribute name="value">
+                    <xsl:value-of select="@defaultValue"/>
+                  </xsl:attribute>
+                </xsl:if>
+                <xsl:if test="@readonly = 'readonly'">
+                  <xsl:attribute name="readonly">
+                    <xsl:value-of select="@readonly"/>
+                  </xsl:attribute>
+                  <xsl:attribute name="value">
+                    <xsl:value-of select="@defaultValue"/>
+                  </xsl:attribute>
+                </xsl:if>
+              </input>
+            </td>
+          </xsl:template>
+          <xsl:template name="TextArea">
+            <td>
+              <textarea class="{@class}" name="{@name}"/>
+            </td>
+          </xsl:template>
+          <xsl:template name="TextFieldMulti">
+            <td>
+              <input onClick="cloneElement(nextSibling.nextSibling.childNodes[1].childNodes[0],1,100);" type="button" value="Add Row"/>
+              <table>
+                <xsl:choose>
+                  <xsl:otherwise>
+                    <tr>
+                      <td>
+                        <input class="{@class}" maxlength="{@maxLength}" name="{@name}" type="text"/>
+                      </td>
+                      <td>
+                        <input onClick="removeElement(this.parentNode.parentNode, 1, 100)" type="button" value="Remove"/>
+                      </td>
+                    </tr>
+                  </xsl:otherwise>
+                </xsl:choose>
+              </table>
+            </td>
+          </xsl:template>
+          <xsl:template name="ComboBox">
+            <td>
+              <xsl:variable name="mName" select="@name"/>
+              <select class="{@class}" name="{@name}">
+                <xsl:for-each select="option">
+                  <option value="{@value}">
+                    <xsl:value-of select="@label"/>
+                  </option>
+                </xsl:for-each>
+              </select>
+            </td>
+          </xsl:template>
+          <xsl:template name="Table">
+            <td>
+              <input onClick="cloneElement(getNextTableRow(this),1,100);" type="button" value="Add Row"/>
+              <table>
+                <tr>
+                  <xsl:for-each select="column">
+                    <th>
+                      <xsl:value-of select="@label"/>
+                    </th>
+                  </xsl:for-each>
+                  <xsl:choose>
+                    <xsl:otherwise>
+                      <tr>
+                        <xsl:for-each select="column">
+                          <xsl:choose>
+                            <xsl:when test="@fieldType='TextField'">
+                              <xsl:call-template name="TextField"/>
+                            </xsl:when>
+                            <xsl:when test="@fieldType='TextArea'">
+                              <xsl:call-template name="TextArea"/>
+                            </xsl:when>
+                            <xsl:when test="@fieldType='Combobox'">
+                              <xsl:call-template name="ComboBox"/>
+                            </xsl:when>
+                          </xsl:choose>
+                        </xsl:for-each>
+                        <td>
+                          <input onClick="removeElement(this.parentNode.parentNode, 1, 100);" type="button" value="Remove"/>
+                        </td>
+                      </tr>
+                    </xsl:otherwise>
+                  </xsl:choose>
+                </tr>
+              </table>
+            </td>
+          </xsl:template>
+        </xsl:stylesheet>
+      </foxml:xmlContent>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+</foxml:digitalObject>
