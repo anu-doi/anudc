@@ -34,9 +34,10 @@ import com.yourmediashelf.fedora.client.response.PurgeDatastreamResponse;
  * 
  * Performs actions with the fedora commons repository
  * 
- * Version	Date		Developer			Description
- * 0.1		08/03/2012	Genevieve Turner	Initial build
- * 0.2		14/03/2012	Genevieve Turner	Updated getDatastreamAsStream method to be static
+ * Version	Date		Developer				Description
+ * 0.1		08/03/2012	Genevieve Turner (GT)	Initial build
+ * 0.2		14/03/2012	Genevieve Turner (GT)	Updated getDatastreamAsStream method to be static
+ * 0.3		21/03/2012	Rahul Khanna (RK)		Added getClient method
  * 
  */
 public class FedoraBroker {
@@ -61,8 +62,8 @@ public class FedoraBroker {
 	 * 
 	 * Create a new object in the fedora commons database
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
 	 * 
 	 * @param namespace The namespace to create the object with
 	 * @return Return the pid of the newly created object
@@ -78,8 +79,8 @@ public class FedoraBroker {
 	 * 
 	 * Creates a datastream with the supplied object
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
 	 * 
 	 * @param pid The pid of the object
 	 * @param streamId The datastream to create the object in
@@ -99,8 +100,8 @@ public class FedoraBroker {
 	 * 
 	 * Creates the datastream with the supplied reference to the source
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
 	 * 
 	 * @param pid The pid of the object
 	 * @param streamId The datastream to create the object in
@@ -121,8 +122,8 @@ public class FedoraBroker {
 	 * 
 	 * Updates the datastream with the supplied object
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
 	 * 
 	 * @param pid The pid of the object
 	 * @param streamId The datastream of the object to modify
@@ -142,8 +143,8 @@ public class FedoraBroker {
 	 * 
 	 * Updates the datastream with the supplied reference to the source
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
 	 * 
 	 * @param pid The pid of the object
 	 * @param streamId The datastream of the object to modify
@@ -163,8 +164,8 @@ public class FedoraBroker {
 	 * 
 	 * Updates the datastream with the supplied reference to the source
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
 	 * 
 	 * @param pid The pid of the object
 	 * @param references A list of references to place in the system
@@ -185,9 +186,9 @@ public class FedoraBroker {
 	/**
 	 * getDatastreamAsStream
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
-	 * 0.2 - 14/03/2012 - Genevieve Turner - Updated method to be static
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
+	 * 0.2		14/03/2012	Genevieve Turner (GT)	Updated method to be static
 	 * 
 	 * Returns the specified datastream as an InputStream
 	 * 
@@ -199,5 +200,10 @@ public class FedoraBroker {
 	public static InputStream getDatastreamAsStream (String pid, String streamId) throws FedoraClientException {
 		FedoraResponse sourceResponse = new GetDatastreamDissemination (pid, streamId).execute(fedoraClient_);
 		return sourceResponse.getEntityInputStream();
+	}
+
+	public static FedoraClient getClient()
+	{
+		return fedoraClient_;
 	}
 }

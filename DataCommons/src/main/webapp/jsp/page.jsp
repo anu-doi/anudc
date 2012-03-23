@@ -8,4 +8,5 @@
 
 <jsp:include page="header.jsp" />
 <jsp:include page="body.jsp" />
+<jsp:include page="${it.sidepage}" />
 <jsp:include page="footer.jsp" />

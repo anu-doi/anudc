@@ -2,7 +2,6 @@ package au.edu.anu.datacommons.services;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -13,6 +12,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +34,8 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * Version	Date		Developer				Description
  * 0.1		08/03/2012	Genevieve Turner (GT)	Initial
  * 0.2		19/03/2012	Genevieve Turner (GT)	Updating to return a page
+ * 0.3		23/03/2012	Genevieve Turner (GT)	Updated to include saving of new records and a side page
+ * 
  */
 @Path("/display")
 public class DisplayResource {
@@ -44,11 +46,10 @@ public class DisplayResource {
 	/**
 	 * getItem
 	 * 
-	 * 
-	 * 
 	 * Version	Date		Developer				Description
 	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial
 	 * 0.2		19/03/2012	Genevieve Turner (GT)	Updating to return a page
+	 * 0.3		23/03/2012	Genevieve Turner (GT)	Updated to contain information about the side page
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
 	 * @param template The template that determines the fields on the screen
@@ -57,7 +58,7 @@ public class DisplayResource {
 	 */
 	@GET
 	@Produces(MediaType.TEXT_HTML)
-	public Viewable getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String template, @QueryParam("item") String item)
+	public Viewable getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String template, @QueryParam("item") String item, @QueryParam("mode") String mode)
 	{
 		String toPage = "/page.jsp";
 		
@@ -80,6 +81,14 @@ public class DisplayResource {
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("page", page);
 		
+		//TODO This is should probably be modified
+		String sidepage = "buttons.jsp";
+		
+		if(Util.isNotEmpty(mode)) {
+			sidepage = mode + ".jsp";
+		}
+		values.put("sidepage", sidepage);
+		
 		Viewable viewable = new Viewable(toPage, values);
 		
 		return viewable;
@@ -90,6 +99,7 @@ public class DisplayResource {
 	 * 
 	 * Version	Date		Developer				Description
 	 * 0.2		20/03/2012	Genevieve Turner (GT)	Added as a placeholder
+	 * 0.3		23/03/2012	Genevieve Turner (GT)	Modified to save data
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
 	 * @param template The template that determines the fields on the screen
@@ -104,13 +114,32 @@ public class DisplayResource {
 	public Viewable postItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String template, @QueryParam("item") String item, Form form)
 	{
 		//TODO place post logic and return a proper screen.
-		for(Entry param : form.entrySet()) {
+		/*for(Entry param : form.entrySet()) {
 			LOGGER.info("Param: " + param.getKey() + ", Value: " + param.getValue());
-		}
+		}*/
 		String toPage = "/page.jsp";
-
+		String page = null;
+		ViewTransform viewTransform = new ViewTransform();
+		try {
+			item = viewTransform.saveData(template, null, form);
+			page = viewTransform.getPage("def:test2", null, item);
+			
+		}
+		catch (JAXBException e) {
+			LOGGER.error("Exception transforming jaxb", e);
+			toPage = "/error.jsp";
+		}
+		catch (FedoraClientException e) {
+			LOGGER.error("Exception creating/retrieving objects", e);
+			toPage = "/error.jsp";
+		}
+		
+		//TODO this should probably be changed
+		String sidepage = "buttons.jsp";
+		
 		Map<String, Object> values = new HashMap<String, Object>();
-		toPage = "/error.jsp";
+		values.put("page", page);
+		values.put("sidepage", sidepage);
 		Viewable viewable = new Viewable(toPage, values);
 		
 		return viewable;

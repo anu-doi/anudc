@@ -51,7 +51,8 @@ function cloneElement(elementToClone)
 	}
 	console.log(newElement.nodeType);
 	console.log(newElement);
-	elementToClone.parentNode.appendChild(newElement.cloneNode(true));
+	cloneNode = newElement.cloneNode(true); //.find("input:text").value("")
+	elementToClone.parentNode.appendChild(cloneNode);
 }
 
 /**
@@ -61,8 +62,9 @@ function cloneElement(elementToClone)
  * 
  * @param elementToRemove The element to remove
  */
-function removeElement(elementToRemove)
+function removeElement(elementToRemove, minRows)
 {
+	//TODO remove stuff about min rows
 	var minRows = 1;
 	var firstSiblingElement = elementToRemove.parentNode.childNodes[0];
 	

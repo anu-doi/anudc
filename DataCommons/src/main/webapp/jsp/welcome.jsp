@@ -9,9 +9,13 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublenarrow" extraClass="nopadbottom" title="ANU Data Commons">
+<anu:content layout="doublenarrow" title="ANU Data Commons">
 	<p>Welcome to the ANU Data Commons.</p>
 	<p>This project will allow people to add information about their datasets, catalogues etc.</p>
 </anu:content>
 
+<anu:content layout="narrow">
+	<anu:boxheader text="Updates" />
+	<anu:box style="solid">Updates, changelog etc.</anu:box>
+</anu:content>
 <jsp:include page="/jsp/footer.jsp" />

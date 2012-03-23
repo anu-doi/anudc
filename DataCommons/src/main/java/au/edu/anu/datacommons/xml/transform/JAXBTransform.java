@@ -3,11 +3,15 @@ package au.edu.anu.datacommons.xml.transform;
 import java.io.InputStream;
 import java.io.Writer;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * JAXBTransform
@@ -21,9 +25,11 @@ import javax.xml.bind.Unmarshaller;
  * 
  * Version	Date		Developer			Description
  * 0.1		19/03/2012	Genevieve Turner	Initial build
+ * 0.2		23/03/2012	Genevieve Turner	Updated to allow for properties in the marshaller
  * 
  */
 public class JAXBTransform {
+	static final Logger LOGGER = LoggerFactory.getLogger(JAXBTransform.class);
 	
 	/**
 	 * unmarshalStream
@@ -64,13 +70,13 @@ public class JAXBTransform {
 	}
 	
 	/**
-	 * 
 	 * marshalStream
 	 * 
 	 * Marshal the given object into the given writer.
 	 * 
 	 * Version	Date		Developer			Description
 	 * 0.1		19/03/2012	Genevieve Turner	Initial build
+	 * 0.2		23/03/2012	Genevieve Turner	Updated to allow for properties in the marshaller
 	 * 
 	 * @param out The stream to marshal the object in to
 	 * @param object The object to marshal
@@ -82,6 +88,11 @@ public class JAXBTransform {
 			throws JAXBException {
 		JAXBContext jaxbContext = JAXBContext.newInstance(classToBeBound);
 		Marshaller marshaller = jaxbContext.createMarshaller();
+		if (properties != null) {
+			for (Entry<String, Object> property : properties.entrySet()) {
+				marshaller.setProperty(property.getKey(), property.getValue());
+			}
+		}
 		marshaller.marshal(object, out);
 	}
 }
