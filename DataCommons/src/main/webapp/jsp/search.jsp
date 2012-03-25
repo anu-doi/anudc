@@ -5,32 +5,25 @@
 
 <anu:header id="1998" title="Search" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
+	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
+	<link href="http://styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublenarrow" extraClass="nopadbottom" title="Search">
+<anu:content layout="doublewide" title="Search">
 	<div id="divBasicSearch">
-		<form class="anuform" name="frmBasicSearch" action="<c:url value='/search/search.do' />" method="get">
-			<label for="basicSearchTerms">Search for: </label>
-			<input type="text" name="terms" id="idBasicSearchTerms" size="30" value="<c:out value="${param.terms}" />" />
-			<input type="hidden" name="dt" value="on" />
-			<input type="hidden" name="format" value="Sparql" />
-			<input type="hidden" name="lang" value="sparql" />
-			<input type="hidden" name="limit" value="1000" />
-			<input type="hidden" name="type" value="tuples" />
-			<input type="hidden" name="resultsfmt" value="doc" />
-			<input type="submit" value="Search" />
-		</form>
+		<jsp:include page="/jsp/searchbox.jsp" />
+
 		<script type="text/javascript">
-			document.frmBasicSearch.terms.focus();
+			document.frmBasicSearch.q.focus();
 		</script>
 	</div>
 	<div id="divSearchResults">
-		<c:if test="${resultSet != null}">
+		<c:if test="${it.resultSet != null}">
 			<hr />
-			<c:forEach items="${resultSet.allResults}" var="row">
-				<c:forEach var="iCol" begin="0" end="${resultSet.numCols - 1}">
+			<c:forEach items="${it.resultSet.allResults}" var="row">
+				<c:forEach var="iCol" begin="0" end="${it.resultSet.numCols - 1}">
 					<c:choose>
 						<c:when test="${iCol == 1}">
 							<!-- Label -->
@@ -52,7 +45,10 @@
 					<br />
 				</c:forEach>
 			</c:forEach>
-			<p><c:out value="${resultSet.numResults}" /> result(s) found.</p>
+			<p class="msg-success margintop">
+				<c:out value="${it.resultSet.numResults}" />
+				result(s) found.
+			</p>
 		</c:if>
 	</div>
 </anu:content>
