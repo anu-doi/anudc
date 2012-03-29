@@ -8,8 +8,89 @@
  * Version	Date		Developer			Description
  * 0.1		08/03/2012	Rahul Khanna		Initial
  * 0.2		20/03/2012	Genevieve Turner	Added functions for adding/removing rows
+ * 0.3		26/03/2012	Genevieve Turner	Removed existing functions for adding/removing rows and changed to use jQuery
  * 
  */
+
+/**
+ * Performs functions when the html document has completed and is ready.  Currently
+ * this disables the submit button on the edit page.
+ * 
+ * Version	Date		Developer			Description
+ * 0.3		26/03/2012	Genevieve Turner	Created function
+ * 
+ */
+jQuery(document).ready(function() {
+	jQuery("#editSubmit").attr("disabled", "disabled");
+});
+
+/**
+ * Opens a dialog so the user can add references
+ * 
+ * Version	Date		Developer			Description
+ * 0.3		26/03/2012	Genevieve Turner	Created function
+ * 
+ */
+jQuery("#itemLinkButton").live('click', function(){
+	console.log('Clicked');
+	window.open('/DataCommons/jsp/add_reference.jsp', '', 'width=300');
+});
+
+/**
+ * When the edit drop down lists selected value changes this event fires.  It performs
+ * an ajax request that returns html to add to the screen.
+ * 
+ * Version	Date		Developer			Description
+ * 0.3		26/03/2012	Genevieve Turner	Created function
+ */
+jQuery("#editSelect").live('change', function() {
+	var aURL = window.location.href.slice(0, window.location.href.indexOf('?'));
+	var paramhash = getURLVars();
+	//TODO could potentially move this so its not a hard coded value?
+	paramhash['layout'] = 'def:edit';
+	params = jQuery.param(paramhash);
+	var requestURL = aURL + "/" + jQuery(this).val() + "?" + params;
+	jQuery.ajax({
+		type: "GET",
+		url: requestURL,
+		cache: false,
+		success: processReturn
+	});
+});
+
+/**
+ * getURLVars
+ * 
+ * Returns a map of parameters
+ * 
+ * Version	Date		Developer			Description
+ * 0.3		26/03/2012	Genevieve Turner	Created function
+ * 
+ */
+function getURLVars() {
+	var vars = {}, hash;
+	var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+	for (var i = 0; i < hashes.length; i++) {
+		hash = hashes[i].split('=');
+		vars[hash[0]] = hash[1];
+	}
+	return vars;
+}
+
+/**
+ * processReturn
+ * Adds the given values to the html document.
+ * 
+ * Version	Date		Developer			Description
+ * 0.3		26/03/2012	Genevieve Turner	Created function
+ * 
+ * @param xml The fields to add to the document.
+ */
+function processReturn(xml) {
+	jQuery("#extraFields").empty();
+	jQuery("#extraFields").append(xml);
+	jQuery("#editSubmit").removeAttr("disabled");
+}
 
 /**
  * Takes an integer as a parameter and formats the integer with commas as thousand separators. E.g. 123456789 returns 123,456,789.
@@ -33,93 +114,41 @@ function groupDigits(nStr)
 }
 
 /**
- * cloneElement
- * 
- * Clones the given element
+ * Adds a new row to the specified table
  * 
  * Version	Date		Developer			Description
- * 0.2		20/03/2012	Genevieve Turner	Added functions for adding/removing rows
+ * 0.3		26/03/2012	Genevieve Turner	Created function
  * 
- * @param elementToClone The elemnt to take a copy of
+ * @param tableName The name of the table to add a row to
  */
-function cloneElement(elementToClone)
-{
-	var newElement = elementToClone;
-	// Verify the field is an element
-	if (newElement.nodeType != 1) {
-		newElement = getNextSiblingElement(elementToClone.parentNode.childNodes[0]);
-	}
-	console.log(newElement.nodeType);
-	console.log(newElement);
-	cloneNode = newElement.cloneNode(true); //.find("input:text").value("")
-	elementToClone.parentNode.appendChild(cloneNode);
+function addTableRow(tableName) {
+	var newRow = jQuery('#' + tableName + ' tbody>tr:last').clone(true);
+	newRow.find("input:text").val('');
+	newRow.find("option:selected").removeAttr("selected");
+	newRow.find("textarea").val('');
+	newRow.insertAfter('#' + tableName + ' tbody>tr:last');
 }
 
 /**
+ * Removes the table row of the clicked button. If it is the last row in the table then
+ * the values are cleared.
  * 
  * Version	Date		Developer			Description
- * 0.2		20/03/2012	Genevieve Turner	Added functions for adding/removing rows
+ * 0.3		26/03/2012	Genevieve Turner	Created function
  * 
- * @param elementToRemove The element to remove
+ * @param buttonField The button that was clicked
  */
-function removeElement(elementToRemove, minRows)
-{
-	//TODO remove stuff about min rows
-	var minRows = 1;
-	var firstSiblingElement = elementToRemove.parentNode.childNodes[0];
-	
-	// Verify that the first child node is of element type
-	if (firstSiblingElement.nodeType != 1) {
-		firstSiblingElement = getNextSiblingElement(firstSiblingElement);
+function removeTableRow(buttonField) {
+	if(jQuery(buttonField).closest('table').find('tbody > tr').length > 1) {
+		jQuery(buttonField).parent().parent().remove();
 	}
-	
-	// If the row is a table with a table header we want to account for the table header row
-	if (firstSiblingElement.getElementsByTagName('th').length > 0) {
-		minRows = 2;
-	}
-	
-	if (elementToRemove.parentNode.rows.length > minRows) {
-		elementToRemove.parentNode.removeChild(elementToRemove);
+	else {
+		var tableRow = jQuery(buttonField).parent().parent();
+		// Clear the values of the fields in the table
+		tableRow.find("input:text").val('');
+		tableRow.find("select option:first-child").attr("selected","selected");
+		tableRow.find("textarea").val('');
 	}
 }
 
-/**
- * getNextSiblingElement
- * 
- * Returns the next sibling that is an element
- * 
- * Version	Date		Developer			Description
- * 0.2		20/03/2012	Genevieve Turner	Added functions for adding/removing rows
- * 
- * @param curNode The node to get the next sibling of
- * @returns The next node that is an element
- */
-function getNextSiblingElement(curNode)
-{
-	var nextSiblingElement = curNode.nextSibling;
-	
-	while (nextSiblingElement != null && nextSiblingElement.nodeType != 1)
-	{
-		nextSiblingElement = nextSiblingElement.nextSibling;
-	}
-	
-	return nextSiblingElement;
-}
 
-/**
- * getNextTableRow
- * 
- * Returns the next table node
- * 
- * Version	Date		Developer			Description
- * 0.2		20/03/2012	Genevieve Turner	Added functions for adding/removing rows
- * 
- * @param curNode The node to get the next table node of
- * @returns The next node
- */
-function getNextTableRow(curNode)
-{
-	var nextRowElement = curNode.nextSibling.nextSibling.childNodes[1].childNodes[1];
-	
-	return nextRowElement;
-}

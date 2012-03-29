@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<foxml:digitalObject PID="def:new" VERSION="1.1"
+<foxml:digitalObject FEDORA_URI="info:fedora/def:new" PID="def:new" VERSION="1.1"
   xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
   <foxml:objectProperties>
     <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
@@ -19,7 +19,7 @@
     </foxml:datastreamVersion>
   </foxml:datastream>
   <foxml:datastream CONTROL_GROUP="X" ID="XSL_SOURCE" STATE="A" VERSIONABLE="true">
-    <foxml:datastreamVersion ID="XSL_SOURCE.0" LABEL="XSL Source" MIMETYPE="text/xml" >
+    <foxml:datastreamVersion ID="XSL_SOURCE.0" LABEL="XSL Source" MIMETYPE="text/xml">
       <foxml:xmlContent>
         <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:param name="item"/>
@@ -28,10 +28,6 @@
           <xsl:variable name="mData" select="$data"/>
           <xsl:template match="/">
             <html>
-              <head>
-                <link href="/DataCommons/css/default.css" rel="stylesheet" type="text/css"/>
-                <script src="/DataCommons/js/global.js" type="text/javascript"/>
-              </head>
               <body>
                 <h1>
                   <xsl:value-of select="template/name"/>
@@ -75,11 +71,11 @@
             </html>
           </xsl:template>
           <xsl:template name="Label">
-            <td>
+            <th>
               <label for="{@name}">
                 <xsl:value-of select="@label"/>
               </label>
-            </td>
+            </th>
           </xsl:template>
           <xsl:template name="TextField">
             <td>
@@ -110,8 +106,8 @@
           </xsl:template>
           <xsl:template name="TextFieldMulti">
             <td>
-              <input onClick="cloneElement(nextSibling.nextSibling.childNodes[1].childNodes[0],1,100);" type="button" value="Add Row"/>
-              <table>
+              <input onClick="addTableRow('{@name}')" type="button" value="Add Row"/>
+              <table id="{@name}">
                 <xsl:choose>
                   <xsl:otherwise>
                     <tr>
@@ -119,7 +115,7 @@
                         <input class="{@class}" maxlength="{@maxLength}" name="{@name}" type="text"/>
                       </td>
                       <td>
-                        <input onClick="removeElement(this.parentNode.parentNode, 1, 100)" type="button" value="Remove"/>
+                        <input onClick="removeTableRow(this)" type="button" value="Remove"/>
                       </td>
                     </tr>
                   </xsl:otherwise>
@@ -141,37 +137,37 @@
           </xsl:template>
           <xsl:template name="Table">
             <td>
-              <input onClick="cloneElement(getNextTableRow(this),1,100);" type="button" value="Add Row"/>
-              <table>
-                <tr>
-                  <xsl:for-each select="column">
-                    <th>
-                      <xsl:value-of select="@label"/>
-                    </th>
-                  </xsl:for-each>
-                  <xsl:choose>
-                    <xsl:otherwise>
-                      <tr>
-                        <xsl:for-each select="column">
-                          <xsl:choose>
-                            <xsl:when test="@fieldType='TextField'">
-                              <xsl:call-template name="TextField"/>
-                            </xsl:when>
-                            <xsl:when test="@fieldType='TextArea'">
-                              <xsl:call-template name="TextArea"/>
-                            </xsl:when>
-                            <xsl:when test="@fieldType='Combobox'">
-                              <xsl:call-template name="ComboBox"/>
-                            </xsl:when>
-                          </xsl:choose>
-                        </xsl:for-each>
-                        <td>
-                          <input onClick="removeElement(this.parentNode.parentNode, 1, 100);" type="button" value="Remove"/>
-                        </td>
-                      </tr>
-                    </xsl:otherwise>
-                  </xsl:choose>
-                </tr>
+              <input onClick="addTableRow('{@name}')" type="button" value="Add Row"/>
+              <table id="{@name}">
+                <thead>
+                  <tr>
+                    <xsl:for-each select="column">
+                      <th>
+                        <xsl:value-of select="@label"/>
+                      </th>
+                    </xsl:for-each>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <xsl:for-each select="column">
+                      <xsl:choose>
+                        <xsl:when test="@fieldType='TextField'">
+                          <xsl:call-template name="TextField"/>
+                        </xsl:when>
+                        <xsl:when test="@fieldType='TextArea'">
+                          <xsl:call-template name="TextArea"/>
+                        </xsl:when>
+                        <xsl:when test="@fieldType='Combobox'">
+                          <xsl:call-template name="ComboBox"/>
+                        </xsl:when>
+                      </xsl:choose>
+                    </xsl:for-each>
+                    <td>
+                      <input onClick="removeTableRow(this)" type="button" value="Remove"/>
+                    </td>
+                  </tr>
+                </tbody>
               </table>
             </td>
           </xsl:template>

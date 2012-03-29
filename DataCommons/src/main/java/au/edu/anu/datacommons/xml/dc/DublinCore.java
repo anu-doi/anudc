@@ -20,7 +20,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name="dc", namespace=DublinCoreConstants.OAI_DC)
 public class DublinCore {
-	List<JAXBElement<String>> items;
+	List<JAXBElement<String>> items_;
 	
 	/**
 	 * Constructor
@@ -29,7 +29,7 @@ public class DublinCore {
 	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial
 	 */
 	public DublinCore() {
-		items = new ArrayList<JAXBElement<String>>();
+		items_ = new ArrayList<JAXBElement<String>>();
 	}
 	
 	/**
@@ -44,8 +44,8 @@ public class DublinCore {
 	 */
 	//TODO potentially add in a spefic vocab that can be used
 	@XmlAnyElement
-	public List<JAXBElement<String>> getItems() {
-		return items;
+	public List<JAXBElement<String>> getItems_() {
+		return items_;
 	}
 	
 	/**
@@ -58,8 +58,8 @@ public class DublinCore {
 	 * 
 	 * @param items The dublin core items
 	 */
-	public void setItems(List<JAXBElement<String>> items) {
-		this.items = items;
+	public void setItems_(List<JAXBElement<String>> items_) {
+		this.items_ = items_;
 	}
 	
 }

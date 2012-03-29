@@ -38,6 +38,7 @@ import com.yourmediashelf.fedora.client.response.PurgeDatastreamResponse;
  * 0.1		08/03/2012	Genevieve Turner (GT)	Initial build
  * 0.2		14/03/2012	Genevieve Turner (GT)	Updated getDatastreamAsStream method to be static
  * 0.3		21/03/2012	Rahul Khanna (RK)		Added getClient method
+ * 0.4		29/03/2012	Genevieve Turner (GT)	Added addRelationship method
  * 
  */
 public class FedoraBroker {
@@ -179,6 +180,26 @@ public class FedoraBroker {
 			FedoraReference reference = references.get(i);
 			FedoraResponse relResponse = new AddRelationship(pid).predicate(reference.getPredicate_()).object(reference.getObject_()).isLiteral(reference.getIsLiteral_()).execute(fedoraClient_);
 		}
+		
+		return true;
+	}
+	
+	/**
+	 * addRelationship
+	 * 
+	 * Adds the given relationship to the specified pid.
+	 * 
+	 * Version	Date		Deveveloper				Description
+	 * 0.4		29/03/2012	Genevieve Turner (GT)	Added to create relationships
+	 * 
+	 * @param pid The pid of the object
+	 * @param references A list of references to place in the system
+	 * @return true if the action has completed
+	 * @throws FedoraClientException
+	 */
+	public static boolean addRelationship (String pid, FedoraReference reference)
+			throws FedoraClientException {
+		FedoraResponse relResponse = new AddRelationship(pid).predicate(reference.getPredicate_()).object(reference.getObject_()).isLiteral(reference.getIsLiteral_()).execute(fedoraClient_);
 		
 		return true;
 	}

@@ -6,6 +6,11 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.namespace.QName;
+
+import org.apache.xerces.dom.ElementNSImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Data
@@ -14,24 +19,30 @@ import javax.xml.bind.annotation.XmlRootElement;
  * 
  * Data item for jaxb
  * 
+ * JUnit Coverage:
+ * None
+ * 
  * Version	Date		Developer				Description
  * 0.1		23/03/2012	Genevieve Turner (GT)	Initial
+ * 0.2		29/03/2012	Genevieve Turner (GT)	Added remove elements function and updated to fix issue when unmarshalling
  * 
  */
 @XmlRootElement(name="data")
 public class Data {
-	private List<JAXBElement<String>> items;
-	private List<JAXBElement<Data>> data;
+	static final Logger LOGGER = LoggerFactory.getLogger(Data.class);
+	
+	
+	private List<DataItem> items;
 	
 	/**
 	 * Constructor
 	 * 
 	 * Version	Date		Developer				Description
 	 * 0.1		23/03/2012	Genevieve Turner (GT)	Initial
+	 * 0.2		29/03/2012	Genevieve Turner (GT)	Updated to fix issue when unmarshalling
 	 */
 	public Data() {
-		items = new ArrayList<JAXBElement<String>>();
-		data = new ArrayList<JAXBElement<Data>>();
+		items = new ArrayList<DataItem>();
 	}
 	
 	/**
@@ -41,54 +52,31 @@ public class Data {
 	 * 
 	 * Version	Date		Developer				Description
 	 * 0.1		23/03/2012	Genevieve Turner (GT)	Initial
+	 * 0.2		29/03/2012	Genevieve Turner (GT)	Updated to fix issue when unmarshalling
 	 * 
 	 * @return The list of elements
 	 */
 	@XmlAnyElement
-	public List<JAXBElement<String>> getItems() {
+	public List<DataItem> getItems() {
 		return items;
 	}
 	
 	/**
-	 * setItems
+	 * removeElementsByName
 	 * 
-	 * Sets the list of JAXBElements with a string value
-	 * 
-	 * Version	Date		Developer				Description
-	 * 0.1		23/03/2012	Genevieve Turner (GT)	Initial
-	 * 
-	 * @param items
-	 */
-	public void setItems(List<JAXBElement<String>> items) {
-		this.items = items;
-	}
-
-	/**
-	 * getData
-	 * 
-	 * Gets the list of JAXBElements with child nodes
+	 * Removes all the elements with the given name
 	 * 
 	 * Version	Date		Developer				Description
-	 * 0.1		23/03/2012	Genevieve Turner (GT)	Initial
+	 * 0.2		29/03/2012	Genevieve Turner (GT)	Added function
 	 * 
-	 * @return
+	 * @param localpart The name of the fields to remove
 	 */
-	@XmlAnyElement
-	public List<JAXBElement<Data>> getData() {
-		return data;
-	}
-	
-	/**
-	 * setData
-	 * 
-	 * Sets the list of JAXBElements with child nodes
-	 * 
-	 * Version	Date		Developer				Description
-	 * 0.1		23/03/2012	Genevieve Turner (GT)	Initial
-	 * 
-	 * @param data
-	 */
-	public void setData(List<JAXBElement<Data>> data) {
-		this.data = data;
+	public void removeElementsByName(String localpart) {
+		for (int i = items.size() - 1; i >= 0; i--) {
+			DataItem item = items.get(i);
+			if(item.getName_().equals(localpart)) {
+				items.remove(i);
+			}
+		}
 	}
 }
