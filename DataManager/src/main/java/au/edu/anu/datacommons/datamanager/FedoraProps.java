@@ -1,4 +1,4 @@
-package au.edu.anu.DataManagers;
+package au.edu.anu.datacommons.datamanager;
 
 import java.io.IOException;
 import java.util.Properties;

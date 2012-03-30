@@ -1,7 +1,7 @@
 /**
  * 
  */
-package au.edu.anu.DataManagers;
+package au.edu.anu.datacommons.datamanager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
