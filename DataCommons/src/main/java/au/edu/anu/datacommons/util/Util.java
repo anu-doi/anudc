@@ -18,10 +18,20 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 
 /**
- * @author Rahul Khanna
- *
+ * Util
+ * 
+ * Australian National University Data Commons
+ * 
+ * Utility class
+ * 
+ * JUnit coverage:
+ * None
+ * 
+ * Version	Date		Developer			Description
+ * 0.2		19/03/2012	Genevieve Turner	Added isNotEmpty function.
+ * 
  */
-public final class Utils
+public final class Util
 {
 	public static void writeXmlToWriter(Document inDoc, Writer xmlWriter)
 	{
@@ -61,5 +71,26 @@ public final class Utils
 		writeXmlToWriter(inDoc, stringWriter);
 
 		return stringWriter.toString();
+	}
+
+	/**
+	 * isNotEmpty
+	 * 
+	 * Sets the options elements of the item
+	 * 
+	 * Version	Date		Developer			Description
+	 * 0.1		13/03/2012	Genevieve Turner	Initial build
+	 * 
+	 * @param value The value to check if the field is empty
+	 * @return Returns true if the value is not blank
+	 */
+	public static boolean isNotEmpty(String value){
+		if(value == null){
+			return false;
+		}
+		if(value.trim().equals("")){
+			return false;
+		}
+		return true;
 	}
 }

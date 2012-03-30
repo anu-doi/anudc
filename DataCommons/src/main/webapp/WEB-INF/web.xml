@@ -9,7 +9,15 @@
 			<param-name>com.sun.jersey.config.property.packages</param-name>
 			<param-value>au.edu.anu.datacommons.services;au.edu.anu.datacommons.search</param-value>
 		</init-param>
-		<load-on-startup>1</load-on-startup>
+		<init-param>
+			<param-name>com.sun.jersey.config.property.JSPTemplatesBasePath</param-name>
+			<param-value>/jsp</param-value>
+		</init-param>
+		<init-param>
+			<param-name>com.sun.jersey.config.property.WebPageContentRegex</param-name>
+			<param-value>/(jsp|js|css)</param-value>
+		</init-param>
+		<load-on-startup>-1</load-on-startup>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Jersey REST Service</servlet-name>

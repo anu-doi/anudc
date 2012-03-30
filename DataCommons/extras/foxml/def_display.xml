@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<foxml:digitalObject PID="def:display" VERSION="1.1"
+  xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
+  <foxml:objectProperties>
+    <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+    <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="Display XSL"/>
+  </foxml:objectProperties>
+  <foxml:datastream CONTROL_GROUP="X" ID="DC" STATE="A" VERSIONABLE="true">
+    <foxml:datastreamVersion FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/"
+      ID="DC1.0" LABEL="Dublin Core Record for this object" MIMETYPE="text/xml">
+      <foxml:xmlContent>
+        <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/"
+          xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+          <dc:title>Display XSL</dc:title>
+          <dc:identifier>def:display</dc:identifier>
+        </oai_dc:dc>
+      </foxml:xmlContent>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+  <foxml:datastream CONTROL_GROUP="X" ID="XSL_SOURCE" STATE="A" VERSIONABLE="true">
+    <foxml:datastreamVersion ID="XSL_SOURCE.0" LABEL="XSL Source" MIMETYPE="text/xml">
+      <foxml:xmlContent>
+        <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+          <xsl:param name="data"/>
+          <xsl:variable name="mData" select="$data"/>
+          <xsl:template match="/">
+            <xsl:if test="$data != null"/>
+            <html>
+              <body>
+                <xsl:choose>
+                  <xsl:when test="$data != ''">
+                    <h1>
+                      <xsl:value-of select="$mData/data/name"/>
+                    </h1>
+                    <table>
+                      <xsl:for-each select="template/item">
+                        <xsl:variable name="name" select="@name"/>
+                        <xsl:if test="$mData/data/*[name() = $name]">
+                          <tr>
+                            <th>
+                              <xsl:value-of select="@label"/>
+                            </th>
+                            <td>
+                              <xsl:choose>
+                                <xsl:when test="@saveType='table'">
+                                  <xsl:call-template name="Table"/>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                  <xsl:for-each select="$mData/data/*[name() = $name]">
+                                    <xsl:value-of select="text()"/>
+                                    <br/>
+                                  </xsl:for-each>
+                                </xsl:otherwise>
+                              </xsl:choose>
+                            </td>
+                          </tr>
+                        </xsl:if>
+                      </xsl:for-each>
+                    </table>
+                  </xsl:when>
+                  <xsl:otherwise>
+						Unable to find item.
+					</xsl:otherwise>
+                </xsl:choose>
+              </body>
+            </html>
+          </xsl:template>
+          <xsl:template name="Table">
+            <table>
+              <xsl:variable name="table" select="."/>
+              <tr>
+                <xsl:for-each select="column">
+                  <th>
+                    <xsl:value-of select="@label"/>
+                  </th>
+                </xsl:for-each>
+              </tr>
+              <xsl:for-each select="$mData/data/*[name() = $table/@name]">
+                <xsl:variable name="tabledata" select="."/>
+                <tr>
+                  <xsl:for-each select="$table/column">
+                    <td>
+                      <xsl:variable name="colname" select="@name"/>
+                      <xsl:value-of select="$tabledata/*[name() = $colname]/text()"/>
+                    </td>
+                  </xsl:for-each>
+                </tr>
+              </xsl:for-each>
+            </table>
+          </xsl:template>
+        </xsl:stylesheet>
+      </foxml:xmlContent>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+</foxml:digitalObject>

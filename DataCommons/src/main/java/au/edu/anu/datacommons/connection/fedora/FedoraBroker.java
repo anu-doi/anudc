@@ -34,10 +34,11 @@ import com.yourmediashelf.fedora.client.response.PurgeDatastreamResponse;
  * 
  * Performs actions with the fedora commons repository
  * 
- * Version - Date - Developer
- * 0.1 - 08/03/2012 - Genevieve Turner - Initial build
- * 0.2 - 14/03/2012 - Genevieve Turner - Updated getDatastreamAsStream method to be static
- * 0.3 - 21/03/2012	- Rahul Khanna (RK) - Added getClient method
+ * Version	Date		Developer				Description
+ * 0.1		08/03/2012	Genevieve Turner (GT)	Initial build
+ * 0.2		14/03/2012	Genevieve Turner (GT)	Updated getDatastreamAsStream method to be static
+ * 0.3		21/03/2012	Rahul Khanna (RK)		Added getClient method
+ * 0.4		29/03/2012	Genevieve Turner (GT)	Added addRelationship method
  * 
  */
 public class FedoraBroker {
@@ -62,8 +63,8 @@ public class FedoraBroker {
 	 * 
 	 * Create a new object in the fedora commons database
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
 	 * 
 	 * @param namespace The namespace to create the object with
 	 * @return Return the pid of the newly created object
@@ -79,8 +80,8 @@ public class FedoraBroker {
 	 * 
 	 * Creates a datastream with the supplied object
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
 	 * 
 	 * @param pid The pid of the object
 	 * @param streamId The datastream to create the object in
@@ -100,8 +101,8 @@ public class FedoraBroker {
 	 * 
 	 * Creates the datastream with the supplied reference to the source
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
 	 * 
 	 * @param pid The pid of the object
 	 * @param streamId The datastream to create the object in
@@ -122,8 +123,8 @@ public class FedoraBroker {
 	 * 
 	 * Updates the datastream with the supplied object
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
 	 * 
 	 * @param pid The pid of the object
 	 * @param streamId The datastream of the object to modify
@@ -143,8 +144,8 @@ public class FedoraBroker {
 	 * 
 	 * Updates the datastream with the supplied reference to the source
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
 	 * 
 	 * @param pid The pid of the object
 	 * @param streamId The datastream of the object to modify
@@ -159,6 +160,19 @@ public class FedoraBroker {
 		return true;
 	}
 	
+	/**
+	 * modifyDatastreamByReference
+	 * 
+	 * Updates the datastream with the supplied reference to the source
+	 * 
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
+	 * 
+	 * @param pid The pid of the object
+	 * @param references A list of references to place in the system
+	 * @return true if the action has completed
+	 * @throws FedoraClientException
+	 */
 	public static boolean addRelationships (String pid, List<FedoraReference> references) throws FedoraClientException {
 		PurgeDatastreamResponse purgeDatastreamResponse = new PurgeDatastream(pid, "RELS-EXT").execute(fedoraClient_);
 		
@@ -171,11 +185,31 @@ public class FedoraBroker {
 	}
 	
 	/**
+	 * addRelationship
+	 * 
+	 * Adds the given relationship to the specified pid.
+	 * 
+	 * Version	Date		Deveveloper				Description
+	 * 0.4		29/03/2012	Genevieve Turner (GT)	Added to create relationships
+	 * 
+	 * @param pid The pid of the object
+	 * @param references A list of references to place in the system
+	 * @return true if the action has completed
+	 * @throws FedoraClientException
+	 */
+	public static boolean addRelationship (String pid, FedoraReference reference)
+			throws FedoraClientException {
+		FedoraResponse relResponse = new AddRelationship(pid).predicate(reference.getPredicate_()).object(reference.getObject_()).isLiteral(reference.getIsLiteral_()).execute(fedoraClient_);
+		
+		return true;
+	}
+	
+	/**
 	 * getDatastreamAsStream
 	 * 
-	 * Version - Date - Dev - Description
-	 * 0.1 - 08/03/2012 - Genevieve Turner - Initial Build
-	 * 0.2 - 14/03/2012 - Genevieve Turner - Updated method to be static
+	 * Version	Date		Deveveloper				Description
+	 * 0.1		08/03/2012	Genevieve Turner (GT)	Initial Build
+	 * 0.2		14/03/2012	Genevieve Turner (GT)	Updated method to be static
 	 * 
 	 * Returns the specified datastream as an InputStream
 	 * 
@@ -188,7 +222,7 @@ public class FedoraBroker {
 		FedoraResponse sourceResponse = new GetDatastreamDissemination (pid, streamId).execute(fedoraClient_);
 		return sourceResponse.getEntityInputStream();
 	}
-	
+
 	public static FedoraClient getClient()
 	{
 		return fedoraClient_;

@@ -112,7 +112,7 @@ public class SearchService
 				HashMap<String, Object> model = new HashMap<String, Object>();
 				model.put("resultSet", resultSet);
 
-				resp = Response.ok(new Viewable("/jsp/search.jsp", model)).build();
+				resp = Response.ok(new Viewable("/search.jsp", model)).build();
 			}
 			catch (SAXException e)
 			{
@@ -132,7 +132,7 @@ public class SearchService
 		}
 		else
 		{
-			resp = Response.ok(new Viewable("/jsp/search.jsp")).build();
+			resp = Response.ok(new Viewable("/search.jsp")).build();
 		}
 
 		return resp;

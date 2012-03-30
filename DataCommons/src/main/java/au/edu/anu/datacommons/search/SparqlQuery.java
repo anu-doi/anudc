@@ -1,6 +1,3 @@
-/**
- * 
- */
 package au.edu.anu.datacommons.search;
 
 import java.util.ArrayList;
@@ -443,5 +440,4 @@ public final class SparqlQuery
 		LOGGER.info("Returning SPARQL query:\r\n" + sparqlQuery);
 		return sparqlQuery.toString();
 	}
-
 }
