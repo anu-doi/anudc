@@ -29,3 +29,4 @@ CREATE TABLE user_group (
 	,PRIMARY KEY (user_id, group_id)
 	,FOREIGN KEY (user_id) REFERENCES access_user(user_id)
 	,FOREIGN KEY (group_id) REFERENCES access_group(group_id)
+);

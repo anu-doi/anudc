@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /**
  * 3_add_data.sql
  * 

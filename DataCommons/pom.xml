@@ -4,7 +4,7 @@
 	<artifactId>DataCommons</artifactId>
 	<packaging>war</packaging>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>DataCommons Maven Webapp</name>
+	<name>DataCommons</name>
 	<url>http://maven.apache.org</url>
 	<repositories>
 		<repository>
@@ -12,9 +12,11 @@
 			<url>https://es-maven.anu.edu.au/maven2</url>
 			<snapshots>
 				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
 			</snapshots>
 			<releases>
 				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
 			</releases>
 		</repository>
 	</repositories>
@@ -100,7 +102,7 @@
 			<version>1.2</version>
 			<scope>runtime</scope>
 		</dependency>
-		<dependency>
+<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-servlet</artifactId>
 			<version>1.12</version>
@@ -115,7 +117,7 @@
 			<artifactId>xalan</artifactId>
 			<version>2.7.1</version>
 		</dependency>
-		<dependency>
+				<dependency>
 			<groupId>commons-fileupload</groupId>
 			<artifactId>commons-fileupload</artifactId>
 			<version>1.2.2</version>
@@ -134,7 +136,7 @@
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
 			<version>2.2.4</version>
-		</dependency>
+			</dependency>
 	</dependencies>
 	<build>
 		<finalName>DataCommons</finalName>
