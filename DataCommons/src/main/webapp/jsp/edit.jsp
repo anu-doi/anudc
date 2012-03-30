@@ -21,6 +21,8 @@
 		<div id="extraFields">
 			
 		</div>
-		<input id="editSubmit" type="submit" value="Submit" />
+		<input id="editSubmit" type="submit" class="editSubmit" value="Submit" />
+		<input id="addItemLink" type="button" class="addLink" value="Link to Item" />
+		<input id="deleteItem" type="button" class="deleteItem" value="Delete" />
 	</form>
 </anu:content>
