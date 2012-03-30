@@ -4,7 +4,7 @@
 	<artifactId>DataCommons</artifactId>
 	<packaging>war</packaging>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>DataCommons Maven Webapp</name>
+	<name>DataCommons</name>
 	<url>http://maven.apache.org</url>
 	<repositories>
 		<repository>
@@ -12,9 +12,11 @@
 			<url>https://es-maven.anu.edu.au/maven2</url>
 			<snapshots>
 				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
 			</snapshots>
 			<releases>
 				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
 			</releases>
 		</repository>
 	</repositories>
