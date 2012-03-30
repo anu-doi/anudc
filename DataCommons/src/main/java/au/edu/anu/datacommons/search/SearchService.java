@@ -1,19 +1,10 @@
 package au.edu.anu.datacommons.search;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -21,39 +12,45 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.StatusType;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import au.edu.anu.datacommons.properties.GlobalProps;
+
 import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.api.core.HttpRequestContext;
 import com.sun.jersey.api.view.Viewable;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
-import au.edu.anu.datacommons.properties.GlobalProps;
-
+/**
+ * SearchService
+ * 
+ * Autralian National University Data Commons
+ * 
+ * Class provides a REST service using Jersey for searching the Fedora repository
+ * 
+ * <pre>
+ * Version	Date		Developer			Description
+ * 0.1		26/03/2012	Rahul Khanna (RK)	Initial.
+ * </pre>
+ * 
+ */
 @Path("/search")
 public class SearchService
 {
 	private final Logger log = Logger.getLogger(this.getClass().getName());
 
 	@QueryParam("q") private String q;
+	// TODO Once determined how object info such as published flag, group etc. are stored use this parameter to filter out results.
 	@QueryParam("filter") private String filter;
 
 	/**
@@ -99,12 +96,8 @@ public class SearchService
 	{
 		Response resp = null;
 
-		// If q is null.
-		if (q == null)
-		{
-			resp = Response.ok(new Viewable("/jsp/search.jsp")).build();
-		}
-		else
+		// Perform search if terms to search are provided, else display the search page without any search results.
+		if (q != null)
 		{
 			ClientResponse respFromRiSearch = runRiSearch();
 
@@ -118,7 +111,7 @@ public class SearchService
 
 				HashMap<String, Object> model = new HashMap<String, Object>();
 				model.put("resultSet", resultSet);
-				
+
 				resp = Response.ok(new Viewable("/jsp/search.jsp", model)).build();
 			}
 			catch (SAXException e)
@@ -137,7 +130,11 @@ public class SearchService
 				e.printStackTrace();
 			}
 		}
-		
+		else
+		{
+			resp = Response.ok(new Viewable("/jsp/search.jsp")).build();
+		}
+
 		return resp;
 	}
 
@@ -149,6 +146,11 @@ public class SearchService
 	 * This method sends a request to the RISearch service by Fedora. The response is an XML document.
 	 * 
 	 * @return Web service response with the status of request and entity.
+	 * 
+	 *         <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/03/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
 	 */
 	private ClientResponse runRiSearch()
 	{
@@ -172,8 +174,7 @@ public class SearchService
 			throw new NullPointerException("Terms to search not specified");
 
 		// Generate the SPARQL query from the terms
-		SparqlQuery sparqlQuery = new SparqlQuery();
-		sparqlQuery.setTerms(q);
+		SparqlQuery sparqlQuery = new SparqlQuery(q);
 
 		// Send request to RiSearch service and return response.
 		riSearchService = riSearchService.path(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RISEARCHURL));
