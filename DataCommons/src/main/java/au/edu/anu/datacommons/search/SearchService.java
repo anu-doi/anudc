@@ -3,7 +3,6 @@ package au.edu.anu.datacommons.search;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
-import java.util.logging.Logger;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -16,6 +15,8 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -34,7 +35,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 /**
  * SearchService
  * 
- * Autralian National University Data Commons
+ * Australian National University Data Commons
  * 
  * Class provides a REST service using Jersey for searching the Fedora repository
  * 
@@ -47,7 +48,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 @Path("/search")
 public class SearchService
 {
-	private final Logger log = Logger.getLogger(this.getClass().getName());
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
 	@QueryParam("q") private String q;
 	// TODO Once determined how object info such as published flag, group etc. are stored use this parameter to filter out results.
@@ -56,7 +57,7 @@ public class SearchService
 	/**
 	 * doGetAsXml
 	 * 
-	 * Autralian National University Data Commons
+	 * Australian National University Data Commons
 	 * 
 	 * This method is called when the search service is accessed and the type requested is XML.
 	 * 
@@ -79,7 +80,7 @@ public class SearchService
 	/**
 	 * doGetAsHtml
 	 * 
-	 * Autralian National University Data Commons
+	 * Australian National University Data Commons
 	 * 
 	 * This method is called when the search service is accessed and the type requested is HTML.
 	 * 
@@ -141,7 +142,7 @@ public class SearchService
 	/**
 	 * runRiSearch
 	 * 
-	 * Autralian National University Data Commons
+	 * Australian National University Data Commons
 	 * 
 	 * This method sends a request to the RISearch service by Fedora. The response is an XML document.
 	 * 

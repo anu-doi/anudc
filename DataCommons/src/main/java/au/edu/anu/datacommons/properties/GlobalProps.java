@@ -48,6 +48,7 @@ public final class GlobalProps
 	public static final String PROP_LDAPATTR_PHONE = "LdapAttr.Phone";
 	public static final String PROP_SEARCH_SEARCHFIELDS = "Search.DcSearchFields";
 	public static final String PROP_SEARCH_RETURNFIELDS = "Search.DcReturnFields";
+	public static final String PROP_SEARCH_URIREPLACE = "Search.UriReplace";
 	public static final String PROP_UPLOAD_DIR = "Upload.UploadDir";
 	public static final String PROP_UPLOAD_TEMPDIR = "Upload.TempDir";
 	public static final String PROP_UPLOAD_MAXSIZEINMEM = "Upload.MaxSizeInMemInBytes";

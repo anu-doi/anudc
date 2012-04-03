@@ -9,6 +9,8 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
+import au.edu.anu.datacommons.properties.GlobalProps;
+
 /**
  * SparqlResultSet
  * 
@@ -28,6 +30,7 @@ public class SparqlResultSet
 	private final Logger log = Logger.getLogger(this.getClass().getName());
 	private final Document resultsDoc;
 	private final XPathFactory xpFactory;
+	private final String[] findReplaceUri = GlobalProps.getProperty(GlobalProps.PROP_SEARCH_URIREPLACE).split(",");
 
 	private String[] colsArr = null;
 	private String[][] resultsArr = null;
@@ -51,9 +54,10 @@ public class SparqlResultSet
 	 */
 	public SparqlResultSet(Document resultsDoc)
 	{
-		// TODO This may need to be changed to resultDoc.clone()
 		this.resultsDoc = resultsDoc;
 		this.xpFactory = XPathFactory.newInstance();
+		
+		
 
 		// Extract the columns and resultsArr that have been returned.
 		extractCols();
@@ -123,8 +127,10 @@ public class SparqlResultSet
 				{
 					// NodeList row = (NodeList) this.xpFactory.newXPath().compile(colsArr[jCol] + "/text()").evaluate(resultNodes.item(iResult), XPathConstants.STRING);
 					if (colsArr[jCol].equalsIgnoreCase("item"))
-						resultsArr[iResult][jCol] = (String) this.xpFactory.newXPath().compile(colsArr[jCol] + "/attribute::uri")
-								.evaluate(resultNodes.item(iResult), XPathConstants.STRING);
+					{
+						resultsArr[iResult][jCol] = ((String) this.xpFactory.newXPath().compile(colsArr[jCol] + "/attribute::uri")
+								.evaluate(resultNodes.item(iResult), XPathConstants.STRING)).replaceAll(findReplaceUri[0], findReplaceUri.length < 2 ? "" : findReplaceUri[1]);
+					}
 					else
 						resultsArr[iResult][jCol] = (String) this.xpFactory.newXPath().compile(colsArr[jCol] + "/text()")
 								.evaluate(resultNodes.item(iResult), XPathConstants.STRING);
