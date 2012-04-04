@@ -121,7 +121,7 @@ public class DisplayResource {
 		ViewTransform viewTransform = new ViewTransform();
 		try {
 			item = viewTransform.saveData(template, null, form);
-			page = viewTransform.getPage("def:test2", null, item, null);
+			page = viewTransform.getPage("def:display", null, item, null);
 			
 		}
 		catch (JAXBException e) {
@@ -240,7 +240,7 @@ public class DisplayResource {
 		ViewTransform viewTransform = new ViewTransform();
 		try {
 			item = viewTransform.saveData(tmplt, item, form);
-			page = viewTransform.getPage("def:test2", null, item, null);
+			page = viewTransform.getPage("def:display", null, item, null);
 			template = new ViewTransform().getTemplateObject(tmplt, item);
 		}
 		catch (JAXBException e) {
