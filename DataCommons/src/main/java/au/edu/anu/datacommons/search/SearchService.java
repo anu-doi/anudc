@@ -98,7 +98,7 @@ public class SearchService
 		Response resp = null;
 
 		// Perform search if terms to search are provided, else display the search page without any search results.
-		if (q != null)
+		if (q != null && !q.equals(""))
 		{
 			ClientResponse respFromRiSearch = runRiSearch();
 

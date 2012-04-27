@@ -5,6 +5,10 @@ package au.edu.anu.datacommons.util;
 
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -27,9 +31,11 @@ import org.w3c.dom.Document;
  * JUnit coverage:
  * None
  * 
- * Version	Date		Developer			Description
- * 0.2		19/03/2012	Genevieve Turner	Added isNotEmpty function.
- * 
+ * <pre>
+ * Version	Date		Developer				Description
+ * 0.2		19/03/2012	Genevieve Turner (GT)	Added isNotEmpty function.
+ * 0.3		26/04/2012	Genevieve Turner (GT)	Added convertArrayValueToList
+ * </pre>
  */
 public final class Util
 {
@@ -92,5 +98,29 @@ public final class Util
 			return false;
 		}
 		return true;
+	}
+	
+	/**
+	 * convertArrayValueToList
+	 * 
+	 * Converts a map with a string array as a value to a list of strings
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		26/04/2012	Genevieve Turner (GT)	Initial add
+	 * </pre>
+	 * 
+	 * @param map A map to convert
+	 * @return The converted map
+	 */
+	public static Map<String, List<String>> convertArrayValueToList(Map<String, String[]> map) {
+		Map convertedMap = new HashMap<String, List<String>>();
+		
+		for (String key : map.keySet()) {
+			String[] value = map.get(key);
+			convertedMap.put(key, Arrays.asList(value));
+		}
+		
+		return convertedMap;
 	}
 }
