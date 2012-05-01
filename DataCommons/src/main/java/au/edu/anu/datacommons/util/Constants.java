@@ -19,5 +19,6 @@ public class Constants {
 	public static final String XML_TEMPLATE = "XML_TEMPLATE";
 	public static final String XSL_SOURCE = "XSL_SOURCE";
 	public static final String XML_SOURCE = "XML_SOURCE";
+	public static final String XML_PUBLISHED = "XML_PUBLISHED";
 	public static final String DC = "DC";
 }

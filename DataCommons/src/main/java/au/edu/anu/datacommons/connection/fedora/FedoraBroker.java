@@ -18,13 +18,16 @@ import com.yourmediashelf.fedora.client.request.AddDatastream;
 import com.yourmediashelf.fedora.client.request.AddRelationship;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
 import com.yourmediashelf.fedora.client.request.Ingest;
+import com.yourmediashelf.fedora.client.request.ListDatastreams;
 import com.yourmediashelf.fedora.client.request.ModifyDatastream;
 import com.yourmediashelf.fedora.client.request.PurgeDatastream;
 import com.yourmediashelf.fedora.client.response.AddDatastreamResponse;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.client.response.IngestResponse;
+import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.client.response.ModifyDatastreamResponse;
 import com.yourmediashelf.fedora.client.response.PurgeDatastreamResponse;
+import com.yourmediashelf.fedora.generated.access.DatastreamType;
 
 
 /**
@@ -39,6 +42,7 @@ import com.yourmediashelf.fedora.client.response.PurgeDatastreamResponse;
  * 0.2		14/03/2012	Genevieve Turner (GT)	Updated getDatastreamAsStream method to be static
  * 0.3		21/03/2012	Rahul Khanna (RK)		Added getClient method
  * 0.4		29/03/2012	Genevieve Turner (GT)	Added addRelationship method
+ * 0.5		26/04/2012	Genevieve Turner (GT)	Added getDatastreamList method
  * 
  */
 public class FedoraBroker {
@@ -223,6 +227,23 @@ public class FedoraBroker {
 		return sourceResponse.getEntityInputStream();
 	}
 
+	/**
+	 * getDatastreamList
+	 * 
+	 * Get a list of datastreams for the given object
+	 * 
+	 * Version	Date		Deveveloper				Description
+	 * 0.5		04/04/2012	Genevieve Turner (GT)	Added method
+	 * 
+	 * @param pid The pid of the object
+	 * @return A list of datastreams for objects
+	 * @throws FedoraClientException
+	 */
+	public static List<DatastreamType> getDatastreamList(String pid) throws FedoraClientException {
+		ListDatastreamsResponse response = new ListDatastreams(pid).format("xml").execute(fedoraClient_);
+		return response.getDatastreams();
+	}
+	
 	public static FedoraClient getClient()
 	{
 		return fedoraClient_;

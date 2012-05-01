@@ -1,83 +1,73 @@
 package au.edu.anu.datacommons.login;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.util.logging.Logger;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import au.edu.anu.datacommons.ldap.LdapPerson;
-import au.edu.anu.datacommons.ldap.LdapRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Servlet implementation class LoginServlet
  */
-@WebServlet(name = "LoginServlet", urlPatterns = "/login/login.do")
+
+/**
+ * LoginServlet
+ * 
+ * Australian National University Data Commons
+ * 
+ * A Servlet used with the login.
+ * 
+ * JUnit coverage:
+ * None
+ * 
+ * <pre>
+ * Version	Date		Developer				Description
+ * 0.1		19/03/2012	Rahul Khanna (RK)		Initial build
+ * 0.2		26/04/2012	Genevieve Turner (GT)	Updated for changes to security
+ * </pre>
+ * 
+ */
+@WebServlet(name = "LoginServlet", urlPatterns = "/login")
 public class LoginServlet extends HttpServlet
 {
 	private static final long serialVersionUID = 1L;
-	private final Logger log = Logger.getLogger(this.getClass().getName());
-
+	static final Logger LOGGER = LoggerFactory.getLogger(LoginServlet.class);
+	
 	/**
-	 * @see HttpServlet#HttpServlet()
-	 */
-	public LoginServlet()
-	{
-		super();
-		// TODO Auto-generated constructor stub
-	}
-
-	/**
+	 * doGet
+	 * 
+	 * Redirects to the login page and if there is an error it adds an error string
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		19/03/2012	Rahul Khanna (RK)		Initial build
+	 * 0.2		26/04/2012	Genevieve Turner (GT)	Updated for changes to security
+	 * </pre>
+	 * 
+	 * @param request a HttpServletRequest object that contains the request the client has made of the servlet
+	 * @param response a HttpServletResponse object that contains the response the servlet sends to the client 
+	 * @throws ServletException
+	 * @throws IOException
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
+	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
-		if (request.getParameter("cmd").equalsIgnoreCase("logout"))
-		{
-			log.info("Invalidating Session ID: " + request.getSession().getId());
-			request.getSession().invalidate();
+		String errorParam = request.getParameter("error");
+		if("true".equals(errorParam)) {
+			request.setAttribute("error", "You have entered an invalid username or password");
 		}
-		// response.sendRedirect(request.getContextPath() + "/");
-		response.sendRedirect("https://login-test.anu.edu.au/logout?url="
-				+ URLEncoder.encode((String) request.getHeader("referer"), Charset.defaultCharset().name()));
-	}
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-	{
-		String username = request.getParameter("username");
-		String password = request.getParameter("password");
-
-		if (username.equals("") || password.equals(""))
-			response.sendRedirect(request.getContextPath() + "/jsp/login.jsp?err=blank");
-
-		try
-		{
-			LdapRequest authReq = new LdapRequest();
-			if (authReq.authenticate(username, password))
-			{
-				LdapPerson user = new LdapRequest().searchUniId(request.getParameter("username"));
-				request.getSession().setAttribute("user", user);
-				log.info("User : " + user.getDisplayName());
-				response.sendRedirect(request.getContextPath() + "/");
-			}
-			else
-			{
-				log.info("Invalid credentials.");
-				response.sendRedirect(request.getContextPath() + "/jsp/login.jsp?err=authfail");
-			}
+		else {
+			request.setAttribute("error", "");
 		}
-		catch (Exception e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
+		RequestDispatcher requestDispatcher = request.getRequestDispatcher("jsp/login.jsp");
+		requestDispatcher.forward(request, response);
 	}
 }
