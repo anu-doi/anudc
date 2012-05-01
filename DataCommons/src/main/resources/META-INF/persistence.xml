@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<persistence xmlns="http://java.sun.com/xml/ns/persistence"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://java.sun.com.xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd"
-	version="2.0">
+<persistence xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com.xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd" version="2.0">
 	<persistence-unit name="datacommons">
 		<provider>org.hibernate.ejb.HibernatePersistence</provider>
-		<class>au.edu.anu.datacommons.connection.db.model.AccessUser</class>
+		<class>au.edu.anu.datacommons.connection.db.model.AccessGroup</class>
+		<class>au.edu.anu.datacommons.collectionrequest.CollectionRequest</class>
+		<class>au.edu.anu.datacommons.collectionrequest.CollectionRequestItem</class>
+		<class>au.edu.anu.datacommons.collectionrequest.CollectionRequestAnswer</class>
+		<class>au.edu.anu.datacommons.collectionrequest.CollectionRequestStatus</class>
+		<class>au.edu.anu.datacommons.collectionrequest.CollectionDropbox</class>
+		<class>au.edu.anu.datacommons.collectionrequest.CollectionDropboxAccessLog</class>
+		<class>au.edu.anu.datacommons.collectionrequest.Question</class>
+		<class>au.edu.anu.datacommons.collectionrequest.QuestionMap</class>
+		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.connection.driver_class" value="org.postgresql.Driver" />
 			<property name="hibernate.connection.url" value="jdbc:postgresql://localhost:5432/datacommonsdb" />
@@ -13,7 +20,7 @@
 			<property name="hibernate.connection.password" value="dcpassword" />
 			<property name="show_sql" value="true" />
 			<property name="dialect" value="org.hibernate.dialect.PostgreSQLDialect" />
-			<property name="hibernate.hbm2ddl.auto" value="validate" />
+			<property name="hibernate.hbm2ddl.auto" value="update" />
 		</properties>
 	</persistence-unit>
 </persistence>

@@ -7,7 +7,7 @@
 		<servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
 		<init-param>
 			<param-name>com.sun.jersey.config.property.packages</param-name>
-			<param-value>au.edu.anu.datacommons.services;au.edu.anu.datacommons.search</param-value>
+			<param-value>au.edu.anu.datacommons.services;au.edu.anu.datacommons.search;au.edu.anu.datacommons.collectionrequest</param-value>
 		</init-param>
 		<init-param>
 			<param-name>com.sun.jersey.config.property.JSPTemplatesBasePath</param-name>
@@ -16,6 +16,10 @@
 		<init-param>
 			<param-name>com.sun.jersey.config.property.WebPageContentRegex</param-name>
 			<param-value>/(jsp|js|css)</param-value>
+		</init-param>
+		<init-param>
+			<param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
+			<param-value>true</param-value>
 		</init-param>
 		<load-on-startup>-1</load-on-startup>
 	</servlet>
@@ -36,12 +40,12 @@
 
 		<init-param>
 			<param-name>casServerLoginUrl</param-name>
-			<param-value>[CAS SERVER]/login</param-value>
+			<param-value>https://login-test.anu.edu.au/login</param-value>
 		</init-param>
 
 		<init-param>
 			<param-name>serverName</param-name>
-			<param-value>[APPSERVER:PORT]</param-value>
+			<param-value>http://l3a5006.uds.anu.edu.au:9081</param-value>
 		</init-param>
 	</filter>
 
@@ -51,12 +55,12 @@
 
 		<init-param>
 			<param-name>casServerUrlPrefix</param-name>
-			<param-value>[CAS SERVER]</param-value>
+			<param-value>https://login-test.anu.edu.au</param-value>
 		</init-param>
 
 		<init-param>
 			<param-name>serverName</param-name>
-			<param-value>[APPSERVER:PORT]</param-value>
+			<param-value>http://l3a5006.uds.anu.edu.au:9081</param-value>
 		</init-param>
 		<init-param>
 			<param-name>redirectAfterValidation</param-name>
