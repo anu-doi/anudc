@@ -22,7 +22,7 @@
 		<servlet-class>com.sun.jersey.spi.spring.container.servlet.SpringServlet</servlet-class>
 		<init-param>
 			<param-name>com.sun.jersey.config.property.packages</param-name>
-			<param-value>au.edu.anu.datacommons.services;au.edu.anu.datacommons.search</param-value>
+			<param-value>au.edu.anu.datacommons.services;au.edu.anu.datacommons.search;au.edu.anu.datacommons.collectionrequest</param-value>
 		</init-param>
 		<init-param>
 			<param-name>com.sun.jersey.config.property.JSPTemplatesBasePath</param-name>
