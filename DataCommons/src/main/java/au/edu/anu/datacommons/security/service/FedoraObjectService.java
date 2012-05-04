@@ -5,14 +5,14 @@ import java.util.Map;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import au.edu.anu.datacommons.connection.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
 
 import com.sun.jersey.api.view.Viewable;
 
 /**
  * FedoraObjectService
  * 
- * Australian National University Data Comons
+ * Australian National University Data Commons
  * 
  * Service for Retrieving pages, creating, and saving information for
  * objects.
@@ -20,8 +20,10 @@ import com.sun.jersey.api.view.Viewable;
  * JUnit Coverage:
  * None
  * 
+ * <pre>
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+ * </pre>
  * 
  */
 public interface FedoraObjectService {
@@ -87,7 +89,7 @@ public interface FedoraObjectService {
 	 * @param form Contains the parameters from the request
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Viewable saveNew(String tmplt, Map<String, List<String>> form);
+	public Viewable saveNew(String layout, String tmplt, Map<String, List<String>> form);
 	
 	/**
 	 * getEditPage
@@ -104,7 +106,7 @@ public interface FedoraObjectService {
 	 * @param tmplt The template that determines the fields on the screen
 	 * @return Returns the viewable for the jsp file to pick up
 	 */
-	@PreAuthorize("hasPermission(#fedoraObject, 'WRITE')")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
 	public Viewable getEditPage(FedoraObject fedoraObject, String layout, String tmplt);
 
 	/**
@@ -123,7 +125,7 @@ public interface FedoraObjectService {
 	 * @param fieldName
 	 * @return
 	 */
-	@PreAuthorize("hasPermission(#fedoraObject, 'WRITE')")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
 	public String getEditItem(FedoraObject fedoraObject, String layout, String tmplt, String fieldName);
 
 	/**
@@ -141,8 +143,8 @@ public interface FedoraObjectService {
 	 * @param form Contains the parameters from the request
 	 * @return Returns the viewable for the jsp file to pick up
 	 */
-	@PreAuthorize("hasPermission(#fedoraObject, 'WRITE')")
-	public Viewable saveEdit(FedoraObject fedoraObject, String tmplt, Map<String, List<String>> form);
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
+	public Viewable saveEdit(FedoraObject fedoraObject, String layout, String tmplt, Map<String, List<String>> form);
 	
 	/**
 	 * addLink

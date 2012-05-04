@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
-import au.edu.anu.datacommons.connection.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.util.Util;
 
@@ -130,7 +130,7 @@ public class DisplayResource {
 	public Response postItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item, @Context HttpServletRequest request)
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
-		Viewable viewable = fedoraObjectService.saveNew(tmplt, form);
+		Viewable viewable = fedoraObjectService.saveNew(layout, tmplt, form);
 		return Response.ok(viewable).build();
 	}
 	
@@ -217,7 +217,7 @@ public class DisplayResource {
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
 		
-		Viewable viewable = fedoraObjectService.saveEdit(fedoraObject, tmplt, form);
+		Viewable viewable = fedoraObjectService.saveEdit(fedoraObject, layout, tmplt, form);
 		
 		return Response.ok(viewable).build();
 	}

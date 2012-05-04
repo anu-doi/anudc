@@ -1,4 +1,4 @@
-package au.edu.anu.datacommons.connection.db.model;
+package au.edu.anu.datacommons.data.db.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

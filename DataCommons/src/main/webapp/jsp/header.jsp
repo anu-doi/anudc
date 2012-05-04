@@ -1,6 +1,6 @@
 <%@ page import="au.edu.anu.datacommons.ldap.LdapPerson"%>
 <%@ page import="au.edu.anu.datacommons.ldap.LdapRequest"%>
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
@@ -12,7 +12,7 @@
 <anu:tabnav>
 	<anu:tabmeta>
 		<sec:authorize access="isAnonymous()">
-			Welcome Guest <a href='<c:url value="/login" />'>Login</a> <a href="<c:url value='[CAS SERVER]/login'><c:param name='service' value='[APPSERVER:PORT]/DataCommons/j_spring_cas_security_check' /></c:url>">ANU Login</a>
+			Welcome Guest <a href='<c:url value="/login" />'>Login</a> <a href="<c:url value='[CAS SERVER]/login'><c:param name='service' value='[APP SERVER:PORT]/DataCommons/j_spring_cas_security_check' /></c:url>">ANU Login</a>
 		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
 			Welcome <sec:authentication property="principal.username" /> <a href='<c:url value="/j_spring_security_logout" />' >Logout</a>
@@ -25,6 +25,7 @@
 		<li><a href="<c:url value='/jsp/welcome.jsp' />">Home</a></li>
 		<li><a href="<c:url value='/rest/search' />">Search</a></li>
 		<sec:authorize access="hasRole('ROLE_ANU_USER')">
+		<li><a href="<c:url value='/rest/list/template' />">New</a></li>
 		<li><a href="<c:url value='/jsp/upload.jsp' />">Upload</a></li>
 		</sec:authorize>
 	</anu:submenu>

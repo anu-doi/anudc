@@ -32,7 +32,7 @@
                 <h1>
                   <xsl:value-of select="template/name"/>
                 </h1>
-                <form action="display/new?layout=def:display&amp;tmplt={$tmplt}&amp;item={$item}" method="post" onsubmit="return validateForm()">
+                <form id="form" action="new?layout=def:display&amp;tmplt={$tmplt}&amp;item={$item}" method="post" onsubmit="return jQuery('#form').validate().form()">
                   <table>
                     <xsl:for-each select="template/item">
                       <tr>

@@ -10,4 +10,4 @@
  */
 
 CREATE USER dcuser WITH PASSWORD 'dcpassword';
-CREATE DATABASE datacommonsdb OWNER dcuser;
+CREATE DATABASE datacommonsdb WITH ENCODING='UTF8' OWNER dcuser;
