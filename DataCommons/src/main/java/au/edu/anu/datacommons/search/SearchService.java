@@ -21,6 +21,8 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import au.edu.anu.datacommons.util.Util;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.view.Viewable;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
@@ -61,8 +63,8 @@ public class SearchService
 	 * @return XML containing search results as a Response object.
 	 * 
 	 *         <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		23/03/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		23/03/2012	Rahul Khanna (RK)		Initial
 	 * 0.2		04/05/2012	Genevieve Turner (GT)	Updated for the removal of the method 'runRiSearch'
 	 * </pre>
 	 */
@@ -70,7 +72,10 @@ public class SearchService
 	@Produces(MediaType.TEXT_XML)
 	public Response doGetAsXml(@QueryParam("q") String q, @QueryParam("filter") String filter)
 	{
-		//TODO filter out when q is blank. i.e. need to figure out what to return
+		if (!Util.isNotEmpty(q)) {
+			return Response.status(400).build();
+		}
+		
 		// Generate the SPARQL query from the terms
 		SparqlQuery sparqlQuery = new SparqlQuery(q);
 
@@ -101,7 +106,7 @@ public class SearchService
 		Response resp = null;
 		
 		// Perform search if terms to search are provided, else display the search page without any search results.
-		if (q != null && !q.equals(""))
+		if (Util.isNotEmpty(q))
 		{
 			// Generate the SPARQL query from the terms
 			SparqlQuery sparqlQuery = new SparqlQuery(q);
@@ -123,18 +128,15 @@ public class SearchService
 			}
 			catch (SAXException e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("Exception with XML: ", e);
 			}
 			catch (ParserConfigurationException e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("Exception with XML: ", e);
 			}
 			catch (IOException e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("Exception with XML: ", e);
 			}
 		}
 		else
