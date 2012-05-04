@@ -18,6 +18,10 @@
 	</c:when>
 	<c:when test="${not empty it.dropboxes}">
 		<anu:content layout="doublewide" title="Dropboxes">
+			<jsp:include page="/jsp/statusmessages.jsp">
+				<jsp:param value="${it}" name="it" />
+			</jsp:include>
+
 			<table>
 				<tr>
 					<th>ID</th>
@@ -46,38 +50,42 @@
 	</c:when>
 	<c:when test="${not empty it.dropbox}">
 		<anu:content layout="doublewide" title="Dropbox">
+			<jsp:include page="/jsp/statusmessages.jsp">
+				<jsp:param value="${it}" name="it" />
+			</jsp:include>
+
 			<form class="anuform">
 				<p>
 					<label>Dropbox ID</label>
-					<input type="text" readonly="readonly" value="<c:out value="${it.dropbox.id}" />" />
+					<c:out value="${it.dropbox.id}" />
 				</p>
 				<p>
 					<label>Access Code</label>
-					<input type="text" readonly="readonly" value="<c:out value="${it.dropbox.accessCode}" />" />
+					<c:out value="${it.dropbox.accessCode}" />
 				</p>
 				<p>
 					<label>Creator</label>
-					<input type="text" readonly="readonly" value="<c:out value="${it.dropbox.creatorUserId}" />" />
+					<c:out value="${it.dropbox.creatorUserId}" />
 				</p>
 				<p>
 					<label>Created</label>
-					<input type="text" readonly="readonly" value="<c:out value="${it.dropbox.timestamp}" />" />
+					<c:out value="${it.dropbox.timestamp}" />
 				</p>
 				<p>
 					<label>Expiry</label>
-					<input type="text" value="<c:out value="${it.dropbox.expiry}" />" />
+					<c:out value="${it.dropbox.expiry}" />
 				</p>
 				<p>
 					<label>Notify Creator</label>
-					<input type="text" value="<c:out value="${it.dropbox.notifyOnPickup}" />" />
+					<input type="checkbox" value="true" <c:if test='${it.dropbox.notifyOnPickup == true}'>checked="checked"</c:if> />
 				</p>
 				<p>
 					<label>Active</label>
-					<input type="text" value="<c:out value="${it.dropbox.active}" />" />
+					<input type="checkbox" value="true" <c:if test='${it.dropbox.active == true}'>checked="checked"</c:if> />
 				</p>
 				<p>
-					<label>Request ID</label>
-					<input type="text" readonly="readonly" value="<c:out value="${it.dropbox.collectionRequest.id}" />" />
+					<label>Request ID</label> <a href="<c:url value='/rest/collreq/${it.dropbox.collectionRequest.id}' />"><c:out
+							value="${it.dropbox.collectionRequest.id}" /></a>
 				</p>
 				<p class="text-right">
 					<input type="submit" value="Submit" />

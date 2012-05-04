@@ -4,7 +4,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
-<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 
 <anu:body />
 <anu:banner id="" ssl="true" primaryTitle="ANU Data Commons" secondaryTitle="Division of Information" primaryTitleUrl="/" secondaryTitleUrl="/" />
@@ -12,10 +12,15 @@
 <anu:tabnav>
 	<anu:tabmeta>
 		<sec:authorize access="isAnonymous()">
-			Welcome Guest <a href='<c:url value="/login" />'>Login</a> <a href="<c:url value='[CAS SERVER]/login'><c:param name='service' value='[APPSERVER:PORT]/DataCommons/j_spring_cas_security_check' /></c:url>">ANU Login</a>
+			Welcome Guest <a href='<c:url value="/login" />'>Login</a>
+			<a
+				href="<c:url value='https://login-test.anu.edu.au/login'>
+			<c:param name='service' value='http://l3a5006.uds.anu.edu.au:9081/DataCommons/j_spring_cas_security_check' /></c:url>">ANU
+				Login</a>
 		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
-			Welcome <sec:authentication property="principal.username" /> <a href='<c:url value="/j_spring_security_logout" />' >Logout</a>
+			Welcome <sec:authentication property="principal.username" />
+			<a href='<c:url value="/j_spring_security_logout" />'>Logout</a>
 		</sec:authorize>
 	</anu:tabmeta>
 </anu:tabnav>
@@ -28,10 +33,9 @@
 			<ul>
 				<li><a href="<c:url value='/rest/collreq/question' />">Question Bank</a></li>
 				<li><a href="<c:url value='/rest/collreq/dropbox' />">Dropboxes</a></li>
-			</ul>
-		</li>
+			</ul></li>
 		<sec:authorize access="hasRole('ROLE_ANU_USER')">
-		<li><a href="<c:url value='/jsp/upload.jsp' />">Upload</a></li>
+			<li><a href="<c:url value='/jsp/upload.jsp' />">Upload</a></li>
 		</sec:authorize>
 	</anu:submenu>
 

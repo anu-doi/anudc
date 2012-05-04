@@ -38,7 +38,7 @@
 					<input type="submit" value="Submit" />
 				</p>
 			</form>
-			<c:if test="${not empty it.auth && it.auth == 'y' && not empty it.downloadables}">
+			<c:if test="${not empty it.downloadables}">
 				<table>
 					<tr>
 						<th>Item</th>

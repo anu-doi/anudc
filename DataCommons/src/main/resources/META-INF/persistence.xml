@@ -11,7 +11,6 @@
 		<class>au.edu.anu.datacommons.collectionrequest.CollectionDropboxAccessLog</class>
 		<class>au.edu.anu.datacommons.collectionrequest.Question</class>
 		<class>au.edu.anu.datacommons.collectionrequest.QuestionMap</class>
-		<exclude-unlisted-classes>true</exclude-unlisted-classes>
 		<properties>
 			<property name="hibernate.connection.driver_class" value="org.postgresql.Driver" />
 			<property name="hibernate.connection.url" value="jdbc:postgresql://localhost:5432/datacommonsdb" />
@@ -19,7 +18,7 @@
 			<property name="hibernate.connection.password" value="dcpassword" />
 			<property name="show_sql" value="true" />
 			<property name="dialect" value="org.hibernate.dialect.PostgreSQLDialect" />
-			<property name="hibernate.hbm2ddl.auto" value="validate" />
+			<property name="hibernate.hbm2ddl.auto" value="update" />
 		</properties>
 	</persistence-unit>
 </persistence>
