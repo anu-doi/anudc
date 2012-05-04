@@ -24,6 +24,14 @@
 	<anu:submenu title="Data Commons">
 		<li><a href="<c:url value='/jsp/welcome.jsp' />">Home</a></li>
 		<li><a href="<c:url value='/rest/search' />">Search</a></li>
+		<sec:authorize access="hasRole('ROLE_REGISTERED')">
+		<li><a href="<c:url value='/rest/collreq' />">Collection Request</a>
+			<ul>
+				<li><a href="<c:url value='/rest/collreq/question' />">Question Bank</a></li>
+				<li><a href="<c:url value='/rest/collreq/dropbox' />">Dropboxes</a></li>
+			</ul>
+		</li>
+		</sec:authorize>
 		<sec:authorize access="hasRole('ROLE_ANU_USER')">
 		<li><a href="<c:url value='/rest/list/template' />">New</a></li>
 		<li><a href="<c:url value='/jsp/upload.jsp' />">Upload</a></li>

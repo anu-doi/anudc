@@ -22,6 +22,7 @@ import java.util.Properties;
  * 0.1		8/03/2012	Rahul Khanna (RK)	Initial.
  * 0.2		14/03/2012	Rahul Khanna (RK)	Added Search properties.
  * 0.3		20/03/2012	Rahul Khanna (RK)	Added File Upload properties.
+ * 0.4		4/05/2012	Rahul Khanna (RK)	Added Random Password chars property.
  * <pre>
  * 
  */
@@ -53,6 +54,8 @@ public final class GlobalProps
 	public static final String PROP_UPLOAD_TEMPDIR = "Upload.TempDir";
 	public static final String PROP_UPLOAD_MAXSIZEINMEM = "Upload.MaxSizeInMemInBytes";
 	public static final String PROP_UPLOAD_HTTPBASEURI = "Upload.UploadHttpBaseURI";
+	public static final String PROP_PASSWORDGENERATOR_CHARS = "PasswordGenerator.Chars";
+	public static final String PROP_DROPBOX_PASSWORDLENGTH = "Dropbox.PasswordLength";
 
 	static
 	{
