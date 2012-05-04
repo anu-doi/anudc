@@ -244,6 +244,19 @@ public class FedoraBroker {
 		return response.getDatastreams();
 	}
 	
+	/**
+	 * getClient
+	 * 
+	 * Get the fedoraClient instance.
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		1/05/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * @return
+	 */
 	public static FedoraClient getClient()
 	{
 		return fedoraClient_;
