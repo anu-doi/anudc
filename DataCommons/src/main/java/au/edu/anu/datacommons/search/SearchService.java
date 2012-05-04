@@ -33,8 +33,9 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
  * Class provides a REST service using Jersey for searching the Fedora repository
  * 
  * <pre>
- * Version	Date		Developer			Description
- * 0.1		26/03/2012	Rahul Khanna (RK)	Initial.
+ * Version	Date		Developer				Description
+ * 0.1		26/03/2012	Rahul Khanna (RK)		Initial.
+ * 0.2		04/05/2012	Genevieve Turner (GT)	Updated for the removal of the method 'runRiSearch'
  * </pre>
  * 
  */
@@ -47,7 +48,6 @@ public class SearchService
 	@Resource(name="riSearchService")
 	SparqlPoster riSearchService;
 	
-//	@QueryParam("q") private String q;
 	// TODO Once determined how object info such as published flag, group etc. are stored use this parameter to filter out results.
 //	@QueryParam("filter") private String filter;
 
@@ -63,20 +63,18 @@ public class SearchService
 	 *         <pre>
 	 * Version	Date		Developer			Description
 	 * 0.1		23/03/2012	Rahul Khanna (RK)	Initial
+	 * 0.2		04/05/2012	Genevieve Turner (GT)	Updated for the removal of the method 'runRiSearch'
 	 * </pre>
 	 */
 	@GET
 	@Produces(MediaType.TEXT_XML)
 	public Response doGetAsXml(@QueryParam("q") String q, @QueryParam("filter") String filter)
 	{
-		// Throw exception if no search terms provided. JSP has validation to check this as well.
-		//if (q.trim().equals(""))
-		//	throw new NullPointerException("Terms to search not specified");
-
+		//TODO filter out when q is blank. i.e. need to figure out what to return
 		// Generate the SPARQL query from the terms
 		SparqlQuery sparqlQuery = new SparqlQuery(q);
 
-		ClientResponse respFromRiSearch = runRiSearch(sparqlQuery);
+		ClientResponse respFromRiSearch = riSearchService.post(sparqlQuery.generateQuery());
 
 		return Response.ok(respFromRiSearch.getEntity(String.class)).build();
 	}
@@ -91,8 +89,9 @@ public class SearchService
 	 * @return Response to display the Search JSP and passing an object to it.
 	 * 
 	 *         <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		23/03/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		23/03/2012	Rahul Khanna (RK)		Initial
+	 * 0.2		04/05/2012	Genevieve Turner (GT)	Updated for the removal of the method 'runRiSearch'
 	 * </pre>
 	 */
 	@GET
@@ -107,7 +106,7 @@ public class SearchService
 			// Generate the SPARQL query from the terms
 			SparqlQuery sparqlQuery = new SparqlQuery(q);
 
-			ClientResponse respFromRiSearch = runRiSearch(sparqlQuery);
+			ClientResponse respFromRiSearch = riSearchService.post(sparqlQuery.generateQuery());
 
 			try
 			{
@@ -144,37 +143,5 @@ public class SearchService
 		}
 
 		return resp;
-	}
-	
-	/**
-	 * runRiSearch
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * This method sends a request to the RISearch service by Fedora. The response is an XML document.
-	 * 
-	 * @return Web service response with the status of request and entity.
-	 * 
-	 *         <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		26/03/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 */
-	private ClientResponse runRiSearch(SparqlQuery sparqlQuery)
-	{	
-		//TODO fix this so that the spring file can pick it up
-		MultivaluedMapImpl queryMap = new MultivaluedMapImpl();
-
-		// Assign constant parameters to queryMap.
-		/*queryMap.add("dt", "on");
-		queryMap.add("format", "Sparql");
-		queryMap.add("lang", "sparql");
-		queryMap.add("limit", "1000");
-		queryMap.add("type", "tuples");
-		riSearchService.setParameters(queryMap);*/
-		// Send request to RiSearch service and return response.
-		ClientResponse respFromRiSearch = riSearchService.post(sparqlQuery.generateQuery());
-		
-		return respFromRiSearch;
 	}
 }
