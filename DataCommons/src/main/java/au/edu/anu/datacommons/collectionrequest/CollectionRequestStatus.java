@@ -52,7 +52,7 @@ public class CollectionRequestStatus
 		this.id = id;
 	}
 
-	@ManyToOne(optional = true)
+	@ManyToOne(optional = false)
 	@JoinColumn(name = "request_fk")
 	public CollectionRequest getCollectionRequest()
 	{

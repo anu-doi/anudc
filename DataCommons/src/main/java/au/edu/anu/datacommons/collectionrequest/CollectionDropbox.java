@@ -21,13 +21,13 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.util.Util;
+
 @Entity
 @Table(name = "collection_dropboxes")
 public class CollectionDropbox
 {
-	@Transient
-	private static char[] passwordChars = "23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ".toCharArray();		// 1, i, I, l, L, 0, o, O removed.
-
 	private Long id;
 	private CollectionRequest collectionRequest;
 	private Long accessCode;
@@ -175,26 +175,13 @@ public class CollectionDropbox
 		calendar.setTimeInMillis(timestamp.getTime());
 		calendar.add(Calendar.DATE, 30);
 		this.expiry = calendar.getTime();
-
 		this.accessCode = Math.round(Math.random() * (double) Long.MAX_VALUE);
-
-		this.accessPassword = generatePassword(passwordChars, 8);
+		this.accessPassword = Util.generatePassword(Integer.parseInt(GlobalProps.getProperty(GlobalProps.PROP_DROPBOX_PASSWORDLENGTH)));
 	}
 
 	public void addAccessLogEntry(CollectionDropboxAccessLog accessLogEntry)
 	{
 		accessLogEntry.setDropbox(this);
 		this.accessLog.add(accessLogEntry);
-	}
-
-	private String generatePassword(char[] charArray, int length)
-	{
-		Random rand = new Random();
-		StringBuilder password = new StringBuilder();
-
-		for (int i = 0; i < length; i++)
-			password.append(charArray[rand.nextInt(charArray.length)]);
-
-		return password.toString();
 	}
 }
