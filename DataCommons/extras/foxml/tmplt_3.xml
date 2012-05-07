@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<foxml:digitalObject FEDORA_URI="info:fedora/tmplt:3" PID="tmplt:3" VERSION="1.1"
+  xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
+  <foxml:objectProperties>
+    <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+    <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="Service Template"/>
+  </foxml:objectProperties>
+  <foxml:datastream CONTROL_GROUP="X" ID="DC" STATE="A" VERSIONABLE="true">
+    <foxml:datastreamVersion FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/"
+      ID="DC.0" LABEL="Dublin Core Record for this object" MIMETYPE="text/xml" >
+      <foxml:xmlContent>
+        <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/"
+          xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+          <dc:title>Service Template</dc:title>
+          <dc:description>Template for creating services</dc:description>
+          <dc:type>Template</dc:type>
+          <dc:identifier>tmplt:3</dc:identifier>
+        </oai_dc:dc>
+      </foxml:xmlContent>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+  <foxml:datastream CONTROL_GROUP="X" ID="XML_TEMPLATE" STATE="A" VERSIONABLE="true">
+    <foxml:datastreamVersion ID="XML_TEMPLATE.0" LABEL="XML Template"
+      MIMETYPE="text/xml">
+      <foxml:xmlContent>
+        <template>
+          <name>Service Template</name>
+          <item defaultValue="Service" editPerm="admin" fieldType="TextField" label="Type" name="type"
+            readonly="readonly" saveType="single"/>
+          <item class="required" fieldType="Combobox" label="Service Type" name="subType" saveType="single">
+            <option label="Create" value="create"/>
+            <option label="Generate" value="generate"/>
+            <option label="Annotate" value="annotate"/>
+            <option label="Report" value="report"/>
+            <option label="Transform" value="transform"/>
+            <option label="Assemble" value="assemble"/>
+          </item>
+          <item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"/>
+          <item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"/>
+          <item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single"/>
+          <item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single"/>
+          <item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single"/>
+          <item class="required email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple"/>
+          <item fieldType="TextArea" label="Contact Address" name="postalAddress" saveType="single"/>
+          <item fieldType="TextFieldMulti" label="Contact Phone Number" name="phone" saveType="multiple"/>
+          <item fieldType="TextFieldMulti" label="Contact Fax Number" name="fax" saveType="multiple"/>
+          <item class="required" fieldType="Combobox" label="Delivery Method" name="deliveryMethod" saveType="single">
+            <option label="Offline" value="offline"/>
+            <option label="Software" value="software"/>
+            <option label="Web Service" value="webservice"/>
+            <option label="Workflow" value="workflow"/>
+          </item>
+          <item fieldType="TextFieldMulti" label="Access URL" name="websiteAddress" saveType="multiple"/>
+          <item fieldType="TextField" label="Service Website" name="relatedURL" saveType="single"/>
+          <item fieldType="TextField" label="Access Policy Website" name="accessPolicy" saveType="single"/>
+        </template>
+      </foxml:xmlContent>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+</foxml:digitalObject>

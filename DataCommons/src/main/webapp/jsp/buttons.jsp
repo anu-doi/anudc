@@ -4,7 +4,6 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 
 <anu:content layout="narrow">
-<p>Testing side bar</p>
 	<anu:box style="solid">
 		<sec:authorize access="isAnonymous()">
 			Please login to request access to this dataset

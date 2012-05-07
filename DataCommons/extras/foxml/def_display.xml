@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<foxml:digitalObject PID="def:display" VERSION="1.1"
+<foxml:digitalObject FEDORA_URI="info:fedora/def:display" PID="def:display" VERSION="1.1"
   xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
   <foxml:objectProperties>
     <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
@@ -21,9 +21,11 @@
   <foxml:datastream CONTROL_GROUP="X" ID="XSL_SOURCE" STATE="A" VERSIONABLE="true">
     <foxml:datastreamVersion ID="XSL_SOURCE.0" LABEL="XSL Source" MIMETYPE="text/xml">
       <foxml:xmlContent>
-        <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+        <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
           <xsl:param name="data"/>
+          <xsl:param name="modifiedData"/>
           <xsl:variable name="mData" select="$data"/>
+          <xsl:variable name="mModifiedData" select="$modifiedData"/>
           <xsl:template match="/">
             <xsl:if test="$data != null"/>
             <html>
@@ -44,7 +46,9 @@
                             <td>
                               <xsl:choose>
                                 <xsl:when test="@saveType='table'">
-                                  <xsl:call-template name="Table"/>
+                                  <xsl:call-template name="Table">
+                                    <xsl:with-param name="tableVal" select="$mData"/>
+                                  </xsl:call-template>
                                 </xsl:when>
                                 <xsl:otherwise>
                                   <xsl:for-each select="$mData/data/*[name() = $name]">
@@ -55,6 +59,29 @@
                               </xsl:choose>
                             </td>
                           </tr>
+                        </xsl:if>
+                        <xsl:if test="$modifiedData != ''">
+                          <xsl:if test="$mModifiedData/data/*[name() = $name]">
+                            <tr>
+                              <th>
+                                <xsl:value-of select="@label"/> Modified</th>
+                              <td>
+                                <xsl:choose>
+                                  <xsl:when test="@saveType='table'">
+                                    <xsl:call-template name="Table">
+                                      <xsl:with-param name="tableVal" select="$mModifiedData"/>
+                                    </xsl:call-template>
+                                  </xsl:when>
+                                  <xsl:otherwise>
+                                    <xsl:for-each select="$mModifiedData/data/*[name() = $name]">
+                                      <xsl:value-of select="text()"/>
+                                      <br/>
+                                    </xsl:for-each>
+                                  </xsl:otherwise>
+                                </xsl:choose>
+                              </td>
+                            </tr>
+                          </xsl:if>
                         </xsl:if>
                       </xsl:for-each>
                     </table>
@@ -67,8 +94,10 @@
             </html>
           </xsl:template>
           <xsl:template name="Table">
+            <xsl:param name="tableVal"/>
+            <xsl:variable name="mTableVal" select="$tableVal"/>
+            <xsl:variable name="table" select="."/>
             <table>
-              <xsl:variable name="table" select="."/>
               <tr>
                 <xsl:for-each select="column">
                   <th>
@@ -76,7 +105,7 @@
                   </th>
                 </xsl:for-each>
               </tr>
-              <xsl:for-each select="$mData/data/*[name() = $table/@name]">
+              <xsl:for-each select="$mTableVal/data/*[name() = $table/@name]">
                 <xsl:variable name="tabledata" select="."/>
                 <tr>
                   <xsl:for-each select="$table/column">
