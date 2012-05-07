@@ -48,11 +48,14 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 @Path("/search")
 public class SearchService
 {
-	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+	private static final Logger LOGGER = LoggerFactory.getLogger(SearchService.class);
+	private static final String SEARCH_JSP = "/search.jsp";
 
-	@QueryParam("q") private String q;
+	@QueryParam("q")
+	private String q;
 	// TODO Once determined how object info such as published flag, group etc. are stored use this parameter to filter out results.
-	@QueryParam("filter") private String filter;
+	@QueryParam("filter")
+	private String filter;
 
 	/**
 	 * doGetAsXml
@@ -98,7 +101,7 @@ public class SearchService
 		Response resp = null;
 
 		// Perform search if terms to search are provided, else display the search page without any search results.
-		if (q != null && !q.equals(""))
+		if (q != null && !q.trim().equals(""))
 		{
 			ClientResponse respFromRiSearch = runRiSearch();
 
@@ -113,7 +116,7 @@ public class SearchService
 				HashMap<String, Object> model = new HashMap<String, Object>();
 				model.put("resultSet", resultSet);
 
-				resp = Response.ok(new Viewable("/search.jsp", model)).build();
+				resp = Response.ok(new Viewable(SEARCH_JSP, model)).build();
 			}
 			catch (SAXException e)
 			{
@@ -133,7 +136,7 @@ public class SearchService
 		}
 		else
 		{
-			resp = Response.ok(new Viewable("/search.jsp")).build();
+			resp = Response.ok(new Viewable(SEARCH_JSP)).build();
 		}
 
 		return resp;
@@ -160,10 +163,11 @@ public class SearchService
 		Client client = Client.create(config);
 		client.addFilter(new HTTPBasicAuthFilter(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_USERNAME), GlobalProps
 				.getProperty(GlobalProps.PROP_FEDORA_PASSWORD)));
-		WebResource riSearchService = client.resource(UriBuilder.fromUri(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI)).build());
+		WebResource riSearchService = client.resource(UriBuilder.fromUri(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI))
+				.path(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RISEARCHURL)).build());
 		MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl();
 
-		// Assign constant parameters to queryMap.
+		// Assign riSearch parameters to queryMap.
 		queryMap.add("dt", "on");
 		queryMap.add("format", "Sparql");
 		queryMap.add("lang", "sparql");
@@ -172,13 +176,13 @@ public class SearchService
 
 		// Throw exception if no search terms provided. JSP has validation to check this as well.
 		if (q.trim().equals(""))
-			throw new NullPointerException("Terms to search not specified");
+			throw new NullPointerException("Search terms not specified");
 
 		// Generate the SPARQL query from the terms
 		SparqlQuery sparqlQuery = new SparqlQuery(q);
 
 		// Send request to RiSearch service and return response.
-		riSearchService = riSearchService.path(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RISEARCHURL));
+		// riSearchService = riSearchService.path(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RISEARCHURL));
 		riSearchService = riSearchService.queryParams(queryMap);
 		riSearchService = riSearchService.queryParam("query", sparqlQuery.generateQuery());
 		ClientResponse respFromRiSearch = riSearchService.type(MediaType.APPLICATION_FORM_URLENCODED).accept(MediaType.TEXT_XML).post(ClientResponse.class);
