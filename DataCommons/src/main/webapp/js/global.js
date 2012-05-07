@@ -1,5 +1,5 @@
 /**
- * DisplayResource
+ * global.js
  * 
  * Australian National University Data Comons
  * 
@@ -9,7 +9,7 @@
  * 0.1		08/03/2012	Rahul Khanna		Initial
  * 0.2		20/03/2012	Genevieve Turner	Added functions for adding/removing rows
  * 0.3		26/03/2012	Genevieve Turner	Removed existing functions for adding/removing rows and changed to use jQuery
- * 
+ * 0.4		07/05/2012	Genevieve Turner	Removed add link functionality from global.js
  */
 
 /**
@@ -23,31 +23,6 @@
 jQuery(document).ready(function() {
 	jQuery("#editSubmit").attr("disabled", "disabled");
 });
-
-/**
- * Opens a dialog so the user can add references
- * 
- * Version	Date		Developer			Description
- * 0.3		26/03/2012	Genevieve Turner	Created function
- * 
- */
-jQuery("#itemLinkButton").live('click', function(){
-	console.log('Clicked');
-	var hash = getParameters();
-	var item = hash['item'];
-	window.open('/DataCommons/jsp/add_reference.jsp?item=' + item, '', 'width=300');
-});
-
-function getParameters() {
-	var searchString = window.location.search.substring(1), params = searchString.split("&"), hash = {};
-	
-	for (var i = 0; i < params.length; i++) {
-		var val = params[i].split("=");
-		hash[unescape(val[0])] = unescape(val[1]);
-	}
-	
-	return hash;
-}
 
 /**
  * When the edit drop down lists selected value changes this event fires.  It performs
@@ -163,5 +138,3 @@ function removeTableRow(buttonField) {
 		tableRow.find("textarea").val('');
 	}
 }
-
-
