@@ -3,7 +3,7 @@
 <html>
 	<body>
 		Please enter the reference to add
-		<form method="post" onsubmit="return validateForm()"  action="/DataCommons/rest/display/addLink?item=test:57">
+		<form method="post" onsubmit="return validateForm()"  action="/DataCommons/rest/display/addLink?item=${param.item}">
 			<p><label for="txtType">Link Type</label><input type="text" name="txtType" /></p>
 			<p><label for="txtItem">Item Id</label><input type="text" name="txtItem" /></p>
 			<p><input type="submit" value="Submit" /></p>

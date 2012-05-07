@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.collectionrequest.CollectionRequestStatus.ReqStatus;
-import au.edu.anu.datacommons.connection.fedora.FedoraBroker;
+import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.persistence.HibernateUtil;
 import au.edu.anu.datacommons.properties.GlobalProps;
 

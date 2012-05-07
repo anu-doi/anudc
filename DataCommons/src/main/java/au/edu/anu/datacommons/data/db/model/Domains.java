@@ -1,4 +1,4 @@
-package au.edu.anu.datacommons.connection.db.model;
+package au.edu.anu.datacommons.data.db.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,11 +8,11 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
- * Groups
+ * Domains
  * 
  * Australian National University Data Comons
  * 
- * Entity class for the groups database table
+ * Entity class for the domains database table
  * 
  * JUnit Coverage:
  * None
@@ -24,22 +24,22 @@ import javax.persistence.Table;
  * 
  */
 @Entity
-@Table(name="groups")
-public class Groups {
+@Table(name="domains")
+public class Domains {
 	private Long id;
-	private String group_name;
-	
+	private String domain_name;
+
 	/**
-	 * setId
+	 * getId
 	 * 
-	 * Sets the id of the group
+	 * Gets the id of the domain
 	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param id The id of the domain
+	 * @return The id of the object
 	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,49 +50,49 @@ public class Groups {
 	/**
 	 * setId
 	 * 
-	 * Sets the id of the group
+	 * Sets the id of the domain
 	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param id The id of the group
+	 * @param id The id of the domain
 	 */
 	public void setId(Long id) {
 		this.id = id;
 	}
 	
 	/**
-	 * getGroup_name
+	 * getDomain_name
 	 * 
-	 * Gets the name of the group
+	 * Gets the name of the object
 	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @return The name of the group
+	 * @return The name of the domain
 	 */
-	@Column(name="group_name")
-	public String getGroup_name() {
-		return group_name;
+	@Column(name="domain_name")
+	public String getDomain_name() {
+		return domain_name;
 	}
 	
 	/**
-	 * setGroup_name
+	 * setDomain_name
 	 * 
-	 * Sets the name of the group
+	 * Sets the name of the domain
 	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param group_name The name of the group
+	 * @param domain_name The name of the domain
 	 */
-	public void setGroup_name(String group_name) {
-		this.group_name = group_name;
+	public void setDomain_name(String domain_name) {
+		this.domain_name = domain_name;
 	}
 }

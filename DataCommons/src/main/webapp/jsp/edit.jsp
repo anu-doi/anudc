@@ -2,7 +2,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <anu:content layout="narrow">
-<p>Edit Fields:</p>
+	<anu:box style="solid">
+	<p>Edit Fields:</p>
 	<p>
 		<select id="editSelect">
 			<option value="">- No Value Selected -</option>
@@ -12,12 +13,7 @@
 		</select>
 	</p>
 	
-	<c:url value="/rest/display/edit" var="actionURL">
-		<c:param name="layout">def:test2</c:param>
-		<c:param name="tmplt">${param.tmplt}</c:param>
-		<c:param name="item">${param.item}</c:param>
-	</c:url>
-	<form method="post" action="${actionURL}">
+	<form id="form" method="post" action="" onsubmit="return jQuery('#form').validate().form()" action="">
 		<div id="extraFields">
 			
 		</div>
@@ -25,4 +21,6 @@
 		<input id="addItemLink" type="button" class="addLink" value="Link to Item" />
 		<input id="deleteItem" type="button" class="deleteItem" value="Delete" />
 	</form>
+	</anu:box>
+	<jsp:include page="listrelated.jsp" />
 </anu:content>

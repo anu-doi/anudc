@@ -1,22 +1,22 @@
-package au.edu.anu.datacommons.connection.db;
+package au.edu.anu.datacommons.data.db.dao;
 
 /**
- * GenericDAO
+ * FedoraObjectDAO
  * 
- * Australian National University Data Comons
- * 
- * Generic Data Access Object implementation
+ * Interface for retrieving fedora objects.
  * 
  * JUnit Coverage:
  * None
  * 
+ * <pre>
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+ * </pre>
  * 
+ * @param <T> The type of the object that is instantiated
+ * @param <PK> The type of the primary key that is instantiated
  */
-public interface GenericDAO <T, PK>{
-	//T create(T t);
-	
+public interface FedoraObjectDAO<T, PK> extends GenericDAO {
 	/**
 	 * getSingleByName
 	 * 
@@ -30,7 +30,4 @@ public interface GenericDAO <T, PK>{
 	 * @param name The name of the object to retrieve
 	 */
 	T getSingleByName(String name);
-	//T getSingleById(PK id);
-	//T update(T t);
-	//void delete(T t);
 }

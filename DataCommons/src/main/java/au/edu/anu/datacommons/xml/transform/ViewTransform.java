@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -26,9 +27,16 @@ import javax.xml.transform.stream.StreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import au.edu.anu.datacommons.connection.fedora.FedoraBroker;
+import au.edu.anu.datacommons.data.db.dao.AclObjectIdentityDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
+import au.edu.anu.datacommons.data.db.model.AclObjectIdentity;
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
@@ -93,20 +101,22 @@ public class ViewTransform
 	 * Version	Date		Developer				Description
 	 * 0.1		19/03/2012	Genevieve Turner (GT)	Initial build
 	 * 0.4		26/04/2012	Genevieve Turner (GT)	Some updates for differences between published and non-published records
+	 * 0.5		02/05/2012	Genevieve Turner (GT)	Updates to display differences between published and non-published records
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
 	 * @param template The template that determines the fields on the screen
-	 * @param item The item to retrieve data for
+	 * @param fedoraObject The item to retrieve data for
 	 * @param fieldName The field to retrieve data for
 	 * @param editMode Whether the request is in edit mode or not
 	 * @return Returns a string representation of the page
 	 * @throws FedoraClientException
 	 */
-	public String getPage (String layout, String template, String item, String fieldName, boolean editMode) throws FedoraClientException
+	public String getPage (String layout, String template, FedoraObject fedoraObject, String fieldName, boolean editMode) throws FedoraClientException
 	{
+		LOGGER.info("In getPage");
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		InputStream xmlStream = getXMLInputStream(template, item);
+		InputStream xmlStream = getXMLInputStream(template, fedoraObject);
 
 		if (xmlStream == null) {
 			LOGGER.warn("XML Stream is empty");
@@ -123,8 +133,8 @@ public class ViewTransform
 		if(Util.isNotEmpty(template)) {
 			parameters.put("tmplt", template);
 		}
-		if(Util.isNotEmpty(item)) {
-			parameters.put("item", item);
+		if(fedoraObject != null) {
+			parameters.put("item", fedoraObject.getObject_id());
 		}
 		if(Util.isNotEmpty(layout)) {
 			parameters.put("layout", layout);
@@ -133,18 +143,19 @@ public class ViewTransform
 			parameters.put("fieldName", fieldName);
 		}
 		
-		if (Util.isNotEmpty(item)) {
+		if (fedoraObject != null) {
 			InputStream dataStream = null;
-		/*	InputStream dataStream2 = null;
-			InputStream modifiedDatastream = null; */
+			Document modifiedDocument = null;
+			
 			if(editMode) {
-				dataStream = FedoraBroker.getDatastreamAsStream(item, Constants.XML_SOURCE);
+				dataStream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
 			} else {
-				List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(item); //FedoraBroker.getDatastreamAsStream(pid, streamId)
+				List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(fedoraObject.getObject_id()); //FedoraBroker.getDatastreamAsStream(pid, streamId)
 				boolean hasXMLSource = false;
 				boolean hasXMLPublished = false;
 				for (DatastreamType datastream : datastreamList) {
 					String dsId = datastream.getDsid();
+					LOGGER.info("Data Source id: " + dsId);
 					if (dsId.equals(Constants.XML_SOURCE)) {
 						hasXMLSource = true;
 					}
@@ -153,21 +164,27 @@ public class ViewTransform
 					}
 				}
 				if(hasXMLPublished) {
-					dataStream = FedoraBroker.getDatastreamAsStream(item, Constants.XML_PUBLISHED);
+					dataStream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_PUBLISHED);
 				}
 				else if (hasXMLSource) {
-					dataStream = FedoraBroker.getDatastreamAsStream(item, Constants.XML_SOURCE);
+					dataStream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
 				}
 				else {
 					LOGGER.warn("item specified does not exist");
 					return "";
 				}
-			/*	if(hasXMLPublished && hasXMLSource) {
-					dataStream2 = FedoraBroker.getDatastreamAsStream(item, Constants.XML_PUBLISHED);
-					modifiedDatastream = FedoraBroker.getDatastreamAsStream(item, Constants.XML_SOURCE);
-					String modifiedData = compareXML(dataStream2, modifiedDatastream);
-					LOGGER.info("Modified Data: " + modifiedData);
-				}*/
+				if(hasXMLPublished && hasXMLSource) {
+					LOGGER.info("has both published and source");
+					InputStream dataStream2 = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_PUBLISHED);
+					InputStream modifiedDatastream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
+					try {
+						modifiedDocument = getXMLDifference(dataStream2, modifiedDatastream);
+					}
+					catch (Exception e) {
+						LOGGER.warn("Exception retrieving differences between documents");
+					}
+				//	LOGGER.info("Modified Data: " + modifiedData);
+				}
 			}
 			if (dataStream != null) {
 				try {
@@ -175,10 +192,10 @@ public class ViewTransform
 					// it a w3c Document 
 					Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(dataStream);
 					parameters.put("data", doc);
-				/*	if (modifiedDatastream != null) {
-						Document modifiedDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(modifiedDatastream);
-						parameters.put("modifiedData", modifiedDoc);
-					}*/
+					if (modifiedDocument != null) {
+						LOGGER.info("Adding modified data");
+						parameters.put("modifiedData", modifiedDocument);
+					}
 				}
 				catch (SAXException e){
 					LOGGER.error("Issue with document", e);
@@ -205,38 +222,6 @@ public class ViewTransform
 		return result;
 	}
 	
-//	private String compareXML(InputStream publishedValue, InputStream modifiedValue) {
-		/*JAXBTransform jaxbTransform = new JAXBTransform();
-		try {
-			Object publishedObject = jaxbTransform.unmarshalStream(publishedValue, Data.class);
-			Object modifiedObject = jaxbTransform.unmarshalStream(modifiedValue, Data.class);
-			
-		}
-		catch(JAXBException e) {
-			LOGGER.error("Error comparing strings");
-		}
-		*/
-		//Document document = new Document
-		/*String publishedDocument = convertStreamToString(publishedValue);
-		LOGGER.info("Published Document: " + publishedDocument);
-		String modifiedDocument = convertStreamToString(modifiedValue);
-		LOGGER.info("Modified Document: " + modifiedDocument);*/
-	/*	List<String> diffs = new ArrayList<String>();
-		XmlDiff aDiff = new XmlDiff();
-		try {
-			boolean hasDifference = aDiff.diff(publishedValue, modifiedValue, diffs);
-			LOGGER.info("Has difference: " + hasDifference);
-			LOGGER.info("Differences: " + diffs.toString());
-		}
-		catch (Exception e) {
-			LOGGER.error("Error comparing xml documents");
-		}
-		
-		//aDiff.di
-		
-		return null;
-	}*/
-	
 	/**
 	 * getPublishedPage
 	 * 
@@ -250,19 +235,21 @@ public class ViewTransform
 	 * Version	Date		Developer				Description
 	 * 0.1		19/03/2012	Genevieve Turner (GT)	Initial build
 	 * 0.4		26/04/2012	Genevieve Turner (GT)	Some updates for differences between published and non-published records
+	 * 0.5		03/05/2012	Genevieve Turner (GT)	Updated so the fedora object is used to get the input stream
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
 	 * @param template The template that determines the fields on the screen
-	 * @param item The item to retrieve data for
+	 * @param fedoraObject The item to retrieve data for
 	 * @param fieldName The field to retrieve data for
 	 * @return Returns a string representation of the page
 	 * @throws FedoraClientException
 	 */
-	public String getPublishedPage(String layout, String template, String item, String fieldName) throws FedoraClientException
+	public String getPublishedPage(String layout, String template, FedoraObject fedoraObject, String fieldName) throws FedoraClientException
 	{
+		LOGGER.info("In getPublishedPage");
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		InputStream xmlStream = getXMLInputStream(template, item);
+		InputStream xmlStream = getXMLInputStream(template, fedoraObject);
 
 		if (xmlStream == null) {
 			LOGGER.warn("XML Stream is empty");
@@ -279,8 +266,8 @@ public class ViewTransform
 		if(Util.isNotEmpty(template)) {
 			parameters.put("tmplt", template);
 		}
-		if(Util.isNotEmpty(item)) {
-			parameters.put("item", item);
+		if(fedoraObject != null) {
+			parameters.put("item", fedoraObject.getObject_id());
 		}
 		if(Util.isNotEmpty(layout)) {
 			parameters.put("layout", layout);
@@ -289,8 +276,8 @@ public class ViewTransform
 			parameters.put("fieldName", fieldName);
 		}
 		
-		if (Util.isNotEmpty(item)) {
-			InputStream dataStream = FedoraBroker.getDatastreamAsStream(item, Constants.XML_SOURCE);
+		if (fedoraObject != null) {
+			InputStream dataStream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
 			if (dataStream != null) {
 				try {
 					// Xalan appears to have issues tranforming when a stream is sent to the document so making
@@ -321,6 +308,175 @@ public class ViewTransform
 			LOGGER.error("Exception transforming page", e);
 		}
 		return result;
+	}
+	
+	/**
+	 * getXMLDifference
+	 * 
+	 * Retrieves the differences between two xml documents
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		02/05/2012	Genevieve Turner (GT)	Allows the display of between published and non-published records
+	 * </pre>
+	 * 
+	 * @param xml1 InputStream of the base document to compare
+	 * @param xml2 InputStream of the modified document to compare
+	 * @return The document of the differences from the second document
+	 * @throws Exception
+	 */
+	public Document getXMLDifference (InputStream xml1, InputStream xml2) throws Exception {
+		Document doc1 = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml1);
+		Document doc2 = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xml2);
+		
+		//Skip the first level of items in the document and compare them
+		return getXMLDifference (doc1.getFirstChild(), doc2.getFirstChild());
+	}
+	
+	/**
+	 * getXMLDifference
+	 * 
+	 * Retrieves the differences between two xml documents
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		02/05/2012	Genevieve Turner (GT)	Allows the display of between published and non-published records
+	 * </pre>
+	 * 
+	 * @param node1 Node of the base document to compare
+	 * @param node2 Node of the modified docuemtn to compare
+	 * @return The document of the differences from the second document
+	 * @throws Exception
+	 */
+	public Document getXMLDifference (Node node1, Node node2) throws Exception {
+		if (node1.isEqualNode(node2)) {
+			return null;
+		}
+		
+		Map<String, List<Element>> nodeMap1 = getDocumentMap(node1);
+		Map<String, List<Element>> nodeMap2 = getDocumentMap(node2);
+		
+		List<String> differences = getDifferences(nodeMap1, nodeMap2);
+		
+		Document newDoc = null;
+		if (differences.size() > 0) {
+			try {
+				newDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+				Element rootElement = newDoc.createElement("data");
+				newDoc.appendChild(rootElement);
+				for (String difference : differences) {
+					List<Element> elems = nodeMap2.get(difference);
+					for (Element element : elems) {
+						Node node = element.cloneNode(true);
+						rootElement.appendChild(newDoc.importNode(node, true));
+					}
+				}
+			}
+			catch (ParserConfigurationException e) {
+				LOGGER.error("Error configuring parser: ", e);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return newDoc;
+	}
+	
+	/**
+	 * getDifferences
+	 * 
+	 * Returns hte differences between the map of nodes given
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		02/05/2012	Genevieve Turner (GT)	Allows the display of between published and non-published records
+	 * </pre>
+	 * 
+	 * @param nodeMap1 Node of the base document to compare
+	 * @param nodeMap2 Node of the modified docuemtn to compare
+	 * @return
+	 */
+	private List<String> getDifferences(Map<String, List<Element>> nodeMap1, Map<String, List<Element>> nodeMap2) {
+		List<String> keySet1 = new ArrayList<String>(nodeMap1.keySet());
+		List<String> keySet2 = new ArrayList<String>(nodeMap2.keySet());
+		List<String> diffs = new ArrayList<String>();
+		
+		int i = 0;
+		int j = 0;
+		while (i < keySet1.size() && j < keySet2.size()) {
+			int result = keySet1.get(i).compareTo(keySet2.get(j));
+			if (result == 0) {
+
+				List<Element> list1 = nodeMap1.get(keySet1.get(i));
+				List<Element> list2 = nodeMap2.get(keySet2.get(j));
+				
+				if (list1.size() == list2.size()) {
+					for (int k = 0; k < list1.size(); k++) {
+						Element elem1 = list1.get(k);
+						Element elem2 = list2.get(k);
+
+						if (!elem1.isEqualNode(elem2)) {
+							diffs.add(keySet2.get(j));
+							break;
+						}
+					}
+				}
+				else {
+					diffs.add(keySet2.get(j));
+				}
+				i++;
+				j++;
+			}
+			else if (result < 0) {
+				i++;
+			}
+			else if (result > 0) {
+				diffs.add(keySet2.get(j));
+				j++;
+			}
+		}
+		if (j < keySet2.size()) {
+			diffs.addAll(keySet2.subList(j, keySet2.size()));
+		}
+		
+		return diffs;
+	}
+	
+	/**
+	 * getDocumentMap
+	 * 
+	 * Returns a map of the child nodes.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		02/05/2012	Genevieve Turner (GT)	Allows the display of between published and non-published records
+	 * </pre>
+	 * 
+	 * Creates a map of elements
+	 * @param node The node to map
+	 * @return
+	 */
+	private Map<String, List<Element>> getDocumentMap(Node node) {
+		Map<String, List<Element>> nodeMap = new TreeMap<String, List<Element>>();
+		
+		NodeList nodeList = node.getChildNodes();
+		for (int i = 0; i < nodeList.getLength(); i++) {
+			Node childNode = nodeList.item(i);
+			if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+				Element elem = (Element) childNode;
+				if (nodeMap.containsKey(elem.getNodeName())) {
+					nodeMap.get(elem.getNodeName()).add(elem);
+				}
+				else {
+					List<Element> list = new ArrayList<Element>();
+					list.add(elem);
+					nodeMap.put(elem.getNodeName(), list);
+				}
+			}
+		}
+		
+		return nodeMap;
 	}
 	
 	/**
@@ -385,21 +541,22 @@ public class ViewTransform
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		23/03/2012	Genevieve Turner (GT)	Initial creation
+	 * 0.5		03/05/2012	Genevieve Turner (GT)	Updated so the fedora object is used to get the input stream
 	 * </pre>
 	 * 
 	 * @param template The template that determines the fields on the screen
-	 * @param item The item to retrieve data for
+	 * @param fedoraObject The item to retrieve data for
 	 * @return The stream for the xml template
 	 * @throws FedoraClientException
 	 */
-	private InputStream getXMLInputStream (String template, String item) throws FedoraClientException {
+	private InputStream getXMLInputStream (String template, FedoraObject fedoraObject) throws FedoraClientException {
 		InputStream xmlStream = null;
 		
 		if(Util.isNotEmpty(template)){
 			xmlStream = FedoraBroker.getDatastreamAsStream(template, Constants.XML_TEMPLATE);
 		}
-		else if(Util.isNotEmpty(item)){
-			xmlStream = FedoraBroker.getDatastreamAsStream(item, Constants.XML_TEMPLATE);
+		else if(fedoraObject != null){
+			xmlStream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_TEMPLATE);
 		}
 		else {
 			LOGGER.warn("No Template or Item to retrieve the datastream from specified");
@@ -443,17 +600,18 @@ public class ViewTransform
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.3		29/03/2012	Genevieve Turner (GT)	Initial creation
+	 * 0.5		03/05/2012	Genevieve Turner (GT)	Updated so the fedora object is used to get the input stream
 	 * </pre>
 	 * 
 	 * @param template To retrieve the object for
-	 * @param item The item to retrieve the template for
+	 * @param fedoraObject The item to retrieve the template for
 	 * @return The object representation of the template 
 	 * @throws FedoraClientException
 	 * @throws JAXBException
 	 */
-	public Template getTemplateObject(String tmplt, String item)
+	public Template getTemplateObject(String tmplt, FedoraObject fedoraObject)
 			throws FedoraClientException, JAXBException {
-		InputStream xmlStream = getXMLInputStream(tmplt, item);
+		InputStream xmlStream = getXMLInputStream(tmplt, fedoraObject);
 		JAXBTransform jaxbTransform = new JAXBTransform();
 		Template template = (Template) jaxbTransform.unmarshalStream(xmlStream, Template.class);
 		return template;
@@ -468,25 +626,32 @@ public class ViewTransform
 	 * Version	Date		Developer				Description
 	 * 0.2		23/03/2012	Genevieve Turner (GT	Initial creation
 	 * 0.4		26/04/2012	Genevieve Turner (GT)	Updated to fix an issue with the Form class when introducing security
+	 * 0.5		03/05/2012	Genevieve Turner (GT)	Updated so the fedora object is used to get the input stream
 	 * </pre>
 	 * 
 	 * @param tmplt The id of the template
-	 * @param item The object id
+	 * @param fedoraObject The object to save data for
 	 * @param form The form data
 	 * @return Returns the object id
 	 * @throws FedoraClientException
 	 * @throws JAXBException
 	 */
-	public String saveData (String tmplt, String item, Map<String, List<String>> form) 
+	public FedoraObject saveData (String tmplt, FedoraObject fedoraObject, Map<String, List<String>> form) 
 			throws FedoraClientException, JAXBException {
-		InputStream templateStream = getXMLInputStream(tmplt, item);
+		InputStream templateStream = null;
+		if (fedoraObject == null) {
+			templateStream = getXMLInputStream(tmplt, null);
+		}
+		else {
+			templateStream = getXMLInputStream(tmplt, fedoraObject);
+		}
 		
 		JAXBTransform jaxbTransform = new JAXBTransform();
 		Template template = (Template) jaxbTransform.unmarshalStream(templateStream, Template.class);
 		
 		Data data = null;
-		if (Util.isNotEmpty(item)) {
-			InputStream dataStream = getInputStream(item, Constants.XML_SOURCE);
+		if (fedoraObject != null) {
+			InputStream dataStream = getInputStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
 			data = (Data) jaxbTransform.unmarshalStream(dataStream, Data.class);
 		}
 		else {
@@ -526,29 +691,52 @@ public class ViewTransform
 			jaxbTransform.marshalStream(dcSW, dublinCore, DublinCore.class, dublinCoreProperties);
 		}
 		
-		if (!Util.isNotEmpty(item)) {
+		if (fedoraObject == null) {
 			String location = String.format("%s/objects/%s/datastreams/%s/content"
 					, GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI)
 					, tmplt
 					, Constants.XML_TEMPLATE);
 			
-			item = FedoraBroker.createNewObject("test");
+			String item = FedoraBroker.createNewObject("test");
 			
 			FedoraBroker.addDatasstreamBySource(item, Constants.XML_SOURCE, "XML Source", sw.toString());
 			FedoraBroker.addDatastreamByReference(item, Constants.XML_TEMPLATE, "M", "XML Template", location);
 			if(Util.isNotEmpty(dcSW.toString())) {
 				FedoraBroker.modifyDatastreamBySource(item, Constants.DC, "Dublin Core Record for this object", dcSW.toString());
 			}
+			
+			fedoraObject = new FedoraObject();
+			fedoraObject.setObject_id(item);
+			
+			//TODO Update so this is not a hard coded value
+			fedoraObject.setGroup_id(new Long(1));
+			fedoraObject.setPublished(Boolean.FALSE);
+
+			FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl();
+			fedoraObjectDAO.create(fedoraObject);
+			LOGGER.debug("fedora object id: {}", fedoraObject.getId());
+			AclObjectIdentityDAOImpl aclObjectIdentityDAO = new AclObjectIdentityDAOImpl();
+			AclObjectIdentity parentAclObjectIdentity = (AclObjectIdentity) aclObjectIdentityDAO.getObjectByClassAndIdentity(new Long(2), fedoraObject.getGroup_id());
+			
+			//TODO This could be updated to use the spring acl classes?
+			AclObjectIdentity aclObjectIdentity = new AclObjectIdentity();
+			aclObjectIdentity.setObject_id_class(new Long(3));
+			aclObjectIdentity.setObject_id_identity(fedoraObject.getId());
+			aclObjectIdentity.setOwner_sid(new Long(1));
+			aclObjectIdentity.setParent_object(parentAclObjectIdentity.getId());
+			aclObjectIdentity.setEntries_inheriting(Boolean.TRUE);
+			aclObjectIdentityDAO.create(aclObjectIdentity);
+			
 		} else {
-			FedoraBroker.modifyDatastreamBySource(item, Constants.XML_SOURCE, "XML Source", sw.toString());
+			FedoraBroker.modifyDatastreamBySource(fedoraObject.getObject_id(), Constants.XML_SOURCE, "XML Source", sw.toString());
 			if(Util.isNotEmpty(dcSW.toString())) {
-				FedoraBroker.modifyDatastreamBySource(item, Constants.DC, "Dublin Core Record for this object", dcSW.toString());
+				FedoraBroker.modifyDatastreamBySource(fedoraObject.getObject_id(), Constants.DC, "Dublin Core Record for this object", dcSW.toString());
 			}
 		}
 		
 		processedValues_.clear();
 		
-		return item;
+		return fedoraObject;
 	}
 	
 	/**

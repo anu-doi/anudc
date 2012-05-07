@@ -1,4 +1,4 @@
-package au.edu.anu.datacommons.connection.fedora;
+package au.edu.anu.datacommons.data.fedora;
 
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -243,7 +243,7 @@ public class FedoraBroker {
 		ListDatastreamsResponse response = new ListDatastreams(pid).format("xml").execute(fedoraClient_);
 		return response.getDatastreams();
 	}
-	
+
 	/**
 	 * getClient
 	 * 

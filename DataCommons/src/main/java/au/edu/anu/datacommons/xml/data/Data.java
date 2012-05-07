@@ -3,12 +3,9 @@ package au.edu.anu.datacommons.xml.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.namespace.QName;
 
-import org.apache.xerces.dom.ElementNSImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

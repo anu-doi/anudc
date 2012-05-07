@@ -4,31 +4,26 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
 
+import javax.annotation.Resource;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.util.Util;
 
-import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.api.view.Viewable;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
@@ -40,22 +35,23 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
  * Class provides a REST service using Jersey for searching the Fedora repository
  * 
  * <pre>
- * Version	Date		Developer			Description
- * 0.1		26/03/2012	Rahul Khanna (RK)	Initial.
+ * Version	Date		Developer				Description
+ * 0.1		26/03/2012	Rahul Khanna (RK)		Initial.
+ * 0.2		04/05/2012	Genevieve Turner (GT)	Updated for the removal of the method 'runRiSearch'
  * </pre>
  * 
  */
+@Component
 @Path("/search")
 public class SearchService
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(SearchService.class);
-	private static final String SEARCH_JSP = "/search.jsp";
+	private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
-	@QueryParam("q")
-	private String q;
+	@Resource(name="riSearchService")
+	SparqlPoster riSearchService;
+	
 	// TODO Once determined how object info such as published flag, group etc. are stored use this parameter to filter out results.
-	@QueryParam("filter")
-	private String filter;
+//	@QueryParam("filter") private String filter;
 
 	/**
 	 * doGetAsXml
@@ -67,15 +63,23 @@ public class SearchService
 	 * @return XML containing search results as a Response object.
 	 * 
 	 *         <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		23/03/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		23/03/2012	Rahul Khanna (RK)		Initial
+	 * 0.2		04/05/2012	Genevieve Turner (GT)	Updated for the removal of the method 'runRiSearch'
 	 * </pre>
 	 */
 	@GET
 	@Produces(MediaType.TEXT_XML)
-	public Response doGetAsXml()
+	public Response doGetAsXml(@QueryParam("q") String q, @QueryParam("filter") String filter)
 	{
-		ClientResponse respFromRiSearch = runRiSearch();
+		if (!Util.isNotEmpty(q)) {
+			return Response.status(400).build();
+		}
+		
+		// Generate the SPARQL query from the terms
+		SparqlQuery sparqlQuery = new SparqlQuery(q);
+
+		ClientResponse respFromRiSearch = riSearchService.post(sparqlQuery.generateQuery());
 
 		return Response.ok(respFromRiSearch.getEntity(String.class)).build();
 	}
@@ -90,20 +94,24 @@ public class SearchService
 	 * @return Response to display the Search JSP and passing an object to it.
 	 * 
 	 *         <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		23/03/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		23/03/2012	Rahul Khanna (RK)		Initial
+	 * 0.2		04/05/2012	Genevieve Turner (GT)	Updated for the removal of the method 'runRiSearch'
 	 * </pre>
 	 */
 	@GET
 	@Produces(MediaType.TEXT_HTML)
-	public Response doGetAsHtml()
+	public Response doGetAsHtml(@QueryParam("q") String q, @QueryParam("filter") String filter)
 	{
 		Response resp = null;
-
+		
 		// Perform search if terms to search are provided, else display the search page without any search results.
-		if (q != null && !q.trim().equals(""))
+		if (Util.isNotEmpty(q))
 		{
-			ClientResponse respFromRiSearch = runRiSearch();
+			// Generate the SPARQL query from the terms
+			SparqlQuery sparqlQuery = new SparqlQuery(q);
+
+			ClientResponse respFromRiSearch = riSearchService.post(sparqlQuery.generateQuery());
 
 			try
 			{
@@ -112,81 +120,30 @@ public class SearchService
 				// factory.setNamespaceAware(true);
 				Document resultsXmlDoc = factory.newDocumentBuilder().parse(new InputSource(new StringReader(respFromRiSearch.getEntity(String.class))));
 				SparqlResultSet resultSet = new SparqlResultSet(resultsXmlDoc);
-
+				
 				HashMap<String, Object> model = new HashMap<String, Object>();
 				model.put("resultSet", resultSet);
 
-				resp = Response.ok(new Viewable(SEARCH_JSP, model)).build();
+				resp = Response.ok(new Viewable("/search.jsp", model)).build();
 			}
 			catch (SAXException e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("Exception with XML: ", e);
 			}
 			catch (ParserConfigurationException e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("Exception with XML: ", e);
 			}
 			catch (IOException e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("Exception with XML: ", e);
 			}
 		}
 		else
 		{
-			resp = Response.ok(new Viewable(SEARCH_JSP)).build();
+			resp = Response.ok(new Viewable("/search.jsp")).build();
 		}
 
 		return resp;
-	}
-
-	/**
-	 * runRiSearch
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * This method sends a request to the RISearch service by Fedora. The response is an XML document.
-	 * 
-	 * @return Web service response with the status of request and entity.
-	 * 
-	 *         <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		26/03/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 */
-	private ClientResponse runRiSearch()
-	{
-		// Initialise web service objects for RiSearch.
-		ClientConfig config = new DefaultClientConfig();
-		Client client = Client.create(config);
-		client.addFilter(new HTTPBasicAuthFilter(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_USERNAME), GlobalProps
-				.getProperty(GlobalProps.PROP_FEDORA_PASSWORD)));
-		WebResource riSearchService = client.resource(UriBuilder.fromUri(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI))
-				.path(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RISEARCHURL)).build());
-		MultivaluedMap<String, String> queryMap = new MultivaluedMapImpl();
-
-		// Assign riSearch parameters to queryMap.
-		queryMap.add("dt", "on");
-		queryMap.add("format", "Sparql");
-		queryMap.add("lang", "sparql");
-		queryMap.add("limit", "1000");
-		queryMap.add("type", "tuples");
-
-		// Throw exception if no search terms provided. JSP has validation to check this as well.
-		if (q.trim().equals(""))
-			throw new NullPointerException("Search terms not specified");
-
-		// Generate the SPARQL query from the terms
-		SparqlQuery sparqlQuery = new SparqlQuery(q);
-
-		// Send request to RiSearch service and return response.
-		// riSearchService = riSearchService.path(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RISEARCHURL));
-		riSearchService = riSearchService.queryParams(queryMap);
-		riSearchService = riSearchService.queryParam("query", sparqlQuery.generateQuery());
-		ClientResponse respFromRiSearch = riSearchService.type(MediaType.APPLICATION_FORM_URLENCODED).accept(MediaType.TEXT_XML).post(ClientResponse.class);
-
-		return respFromRiSearch;
 	}
 }

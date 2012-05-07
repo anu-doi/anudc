@@ -1,4 +1,4 @@
-package au.edu.anu.datacommons.connection.fedora;
+package au.edu.anu.datacommons.data.fedora;
 
 
 /**
