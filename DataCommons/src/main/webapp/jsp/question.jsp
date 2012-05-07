@@ -12,15 +12,15 @@
 <jsp:include page="/jsp/header.jsp" />
 
 <c:choose>
-	<c:when test="${not empty it.questions}">
-		<anu:content layout="doublewide" extraClass="nopadtop nopadbottom">
+	<c:when test="${it.questions != null}">
+		<anu:content layout="doublewide" extraClass="nopadbottom">
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
 		</anu:content>
 
+		<!-- Question Bank -->
 		<anu:content layout="wide" title="Questions">
-			<!-- Question Bank -->
 			<form class="anuform" method="post" action="<c:url value='/rest/collreq/question' />">
 				<p>
 					<label for="idQuestion">New Question</label>
@@ -32,7 +32,9 @@
 				<p>
 					<select multiple="multiple" id="idQuestionBank" size="10" style="width: 100%">
 						<c:forEach var="iQuestion" items="${it.questions}">
-							<option value="${iQuestion.id}"><c:out value="${iQuestion.question}" /></option>
+							<option value="${iQuestion.id}">
+								<c:out value="${iQuestion.question}" />
+							</option>
 						</c:forEach>
 					</select>
 				</p>
@@ -45,12 +47,12 @@
 				onsubmit="jQuery('#idPidQ > option').attr('selected', 'selected')">
 				<p>
 					<label>Pid</label>
-					<input type="text" name="pid" />
-					<input type="button" value="Fetch" onclick="ajaxGetPidQuestions(document.pidQuestions.pid.value)" />
+					<input type="text" name="pid" value="<c:out value='${param.pid}' />" />
+					<input type="button" value="Get Questions" onclick="ajaxGetPidQuestions(document.pidQuestions.pid.value)" />
 				</p>
 				<p>
 					<select id="idPidQ" multiple="multiple" name="qid">
-						<option>Click fetch to get questions</option>
+						<option>[Click Get Questions]</option>
 					</select>
 				</p>
 				<p>
@@ -63,20 +65,6 @@
 	</c:when>
 
 
-	<c:when test="${not empty it.questionsPid}">
-		<anu:content layout="doublewide" title="Questions">
-			<jsp:include page="/jsp/statusmessages.jsp">
-				<jsp:param value="${it}" name="it" />
-			</jsp:include>
-
-			<ul>
-				<c:forEach var="iQuestion" items="${it.questionsPid}">
-					<li><c:out value="${iQuestion.question}" /></li>
-				</c:forEach>
-			</ul>
-		</anu:content>
-
-	</c:when>
 	<c:otherwise>
 		<anu:content layout="doublewide" title="Questions">
 			<jsp:include page="/jsp/statusmessages.jsp">
