@@ -80,7 +80,7 @@ public class FedoraBroker {
 	}
 	
 	/**
-	 * addDatasstreamBySource
+	 * addDatastreamBySource
 	 * 
 	 * Creates a datastream with the supplied object
 	 * 
@@ -94,7 +94,7 @@ public class FedoraBroker {
 	 * @return true if the action has completed
 	 * @throws FedoraClientException
 	 */
-	public static boolean addDatasstreamBySource (String pid, String streamId, String label, String content) 
+	public static boolean addDatastreamBySource (String pid, String streamId, String label, String content) 
 			throws FedoraClientException {
 		AddDatastreamResponse sourceResponse = new AddDatastream(pid, streamId).controlGroup("X").dsLabel(label).content(content).mimeType(MediaType.TEXT_XML).execute(fedoraClient_);
 		return true;
@@ -247,16 +247,18 @@ public class FedoraBroker {
 	/**
 	 * getClient
 	 * 
-	 * Get the fedoraClient instance.
+	 * Gets the fedoraClient instance.
 	 * 
 	 * Australian National University Data Commons
 	 * 
 	 * <pre>
 	 * Version	Date		Developer			Description
 	 * 0.1		1/05/2012	Rahul Khanna (RK)	Initial
+	 * 0.2		8/05/2012	Rahul Khanna (RK)	Depricated method.
 	 * </pre>
 	 * @return
 	 */
+	@Deprecated
 	public static FedoraClient getClient()
 	{
 		return fedoraClient_;

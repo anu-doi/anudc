@@ -38,8 +38,6 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 
 import com.sun.jersey.api.view.Viewable;
 import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.client.request.ListDatastreams;
-import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
 
 /**
@@ -823,6 +821,11 @@ public class CollectionRequestService
 	 * <li>List of Collection Requests and their details</li>
 	 * <ol>
 	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		8/05/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
 	 * @return JSON object
 	 */
 	@GET
@@ -844,12 +847,11 @@ public class CollectionRequestService
 				LOGGER.debug("Requested Datastream List for pid {} as JSON.", pid);
 
 				// Get a list of datastreams for the pid from the Fedora Repository.
-				ListDatastreams listDsCmd = new ListDatastreams(pid);
-				ListDatastreamsResponse listDsResp = listDsCmd.execute(FedoraBroker.getClient());
-
+				List<DatastreamType> pidDsList = FedoraBroker.getDatastreamList(pid);
+				
 				// Get the IDs and Labels of datasets, create a JSONObject, add it to JSONArray
 				// TODO Exclude DC, XML_SOURCE, XML_TEMPLATE, RELS-EXT (?)
-				for (DatastreamType iDs : listDsResp.getDatastreams())
+				for (DatastreamType iDs : pidDsList)
 				{
 					JSONObject dsJsonObj = new JSONObject();
 					dsJsonObj.put("dsId", iDs.getDsid());
