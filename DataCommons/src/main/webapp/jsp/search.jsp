@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 
 <anu:header id="1998" title="Search" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
@@ -17,6 +18,7 @@
 
 		<script type="text/javascript">
 			document.frmBasicSearch.q.focus();
+			document.frmBasicSearch.q.select();
 		</script>
 	</div>
 	<div id="divSearchResults">
@@ -31,7 +33,6 @@
 						</c:when>
 						<c:when test="${iCol == 2}">
 							<!-- Description -->
-							<br />
 							<c:choose>
 								<c:when test="${fn:length(row[iCol]) <= 200}">
 									<c:out value="${row[iCol]}" />
@@ -45,8 +46,23 @@
 					<br />
 				</c:forEach>
 			</c:forEach>
+			<!-- Pagination -->
+			<br />
+			<c:set var="curPage" value="${(param.offset == null ? 0 : param.offset) / itemsPerPage + 1}" />
+			<c:forEach begin="0" end="${it.totalResults / itemsPerPage - (it.totalResults % itemsPerPage == 0 ? 1 : 0)}" var="i">
+				<a class="nounderline"
+					href="
+				<c:url value='/rest/search'>
+					<c:param name='q' value='${param.q}' />
+					<c:param name='offset' value='${i * itemsPerPage}' />
+					<c:param name='limit' value='${itemsPerPage}' />
+				</c:url>
+				"><c:if test="${i == curPage - 1}"><strong></c:if>
+				<c:out
+						value="[ ${i + 1} ]" /><c:if test="${i == curPage - 1}"></strong></c:if></a>
+			</c:forEach>
 			<p class="msg-success margintop">
-				<c:out value="${it.resultSet.numResults}" />
+				<c:out value="${it.totalResults}" />
 				result(s) found.
 			</p>
 		</c:if>
