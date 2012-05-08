@@ -15,16 +15,15 @@
 					<!-- Description -->
 					<br />
 					<c:choose>
-						<c:when test="${fn:length(row[iCol]) <= 200}">
+						<c:when test="${fn:contains(row[iCol], 'http://anu.edu.au/related/')}">
+							<c:out value='${fn:substringAfter(row[iCol], "http://anu.edu.au/related/")}' />
+						</c:when>
+						<c:otherwise>
 							<c:out value="${row[iCol]}" />
-						</c:when>
-						<c:when test="${fn:length(row[iCol]) > 200}">
-							<c:out value="${fn:substring(row[iCol], 0, 200)}" />...
-						</c:when>
+						</c:otherwise>
 					</c:choose>
 				</c:when>
 			</c:choose>
-			<br />
 		</c:forEach>
 	</c:forEach>
 </anu:box>

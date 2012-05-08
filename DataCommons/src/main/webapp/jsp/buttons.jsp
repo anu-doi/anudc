@@ -19,7 +19,7 @@
 				<sec:accesscontrollist hasPermission="WRITE" domainObject="${it.fedoraObject}">
 					<p><input type="button" id="editButton" name="editButton" value="Edit" onclick="window.location='${editLink}'" /></p>
 				</sec:accesscontrollist>
-				<p><input type="button" id="itemLinkButton" name="itemLinkButton" value="Link to Item" /></p>
+				<jsp:include page="add_reference.jsp" />
 			</sec:authorize>
 		</sec:authorize>
 	</anu:box>
