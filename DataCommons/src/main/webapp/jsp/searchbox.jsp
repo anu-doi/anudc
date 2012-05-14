@@ -3,7 +3,6 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 
-<c:set var="itemsPerPage" value="10" scope="request" />
 <form class="anuform" name="frmBasicSearch" action="<c:url value='/rest/search/'></c:url>" method="get">
 	<p>
 		<label for="basicSearchTerms">Search</label>
@@ -17,7 +16,7 @@
 				<option value="team">Team</option>
 			</select>
 		</c:if>
-		<input type="hidden" name="limit" value="<c:out value='${itemsPerPage}' />" />
+		<input type="hidden" name="limit" value="<c:out value='${searchItemsPerPage}' />" />
 		<input type="submit" value="Search" />
 	</p>
 </form>

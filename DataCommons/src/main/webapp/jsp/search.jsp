@@ -48,14 +48,14 @@
 			</c:forEach>
 			<!-- Pagination -->
 			<br />
-			<c:set var="curPage" value="${(param.offset == null ? 0 : param.offset) / itemsPerPage + 1}" />
-			<c:forEach begin="0" end="${it.totalResults / itemsPerPage - (it.totalResults % itemsPerPage == 0 ? 1 : 0)}" var="i">
+			<c:set var="curPage" value="${(param.offset == null ? 0 : param.offset) / searchItemsPerPage + 1}" />
+			<c:forEach begin="0" end="${it.totalResults / searchItemsPerPage - (it.totalResults % searchItemsPerPage == 0 ? 1 : 0)}" var="i">
 				<a class="nounderline"
 					href="
 				<c:url value='/rest/search'>
 					<c:param name='q' value='${param.q}' />
-					<c:param name='offset' value='${i * itemsPerPage}' />
-					<c:param name='limit' value='${itemsPerPage}' />
+					<c:param name='offset' value='${i * searchItemsPerPage}' />
+					<c:param name='limit' value='${searchItemsPerPage}' />
 				</c:url>
 				"><c:if test="${i == curPage - 1}"><strong></c:if>
 				<c:out

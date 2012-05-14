@@ -3,8 +3,15 @@
  */
 package au.edu.anu.datacommons.util;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -163,5 +170,68 @@ public final class Util
 			password.append(passwordChars[rand.nextInt(passwordChars.length)]);
 
 		return password.toString();
+	}
+
+	/**
+	 * computeMessageDigest
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Computes the message digest of a file using a specified algorithm.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		11/05/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param sourceFile
+	 *            The file whose digest is to be calculated as File object.
+	 * @param algorithm
+	 *            Digest algorithm. Valid values: "MD5", "SHA-1", "SHA-256", "SHA-512". Ref
+	 *            http://docs.oracle.com/javase/7/docs/technotes/guides/security/StandardNames.html#MessageDigest
+	 * @return Computed digest value as String.
+	 * @throws IOException
+	 *             When the file object cannot be found or cannot be read.
+	 * @throws NoSuchAlgorithmException
+	 *             When the algorithm specified doesn't exist.
+	 */
+	public static String computeMessageDigest(File sourceFile, String algorithm) throws IOException, NoSuchAlgorithmException
+	{
+		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(sourceFile));
+		MessageDigest digest = MessageDigest.getInstance(algorithm);
+		byte[] buffer = new byte[8192];
+		int numBytesRead = 0;
+
+		// Read through the file, updating the digest value.
+		while ((numBytesRead = bis.read(buffer)) > 0)
+		{
+			digest.update(buffer, 0, numBytesRead);
+		}
+
+		// Complete the hash computation and get the digest as byte[].
+		byte[] hashValue = digest.digest();
+		
+		// Convert hash value to a hex string and return it. 
+		return new BigInteger(1, hashValue).toString(16);
+	}
+	
+	/**
+	 * convertToDiskSafe
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Replace special characters in a string with '_'. Special characters that are replaced are: *?\:/. and whitespace chars.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		11/05/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param source
+	 * @return
+	 */
+	public static String convertToDiskSafe(String source)
+	{
+		return source.replaceAll("\\*|\\?|\\\\|:|/|\\.|\\s", "_");
 	}
 }
