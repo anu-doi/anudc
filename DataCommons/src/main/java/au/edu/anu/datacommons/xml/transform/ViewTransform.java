@@ -702,7 +702,7 @@ public class ViewTransform
 			
 			String item = FedoraBroker.createNewObject(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_SAVENAMESPACE));
 			
-			FedoraBroker.addDatasstreamBySource(item, Constants.XML_SOURCE, "XML Source", sw.toString());
+			FedoraBroker.addDatastreamBySource(item, Constants.XML_SOURCE, "XML Source", sw.toString());
 			FedoraBroker.addDatastreamByReference(item, Constants.XML_TEMPLATE, "M", "XML Template", location);
 			if(Util.isNotEmpty(dcSW.toString())) {
 				FedoraBroker.modifyDatastreamBySource(item, Constants.DC, "Dublin Core Record for this object", dcSW.toString());

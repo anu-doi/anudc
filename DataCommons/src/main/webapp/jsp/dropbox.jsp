@@ -13,10 +13,11 @@
 <c:choose>
 	<c:when test="${empty it}">
 		<anu:content layout="doublewide" title="Dropboxes">
-			No dropboxes specified.
+			No dropbox specified.
 		</anu:content>
 	</c:when>
-	<c:when test="${not empty it.dropboxes}">
+	<!-- Display list of dropboxes -->
+	<c:when test="${it.dropboxes != null}">
 		<anu:content layout="doublewide" title="Dropboxes">
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
@@ -48,6 +49,8 @@
 			</table>
 		</anu:content>
 	</c:when>
+	
+	<!-- Display details of a specific dropbox. -->
 	<c:when test="${not empty it.dropbox}">
 		<anu:content layout="doublewide" title="Dropbox">
 			<jsp:include page="/jsp/statusmessages.jsp">

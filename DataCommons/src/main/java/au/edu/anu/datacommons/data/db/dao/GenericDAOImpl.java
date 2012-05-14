@@ -24,6 +24,7 @@ import au.edu.anu.datacommons.data.db.PersistenceManager;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		03/05/2012	Genevieve Turner (GT)	Initial
+ * 0.2		09/05/2012	Genevieve Turner (GT)	Added constructor class
  * </pre>
  * 
  * @param <T> The object type to implement

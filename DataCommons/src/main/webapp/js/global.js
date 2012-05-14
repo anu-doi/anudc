@@ -13,36 +13,35 @@
  */
 
 /**
- * Performs functions when the html document has completed and is ready.  Currently
- * this disables the submit button on the edit page.
+ * Performs functions when the html document has completed and is ready. Currently this disables the submit button on the edit page.
  * 
- * Version	Date		Developer			Description
- * 0.3		26/03/2012	Genevieve Turner	Created function
+ * Version Date Developer Description 0.3 26/03/2012 Genevieve Turner Created function
  * 
  */
-jQuery(document).ready(function() {
+jQuery(document).ready(function()
+{
 	jQuery("#editSubmit").attr("disabled", "disabled");
 });
 
 /**
- * When the edit drop down lists selected value changes this event fires.  It performs
- * an ajax request that returns html to add to the screen.
+ * When the edit drop down lists selected value changes this event fires. It performs an ajax request that returns html to add to the screen.
  * 
- * Version	Date		Developer			Description
- * 0.3		26/03/2012	Genevieve Turner	Created function
+ * Version Date Developer Description 0.3 26/03/2012 Genevieve Turner Created function
  */
-jQuery("#editSelect").live('change', function() {
+jQuery("#editSelect").live('change', function()
+{
 	var aURL = window.location.href.slice(0, window.location.href.indexOf('?'));
 	var paramhash = getURLVars();
 	//TODO could potentially move this so its not a hard coded value?
 	paramhash['layout'] = 'def:edit';
 	params = jQuery.param(paramhash);
 	var requestURL = aURL + "/" + jQuery(this).val() + "?" + params;
-	jQuery.ajax({
-		type: "GET",
-		url: requestURL,
-		cache: false,
-		success: processReturn
+	jQuery.ajax(
+	{
+		type : "GET",
+		url : requestURL,
+		cache : false,
+		success : processReturn
 	});
 });
 
@@ -51,14 +50,15 @@ jQuery("#editSelect").live('change', function() {
  * 
  * Returns a map of parameters
  * 
- * Version	Date		Developer			Description
- * 0.3		26/03/2012	Genevieve Turner	Created function
+ * Version Date Developer Description 0.3 26/03/2012 Genevieve Turner Created function
  * 
  */
-function getURLVars() {
+function getURLVars()
+{
 	var vars = {}, hash;
 	var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-	for (var i = 0; i < hashes.length; i++) {
+	for ( var i = 0; i < hashes.length; i++)
+	{
 		hash = hashes[i].split('=');
 		vars[hash[0]] = hash[1];
 	}
@@ -66,15 +66,15 @@ function getURLVars() {
 }
 
 /**
- * processReturn
- * Adds the given values to the html document.
+ * processReturn Adds the given values to the html document.
  * 
- * Version	Date		Developer			Description
- * 0.3		26/03/2012	Genevieve Turner	Created function
+ * Version Date Developer Description 0.3 26/03/2012 Genevieve Turner Created function
  * 
- * @param xml The fields to add to the document.
+ * @param xml
+ *            The fields to add to the document.
  */
-function processReturn(xml) {
+function processReturn(xml)
+{
 	jQuery("#extraFields").empty();
 	jQuery("#extraFields").append(xml);
 	jQuery("#editSubmit").removeAttr("disabled");
@@ -104,12 +104,13 @@ function groupDigits(nStr)
 /**
  * Adds a new row to the specified table
  * 
- * Version	Date		Developer			Description
- * 0.3		26/03/2012	Genevieve Turner	Created function
+ * Version Date Developer Description 0.3 26/03/2012 Genevieve Turner Created function
  * 
- * @param tableName The name of the table to add a row to
+ * @param tableName
+ *            The name of the table to add a row to
  */
-function addTableRow(tableName) {
+function addTableRow(tableName)
+{
 	var newRow = jQuery('#' + tableName + ' tbody>tr:last').clone(true);
 	newRow.find("input:text").val('');
 	newRow.find("option:selected").removeAttr("selected");
@@ -118,23 +119,25 @@ function addTableRow(tableName) {
 }
 
 /**
- * Removes the table row of the clicked button. If it is the last row in the table then
- * the values are cleared.
+ * Removes the table row of the clicked button. If it is the last row in the table then the values are cleared.
  * 
- * Version	Date		Developer			Description
- * 0.3		26/03/2012	Genevieve Turner	Created function
+ * Version Date Developer Description 0.3 26/03/2012 Genevieve Turner Created function
  * 
- * @param buttonField The button that was clicked
+ * @param buttonField
+ *            The button that was clicked
  */
-function removeTableRow(buttonField) {
-	if(jQuery(buttonField).closest('table').find('tbody > tr').length > 1) {
+function removeTableRow(buttonField)
+{
+	if (jQuery(buttonField).closest('table').find('tbody > tr').length > 1)
+	{
 		jQuery(buttonField).parent().parent().remove();
 	}
-	else {
+	else
+	{
 		var tableRow = jQuery(buttonField).parent().parent();
 		// Clear the values of the fields in the table
 		tableRow.find("input:text").val('');
-		tableRow.find("select option:first-child").attr("selected","selected");
+		tableRow.find("select option:first-child").attr("selected", "selected");
 		tableRow.find("textarea").val('');
 	}
 }

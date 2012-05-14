@@ -49,6 +49,8 @@ public final class SparqlQuery
 	private ArrayList<String> vars;
 	private ArrayList<String> triples;
 	private ArrayList<String> filters;
+	private int offset = 0;
+	private int limit = 0;
 
 	/**
 	 * SparqlQuery
@@ -99,6 +101,13 @@ public final class SparqlQuery
 		setTerms(termsString);
 	}
 
+	public SparqlQuery(String termsString, int offset, int limit)
+	{
+		this(termsString);
+		this.offset = offset;
+		this.limit = limit;
+	}
+
 	/**
 	 * setTerms
 	 * 
@@ -127,6 +136,84 @@ public final class SparqlQuery
 
 		// Once the terms are set and the other elements required to create a SPARQL query for running a search.
 		setDefaultSearchElements();
+	}
+
+	/**
+	 * getOffset
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Gets the offset value in this query.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		08/05/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return Offset as int. 0 if not specified.
+	 */
+	public int getOffset()
+	{
+		return offset;
+	}
+
+	/**
+	 * setOffset
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Sets the offset value in this query.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		08/05/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param offset
+	 *            Offset as int.
+	 */
+	public void setOffset(int offset)
+	{
+		this.offset = offset;
+	}
+
+	/**
+	 * getLimit
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Gets the limit value in this query that limits the number of search results returned.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		08/05/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return Limit as int.
+	 */
+	public int getLimit()
+	{
+		return limit;
+	}
+
+	/**
+	 * setLimit
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Sets the limit value in this query to limit the number of search results returned.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		08/05/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param limit
+	 *            Limit as int.
+	 */
+	public void setLimit(int limit)
+	{
+		this.limit = limit;
 	}
 
 	/**
@@ -383,6 +470,8 @@ public final class SparqlQuery
 	 * )
 	 * )
 	 * }
+	 * OFFSET 0												// Offset
+	 * LIMIT 10												// Limit
 	 * </code>
 	 * 
 	 * <pre>
@@ -436,6 +525,18 @@ public final class SparqlQuery
 		}
 
 		sparqlQuery.append("}");
+
+		if (offset > 0)
+		{
+			sparqlQuery.append("\r\nOFFSET ");
+			sparqlQuery.append(offset);
+		}
+
+		if (limit > 0)
+		{
+			sparqlQuery.append("\r\nLIMIT ");
+			sparqlQuery.append(limit);
+		}
 
 		LOGGER.info("Returning SPARQL query:\r\n" + sparqlQuery);
 		return sparqlQuery.toString();

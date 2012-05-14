@@ -122,6 +122,9 @@ function ajaxGetCollReqs()
  */
 function ajaxGetPidQuestions(pid)
 {
+	if (pid.trim() == "")
+		return;
+
 	console.log("Retrieving questions for PID " + pid);
 	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listPidQuestions&pid=" + pid, function(data)
 	{

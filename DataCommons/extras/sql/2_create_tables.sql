@@ -85,3 +85,159 @@ CREATE TABLE publish_location (
 	,PRIMARY KEY (id)
 	,UNIQUE (code)
 );
+
+-- Table: collection_requests
+
+-- DROP TABLE collection_requests;
+
+CREATE TABLE collection_requests
+(
+  id bigserial NOT NULL,
+  pid character varying(255) NOT NULL,
+  requestor_id bigint NOT NULL,
+  requestor_ip character varying(255),
+  "timestamp" timestamp without time zone NOT NULL,
+  dropbox_id bigint,
+  CONSTRAINT collection_requests_pkey PRIMARY KEY (id )
+  )
+;
+ALTER TABLE collection_requests
+  OWNER TO dcuser;
+  
+-- Table: collection_dropboxes
+
+-- DROP TABLE collection_dropboxes;
+
+CREATE TABLE collection_dropboxes
+(
+  id bigserial NOT NULL,
+  access_code bigint NOT NULL,
+  access_password character varying(255) NOT NULL,
+  active boolean NOT NULL,
+  creator_user_id bigint NOT NULL,
+  expiry date NOT NULL,
+  notifyonpickup boolean,
+  created timestamp without time zone NOT NULL,
+  request_fk bigint,
+  CONSTRAINT collection_dropboxes_pkey PRIMARY KEY (id ),
+  CONSTRAINT fk79688dc93ef24101 FOREIGN KEY (request_fk)
+      REFERENCES collection_requests (id),
+        CONSTRAINT collection_dropboxes_access_code_key UNIQUE (access_code )
+)
+;
+ALTER TABLE collection_dropboxes
+  OWNER TO dcuser;
+
+  
+-- Table: collection_dropbox_access_logs
+
+-- DROP TABLE collection_dropbox_access_logs;
+
+CREATE TABLE collection_dropbox_access_logs
+(
+  id bigserial NOT NULL,
+  ip_address character varying(255) NOT NULL,
+  "timestamp" timestamp without time zone NOT NULL,
+  dropbox_fk bigint NOT NULL,
+  CONSTRAINT collection_dropbox_access_logs_pkey PRIMARY KEY (id ),
+  CONSTRAINT fk66fa0146be4a5de1 FOREIGN KEY (dropbox_fk)
+      REFERENCES collection_dropboxes (id)
+      )
+;
+ALTER TABLE collection_dropbox_access_logs
+  OWNER TO dcuser;
+
+  
+-- Table: question_bank
+
+-- DROP TABLE question_bank;
+
+CREATE TABLE question_bank
+(
+  id bigserial NOT NULL,
+  question character varying(255) NOT NULL,
+  CONSTRAINT question_bank_pkey PRIMARY KEY (id ),
+  CONSTRAINT question_bank_question_key UNIQUE (question )
+)
+;
+ALTER TABLE question_bank
+  OWNER TO dcuser;
+
+
+
+-- Table: collection_request_answers
+
+-- DROP TABLE collection_request_answers;
+
+CREATE TABLE collection_request_answers
+(
+  id bigserial NOT NULL,
+  answer character varying(255) NOT NULL,
+  request_fk bigint NOT NULL,
+  question_fk bigint NOT NULL,
+  CONSTRAINT collection_request_answers_pkey PRIMARY KEY (id ),
+  CONSTRAINT fk71965b243ef24101 FOREIGN KEY (request_fk)
+      REFERENCES collection_requests (id),
+        CONSTRAINT fk71965b24b5c126c9 FOREIGN KEY (question_fk)
+      REFERENCES question_bank (id)
+      )
+;
+ALTER TABLE collection_request_answers
+  OWNER TO dcuser;
+
+-- Table: collection_request_items
+
+-- DROP TABLE collection_request_items;
+
+CREATE TABLE collection_request_items
+(
+  id bigserial NOT NULL,
+  item character varying(255) NOT NULL,
+  request_fk bigint NOT NULL,
+  CONSTRAINT collection_request_items_pkey PRIMARY KEY (id ),
+  CONSTRAINT fk67ed6a2f3ef24101 FOREIGN KEY (request_fk)
+      REFERENCES collection_requests (id)
+      )
+;
+ALTER TABLE collection_request_items
+  OWNER TO dcuser;
+
+-- Table: collection_request_status
+
+-- DROP TABLE collection_request_status;
+
+CREATE TABLE collection_request_status
+(
+  id bigserial NOT NULL,
+  reason character varying(255) NOT NULL,
+  status integer NOT NULL,
+  "timestamp" timestamp without time zone NOT NULL,
+  user_id bigint NOT NULL,
+  request_fk bigint,
+  CONSTRAINT collection_request_status_pkey PRIMARY KEY (id ),
+  CONSTRAINT fka6ce9b633ef24101 FOREIGN KEY (request_fk)
+      REFERENCES collection_requests (id)
+      )
+;
+ALTER TABLE collection_request_status
+  OWNER TO dcuser;
+
+
+-- Table: question_map
+
+-- DROP TABLE question_map;
+
+CREATE TABLE question_map
+(
+  id bigserial NOT NULL,
+  pid character varying(255) NOT NULL,
+  question_fk bigint,
+  CONSTRAINT question_map_pkey PRIMARY KEY (id ),
+  CONSTRAINT fkf5c2ad83b5c126c9 FOREIGN KEY (question_fk)
+      REFERENCES question_bank (id),
+        CONSTRAINT question_map_pid_question_fk_key UNIQUE (pid , question_fk )
+)
+;
+ALTER TABLE question_map
+  OWNER TO dcuser;
+

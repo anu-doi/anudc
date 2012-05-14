@@ -13,6 +13,7 @@ import au.edu.anu.datacommons.data.db.model.FedoraObject;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+ * 0.2		14/05/2012	Genevieve Turner (GT)	Updated extensions
  * </pre>
  * 
  * @param <T> The type of the object that is instantiated

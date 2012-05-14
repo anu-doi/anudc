@@ -45,6 +45,7 @@ import com.sun.jersey.api.view.Viewable;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
+ * 0.2		14/05/2012	Genevieve Turner (GT)	Updated to include a JSON search for items
  * </pre>
  * 
  */
@@ -123,6 +124,15 @@ public class ListResource {
 		return response;
 	}
 
+	/**
+	 * getItems
+	 * 
+	 * Returns a list of items with the given title name part and type of object
+	 * 
+	 * @param title Part of the title to search for
+	 * @param type The type of item to search in
+	 * @return The list of items
+	 */
 	@GET
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -152,13 +162,4 @@ public class ListResource {
 		}
 		return response;
 	}
-/*
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("items")
-	public Response getLinkTypes(String type) {
-		Response response = null;
-		
-		return response;
-	}*/
 }
