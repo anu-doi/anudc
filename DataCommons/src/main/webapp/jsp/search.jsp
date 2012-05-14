@@ -15,11 +15,6 @@
 <anu:content layout="doublewide" title="Search">
 	<div id="divBasicSearch">
 		<jsp:include page="/jsp/searchbox.jsp" />
-
-		<script type="text/javascript">
-			document.frmBasicSearch.q.focus();
-			document.frmBasicSearch.q.select();
-		</script>
 	</div>
 	<div id="divSearchResults">
 		<c:if test="${it.resultSet != null}">
@@ -48,20 +43,33 @@
 			</c:forEach>
 			<!-- Pagination -->
 			<br />
+			<fmt:bundle basename='global'>
+				<fmt:message var="searchItemsPerPage" key='search.resultsPerPage' />
+			</fmt:bundle>
 			<c:set var="curPage" value="${(param.offset == null ? 0 : param.offset) / searchItemsPerPage + 1}" />
-			<c:forEach begin="0" end="${it.totalResults / searchItemsPerPage - (it.totalResults % searchItemsPerPage == 0 ? 1 : 0)}" var="i">
-				<a class="nounderline"
-					href="
+			<p class="text-center">
+				Pages&nbsp;
+				<c:if test="${it.totalResults > 0}">
+					<c:forEach begin="0" end="${((it.totalResults - 1) / searchItemsPerPage) - (((it.totalResults - 1) / searchItemsPerPage) % 1)}" var="i">
+						<a class="nounderline"
+							href="
 				<c:url value='/rest/search'>
 					<c:param name='q' value='${param.q}' />
 					<c:param name='offset' value='${i * searchItemsPerPage}' />
 					<c:param name='limit' value='${searchItemsPerPage}' />
 				</c:url>
-				"><c:if test="${i == curPage - 1}"><strong></c:if>
-				<c:out
-						value="[ ${i + 1} ]" /><c:if test="${i == curPage - 1}"></strong></c:if></a>
-			</c:forEach>
-			<p class="msg-success margintop">
+				"><c:if
+								test="${i == curPage - 1}">
+								<strong>
+							</c:if> <c:out value="[ ${i + 1} ]" /> <c:if test="${i == curPage - 1}">
+								</strong>
+							</c:if></a>
+					</c:forEach>
+				</c:if>
+			</p>
+
+			<!-- Number of search results found. -->
+			<p class="msg-info margintop">
 				<c:out value="${it.totalResults}" />
 				result(s) found.
 			</p>

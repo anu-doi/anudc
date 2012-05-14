@@ -8,6 +8,7 @@
 	ssl="true">
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
 	<link href="http://styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="<c:url value='/js/upload.js' />"></script>
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
@@ -36,12 +37,12 @@
 		<fieldset>
 			<legend>
 				URL References
-				<input type="button" id="button1" onclick="jQuery(this).parent().parent().children('p:first').clone().appendTo(jQuery(this).parent().parent())" value=" + " />
+				<input type="button" id="button1" onclick="cloneUrlFields(this.parentNode.parentNode)" value=" + " />
 			</legend>
 			<p>
 				<label>URL</label>
 				<input class="text" type="text" name="url" size="40" />
-				<input type="button" onclick="jQuery(this).parent().remove()" value=" - " />
+				<input type="button" onclick="removeElement(this.parentNode)" value=" - " />
 			</p>
 		</fieldset>
 		<input type="hidden" name="state" value="A" />
