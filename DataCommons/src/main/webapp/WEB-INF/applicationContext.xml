@@ -6,14 +6,22 @@
 	http://www.springframework.org/schema/context
 	http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 	
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:global.properties</value>
+			</list>
+		</property>
+	</bean>
+	
 	<context:annotation-config />
 	
 	<context:component-scan base-package="au.edu.anu.datacommons" />
 	
 	<bean id="riSearchService" class="au.edu.anu.datacommons.search.SparqlPoster">
-		<property name="username" value="fedoraAdmin" />
-		<property name="password" value="fedoraAdmin" />
-		<property name="url" value="[FEDORASERVER:PORT]/fedora/risearch" />
+		<property name="username" value="${fedora.username}" />
+		<property name="password" value="${fedora.password}" />
+		<property name="url" value="${fedora.baseURI}${fedora.riSearchURI}" />
 		<property name="type" value="application/x-www-form-urlencoded" />
 		<property name="acceptType" value="text/xml" />
 		<property name="parameters">
@@ -28,9 +36,9 @@
 	</bean>
 	
 	<bean id="riSearchJSONService" class="au.edu.anu.datacommons.search.SparqlPoster">
-		<property name="username" value="fedoraAdmin" />
-		<property name="password" value="fedoraAdmin" />
-		<property name="url" value="[FEDORASERVER:PORT]/fedora/risearch" />
+		<property name="username" value="${fedora.username}" />
+		<property name="password" value="${fedora.password}" />
+		<property name="url" value="${fedora.baseURI}${fedora.riSearchURI}" />
 		<property name="type" value="application/x-www-form-urlencoded" />
 		<property name="acceptType" value="application/json" />
 		<property name="parameters">

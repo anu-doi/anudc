@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
 <anu:header id="1998" title="Welcome" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
@@ -13,66 +14,12 @@
 <anu:content layout="doublenarrow" title="ANU Data Commons">
 	<p>Welcome to the ANU Data Commons.</p>
 	<p>This project will allow people to add information about their datasets, catalogues etc.</p>
-	<form class="anuform" name="frmCreateNewObject" action="">
-		<!-- Using tables for layout as other means not available for a 4 column setup. -->
-		<anu:table>
-			<anu:tr>
-				<anu:th>Activities</anu:th>
-				<anu:th>Collections</anu:th>
-				<anu:th>Party</anu:th>
-				<anu:th>Service</anu:th>
-			</anu:tr>
-			<anu:tr>
-				<anu:td>
-					<select size="8">
-						<option>Project</option>
-						<option>Course</option>
-						<option>Award</option>
-						<option>Event</option>
-						<option>Program</option>
-					</select>
-				</anu:td>
-				<anu:td>
-					<select size="8">
-						<option>Catalogue</option>
-						<option>Collection</option>
-						<option>Dataset</option>
-						<option>Registry</option>
-						<option>Repository</option>
-					</select>
-				</anu:td>
-				<anu:td>
-					<select size="8">
-						<option>Admin Position</option>
-						<option>Group</option>
-						<option>Person</option>
-					</select>
-				</anu:td>
-				<anu:td>
-					<select size="8">
-						<option>Offline</option>
-						<option>Workflow</option>
-						<option>Web</option>
-						<option>Software</option>
-					</select>
-				</anu:td>
-			</anu:tr>
-			<anu:tr>
-				<anu:td>
-					<input type="submit" name="newObjType" value="New" />
-				</anu:td>
-				<anu:td>
-					<input type="submit" name="newObjType" value="New" />
-				</anu:td>
-				<anu:td>
-					<input type="submit" name="newObjType" value="New" />
-				</anu:td>
-				<anu:td>
-					<input type="submit" name="newObjType" value="New" />
-				</anu:td>
-			</anu:tr>
-		</anu:table>
-	</form>
+	<p><jsp:include page="searchbox.jsp"></jsp:include> </p>
+	<sec:authorize access="hasRole('ROLE_ANU_USER')">
+		
+	<p>Create new object: <a href="<c:url value='/rest/list/template' />">New</a></p>
+	</sec:authorize>
+			
 </anu:content>
 
 <!-- Section for changelogs, updates, news and announcements etc. for users to see. -->

@@ -3,7 +3,7 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 
-<form class="anuform" name="frmBasicSearch" action="<c:url value='/rest/search/' />" method="get">
+<form id="frmBasicSearch" name="frmBasicSearch" action="<c:url value='/rest/search/' />" method="get">
 	<p>
 		<label for="basicSearchTerms">Search</label>
 		<input class="text" type="text" name="q" id="idBasicSearchTerms" size="30" value="<c:out value="${param.q}" />" />
