@@ -75,3 +75,13 @@ CREATE TABLE fedora_object (
 	,PRIMARY KEY (id)
 	,CONSTRAINT foreign_fk_6 FOREIGN KEY (group_id) REFERENCES groups (id)
 );
+
+CREATE TABLE publish_location (
+	id				bigserial		NOT NULL
+	,code			varchar(20)		NOT NULL
+	,name			varchar(255)	NOT NULL
+	,execute_class	varchar(255)	NOT NULL
+	,requires		bigint			NULL
+	,PRIMARY KEY (id)
+	,UNIQUE (code)
+);

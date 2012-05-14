@@ -18,3 +18,9 @@ insert into acl_object_identity (id, object_id_class, object_id_identity, owner_
 (1,1,1,1,null,'1');
 insert into acl_object_identity (id, object_id_class, object_id_identity, owner_sid, parent_object, entries_inheriting) values
 (2,2,1,1,1,'1');
+
+INSERT INTO publish_location (code, name, execute_class, requires) VALUES
+('ANU', 'Australian National University','au.edu.anu.datacommons.publish.ANUPublish', null);
+
+INSERT INTO publish_location (code, name, execute_class, requires) VALUES
+('ANDS', 'Australian National Data Service','au.edu.anu.datacommons.publish.ANDSPublish',1);
