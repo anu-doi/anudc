@@ -4,6 +4,9 @@
 
 <c:if test="${it.resultSet.numResults > 0}">
 <anu:box style="solid">
+	<c:if test="${it.resultSet.numResults > 0}">
+		Related Items:<br />
+	</c:if>
 	<c:forEach items="${it.resultSet.allResults}" var="row">
 		<c:forEach var="iCol" begin="0" end="${it.resultSet.numCols - 1}">
 			<c:choose>

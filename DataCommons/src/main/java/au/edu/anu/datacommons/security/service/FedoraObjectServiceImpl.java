@@ -21,9 +21,13 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.GenericDAO;
+import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
+import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.SparqlPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.search.SparqlResultSet;
@@ -50,6 +54,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
  * 0.2		02/05/2012	Genevieve Turner (GT)	Fixed issue with pid and added in related links
+ * 0.3		05/05/2012	Genevieve Turner (GT)	Added getting a list of publishers
  * </pre>
  * 
  */
@@ -69,6 +74,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * 0.2		02/05/2012	Genevieve Turner (GT)	Updated to fix issue with url encoded pid
+	 * 0.3		08/05/2012	Genevieve Turner (GT)	Updated to use newly created util decode function
 	 * </pre>
 	 * 
 	 * @param id The fedora object pid
@@ -77,17 +83,12 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	public FedoraObject getItemByName(String pid) {
 		LOGGER.debug("Retrieving object for: {}", pid);
 		String decodedpid = null;
-		try {
-			decodedpid = URLDecoder.decode(pid,"UTF-8");
-		}
-		catch (UnsupportedEncodingException e) {
-			LOGGER.error("Error decoding pid: ", e);
-		}
+		decodedpid = Util.decodeUrlEncoded(pid);
 		if (decodedpid == null) {
 			return null;
 		}
 		LOGGER.debug("Decoded pid: {}", decodedpid);
-		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl();
+		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
 		FedoraObject item = (FedoraObject) object.getSingleByName(decodedpid);
 		return item;
 	}
@@ -310,10 +311,10 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 */
 	public String addLink(FedoraObject fedoraObject, Map<String, List<String>> form) {
 		String value = "<html><body>Reference added</body></html>";
-		String link = "http://anu.edu.au/related/";
+		String link = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI);
 		FedoraReference reference = new FedoraReference();
-		String referenceType = form.get("txtType").get(0);
-		String referenceItem = form.get("txtItem").get(0);
+		String referenceType = form.get("linkType").get(0);
+		String referenceItem = form.get("itemId").get(0);
 		reference.setPredicate_(link + referenceType);
 		reference.setObject_(referenceItem);
 		reference.setIsLiteral_(Boolean.FALSE);
@@ -405,7 +406,8 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		sparqlQuery.addVar("?predicate");
 		sparqlQuery.addTriple("<info:fedora/" + fedoraObject.getObject_id() + ">", "?predicate", "?item", false);
 		sparqlQuery.addTriple("?item", "<dc:title>", "?title", false);
-		sparqlQuery.addFilter("regex(str(?predicate), 'http://anu.edu.au/related', 'i')", "");
+		String filterString = "regex(str(?predicate), '" + GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI) + "', 'i')";
+		sparqlQuery.addFilter(filterString, "");
 		
 		ClientResponse respFromRiSearch = riSearchService.post(sparqlQuery.generateQuery());
 		try {
@@ -427,5 +429,30 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			LOGGER.error("Error creating document", e);
 		}
 		return resultSet;
+	}
+
+	/**
+	 * getPublishers
+	 * 
+	 * Returns a list of publishers
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		05/05/2012	Genevieve Turner (GT)	Initial
+	 * </pre>
+	 * 
+	 * @return Returns a viewable of publishers
+	 */
+	public Viewable getPublishers() {
+		GenericDAO<PublishLocation, Long> publishDAO = new GenericDAOImpl<PublishLocation, Long>(PublishLocation.class);
+		
+		List<PublishLocation> publishLocations = publishDAO.getAll();
+		
+		Map<String, Object> values = new HashMap<String, Object>();
+		values.put("publishLocations", publishLocations);
+		
+		Viewable viewable = new Viewable("/publish.jsp", values);
+		
+		return viewable;
 	}
 }

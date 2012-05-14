@@ -18,7 +18,7 @@
 			
 		</div>
 		<input id="editSubmit" type="submit" class="editSubmit" value="Submit" />
-		<input id="addItemLink" type="button" class="addLink" value="Link to Item" />
+		<jsp:include page="add_reference.jsp" />
 		<input id="deleteItem" type="button" class="deleteItem" value="Delete" />
 	</form>
 	</anu:box>

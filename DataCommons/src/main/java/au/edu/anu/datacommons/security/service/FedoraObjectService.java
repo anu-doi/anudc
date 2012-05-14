@@ -23,6 +23,7 @@ import com.sun.jersey.api.view.Viewable;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+ * 0.2		05/05/2012	Genevieve Turner (GT)	Added getting a list of publishers
  * </pre>
  * 
  */
@@ -161,4 +162,18 @@ public interface FedoraObjectService {
 	 * @return A response for the web page
 	 */
 	public String addLink(FedoraObject fedoraObject, Map<String, List<String>> form);
+	
+	/**
+	 * getPublishers
+	 * 
+	 * Returns a list of publishers
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		05/05/2012	Genevieve Turner (GT)	Initial
+	 * </pre>
+	 * 
+	 * @return Returns a viewable of publishers
+	 */
+	public Viewable getPublishers();
 }

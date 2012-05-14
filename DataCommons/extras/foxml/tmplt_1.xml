@@ -17,7 +17,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
           <dc:title>Collection Template</dc:title>
           <dc:description>Template for creating collections</dc:description>
-          <dc:type>Collection</dc:type>
+          <dc:type>Template</dc:type>
           <dc:identifier>tmplt:1</dc:identifier>
         </oai_dc:dc>
       </foxml:xmlContent>

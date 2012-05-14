@@ -67,6 +67,8 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.2		23/03/2012	Genevieve Turner (GT)	Updated to include saving
  * 0.3		29/03/2012	Genevieve Turner (GT)	Updated for editing
  * 0.4		26/04/2012	Genevieve Turner (GT)	Some updates for differences between published and non-published records
+ * 0.5		03/05/2012	Genevieve Turner (GT)	Updated to use fedora objects instead of a string for fedora items
+ * 0.6		14/05/2012	Genevieve Turner (GT)	Updated to use namespace from a property
  * </pre>
  * 
  */
@@ -627,6 +629,7 @@ public class ViewTransform
 	 * 0.2		23/03/2012	Genevieve Turner (GT	Initial creation
 	 * 0.4		26/04/2012	Genevieve Turner (GT)	Updated to fix an issue with the Form class when introducing security
 	 * 0.5		03/05/2012	Genevieve Turner (GT)	Updated so the fedora object is used to get the input stream
+	 * 0.6		14/05/2012	Genevieve Turner (GT)	Updated to retrieve the pid namespace from a global property
 	 * </pre>
 	 * 
 	 * @param tmplt The id of the template
@@ -697,7 +700,7 @@ public class ViewTransform
 					, tmplt
 					, Constants.XML_TEMPLATE);
 			
-			String item = FedoraBroker.createNewObject("test");
+			String item = FedoraBroker.createNewObject(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_SAVENAMESPACE));
 			
 			FedoraBroker.addDatasstreamBySource(item, Constants.XML_SOURCE, "XML Source", sw.toString());
 			FedoraBroker.addDatastreamByReference(item, Constants.XML_TEMPLATE, "M", "XML Template", location);
@@ -712,10 +715,10 @@ public class ViewTransform
 			fedoraObject.setGroup_id(new Long(1));
 			fedoraObject.setPublished(Boolean.FALSE);
 
-			FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl();
+			FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
 			fedoraObjectDAO.create(fedoraObject);
 			LOGGER.debug("fedora object id: {}", fedoraObject.getId());
-			AclObjectIdentityDAOImpl aclObjectIdentityDAO = new AclObjectIdentityDAOImpl();
+			AclObjectIdentityDAOImpl<AclObjectIdentity, Long> aclObjectIdentityDAO = new AclObjectIdentityDAOImpl<AclObjectIdentity, Long>(AclObjectIdentity.class);
 			AclObjectIdentity parentAclObjectIdentity = (AclObjectIdentity) aclObjectIdentityDAO.getObjectByClassAndIdentity(new Long(2), fedoraObject.getGroup_id());
 			
 			//TODO This could be updated to use the spring acl classes?

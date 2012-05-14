@@ -1,4 +1,4 @@
-insert into domains (id, domains) values
+insert into domains (id, domain_name) values
 (1, 'Administrators');
 
 insert into groups (id, group_name) values

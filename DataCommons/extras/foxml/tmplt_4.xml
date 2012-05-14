@@ -15,8 +15,8 @@
         <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/"
           xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
-          <dc:title>Group Template</dc:title>
-          <dc:description>Template for creating groups</dc:description>
+          <dc:title>Party Template</dc:title>
+          <dc:description>Template for creating groups and administrative positions</dc:description>
           <dc:type>Template</dc:type>
           <dc:identifier>tmplt:4</dc:identifier>
         </oai_dc:dc>
@@ -30,8 +30,11 @@
         <template>
           <name>Group Party Template</name>
           <item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type" readonly="readonly" saveType="single"/>
-          <item defaultValue="group" editPerm="admin" fieldType="TextField" label="Party Type" name="subType"
-            readonly="readonly" saveType="single"/>
+          <item editPerm="admin" fieldType="Combobox" label="Party Type" name="subType" saveType="single">
+		    <option label="- No Value Selected -" value="" />
+		    <option label="Group" value="group" />
+		    <option label="Administrative Position" value="administrativePosition" />
+	      </item>
           <item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"/>
           <item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"/>
           <item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single"/>

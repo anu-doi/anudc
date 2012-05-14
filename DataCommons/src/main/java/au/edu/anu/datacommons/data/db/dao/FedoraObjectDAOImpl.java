@@ -6,9 +6,9 @@ import javax.persistence.Query;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
 
 import au.edu.anu.datacommons.data.db.PersistenceManager;
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
 
 /**
  * FedoraObjectDAO
@@ -23,13 +23,24 @@ import au.edu.anu.datacommons.data.db.PersistenceManager;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+ * 0.2		03/05/2012	Genevieve Turner (GT)	Updated to include constructor class that sets the type in GenericDAOImpl
  * </pre>
  * 
  */
-@Repository
-public class FedoraObjectDAOImpl<FedoraObject, Long> extends GenericDAOImpl implements FedoraObjectDAO
+public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> implements FedoraObjectDAO
 {
 	static final Logger LOGGER = LoggerFactory.getLogger(FedoraObjectDAOImpl.class);
+	
+	/**
+	 * Constructor
+	 * 
+	 * Constructor class that includes the type
+	 * 
+	 * @param type The class type to retrive/set objects
+	 */
+	public FedoraObjectDAOImpl(Class<FedoraObject> type) {
+		super(type);
+	}
 	
 	/**
 	 * getSingleByName
@@ -48,9 +59,6 @@ public class FedoraObjectDAOImpl<FedoraObject, Long> extends GenericDAOImpl impl
 		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
 		FedoraObject fedoraObject = null;
 		try {
-			if(entityManager == null) {
-				LOGGER.info("Entitty Manager is null");
-			}
 			Query query = entityManager.createQuery("from FedoraObject where object_id = :pid");
 			query.setParameter("pid", name);
 			fedoraObject = (FedoraObject) query.getSingleResult();

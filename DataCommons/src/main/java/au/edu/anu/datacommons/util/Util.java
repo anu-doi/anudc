@@ -4,7 +4,9 @@
 package au.edu.anu.datacommons.util;
 
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +22,8 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
@@ -42,6 +46,8 @@ import au.edu.anu.datacommons.properties.GlobalProps;
  */
 public final class Util
 {
+	static final Logger LOGGER = LoggerFactory.getLogger(Util.class);
+	
 	public static void writeXmlToWriter(Document inDoc, Writer xmlWriter)
 	{
 		Transformer transformer;
@@ -163,5 +169,29 @@ public final class Util
 			password.append(passwordChars[rand.nextInt(passwordChars.length)]);
 
 		return password.toString();
+	}
+	
+	/**
+	 * decodeUrlEncoded
+	 * 
+	 * Decodes a url encoded string for example 'test%3a92' would return 'test:92'
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		08/05/2012	Genevieve Turner (GT)	Initial
+	 * </pre>
+	 * 
+	 * @param encoded Encoded string
+	 * @return Decoded string
+	 */
+	public static String decodeUrlEncoded(String encoded) {
+		String decoded = null;
+		try {
+			decoded = URLDecoder.decode(encoded,"UTF-8");
+		}
+		catch (UnsupportedEncodingException e) {
+			LOGGER.error("Error decoding string: ", e);
+		}
+		return decoded;
 	}
 }

@@ -1,5 +1,7 @@
 package au.edu.anu.datacommons.data.db.dao;
 
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
+
 /**
  * FedoraObjectDAO
  * 
@@ -16,7 +18,7 @@ package au.edu.anu.datacommons.data.db.dao;
  * @param <T> The type of the object that is instantiated
  * @param <PK> The type of the primary key that is instantiated
  */
-public interface FedoraObjectDAO<T, PK> extends GenericDAO {
+public interface FedoraObjectDAO extends GenericDAO<FedoraObject, Long> {
 	/**
 	 * getSingleByName
 	 * 
@@ -29,5 +31,5 @@ public interface FedoraObjectDAO<T, PK> extends GenericDAO {
 	 * 
 	 * @param name The name of the object to retrieve
 	 */
-	T getSingleByName(String name);
+	FedoraObject getSingleByName(String name);
 }

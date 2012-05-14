@@ -10,6 +10,44 @@
  */
 
 /**
+ * Document ready functions for the link item objects.  This includes adding a selection list
+ * to the itemId text field
+ * 
+ * Version	Date		Developer			Description
+ * 0.1		07/05/2012	Genevieve Turner	Initial
+ */
+jQuery(document).ready(function() {
+	jQuery("#itemId").autocomplete({
+		source: function (request, response) {
+			jQuery.ajax({
+				url: "/DataCommons/rest/list/items",
+				dataType: "json",
+				data: {
+					title: request.term,
+					type: jQuery("#itemType").val()
+				},
+				success: function(data) {
+					console.log('Data was retrieved: ' + data.results.length);
+					response ( jQuery.map(data.results, function(item, i) {
+						return {
+							label: item.title,
+							value: item.item
+						};
+					}));
+				}
+			});
+		},
+		minLength: 2,
+		open: function() {
+			jQuery(this).removeClass("ui-corner-all").addClass("ui-corner-top");
+		},
+		close: function() {
+			jQuery(this).removeClass("ui-corner-top").addClass("ui-corner-all");
+		}
+	});
+});
+
+/**
  * Centre and open the popup
  */
 jQuery("#itemLinkButton").live('click', function(){
@@ -27,7 +65,7 @@ jQuery("#popupLinkClose").live('click', function(){
 /**
  * Close the popup when the background has been clicked
  */
-jQuery("#backgroundPopup").click(function() {
+jQuery("#backgroundPopup").live('click', function() {
 	disablePopup();
 });
 
@@ -46,9 +84,9 @@ jQuery(document).keypress(function(e) {
 jQuery("#formAddLink").live('submit', function() {
 	var hash = getURLVars();
 	var urlStr = "/DataCommons/rest/display/addLink?item=" + hash['item'];
-	var typeStr = jQuery("#txtType").val();
-	var itemStr = jQuery("#txtItem").val();
-	var dataString = 'txtType=' + typeStr + '&txtItem=' + itemStr;
+	var typeStr = jQuery("#linkType").val();
+	var itemStr = jQuery("#itemId").val();
+	var dataString = 'linkType=' + typeStr + '&itemId=' + itemStr;
 	jQuery.ajax({
 		type: "POST",
 		url: urlStr,

@@ -10,14 +10,17 @@
 		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
 			<sec:authorize access="hasRole('ROLE_ANU_USER')">
+				<c:url value="/rest/publish" var="publishLink">
+					<c:param name="item" value="${it.fedoraObject.object_id}" />
+					<c:param name="tmplt" value="${param.tmplt}" />
+					<c:param name="layout" value="${param.layout}" />
+				</c:url>
 				<c:url value="/rest/display/edit" var="editLink">
 					<c:param name="item" value="${it.fedoraObject.object_id}" />
 					<c:param name="tmplt" value="${param.tmplt}" />
 					<c:param name="layout" value="${param.layout}" />
 				</c:url>
-				<sec:accesscontrollist hasPermission="WRITE" domainObject="${it.fedoraObject}">
-					<p><input type="button" id="editButton" name="editButton" value="Edit" onclick="window.location='${editLink}'" /></p>
-				</sec:accesscontrollist>
+				<p><input type="button" id="editButton" name="editButton" value="Edit" onclick="window.location='${editLink}'" /></p>
 				<jsp:include page="add_reference.jsp" />
 			</sec:authorize>
 		</sec:authorize>

@@ -8,7 +8,6 @@ import javax.persistence.EntityTransaction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
 
 import au.edu.anu.datacommons.data.db.PersistenceManager;
 
@@ -33,12 +32,23 @@ import au.edu.anu.datacommons.data.db.PersistenceManager;
 public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T, PK> {
 	static final Logger LOGGER = LoggerFactory.getLogger(GenericDAOImpl.class);
 	
-	private Class<T> type;
-	/*
+	private Class<T> type_;
+	
+	/**
+	 * Constructor
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		09/05/2012	Genevieve Turner (GT)	Included so the actual type can be referenced
+	 * </pre>
+	 * 
+	 * @param type The class type to retrive/set objects
+	 */
 	public GenericDAOImpl(Class<T> type) {
-		this.type = type;
+		// Attempting to have a default constructor that uses ParameterizedType causes errors
+		// So we need to have a constructor that sets the class type
+		this.type_ = type;
 	}
-	*/
 	
 	/**
 	 * create
@@ -54,11 +64,9 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 	 * @return
 	 */
 	public T create(T o) {
-		LOGGER.info("Creating object");
 		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
 		EntityTransaction entityTransaction = entityManager.getTransaction();
 		try {
-			//entityManager.
 			entityTransaction.begin();
 			entityManager.persist(o);
 			entityTransaction.commit();
@@ -89,9 +97,10 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
 		T object = null;
 		try {
-			object = entityManager.find(type, id);
+			object = (T) entityManager.find(type_, id);
 		}
 		finally {
+			LOGGER.info("EntityManager close has been run");
 			entityManager.close();
 		}
 		return object;
@@ -111,10 +120,9 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 	 */
 	public List<T> getAll() {
 		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
-		//T object = null;
 		List<T> objects = null;
 		try {
-			objects = entityManager.createQuery("from " + type.getName()).getResultList();
+			objects = entityManager.createQuery("from " + type_.getName()).getResultList();
 		}
 		finally {
 			entityManager.close();

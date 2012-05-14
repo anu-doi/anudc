@@ -1,0 +1,30 @@
+<template>
+	<name>Person Template</name>
+	<item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type"
+		readonly="readonly" saveType="single"/>
+	<item defaultValue="person" editPerm="admin" fieldType="TextField" label="Party Type" name="subType"
+		readonly="readonly" saveType="single"/>
+	<item fieldType="TextField" label="Title" name="title" saveType="single" />
+	<item fieldType="TextField" label="Given Name" name="givenName" saveType="single" />
+	<item fieldType="TextField" label="Surname" name="lastName" saveType="single" />
+	<item fieldType="TextField" label="suffix" name="Suffixes" saveType="single" />
+	<item fieldType="TextField" label="Alternate Title" name="altTitle" saveType="single" />
+	<item fieldType="TextField" label="Alternate Given Name" name="altGivenName" saveType="single" />
+	<item fieldType="TextField" label="Alternate Surname" name="altLastName" saveType="single" />
+	<item fieldType="TextField" label="Alternate Suffixes" name="altSuffix" saveType="single" />
+	<item fieldType="TextField" label="Abbreviated Title" name="abbrTitle" saveType="single" />
+	<item fieldType="TextField" label="Abbreviated Given Name" name="abbrGivenName" saveType="single" />
+	<item fieldType="TextField" label="Abbreviated Surname" name="abbrLastName" saveType="single" />
+	<item fieldType="TextField" label="Abbreviated Suffixes" name="abbrSuffix" saveType="single" />
+	<item fieldType="TextField" label="Uni ID" name="uid" saveType="single"/>
+	<item fieldType="TextField" label="NLA Identifier" name="nlaIdentifier" saveType="single"/>
+	<item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single"/>
+	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single"/>
+	<item class="required email" fieldType="TextFieldMulti" label="Email Address" name="email" saveType="multiple"/>
+	<item fieldType="TextArea" label="Postal Address" name="postalAddress" saveType="single"/>
+	<item fieldType="TextFieldMulti" label="Phone Number" name="phone" saveType="multiple"/>
+	<item fieldType="TextFieldMulti" label="Fax Number" name="fax" saveType="multiple"/>
+	<item fieldType="TextFieldMulti" label="Website Address" name="websiteAddress" saveType="multiple"/>
+	<item class="required" fieldType="TextFieldMulti" label="ANZSRC-FOR Subject" name="anzforSubject" saveType="multiple"/>
+	<item fieldType="TextFieldMulti" label="Other Subject" name="locSubject" saveType="multiple"/>
+</template>

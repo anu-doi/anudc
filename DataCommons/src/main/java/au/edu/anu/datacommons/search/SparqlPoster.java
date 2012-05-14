@@ -27,6 +27,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
+ * 0.2		11/05/2012	Genevieve Turner (GT)	Added logger row
  * </pre>
  * 
  */
@@ -273,6 +274,7 @@ public class SparqlPoster {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.2		11/05/2012	Genevieve Turner (GT)	Added logger statement of the url that is being posted to
 	 * </pre>
 	 * 
 	 * @param query The query to execute
@@ -288,7 +290,7 @@ public class SparqlPoster {
 		
 		// This is separate so it is not added to the parameters field and thus the parameters can be reused
 		webService = webService.queryParam("query", query);
-		
+		LOGGER.debug("Posting url is: {}", webService.getURI());
 		ClientResponse clientResponse = webService.type(type).accept(acceptType).post(ClientResponse.class);
 		
 		return clientResponse;

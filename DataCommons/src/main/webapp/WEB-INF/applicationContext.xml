@@ -13,7 +13,7 @@
 	<bean id="riSearchService" class="au.edu.anu.datacommons.search.SparqlPoster">
 		<property name="username" value="fedoraAdmin" />
 		<property name="password" value="fedoraAdmin" />
-		<property name="url" value="[APPSERVER:PORT]:8380/fedora/risearch" />
+		<property name="url" value="[FEDORASERVER:PORT]/fedora/risearch" />
 		<property name="type" value="application/x-www-form-urlencoded" />
 		<property name="acceptType" value="text/xml" />
 		<property name="parameters">
@@ -25,6 +25,22 @@
 				<entry key="type" value="tuples" />
 			</map>
 		</property>
-		
+	</bean>
+	
+	<bean id="riSearchJSONService" class="au.edu.anu.datacommons.search.SparqlPoster">
+		<property name="username" value="fedoraAdmin" />
+		<property name="password" value="fedoraAdmin" />
+		<property name="url" value="[FEDORASERVER:PORT]/fedora/risearch" />
+		<property name="type" value="application/x-www-form-urlencoded" />
+		<property name="acceptType" value="application/json" />
+		<property name="parameters">
+			<map>
+				<entry key="dt" value="on" />
+				<entry key="format" value="json" />
+				<entry key="lang" value="sparql" />
+				<entry key="limit" value="10" />
+				<entry key="type" value="tuples" />
+			</map>
+		</property>
 	</bean>
 </beans>

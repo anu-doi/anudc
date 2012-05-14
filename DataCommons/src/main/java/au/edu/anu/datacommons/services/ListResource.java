@@ -7,10 +7,14 @@ import java.util.HashMap;
 import javax.annotation.Resource;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.json.simple.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,9 +23,11 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.SparqlPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.search.SparqlResultSet;
+import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.view.Viewable;
@@ -49,6 +55,9 @@ public class ListResource {
 
 	@Resource(name="riSearchService")
 	SparqlPoster riSearchService;
+
+	@Resource(name="riSearchJSONService")
+	SparqlPoster riSearchJSONService;
 	
 	/**
 	 * getTemplates
@@ -64,6 +73,7 @@ public class ListResource {
 	 */
 	@GET
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@Produces(MediaType.TEXT_HTML)
 	@Path("template")
 	public Response getTemplates() {
 		Response response = null;
@@ -85,9 +95,11 @@ public class ListResource {
 
 		ClientResponse riSearchResponse = riSearchService.post(sparqlQuery.generateQuery());
 		try {
+			String responseString = riSearchResponse.getEntity(String.class);
+			LOGGER.debug("riSearchResponse: {}", responseString);
 			// For some reason XPath doesn't work properly if you directly get the document from the stream
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			Document resultsXmlDoc = factory.newDocumentBuilder().parse(new InputSource(new StringReader(riSearchResponse.getEntity(String.class))));
+			Document resultsXmlDoc = factory.newDocumentBuilder().parse(new InputSource(new StringReader(responseString)));
 			SparqlResultSet resultSet = new SparqlResultSet(resultsXmlDoc);
 
 			HashMap<String, Object> model = new HashMap<String, Object>();
@@ -110,4 +122,43 @@ public class ListResource {
 		
 		return response;
 	}
+
+	@GET
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("items")
+	public Response getItems(@QueryParam("title") String title, @QueryParam("type") String type) {
+		Response response = null;
+		if (Util.isNotEmpty(title)) {
+			SparqlQuery sparqlQuery = new SparqlQuery();
+	
+			sparqlQuery.addVar("?item");
+			sparqlQuery.addVar("?title");
+			sparqlQuery.addTriple("?item", "<dc:title>", "?title", false);
+			sparqlQuery.addTriple("?item", "<dc:type>", "?type", false);
+			String titleFilterString = "regex(str(?title), '" + title + "', 'i')";
+			sparqlQuery.addFilter(titleFilterString, "");
+			String typeFilterString = "regex(str(?type), '" + type +"', 'i')";
+			sparqlQuery.addFilter(typeFilterString.toString(), "&&");
+			
+			ClientResponse riSearchResponse = riSearchJSONService.post(sparqlQuery.generateQuery());
+			LOGGER.info("Return statis is: {}", riSearchResponse.getStatus());
+			String jsonArray = riSearchResponse.getEntity(String.class);
+			LOGGER.info("JSON Response: {}", jsonArray);
+			response = Response.ok(jsonArray, MediaType.APPLICATION_JSON).build();
+		}
+		else {
+			response = Response.ok("", MediaType.APPLICATION_JSON).build();
+		}
+		return response;
+	}
+/*
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("items")
+	public Response getLinkTypes(String type) {
+		Response response = null;
+		
+		return response;
+	}*/
 }
