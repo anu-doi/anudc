@@ -15,6 +15,7 @@
 					<c:param name="tmplt" value="${param.tmplt}" />
 					<c:param name="layout" value="${param.layout}" />
 				</c:url>
+				<p><input type="button" id="publishButton" name="publishButton" value="Publish" onclick="window.location='${publishLink}'" /></p>
 				<c:url value="/rest/display/edit" var="editLink">
 					<c:param name="item" value="${it.fedoraObject.object_id}" />
 					<c:param name="tmplt" value="${param.tmplt}" />

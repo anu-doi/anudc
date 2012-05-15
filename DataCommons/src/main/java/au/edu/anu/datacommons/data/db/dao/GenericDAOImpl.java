@@ -25,6 +25,7 @@ import au.edu.anu.datacommons.data.db.PersistenceManager;
  * Version	Date		Developer				Description
  * 0.1		03/05/2012	Genevieve Turner (GT)	Initial
  * 0.2		09/05/2012	Genevieve Turner (GT)	Added constructor class
+ * 0.3		15/05/2012	Genevieve Turner (GT)	Fixed an issue with 'detached entity passed to persist'
  * </pre>
  * 
  * @param <T> The object type to implement
@@ -139,6 +140,7 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		03/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.3		15/05/2012	Genevieve Turner (GT)	Fixed an issue with 'detached entity passed to persist'
 	 * </pre>
 	 * 
 	 * @param t The object to update
@@ -149,7 +151,7 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 		EntityTransaction entityTransaction = entityManager.getTransaction();
 		try {
 			entityTransaction.begin();
-			entityManager.persist(o);
+			entityManager.merge(o);
 			entityTransaction.commit();
 		}
 		finally {
