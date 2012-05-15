@@ -18,8 +18,8 @@
 		<fieldset>
 			<legend>Fedora Object</legend>
 			<p>
-				<label class="req" for="idPid">Pid</label>
-				<input class="text" type="text" name="pid" size="40" />
+				<label class="req" for="idPid">Item</label>
+				<input class="text" type="text" name="pid" size="40" value="<c:out value='${param.pid}' />" />
 			</p>
 		</fieldset>
 		<fieldset>

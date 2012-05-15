@@ -20,7 +20,11 @@
 					<c:param name="tmplt" value="${param.tmplt}" />
 					<c:param name="layout" value="${param.layout}" />
 				</c:url>
+				<c:url value="/rest/upload" var="uploadLink">
+					<c:param name="pid" value="${it.fedoraObject.object_id}" />
+				</c:url>
 				<p><input type="button" id="editButton" name="editButton" value="Edit" onclick="window.location='${editLink}'" /></p>
+				<p><input type="button" id="uploadButton" name="uploadButton" value="Upload" onclick="window.location='${uploadLink}'" /></p>
 				<jsp:include page="add_reference.jsp" />
 			</sec:authorize>
 		</sec:authorize>
