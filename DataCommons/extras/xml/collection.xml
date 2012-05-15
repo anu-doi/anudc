@@ -14,6 +14,7 @@
 	<item name="name" label="Name" fieldType="TextField" saveType="single" maxLength="80" class="required" />
 	<item name="abbrName" label="Abbreviated Name" fieldType="TextField" saveType="single" maxLength="255" />
 	<item name="altName" label="Alternate Name" fieldType="TextField" saveType="single" maxLength="255" />
+	<item name="significanceStatement" label="Significance Statement" fieldType="TextArea" saveType="single" maxLength="4000" />
 	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000" class="required" />
 	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" maxLength="4000" />
 	<item name="email" label="Contact Email" fieldType="TextFieldMulti" saveType="multiple" class="required email" />

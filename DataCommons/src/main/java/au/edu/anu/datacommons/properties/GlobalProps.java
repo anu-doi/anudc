@@ -41,6 +41,8 @@ public final class GlobalProps
 	public static final String PROP_FEDORA_RISEARCHURL = "fedora.riSearchURI";
 	public static final String PROP_FEDORA_RELATEDURI = "fedora.relatedURI";
 	public static final String PROP_FEDORA_SAVENAMESPACE = "fedora.saveNamespace";
+	public static final String PROP_FEDORA_OAIPROVIDER_URL = "fedora.oaiprovider.url";
+	public static final String PROP_FEDORA_NAMEFIELDS = "fedora.nameFields";
 	public static final String PROP_LDAP_URI = "ldap.uri";
 	public static final String PROP_LDAP_BASEDN = "ldap.baseDn";
 	public static final String PROP_LDAP_ATTRLIST = "ldap.person.attrList";

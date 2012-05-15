@@ -28,6 +28,7 @@ import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.publish.GenericPublish;
 import au.edu.anu.datacommons.search.SparqlPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.search.SparqlResultSet;
@@ -55,6 +56,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
  * 0.2		02/05/2012	Genevieve Turner (GT)	Fixed issue with pid and added in related links
  * 0.3		05/05/2012	Genevieve Turner (GT)	Added getting a list of publishers
+ * 0.4		15/05/2012	Genevieve Turner (GT)	Publishing to publishers
  * </pre>
  * 
  */
@@ -454,5 +456,47 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		Viewable viewable = new Viewable("/publish.jsp", values);
 		
 		return viewable;
+	}
+	
+	/**
+	 * publish
+	 * 
+	 * Publishes to the provided list of publishers
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.4		15/05/2012	Genevieve Turner (GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The item to publish
+	 * @param publishers The list of publishers to publish to
+	 */
+	public void publish(FedoraObject fedoraObject, List<String> publishers) {
+		GenericDAOImpl<PublishLocation, Long> publishLocationDAO = new GenericDAOImpl<PublishLocation, Long>(PublishLocation.class);
+		boolean publishedSaved = fedoraObject.getPublished();
+		
+		for (String publisher : publishers) {
+			Long id = Long.parseLong(publisher);
+			PublishLocation publishLocation = publishLocationDAO.getSingleById(id);
+			LOGGER.debug("Publish class: {}", publishLocation.getExecute_class());
+			try {
+				GenericPublish genericPublish = (GenericPublish) Class.forName(publishLocation.getExecute_class()).newInstance();
+				genericPublish.publish(fedoraObject.getObject_id());
+				if (!publishedSaved) {
+					fedoraObject.setPublished(Boolean.TRUE);
+					FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
+					fedoraObjectDAO.update(fedoraObject);
+				}
+			}
+			catch (ClassNotFoundException e) {
+				LOGGER.error("Class not found class: " + publishLocation.getExecute_class(), e);
+			}
+			catch (IllegalAccessException e) {
+				LOGGER.error("Illegal acces to class: " + publishLocation.getExecute_class(), e);
+			}
+			catch (InstantiationException e) {
+				LOGGER.error("Error instantiating class: " + publishLocation.getExecute_class(), e);
+			}
+		}
 	}
 }

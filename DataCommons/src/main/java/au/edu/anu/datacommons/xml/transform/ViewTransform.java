@@ -69,6 +69,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.4		26/04/2012	Genevieve Turner (GT)	Some updates for differences between published and non-published records
  * 0.5		03/05/2012	Genevieve Turner (GT)	Updated to use fedora objects instead of a string for fedora items
  * 0.6		14/05/2012	Genevieve Turner (GT)	Updated to use namespace from a property
+ * 0.7		15/05/2012	Genevieve Turner (GT)	Updated to fix issue with the dublin core title field
  * </pre>
  * 
  */
@@ -116,7 +117,7 @@ public class ViewTransform
 	 */
 	public String getPage (String layout, String template, FedoraObject fedoraObject, String fieldName, boolean editMode) throws FedoraClientException
 	{
-		LOGGER.info("In getPage");
+		LOGGER.debug("In getPage");
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		InputStream xmlStream = getXMLInputStream(template, fedoraObject);
 
@@ -157,7 +158,7 @@ public class ViewTransform
 				boolean hasXMLPublished = false;
 				for (DatastreamType datastream : datastreamList) {
 					String dsId = datastream.getDsid();
-					LOGGER.info("Data Source id: " + dsId);
+					LOGGER.debug("Data Source id: {}", dsId);
 					if (dsId.equals(Constants.XML_SOURCE)) {
 						hasXMLSource = true;
 					}
@@ -675,6 +676,8 @@ public class ViewTransform
 				}
 			}
 		}
+		//Added because for some types the name is separated fields
+		setName(data);
 		DublinCore dublinCore = getDublinCore(data);
 		StringWriter dcSW = new StringWriter();
 		
@@ -743,6 +746,65 @@ public class ViewTransform
 	}
 	
 	/**
+	 * setName
+	 * 
+	 * Sets the value of the name field, this in particular is used if there are
+	 * multiple values to the name
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.7		15/05/2012	Genevieve Turner (GT)	Initial
+	 * </pre>
+	 * 
+	 * @param data The form data to save
+	 */
+	private void setName(Data data) {
+		// If there is already a field of type 'name' there is no need to create another
+		if (processedValues_.contains("name")) {
+			return;
+		}
+		String nameFields = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_NAMEFIELDS);
+		String[] splitName = nameFields.split(",");
+		Map<String, String> nameMap = new HashMap<String, String>();
+		
+		// Get the values of the fields
+		for (String nameField : splitName) {
+			if (processedValues_.contains(nameField)) {
+				data.removeElementsByName("name");
+				processedValues_.add("name");
+				for (DataItem dataItem : data.getItems()) {
+					for (String field : splitName) {
+						if (dataItem.getName_().equals(field)) {
+							nameMap.put(field, dataItem.getValue_());
+							break;
+						}
+					}
+				}
+				break;
+			}
+		}
+		
+		// Ensure that the fields are placed in the correct order
+		StringBuffer sb = new StringBuffer();
+		for (String nameField : splitName) {
+			if (nameMap.containsKey(nameField)) {
+				sb.append(nameMap.get(nameField));
+				sb.append(" ");
+			}
+		}
+		
+		// Add the name to the saved data
+		if (Util.isNotEmpty(sb.toString())) {
+			DataItem dataItem = new DataItem();
+			dataItem.setName_("name");
+			dataItem.setValue_(sb.toString().trim());
+			data.getItems().add(dataItem);
+		}	
+		
+		return;
+	}
+	
+	/**
 	 * getDublinCore
 	 * 
 	 * Create the dublin core information for the object
@@ -762,6 +824,7 @@ public class ViewTransform
 		// not want to update the  dublin core
 		boolean modifiedDublinCore = false;
 		for (int i = 0; !modifiedDublinCore && i < processedValues_.size(); i++) {
+			// GT - 20120515 - Updated to perform partial match so that multivalued fields can execute
 			if (Util.isNotEmpty(DublinCoreConstants.getFieldName(processedValues_.get(i)))) {
 				modifiedDublinCore = true;
 				break;
@@ -777,8 +840,10 @@ public class ViewTransform
 			DataItem dataItem = dataItems.get(i);
 			
 			String fieldName = dataItem.getName_();
+			LOGGER.info("field name: {}", fieldName);
 			String dublinCoreLocalpart = DublinCoreConstants.getFieldName(fieldName);
 			if(Util.isNotEmpty(dublinCoreLocalpart)) {
+				LOGGER.info("field is in dc");
 				dublinCore.getItems_().add(createJAXBElement(DublinCoreConstants.DC, dublinCoreLocalpart, dataItem.getValue_()));
 			}
 		}
