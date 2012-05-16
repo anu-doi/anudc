@@ -11,6 +11,10 @@
 
 <anu:content layout="doublenarrow">
 	<h1>Publishing Page</h1>
+	<c:if test="${not empty it.message}">
+		Published to:<br />
+		${it.message}<br />
+	</c:if>
 	<form id="form" method="post" action="">
 		<c:forEach items="${it.publishLocations}" var="publishLocation">
 			<input type="checkbox" name="publish" value="${publishLocation.id}" />${publishLocation.code} - ${publishLocation.name} <br />

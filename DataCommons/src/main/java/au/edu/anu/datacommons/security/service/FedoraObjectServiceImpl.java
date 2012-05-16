@@ -2,8 +2,6 @@ package au.edu.anu.datacommons.security.service;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +55,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.2		02/05/2012	Genevieve Turner (GT)	Fixed issue with pid and added in related links
  * 0.3		05/05/2012	Genevieve Turner (GT)	Added getting a list of publishers
  * 0.4		15/05/2012	Genevieve Turner (GT)	Publishing to publishers
+ * 0.5		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
  * </pre>
  * 
  */
@@ -441,21 +440,17 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		05/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.5		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
 	 * </pre>
 	 * 
 	 * @return Returns a viewable of publishers
 	 */
-	public Viewable getPublishers() {
+	public List<PublishLocation> getPublishers() {
 		GenericDAO<PublishLocation, Long> publishDAO = new GenericDAOImpl<PublishLocation, Long>(PublishLocation.class);
 		
 		List<PublishLocation> publishLocations = publishDAO.getAll();
 		
-		Map<String, Object> values = new HashMap<String, Object>();
-		values.put("publishLocations", publishLocations);
-		
-		Viewable viewable = new Viewable("/publish.jsp", values);
-		
-		return viewable;
+		return publishLocations;
 	}
 	
 	/**
@@ -466,15 +461,16 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.4		15/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.5		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to publish
 	 * @param publishers The list of publishers to publish to
 	 */
-	public void publish(FedoraObject fedoraObject, List<String> publishers) {
+	public String publish(FedoraObject fedoraObject, List<String> publishers) {
 		GenericDAOImpl<PublishLocation, Long> publishLocationDAO = new GenericDAOImpl<PublishLocation, Long>(PublishLocation.class);
 		boolean publishedSaved = fedoraObject.getPublished();
-		
+		StringBuffer message = new StringBuffer();
 		for (String publisher : publishers) {
 			Long id = Long.parseLong(publisher);
 			PublishLocation publishLocation = publishLocationDAO.getSingleById(id);
@@ -487,6 +483,8 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 					FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
 					fedoraObjectDAO.update(fedoraObject);
 				}
+				message.append(publishLocation.getName());
+				message.append("<br />");
 			}
 			catch (ClassNotFoundException e) {
 				LOGGER.error("Class not found class: " + publishLocation.getExecute_class(), e);
@@ -498,5 +496,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 				LOGGER.error("Error instantiating class: " + publishLocation.getExecute_class(), e);
 			}
 		}
+		return message.toString();
 	}
 }

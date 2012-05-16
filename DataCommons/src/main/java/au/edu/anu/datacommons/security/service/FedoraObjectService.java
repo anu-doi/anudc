@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.PublishLocation;
 
 import com.sun.jersey.api.view.Viewable;
 
@@ -25,6 +26,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
  * 0.2		05/05/2012	Genevieve Turner (GT)	Added getting a list of publishers
  * 0.3		15/05/2012	Genevieve Turner (GT)	Publishing to publishers
+ * 0.4		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
  * </pre>
  * 
  */
@@ -172,11 +174,12 @@ public interface FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		05/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.4		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
 	 * </pre>
 	 * 
 	 * @return Returns a viewable of publishers
 	 */
-	public Viewable getPublishers();
+	public List<PublishLocation> getPublishers();
 	
 	/**
 	 * publish
@@ -186,10 +189,11 @@ public interface FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.3		15/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.4		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to publish
 	 * @param publishers The list of publishers to publish to
 	 */
-	public void publish(FedoraObject fedoraObject, List<String> publishers);
+	public String publish(FedoraObject fedoraObject, List<String> publishers);
 }
