@@ -66,9 +66,7 @@
 		<property name="service" value="${app.server}/DataCommons/j_spring_cas_security_check" />
 		<property name="sendRenew" value="false" />
 	</bean>
-	<!-- 
-	<security:jdbc-user-service data-source-ref="dataSource" id="userService" />
-	 -->
+	
 	<bean id="userService" class="au.edu.anu.datacommons.security.cas.ANUUserDetailsService">
 		<property name="dataSource" ref="dataSource" />
 	</bean>

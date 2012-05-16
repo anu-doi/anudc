@@ -14,7 +14,6 @@ import javax.ws.rs.core.Response;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.json.simple.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +22,6 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.SparqlPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.search.SparqlResultSet;
