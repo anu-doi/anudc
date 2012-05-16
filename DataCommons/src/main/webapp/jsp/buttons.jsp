@@ -31,4 +31,8 @@
 		</sec:authorize>
 	</anu:box>
 	<jsp:include page="listrelated.jsp" />
+	<c:if test="${not empty it.filelist}">
+		<anu:boxheader text="List of files" />
+		<anu:box style="solid">${it.filelist}</anu:box>
+	</c:if>
 </anu:content>

@@ -37,6 +37,7 @@ import au.edu.anu.datacommons.xml.transform.ViewTransform;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.view.Viewable;
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.access.DatastreamType;
 
 /**
  * FedoraObjectServiceImpl
@@ -351,10 +352,21 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		if (fedoraObject == null) {
 			LOGGER.info("Fedora Object is null");
 		}
+		Map<String, Object> values = new HashMap<String, Object>();
+		
 		String toPage = "/page.jsp";
 		String page = null;
 		ViewTransform viewTransform = new ViewTransform();
 		try {
+			// Update this section if we want to have a full list of files
+			List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(fedoraObject.getObject_id());
+			for (DatastreamType dsType : datastreamList) {
+				if (dsType.getDsid().contains("FILE0") ){
+					values.put("filelist", "Files Pending Availability");
+					break;
+				}
+			}
+			
 			page = viewTransform.getPage(layout, template, fedoraObject, null, false);
 		}
 		catch (FedoraClientException e) {
@@ -367,7 +379,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			toPage = "/error.jsp";
 		}
 		
-		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("page", page);
 		if (fedoraObject != null) {
 			//TODO This is should probably be modified
