@@ -1,5 +1,6 @@
 package au.edu.anu.datacommons.services;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.util.Util;
 
@@ -66,7 +68,14 @@ public class PublishResource {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response getPublishers() {
 		LOGGER.info("In get publishers");
-		Viewable viewable = fedoraObjectService.getPublishers();
+		
+		List<PublishLocation> publishLocations = fedoraObjectService.getPublishers();
+		
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("publishLocations", publishLocations);
+		
+		Viewable viewable = new Viewable("/publish.jsp", model);
+		
 		return Response.ok(viewable).build();
 	}
 	
@@ -92,10 +101,17 @@ public class PublishResource {
 		
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		List<String> publishers = form.get("publish");
-		LOGGER.info("Publisher stuff: {}", publishers);
+		LOGGER.debug("Locations to publish to: {}", publishers);
 		
-		fedoraObjectService.publish(fedoraObject, publishers);
-		Viewable viewable = fedoraObjectService.getPublishers();
+		String message = fedoraObjectService.publish(fedoraObject, publishers);
+		List<PublishLocation> publishLocations = fedoraObjectService.getPublishers();
+		
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("publishLocations", publishLocations);
+		model.put("message", message);
+		
+		Viewable viewable = new Viewable("/publish.jsp", model);
+		
 		return Response.ok(viewable).build();
 	}
 }
