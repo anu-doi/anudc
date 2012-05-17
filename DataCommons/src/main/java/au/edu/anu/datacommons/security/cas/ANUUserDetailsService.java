@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.GrantedAuthorityImpl;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
 
@@ -25,12 +25,14 @@ import au.edu.anu.datacommons.security.CustomUser;
  * Australian National University Data Commons
  * 
  * The ANUUserDetailsService class adds default roles to an ANU User logged in via CAS.
- * The roles currently include 'ROLE_ANU_USER' and 'ROLE_REGISTERED'.
+ * The roles currently include 'ROLE_ANU_USER' and 'ROLE_REGISTERED'.  It also provides
+ * custom user information.
  * 
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
  * 0.2		16/05/2012	Genevieve Turner (GT)	Updated to use a custom user
+ * 0.3		17/05/2012	Genevieve Turner (GT)	Renamed loadCustomUser to createUserDetails 
  * </pre>
  * 
  */
@@ -51,54 +53,56 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 * Version	Date		Developer				Description
 	 * 0.1		29/03/2012	Genevieve Turner (GT)	Added
 	 * 0.2		16/05/2012	Genevieve Turner (GT)	Updated to use a custom user
+	 * 0.3		17/05/2012	Genevieve Turner (GT)	Updated to use createUserDetails function
 	 * </pre>
 	 * 
 	 * @param username The username of the person logging in
 	 * @return Returns information about the user
 	 */
 	@Override
-	public User loadUserByUsername(String username) throws UsernameNotFoundException {
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		Set<GrantedAuthority> dbAuthsSet = new HashSet<GrantedAuthority>();
-
-        if (enableAuthorities) {
-            dbAuthsSet.addAll(loadUserAuthorities(username));
-        }
-
-        if (enableGroups) {
-            dbAuthsSet.addAll(loadGroupAuthorities(username));
-        }
-
-        List<GrantedAuthority> dbAuths = new ArrayList<GrantedAuthority>(dbAuthsSet);
-
-        addCustomAuthorities(username, dbAuths);
-
-        if (dbAuths.size() == 0) {
-            logger.debug("User '" + username + "' has no authorities and will be treated as 'not found'");
-
-            throw new UsernameNotFoundException(
-                    messages.getMessage("JdbcDaoImpl.noAuthority",
-                            new Object[] {username}, "User {0} has no GrantedAuthority"), username);
-        }
-        CustomUser user = loadCustomUser(username, dbAuths);
-		return user;
-        //return createUserDetails(username, user, dbAuths);
+		
+		if (enableAuthorities) {
+			dbAuthsSet.addAll(loadUserAuthorities(username));
+		}
+		
+		if (enableGroups) {
+			dbAuthsSet.addAll(loadGroupAuthorities(username));
+		}
+		
+		List<GrantedAuthority> dbAuths = new ArrayList<GrantedAuthority>(dbAuthsSet);
+		
+		addCustomAuthorities(username, dbAuths);
+		
+		if (dbAuths.size() == 0) {
+			logger.debug("User '" + username + "' has no authorities and will be treated as 'not found'");
+		
+			throw new UsernameNotFoundException(
+					messages.getMessage("JdbcDaoImpl.noAuthority",
+							new Object[] {username}, "User {0} has no GrantedAuthority"), username);
+		}
+		
+		return createUserDetails(username, null, dbAuths);
 	}
-
+	
 	/**
-	 * loadCustomUser
+	 * createUserDetails
 	 * 
 	 * Loads the details of a custom user
 	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		16/05/2012	Genevieve Turner (GT)	Updated to use a custom user
+	 * 0.3		17/05/2012	Genevieve Turner (GT)	Renamed from loadCustomUser to createUserDetails
 	 * </pre>
 	 * 
 	 * @param username The username of the person logging in
+	 * @param userDetails Details about the user logging in
 	 * @param authorities The authorities for the user logging in
 	 * @return The custom user
 	 */
-	private CustomUser loadCustomUser(String username, List<GrantedAuthority> authorities) {
+	protected UserDetails createUserDetails(String username, UserDetails userDetails, List<GrantedAuthority> authorities) {
 		UsersDAO usersDAO = new UsersDAOImpl(Users.class);
 		Users users = usersDAO.getUserByName(username);
 		CustomUser user = null;
@@ -106,6 +110,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 			user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authorities, users.getId());
 		}
 		else {
+			// If the user doesn't have a row in the database we want to provide provide some indication by having the id = -1
 			user = new CustomUser(username, username, true, true, true, true, authorities, new Long(-1));
 		}
 		return user;

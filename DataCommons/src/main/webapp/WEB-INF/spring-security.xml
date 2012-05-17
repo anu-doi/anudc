@@ -26,10 +26,7 @@
 	
 	<security:authentication-manager alias="authenticationManager">
 		<security:authentication-provider ref="casAuthenticationProvider" />
-		<security:authentication-provider>
-			<security:jdbc-user-service data-source-ref="dataSource"/>
-			<security:password-encoder ref="passwordEncoder"/>
-		</security:authentication-provider>
+		<security:authentication-provider ref="daoAuthenticationProvider" />
 	</security:authentication-manager>
 	
 	<bean id="casAuthenticationFilter" class="org.springframework.security.cas.web.CasAuthenticationFilter">
@@ -68,6 +65,15 @@
 	</bean>
 	
 	<bean id="userService" class="au.edu.anu.datacommons.security.cas.ANUUserDetailsService">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean id="daoAuthenticationProvider" class="org.springframework.security.authentication.dao.DaoAuthenticationProvider">
+		<property name="userDetailsService" ref="daoUserService" />
+		<property name="passwordEncoder" ref="passwordEncoder"/>
+	</bean>
+	
+	<bean id="daoUserService" class="au.edu.anu.datacommons.security.registered.RegisteredUserDetails">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
