@@ -1,10 +1,13 @@
 package au.edu.anu.datacommons.data.db.model;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
 /**
@@ -15,7 +18,7 @@ import javax.persistence.Table;
  * Entity class for the users database table
  * 
  * JUnit Coverage:
- * None
+ * UsersTest
  * 
  * <pre>
  * Version	Date		Developer				Description
@@ -32,6 +35,7 @@ public class Users {
 	private String password;
 	private Boolean enabled;
 	private Long user_type;
+	private UserRegistered user_registered;
 	
 	/**
 	 * getId
@@ -201,5 +205,39 @@ public class Users {
 	 */
 	public void setUser_type(Long user_type) {
 		this.user_type = user_type;
+	}
+
+	/**
+	 * getUser_registered
+	 * 
+	 * Gets information about the registered user
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		17/05/2012	Genevieve Turner (GT)	Initial
+	 * </pre>
+	 * 
+	 * @return Registered user information
+	 */
+	@OneToOne (cascade=CascadeType.ALL) //, mappedBy="user")
+	@PrimaryKeyJoinColumn
+	public UserRegistered getUser_registered() {
+		return user_registered;
+	}
+
+	/**
+	 * setUser_registered
+	 * 
+	 * Sets information about the registered user
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		17/05/2012	Genevieve Turner (GT)	Initial
+	 * </pre>
+	 * 
+	 * @param user_registered
+	 */
+	public void setUser_registered(UserRegistered user_registered) {
+		this.user_registered = user_registered;
 	}
 }
