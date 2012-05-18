@@ -12,6 +12,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
@@ -19,6 +20,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.util.Util;
 
@@ -32,7 +34,7 @@ public class CollectionDropbox
 	private String accessPassword;
 	private Date timestamp;
 	private Date expiry;
-	private Long creatorUserId;
+	private Users creator;
 	private boolean notifyOnPickup;
 	private boolean isActive;
 	private Set<CollectionDropboxAccessLog> accessLog = new HashSet<CollectionDropboxAccessLog>();
@@ -41,10 +43,10 @@ public class CollectionDropbox
 	{
 	}
 
-	public CollectionDropbox(CollectionRequest request, Long userId, boolean notifyOnPickup)
+	public CollectionDropbox(CollectionRequest request, Users user, boolean notifyOnPickup)
 	{
 		this.collectionRequest = request;
-		this.creatorUserId = userId;
+		this.creator = user;
 		this.notifyOnPickup = notifyOnPickup;
 		this.isActive = true;		// Default value.
 	}
@@ -119,15 +121,16 @@ public class CollectionDropbox
 		this.expiry = expiry;
 	}
 
-	@Column(name = "creator_user_id", nullable = false)
-	public Long getCreatorUserId()
+	@ManyToOne(optional = false)
+	@JoinColumn(name="creator_fk")
+	public Users getCreator()
 	{
-		return creatorUserId;
+		return creator;
 	}
 
-	public void setCreatorUserId(Long creatorUserId)
+	public void setCreator(Users creator)
 	{
-		this.creatorUserId = creatorUserId;
+		this.creator = creator;
 	}
 
 	@Column(name = "notifyOnPickup")

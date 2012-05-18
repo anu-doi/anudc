@@ -48,8 +48,8 @@
 			</fmt:bundle>
 			<c:set var="curPage" value="${(param.offset == null ? 0 : param.offset) / searchItemsPerPage + 1}" />
 			<p class="text-center">
-				Pages&nbsp;
 				<c:if test="${it.totalResults > 0}">
+					Pages&nbsp;
 					<c:forEach begin="0" end="${((it.totalResults - 1) / searchItemsPerPage) - (((it.totalResults - 1) / searchItemsPerPage) % 1)}" var="i">
 						<a class="nounderline"
 							href="

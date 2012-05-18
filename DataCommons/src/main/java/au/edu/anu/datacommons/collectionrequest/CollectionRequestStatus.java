@@ -2,6 +2,7 @@ package au.edu.anu.datacommons.collectionrequest;
 
 import java.util.Date;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -11,6 +12,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
+
+import au.edu.anu.datacommons.data.db.model.Users;
 
 @Entity
 @Table(name = "collection_request_status")
@@ -25,18 +28,19 @@ public class CollectionRequestStatus
 	private CollectionRequest collectionRequest;
 	private ReqStatus status;
 	private String reason;
-	private Long userId;
+	private Users user;
 	private Date timestamp;
 	
 	public CollectionRequestStatus()
 	{
 	}
 	
-	public CollectionRequestStatus(ReqStatus status, String reason, Long userId)
+	public CollectionRequestStatus(CollectionRequest collReq, ReqStatus status, String reason, Users user)
 	{
+		this.collectionRequest = collReq;
 		this.status = status;
 		this.reason = reason;
-		this.userId = userId;
+		this.user = user;
 	}
 	
 	@Id
@@ -52,7 +56,7 @@ public class CollectionRequestStatus
 		this.id = id;
 	}
 
-	@ManyToOne(optional = false)
+	@ManyToOne(optional = false, cascade=CascadeType.ALL)
 	@JoinColumn(name = "request_fk")
 	public CollectionRequest getCollectionRequest()
 	{
@@ -97,15 +101,16 @@ public class CollectionRequestStatus
 		this.reason = reason;
 	}
 
-	@Column(name = "user_id", nullable = false)
-	public Long getUserId()
+	@ManyToOne(optional = false)
+	@JoinColumn(name="user_fk")
+	public Users getUser()
 	{
-		return userId;
+		return user;
 	}
 
-	public void setUserId(Long userId)
+	public void setUser(Users user)
 	{
-		this.userId = userId;
+		this.user = user;
 	}
 
 	@PrePersist

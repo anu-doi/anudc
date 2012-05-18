@@ -18,7 +18,7 @@
 <c:choose>
 	<c:when test="${not empty it.collReq}">
 		<!-- Display information about a specific Collection Request. -->
-		<anu:content layout="doublewide" title="Dataset Request">
+		<anu:content layout="doublewide" title="Collection Request">
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
@@ -34,7 +34,7 @@
 				</p>
 				<p>
 					<label>Requestor</label>
-					<c:out value="${it.collReq.requestorId}" />
+					<c:out value="${it.collReq.requestor.username}" />
 				</p>
 				<p class="instruction">[Placeholder for requestor name]</p>
 				<p>
@@ -53,7 +53,7 @@
 				</p>
 				<p>
 					<label>Reason</label>
-					<textarea name="reason" maxlength="250"></textarea>
+					<textarea name="reason" maxlength="250" rows="5" cols="50"></textarea>
 				</p>
 				<p class="instruction">Max 250 chars.</p>
 				<!-- Button to be conditionally displayed based on user permissions. -->
@@ -73,7 +73,7 @@
 						<td><c:out value="${iStatus.timestamp}" /></td>
 						<td><c:out value="${iStatus.status}" /></td>
 						<td><c:out value="${iStatus.reason}" /></td>
-						<td><c:out value="${iStatus.userId}" /></td>
+						<td><c:out value="${iStatus.user.username}" /></td>
 					</tr>
 				</c:forEach>
 			</table>
@@ -81,7 +81,7 @@
 	</c:when>
 
 	<c:otherwise>
-		<!-- Display form to submit a Collection Request -->
+		<!-- Form for submitting a Collection Request -->
 		<anu:content layout="doublewide" title="Collection Request">
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />

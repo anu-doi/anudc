@@ -24,8 +24,15 @@
 				<c:url value="/rest/upload" var="uploadLink">
 					<c:param name="pid" value="${it.fedoraObject.object_id}" />
 				</c:url>
+				<c:url value="/rest/collreq" var="collReqLink">
+					<c:param name="pid" value="${it.fedoraObject.object_id}" />
+				</c:url>
+				<sec:accesscontrollist hasPermission="READ,WRITE,CREATE" domainObject="${it.fedoraObject.object_id}">
+				
 				<p><input type="button" id="editButton" name="editButton" value="Edit" onclick="window.location='${editLink}'" /></p>
+				</sec:accesscontrollist>
 				<p><input type="button" id="uploadButton" name="uploadButton" value="Upload" onclick="window.location='${uploadLink}'" /></p>
+				<p><input type="button" id="collReqButton" name="colReqButton" value="Request Collection Files" onclick="window.location='${collReqLink}'" /></p>
 				<jsp:include page="add_reference.jsp" />
 			</sec:authorize>
 		</sec:authorize>

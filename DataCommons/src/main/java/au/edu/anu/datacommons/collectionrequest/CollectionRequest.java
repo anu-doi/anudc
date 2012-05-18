@@ -11,6 +11,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
@@ -19,6 +20,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import au.edu.anu.datacommons.collectionrequest.CollectionRequestStatus.ReqStatus;
+import au.edu.anu.datacommons.data.db.model.Users;
 
 @Entity
 @Table(name = "collection_requests")
@@ -26,7 +28,7 @@ public class CollectionRequest
 {
 	private Long id;
 	private String pid;
-	private Long requestorId;
+	private Users requestor;
 	private String requestorIp;
 	private Set<CollectionRequestStatus> statusHistory = new HashSet<CollectionRequestStatus>();
 	private Date timestamp;
@@ -38,12 +40,12 @@ public class CollectionRequest
 	{
 	}
 
-	public CollectionRequest(String pid, Long requestorId, String requestorIp)
+	public CollectionRequest(String pid, Users requestor, String requestorIp)
 	{
 		this.pid = pid;
-		this.requestorId = requestorId;
+		this.requestor = requestor;
 		this.requestorIp = requestorIp;
-		this.statusHistory.add(new CollectionRequestStatus(ReqStatus.SUBMITTED, "Submitted by User", requestorId));
+		this.statusHistory.add(new CollectionRequestStatus(this, ReqStatus.SUBMITTED, "Submitted by User", this.requestor));
 	}
 
 	@Id
@@ -70,15 +72,16 @@ public class CollectionRequest
 		this.pid = pid;
 	}
 
-	@Column(name = "requestor_id", nullable = false)
-	public long getRequestorId()
+	@ManyToOne(optional = false)
+	@JoinColumn(name="requestor_fk")
+	public Users getRequestor()
 	{
-		return this.requestorId;
+		return requestor;
 	}
 
-	public void setRequestorId(Long requestorId)
+	public void setRequestor(Users requestor)
 	{
-		this.requestorId = requestorId;
+		this.requestor = requestor;
 	}
 
 	@Column(name = "requestor_ip")
@@ -158,17 +161,6 @@ public class CollectionRequest
 		timestamp = new Date();
 	}
 
-	public void addStatus(CollectionRequestStatus collReqStatus)
-	{
-		this.statusHistory.add(collReqStatus);
-		collReqStatus.setCollectionRequest(this);
-
-		if (collReqStatus.getStatus() == ReqStatus.ACCEPTED)
-		{
-			this.dropbox = new CollectionDropbox(this, collReqStatus.getUserId(), true);
-		}
-	}
-
 	@Transient
 	public CollectionRequestStatus getLastStatus()
 	{
@@ -189,6 +181,17 @@ public class CollectionRequest
 		return lastStatus;
 	}
 
+	public void addStatus(CollectionRequestStatus collReqStatus)
+	{
+		this.statusHistory.add(collReqStatus);
+		collReqStatus.setCollectionRequest(this);
+
+		if (collReqStatus.getStatus() == ReqStatus.ACCEPTED)
+		{
+			this.dropbox = new CollectionDropbox(this, collReqStatus.getUser(), true);
+		}
+	}
+
 	public void addItem(CollectionRequestItem item)
 	{
 		this.items.add(item);
@@ -201,6 +204,7 @@ public class CollectionRequest
 		answer.setCollectionRequest(this);
 	}
 
+	/*
 	@Override
 	public String toString()
 	{
@@ -247,7 +251,7 @@ public class CollectionRequest
 		for (CollectionRequestAnswer answer : this.answers)
 		{
 			collReqStr.append("\r\n\t");
-			collReqStr.append(answer.getQuestion().getQuestion());
+			collReqStr.append(answer.getQuestion().getQuestionText());
 			collReqStr.append(": ");
 			collReqStr.append(answer.getAnswer());
 		}
@@ -263,4 +267,5 @@ public class CollectionRequest
 
 		return collReqStr.toString();
 	}
+	*/
 }

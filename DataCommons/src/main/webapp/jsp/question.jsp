@@ -21,10 +21,10 @@
 
 		<!-- Question Bank -->
 		<anu:content layout="wide" title="Questions">
-			<form class="anuform" method="post" action="<c:url value='/rest/collreq/question' />">
+			<form method="post" action="<c:url value='/rest/collreq/question' />">
 				<p>
 					<label for="idQuestion">New Question</label>
-					<input type="text" name="q" id="idQuestion" />
+					<input type="text" name="q" id="idQuestion" size="30" />
 				</p>
 				<p>
 					<input type="submit" name="submit" value="Add Question" />
@@ -33,7 +33,7 @@
 					<select multiple="multiple" id="idQuestionBank" size="10" style="width: 100%">
 						<c:forEach var="iQuestion" items="${it.questions}">
 							<option value="${iQuestion.id}">
-								<c:out value="${iQuestion.question}" />
+								<c:out value="${iQuestion.questionText}" />
 							</option>
 						</c:forEach>
 					</select>
@@ -43,7 +43,7 @@
 
 		<!-- Questions assigned to a specific Pid -->
 		<anu:content layout="wide" title="Pid">
-			<form class="anuform" name="pidQuestions" method="post" action="<c:url value='/rest/collreq/question' />"
+			<form name="pidQuestions" method="post" action="<c:url value='/rest/collreq/question' />"
 				onsubmit="jQuery('#idPidQ > option').attr('selected', 'selected')">
 				<p>
 					<label>Pid</label>
@@ -51,7 +51,7 @@
 					<input type="button" value="Get Questions" onclick="ajaxGetPidQuestions(document.pidQuestions.pid.value)" />
 				</p>
 				<p>
-					<select id="idPidQ" multiple="multiple" name="qid">
+					<select id="idPidQ" multiple="multiple" name="qid" size="10" style="width:100%">
 						<option>[Click Get Questions]</option>
 					</select>
 				</p>

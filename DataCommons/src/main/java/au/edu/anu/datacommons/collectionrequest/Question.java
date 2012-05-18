@@ -12,15 +12,15 @@ import javax.persistence.Table;
 public class Question
 {
 	private Long id;
-	private String question;
+	private String questionText;
 
-	public Question()
+	protected Question()
 	{
 	}
 
-	public Question(String question)
+	public Question(String questionText)
 	{
-		this.question = question;
+		this.questionText = questionText;
 	}
 
 	@Id
@@ -31,19 +31,19 @@ public class Question
 		return id;
 	}
 
-	public void setId(Long id)
+	protected void setId(Long id)
 	{
 		this.id = id;
 	}
 
-	@Column(name = "question", nullable = false, unique = true)
-	public String getQuestion()
+	@Column(name = "question_text", nullable = false, unique = true)
+	public String getQuestionText()
 	{
-		return question;
+		return questionText;
 	}
 
-	public void setQuestion(String question)
+	public void setQuestionText(String question)
 	{
-		this.question = question;
+		this.questionText = question;
 	}
 }
