@@ -19,7 +19,9 @@
 		<select id="editSelect">
 			<option value="">- No Value Selected -</option>
 			<c:forEach var="anItem" items="${it.template.items}">
-				<option value="${anItem.name}">${anItem.label}</option>
+				<c:if test="${empty anItem.disabled and empty anItem.readOnly}">
+					<option value="${anItem.name}">${anItem.label}</option>
+				</c:if>
 			</c:forEach>
 		</select>
 	</p>
