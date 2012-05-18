@@ -228,6 +228,7 @@ public class Users
 			familyName = "";
 			email = "";
 		}
+	}
 	
 	/**
 	 * getUser_type
