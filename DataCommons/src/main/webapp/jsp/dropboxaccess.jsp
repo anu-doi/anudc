@@ -24,10 +24,17 @@
 				</p>
 				<p>
 					<label>Status</label>
-					<c:out value="${it.dropbox.active}" />
+					<c:choose>
+						<c:when test="${it.dropbox.active == true}">
+							<img src="<c:url value='/images/accept.png' />" />&nbsp;Active
+						</c:when>
+						<c:otherwise>
+							<img src="<c:url value='/images/cancel.png' />" />&nbsp;Inactive
+						</c:otherwise>
+					</c:choose>
 				</p>
 				<p>
-					<label>Valid Until</label>
+					<label>Expires</label>
 					<c:out value="${it.dropbox.expiry}" />
 				</p>
 				<p>
@@ -38,7 +45,8 @@
 					<input type="submit" value="Submit" />
 				</p>
 			</form>
-			<c:if test="${not empty it.downloadables}">
+			
+			<c:if test="${it.downloadables != null}">
 				<table>
 					<tr>
 						<th>Item</th>

@@ -11,13 +11,8 @@
 <jsp:include page="/jsp/header.jsp" />
 
 <c:choose>
-	<c:when test="${empty it}">
-		<anu:content layout="doublewide" title="Dropboxes">
-			No dropbox specified.
-		</anu:content>
-	</c:when>
-	<!-- Display list of dropboxes -->
 	<c:when test="${it.dropboxes != null}">
+		<!-- Display list of dropboxes -->
 		<anu:content layout="doublewide" title="Dropboxes">
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
@@ -38,29 +33,30 @@
 					<tr>
 						<td><a href="<c:url value='/rest/collreq/dropbox' />/${iDropbox.id}"><c:out value="${iDropbox.id}" /></a></td>
 						<td><a href="<c:url value='/rest/collreq/dropbox' />/${iDropbox.id}"><c:out value="${iDropbox.accessCode}" /></a></td>
-						<td><c:out value="${iDropbox.creatorUserId}" /></td>
+						<td><c:out value="${iDropbox.creator.username}" /></td>
 						<td><c:out value="${iDropbox.timestamp}" /></td>
 						<td><c:out value="${iDropbox.expiry}" /></td>
-						<td><c:out value="${iDropbox.notifyOnPickup}" /></td>
-						<td><c:out value="${iDropbox.active}" /></td>
-						<td><c:out value="${iDropbox.collectionRequest.id}" /></td>
+						<td><input type="checkbox" <c:if test="${iDropbox.notifyOnPickup == true}">checked="checked"</c:if> /></td>
+						<td><input type="checkbox" <c:if test="${iDropbox.active == true}">checked="checked"</c:if> /></td>
+						<td><a href="<c:url value='/rest/collreq' />/${iDropbox.collectionRequest.id}"><c:out value="${iDropbox.collectionRequest.id}" /></a></td>
 					</tr>
 				</c:forEach>
 			</table>
 		</anu:content>
 	</c:when>
-	
-	<!-- Display details of a specific dropbox. -->
+
 	<c:when test="${not empty it.dropbox}">
+		<!-- Display details of a specific dropbox. -->
 		<anu:content layout="doublewide" title="Dropbox">
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
 
-			<form class="anuform">
+			<form class="anuform" method="post" action="<c:url value="/rest/collreq/dropbox" />">
 				<p>
 					<label>Dropbox ID</label>
 					<c:out value="${it.dropbox.id}" />
+					<input type="hidden" name="dropbox" value="${it.dropbox.id}" />
 				</p>
 				<p>
 					<label>Access Code</label>
@@ -80,11 +76,11 @@
 				</p>
 				<p>
 					<label>Notify Creator</label>
-					<input type="checkbox" value="true" <c:if test='${it.dropbox.notifyOnPickup == true}'>checked="checked"</c:if> />
+					<input type="checkbox" name="notify" value="true" <c:if test='${it.dropbox.notifyOnPickup == true}'>checked="checked"</c:if> />
 				</p>
 				<p>
 					<label>Active</label>
-					<input type="checkbox" value="true" <c:if test='${it.dropbox.active == true}'>checked="checked"</c:if> />
+					<input type="checkbox" name="active" value="true" <c:if test='${it.dropbox.active == true}'>checked="checked"</c:if> />
 				</p>
 				<p>
 					<label>Request ID</label> <a href="<c:url value='/rest/collreq/${it.dropbox.collectionRequest.id}' />"><c:out
@@ -96,6 +92,14 @@
 			</form>
 		</anu:content>
 	</c:when>
+
+	<c:otherwise>
+		<anu:content layout="doublewide" title="Dropbox">
+			<jsp:include page="/jsp/statusmessages.jsp">
+				<jsp:param value="${it}" name="it" />
+			</jsp:include>
+		</anu:content>
+	</c:otherwise>
 </c:choose>
 
 <jsp:include page="/jsp/footer.jsp" />

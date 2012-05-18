@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
@@ -30,11 +31,18 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import au.edu.anu.datacommons.collectionrequest.CollectionRequestStatus.ReqStatus;
+import au.edu.anu.datacommons.collectionrequest.PageMessages.MessageType;
+import au.edu.anu.datacommons.data.db.dao.UsersDAO;
+import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
+import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.persistence.HibernateUtil;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.security.CustomUser;
+import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.view.Viewable;
 import com.yourmediashelf.fedora.client.FedoraClientException;
@@ -73,18 +81,9 @@ public class CollectionRequestService
 	private static final String QUESTION_JSP = "/question.jsp";
 	private static final String DROPBOX_ACCESS_JSP = "/dropboxaccess.jsp";
 
-	private enum MessageType
-	{
-		ERROR, WARNING, INFO, SUCCESS
-	};
-
-	private HashMap<String, Object> model = new HashMap<String, Object>();
+	private PageMessages messages = new PageMessages();
+	private Map<String, Object> model = new HashMap<String, Object>();
 	private Response resp = null;
-
-	private Set<String> errors = null;
-	private Set<String> warnings = null;
-	private Set<String> infos = null;
-	private Set<String> successes = null;
 
 	@Context
 	private HttpServletRequest request;
@@ -132,8 +131,6 @@ public class CollectionRequestService
 	@Path("{collReqId}")
 	public Response doGetReqItemAsHtml(@PathParam("collReqId") Long collReqId)
 	{
-		CollectionRequest collReq;
-
 		LOGGER.trace("In method doGetReqItemAsHtml. Param collReqId={}.", collReqId);
 
 		try
@@ -141,29 +138,27 @@ public class CollectionRequestService
 			LOGGER.debug("Retrieving Collection Request with ID: {}...", collReqId);
 			entityManager.getTransaction().begin();
 			// Find the Collection Request with the specified ID.
-			collReq = entityManager.find(CollectionRequest.class, collReqId);
+			CollectionRequest collReq = entityManager.find(CollectionRequest.class, collReqId);
 			entityManager.getTransaction().commit();
 
-			// Check if the Collection Request actually exists. If not, add error to message set.
-			if (collReq != null)
-			{
-				LOGGER.debug("Found Collection Request ID {}, for Pid {}.", collReq.getId(), collReq.getPid());
-				model.put("collReq", collReq);
-			}
-			else
-			{
-				LOGGER.error("Invalid Collection Request ID {}", collReqId);
-				addMessage(MessageType.ERROR, "Invalid Collection Request ID.");
-			}
+			// Check if the Collection Request actually exists. If not, throw Exception.
+			if (collReq == null)
+				throw new Exception("Invalid Collection Request ID or no Collection Request with that ID exists.");
 
-			resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
+			LOGGER.debug("Found Collection Request ID {}, for Pid {}.", collReq.getId(), collReq.getPid());
+			model.put("collReq", collReq);
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Unable to find Collection Request {}.", collReqId);
+			LOGGER.error("Unable to find or retrieve Collection Request " + collReqId, e);
 			if (entityManager.getTransaction().isActive())
 				entityManager.getTransaction().rollback();
-			resp = Response.serverError().build();
+			messages.clear();
+			messages.add(MessageType.ERROR, e.getMessage(), model);
+		}
+		finally
+		{
+			resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
 		}
 
 		return resp;
@@ -194,82 +189,67 @@ public class CollectionRequestService
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response doPostCollReqAsHtml(@FormParam("pid") String pid, @FormParam("dsid") Set<String> dsIdSet, MultivaluedMap<String, String> allFormParams)
 	{
-		CollectionRequest newCollReq;
-
 		LOGGER.trace("In method doPostCollReqAsHtml. Param pid={}, dsIdSet={}, allFormParams={}.", new Object[]
 		{ pid, dsIdSet, allFormParams });
 
 		// Save the Collection Request for further processing.
 		try
 		{
+			// Check if at least one item has been requested. If not, throw exception.
+			LOGGER.debug("Number of items selected in CR: {}", dsIdSet.size());
+			if (dsIdSet.size() <= 0)
+				throw new Exception("At least one datastream must be selected in the request.");
+
 			entityManager.getTransaction().begin();
-			newCollReq = new CollectionRequest(pid, 1234L, request.getRemoteAddr());
+			Users user = new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
+			CollectionRequest newCollReq = new CollectionRequest(pid, user, request.getRemoteAddr());
 
-			// Check if at least one item has been requested. If not, add error in message set.
-			if (dsIdSet.size() > 0)
+			// Add each of the items requested (datastreams) to the CR.
+			for (String iDsId : dsIdSet)
 			{
+				CollectionRequestItem collReqItem = new CollectionRequestItem(iDsId);
+				newCollReq.addItem(collReqItem);
+			}
 
-				// Add each of the items requested (datastreams) to the CR.
-				for (String iDsId : dsIdSet)
+			// Get a list of questions assigned to the Pid.
+			List<Question> questionList = entityManager
+					.createQuery("SELECT q FROM Question q, QuestionMap qm WHERE qm.pid=:pid AND q=qm.question", Question.class).setParameter("pid", pid)
+					.getResultList();
+
+			// Iterate through the questions that need to be answered for the pid, get the answers for those questions and add to CR.
+			// If an answer for a question doesn't exist throw exception.
+			for (Question iQuestion : questionList)
+			{
+				// Check if the answer to the current question is provided. If yes, save the answer, else throw exception.
+				if (allFormParams.containsKey("q" + iQuestion.getId()) && Util.isNotEmpty(allFormParams.getFirst("q" + iQuestion.getId())))
 				{
-					CollectionRequestItem collReqItem = new CollectionRequestItem(iDsId);
-					newCollReq.addItem(collReqItem);
-				}
-
-				// Get a list of questions assigned to the Pid.
-				List<Question> questionList = entityManager
-						.createQuery("SELECT q FROM Question q, QuestionMap qm WHERE qm.pid=:pid AND q=qm.question", Question.class).setParameter("pid", pid)
-						.getResultList();
-
-				// Iterate through the questions that need to be answered, get the answers for those questions and add to CR.
-				// If an answer for a question doesn't exist break out of loop.
-				boolean isAllAnswered = true;
-				for (Question iQuestion : questionList)
-				{
-					// Check if the answer to the current question is provided. If yes, save the answer, else invalidate the whole request.
-					if (allFormParams.containsKey("q" + iQuestion.getId()) && !allFormParams.getFirst("q" + iQuestion.getId()).trim().equals(""))
-					{
-						CollectionRequestAnswer ans = new CollectionRequestAnswer(iQuestion, allFormParams.getFirst("q" + iQuestion.getId()));
-						newCollReq.addAnswer(ans);
-					}
-					else
-					{
-						isAllAnswered = false;
-						break;
-					}
-				}
-
-				// Check if all questions answered. If yes, save newly created CR, else don't save.
-				if (isAllAnswered == true)
-				{
-					// Save the newly created CR and add success message to message set.
-					entityManager.persist(newCollReq);
-					entityManager.getTransaction().commit();
-					addMessage(MessageType.SUCCESS, "Request successfully saved.");
-					model.put("collReq", newCollReq);
-					resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
+					CollectionRequestAnswer ans = new CollectionRequestAnswer(iQuestion, allFormParams.getFirst("q" + iQuestion.getId()));
+					newCollReq.addAnswer(ans);
 				}
 				else
 				{
-					if (entityManager.getTransaction().isActive())
-						entityManager.getTransaction().rollback();
-					addMessage(MessageType.ERROR, "Please answer all questions.");
-					resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
+					throw new Exception("All questions must be answered. The question '" + iQuestion.getQuestionText() + "' has been left blank.");
 				}
 			}
-			else
-			{
-				if (entityManager.getTransaction().isActive())
-					entityManager.getTransaction().rollback();
-				addMessage(MessageType.ERROR, "Please select at least one item.");
-				resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
-			}
+			LOGGER.debug("All questions answered for this Pid.");
+
+			// Save the newly created CR and add success message to message set.
+			entityManager.persist(newCollReq);
+			entityManager.getTransaction().commit();
+			messages.add(MessageType.SUCCESS, "Collection Request successfully saved. ID# " + newCollReq.getId(), model);
+			model.put("collReq", newCollReq);
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to create new Collection Request.", e);
-			entityManager.getTransaction().rollback();
-			resp = Response.serverError().build();
+			if (entityManager.getTransaction().isActive())
+				entityManager.getTransaction().rollback();
+			messages.clear();
+			messages.add(MessageType.ERROR, e.getMessage(), model);
+		}
+		finally
+		{
+			resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
 		}
 
 		return resp;
@@ -300,7 +280,7 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	public Response doPostUpdateCollReqAsHtml(@PathParam("collReqId") long collReqId, @FormParam("status") ReqStatus status, @FormParam("reason") String reason)
 	{
-		CollectionRequest collReq;
+		CollectionRequest collReq = null;
 
 		LOGGER.trace("In doPostUpdateCollReqAsHtml. Params collReqId={}, status={}, reason={}", new Object[]
 		{ collReqId, status, reason });
@@ -309,39 +289,54 @@ public class CollectionRequestService
 		{
 			LOGGER.debug("Saving Collection Request ID {} with updated details...", collReqId);
 
+			// Get the CR with the provided ID.
+			entityManager.getTransaction().begin();
+			collReq = entityManager.find(CollectionRequest.class, collReqId);
+
+			// Check if the CR exists.
+			if (collReq == null)
+				throw new Exception("Invalid Collection Request ID or Collection Request could not be retrieved.");
+
+			model.put("collReq", collReq);
+
 			// Check if a reason is provided. If not, add error to message set.
-			if (reason != null && !reason.trim().equals(""))
-			{
-				// Get the CR with the provided ID.
-				entityManager.getTransaction().begin();
-				collReq = entityManager.find(CollectionRequest.class, collReqId);
+			if (!Util.isNotEmpty(reason))
+				throw new Exception("A reason must be provided for a status change.");
 
-				// Add a status row to the status history for that CR.
-				// TODO Replace userId with the actual userId.
-				CollectionRequestStatus newStatus = new CollectionRequestStatus(status, reason, 1234L);
-				collReq.addStatus(newStatus);
-				entityManager.getTransaction().commit();
+			// If the CR's current status is approved or rejected, the status cannot change anymore.
+			ReqStatus curStatus = collReq.getLastStatus().getStatus();
+			if (curStatus == ReqStatus.ACCEPTED || curStatus == ReqStatus.REJECTED)
+				throw new Exception(
+						"Cannot change status of a CR with an Approved or Rejected status. A new CR must be submitted by the requestor for processing.");
 
-				// Add the CR object in the model and include a viewable in response.
-				model.put("collReq", collReq);
-				addMessage(MessageType.SUCCESS, "Successfully added status to Status History");
-				if (status == ReqStatus.ACCEPTED)
-					addMessage(MessageType.INFO, "Created Dropbox with code " + collReq.getDropbox().getAccessCode() + " and password "
-							+ collReq.getDropbox().getAccessPassword());
-			}
-			else
-			{
-				addMessage(MessageType.ERROR, "No reason provided. Please provide a reason for the status change.");
-			}
+			// Add a status row to the status history for that CR.
+			Users user = new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
+			CollectionRequestStatus newStatus = new CollectionRequestStatus(collReq, status, reason, user);
+			collReq.addStatus(newStatus);
+			entityManager.getTransaction().commit();
 
-			resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
+			LOGGER.debug("Updated details of CR ID# {}.", collReq.getId());
+			messages.add(MessageType.SUCCESS, "Successfully added status to Status History", model);
+
+			// Add a message about the dropbox being created if the status is now Accepted.
+			if (status == ReqStatus.ACCEPTED)
+				messages.add(MessageType.INFO, "Dropbox created<br /><strong>Code: </strong>" + collReq.getDropbox().getAccessCode()
+						+ "<br /><strong>Password: </strong>" + collReq.getDropbox().getAccessPassword(), model);
+
+			// TODO Send email to requestor. Add message to screen if email was successful.
+
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to add request row.", e);
 			if (entityManager.getTransaction().isActive())
 				entityManager.getTransaction().rollback();
-			resp = Response.serverError().build();
+			messages.clear();
+			messages.add(MessageType.ERROR, e.getMessage(), model);
+		}
+		finally
+		{
+			resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
 		}
 
 		return resp;
@@ -380,15 +375,24 @@ public class CollectionRequestService
 			criteria.select(root);
 			List<CollectionDropbox> dropboxes = entityManager.createQuery(criteria).getResultList();
 			entityManager.getTransaction().commit();
+
+			// Add a message for the user if no dropboxes found.
+			if (dropboxes.size() == 0)
+				messages.add(MessageType.WARNING, "No dropboxes found.", model);
+
 			model.put("dropboxes", dropboxes);
-			resp = Response.ok(new Viewable(DROPBOX_JSP, model)).build();
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to get list of Collection Dropboxes.", e);
 			if (entityManager.getTransaction().isActive())
 				entityManager.getTransaction().rollback();
-			resp = Response.serverError().build();
+			messages.clear();
+			messages.add(MessageType.ERROR, e.getMessage(), model);
+		}
+		finally
+		{
+			resp = Response.ok(new Viewable(DROPBOX_JSP, model)).build();
 		}
 
 		return resp;
@@ -426,24 +430,49 @@ public class CollectionRequestService
 			entityManager.getTransaction().commit();
 
 			// Check if a valid dropbox exists and was retrieved.
-			if (dropbox != null)
-			{
-				model.put("dropbox", dropbox);
-			}
-			else
-			{
-				addMessage(MessageType.ERROR, "Invalid Dropbox ID or a dropbox with that ID doesn't exist.");
-			}
+			if (dropbox == null)
+				throw new Exception("Invalid Dropbox ID or a dropbox with ID " + dropboxId + "doesn't exist.");
 
-			resp = Response.ok(new Viewable(DROPBOX_JSP, model)).build();
+			model.put("dropbox", dropbox);
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to get list of Collection Dropboxes.", e);
 			if (entityManager.getTransaction().isActive())
 				entityManager.getTransaction().rollback();
-			resp = Response.serverError().build();
+			messages.clear();
+			messages.add(MessageType.ERROR, e.getMessage(), model);
 		}
+		finally
+		{
+			resp = Response.ok(new Viewable(DROPBOX_JSP, model)).build();
+		}
+
+		return resp;
+	}
+
+	/**
+	 * doPostUpdateDropboxAsHtml
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * This method accepts POST requests to update the details of a dropbox.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		15/05/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param dropboxId
+	 *            ID of the dropbox to be updated.
+	 * @return Response as HTML.
+	 */
+	@POST
+	@Path("dropbox/{dropboxId}")
+	@Produces(MediaType.TEXT_HTML)
+	public Response doPostUpdateDropboxAsHtml(@PathParam("dropboxId") long dropboxId)
+	{
+		// TODO Process updates to dropbox. Change notifyOnPickup and/or active status.
 
 		return resp;
 	}
@@ -486,83 +515,56 @@ public class CollectionRequestService
 			criteria.where(builder.equal()
 			*/
 
-			try
-			{
-				LOGGER.debug("Finding dropbox with access code {}...", dropboxAccessCode);
-				entityManager.getTransaction().begin();
-				CollectionDropbox dropbox = (CollectionDropbox) entityManager.createQuery("FROM CollectionDropbox cd WHERE cd.accessCode=:dropboxAccessCode")
-						.setParameter("dropboxAccessCode", dropboxAccessCode).getSingleResult();
-				entityManager.getTransaction().commit();
-				LOGGER.debug("Dropbox retrieved successfully.");
-				model.put("dropbox", dropbox);
+			LOGGER.debug("Finding dropbox with access code {}...", dropboxAccessCode);
+			entityManager.getTransaction().begin();
+			CollectionDropbox dropbox = (CollectionDropbox) entityManager.createQuery("FROM CollectionDropbox cd WHERE cd.accessCode=:dropboxAccessCode")
+					.setParameter("dropboxAccessCode", dropboxAccessCode).getSingleResult();
+			entityManager.getTransaction().commit();
+			LOGGER.debug("Dropbox found.");
+			model.put("dropbox", dropbox);
 
-				if (password != null)										// Check if password provided.
-				{
-					if (password.equals(dropbox.getAccessPassword()))		// Check if password correct.
-					{
-						if (dropbox.getExpiry().after(new Date()))			// Check if dropbox expired.
-						{
-							if (dropbox.isActive())							// Check if dropbox active.
-							{
-								// Create HashMap downloadables with a link for each item to be downloaded.
-								downloadables = new HashMap<String, String>();
-								for (CollectionRequestItem reqItem : dropbox.getCollectionRequest().getItems())
-								{
-									StringBuilder url = new StringBuilder();
-									url.append(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI));
-									url.append("/objects/");
-									url.append(dropbox.getCollectionRequest().getPid());
-									url.append("/datastreams/");
-									url.append(reqItem.getItem());
-									url.append("/content");
-									downloadables.put(reqItem.getItem(), url.toString());
-								}
+			if (new Date().after(dropbox.getExpiry()))				// Check if today's date and time is after dropbox expiry.
+				throw new Exception("This Dropbox has expired. Please submit a new Collection Request.");
 
-								model.put("downloadables", downloadables);
-							}
-							else
-							{
-								addMessage(MessageType.ERROR, "Dropbox inactive.");
-							}
-						}
-						else
-						{
-							addMessage(MessageType.ERROR, "Dropbox expired.");
-						}
-					}
-					else
-					{
-						addMessage(MessageType.ERROR, "Incorrect Password");
-					}
-				}
-				else
-				{
-					addMessage(MessageType.INFO, "Please provide password for this Dropbox.");
-				}
-			}
-			catch (NoResultException e)
+			if (!dropbox.isActive())								// Check if dropbox active.
+				throw new Exception("This Dropbox has been marked as inactive.");
+
+			if (!Util.isNotEmpty(password))							// Check if password provided.
+				throw new IllegalArgumentException("Please enter password for this Dropbox.");
+
+			if (!password.equals(dropbox.getAccessPassword()))		// Check if password correct.
+				throw new Exception("Incorrect password entered.");
+
+			// Create HashMap downloadables with a link for each item to be downloaded.
+			downloadables = new HashMap<String, String>();
+			for (CollectionRequestItem reqItem : dropbox.getCollectionRequest().getItems())
 			{
-				addMessage(MessageType.ERROR, "Invalid Dropbox Access Code");
-				LOGGER.error("Invalid Dropbox Access Code", e);
-			}
-			catch (NonUniqueResultException e)
-			{
-				addMessage(MessageType.ERROR, "Non-unique Dropbox Access Code");
-				LOGGER.error("Non-unique Dropbox Access Code", e);
-			}
-			finally
-			{
-				if (entityManager.getTransaction().isActive())
-					entityManager.getTransaction().rollback();
+				StringBuilder url = new StringBuilder();
+				url.append(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI));
+				url.append("/objects/");
+				url.append(dropbox.getCollectionRequest().getPid());
+				url.append("/datastreams/");
+				url.append(reqItem.getItem());
+				url.append("/content");
+				downloadables.put(reqItem.getItem(), url.toString());
 			}
 
-			resp = Response.ok(new Viewable(DROPBOX_ACCESS_JSP, model)).build();
+			model.put("downloadables", downloadables);
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to get Dropbox for access.", e);
-			entityManager.getTransaction().rollback();
-			resp = Response.serverError().build();
+			messages.clear();
+			if (entityManager.getTransaction().isActive())
+				entityManager.getTransaction().rollback();
+			if (e.getClass() == IllegalArgumentException.class)
+				messages.add(MessageType.INFO, e.getMessage(), model);
+			else
+				messages.add(MessageType.ERROR, e.getMessage(), model);
+		}
+		finally
+		{
+			resp = Response.ok(new Viewable(DROPBOX_ACCESS_JSP, model)).build();
 		}
 
 		return resp;
@@ -593,22 +595,25 @@ public class CollectionRequestService
 		{
 			// Get all questions from the Question Bank.
 			LOGGER.debug("Retrieving questions from question bank...");
-			entityManager.getTransaction().begin();
-			// TODO Use CriteriaBuilder
-			List<Question> questions = entityManager.createQuery("FROM Question qb", Question.class).getResultList();
-			entityManager.getTransaction().commit();
+			List<Question> questions = getAllQuestions();
 
 			// Add a warning to the message set to let the user know that there aren't any questions in the question bank.
 			if (questions.size() == 0)
-				addMessage(MessageType.WARNING, "No question found in the question bank.");
+				messages.add(MessageType.WARNING, "No questions found in the question bank.", model);
 
 			model.put("questions", questions);
-			resp = Response.ok(new Viewable(QUESTION_JSP, model)).build();
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to retrieve questions from question bank", e);
-			resp = Response.serverError().build();
+			if (entityManager.getTransaction().isActive())
+				entityManager.getTransaction().rollback();
+			messages.clear();
+			messages.add(MessageType.ERROR, e.getMessage(), model);
+		}
+		finally
+		{
+			resp = Response.ok(new Viewable(QUESTION_JSP, model)).build();
 		}
 
 		return resp;
@@ -629,7 +634,7 @@ public class CollectionRequestService
 	 * @param submit
 	 *            The task to be performed. Value comes from the submit button in a form. "Add Question" to add a question to the question bank, or "Save" to
 	 *            update the list of questions against a Pid.
-	 * @param questionStr
+	 * @param questionText
 	 *            Question as String
 	 * @param pid
 	 *            Pid as String
@@ -641,13 +646,13 @@ public class CollectionRequestService
 	@Path("question")
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response doPostQuestionAsHtml(@FormParam("submit") String submit, @FormParam("q") String questionStr, @FormParam("pid") String pid,
+	public Response doPostQuestionAsHtml(@FormParam("submit") String submit, @FormParam("q") String questionText, @FormParam("pid") String pid,
 			@FormParam("qid") Set<Long> qIdSet)
 	{
 		LOGGER.trace("In doPostQuestionAsHtml. Params submit={}, questionStr={}, pid={}, qid={}.", new Object[]
-		{ submit, questionStr, pid, qIdSet });
+		{ submit, questionText, pid, qIdSet });
 
-		if (submit != null)
+		if (Util.isNotEmpty(submit))
 		{
 			// Adding a question to the question bank.
 			if (submit.equals("Add Question"))
@@ -659,11 +664,11 @@ public class CollectionRequestService
 					LOGGER.debug("Saving question in question bank...", pid);
 					// Create Question object and persist it.
 					entityManager.getTransaction().begin();
-					Question question = new Question(questionStr);
+					Question question = new Question(questionText);
 					entityManager.persist(question);
 					entityManager.getTransaction().commit();
-					addMessage(MessageType.SUCCESS, "Question successfully added.");
-					resp = Response.ok(new Viewable(QUESTION_JSP, model)).build();
+					messages.add(MessageType.SUCCESS, "The question <em>" + question.getQuestionText() + "</em> saved in the Question Bank.",
+							model);
 					LOGGER.debug("Saved question in question bank.");
 				}
 				catch (Exception e)
@@ -671,8 +676,21 @@ public class CollectionRequestService
 					LOGGER.error("Unable to save question in the question bank.", e);
 					if (entityManager.getTransaction().isActive())
 						entityManager.getTransaction().rollback();
-					resp = Response.serverError().build();
+					messages.clear();
+					messages.add(MessageType.ERROR, e.getMessage(), model);
 				}
+
+				// Add question list to model.
+				try
+				{
+					model.put("questions", getAllQuestions());
+				}
+				catch (Exception e)
+				{
+					LOGGER.warn("Unable to retrieve questions from Question Bank after adding question.");
+				}
+
+				resp = Response.ok(new Viewable(QUESTION_JSP, model)).build();
 			}
 			// Assigning questions to a pid.
 			else if (submit.equals("Save"))
@@ -681,6 +699,7 @@ public class CollectionRequestService
 				{
 					entityManager.getTransaction().begin();
 					// TODO Use CriteriaBuilder.
+					// Get list of questions currently assigned to the pid.
 					List<Question> curQuestionsPid = entityManager
 							.createQuery("SELECT q FROM Question q, QuestionMap qm WHERE qm.pid=:pid AND q=qm.question", Question.class)
 							.setParameter("pid", pid).getResultList();
@@ -701,7 +720,7 @@ public class CollectionRequestService
 						if (!isAlreadyMapped)
 						{
 							Question question = entityManager.find(Question.class, iUpdatedId);
-							LOGGER.debug("Adding Question '{}' against Pid {}", question.getQuestion(), pid);
+							LOGGER.debug("Adding Question '{}' against Pid {}", question.getQuestionText(), pid);
 							QuestionMap qm = new QuestionMap(pid, question);
 							entityManager.persist(qm);
 						}
@@ -712,7 +731,6 @@ public class CollectionRequestService
 					{
 						if (!qIdSet.contains(iCurQuestion.getId()))
 						{
-							// TODO Delete question against pid.
 							LOGGER.debug("Mapping of Question ID" + iCurQuestion.getId() + "to be deleted...");
 							QuestionMap qMap = entityManager
 									.createQuery("SELECT qm FROM QuestionMap qm, Question q WHERE qm.pid=:pid AND qm.question=:q", QuestionMap.class)
@@ -722,16 +740,29 @@ public class CollectionRequestService
 					}
 
 					entityManager.getTransaction().commit();
-					addMessage(MessageType.SUCCESS, "Questions updated.");
-					resp = Response.ok(new Viewable(QUESTION_JSP, model)).build();
+					
+					// Add question list to model.
+					try
+					{
+						model.put("questions", getAllQuestions());
+					}
+					catch (Exception e)
+					{
+						LOGGER.warn("Unable to retrieve questions from Question Bank after adding question.");
+					}
+
+					messages.add(MessageType.SUCCESS, "Question List updated for this Fedora object.", model);
 				}
 				catch (Exception e)
 				{
 					LOGGER.error("Unable to update questions for Pid " + pid, e);
 					if (entityManager.getTransaction().isActive())
 						entityManager.getTransaction().rollback();
-					resp = Response.serverError().build();
+					messages.clear();
+					messages.add(MessageType.ERROR, e.getMessage(), model);
 				}
+
+				resp = Response.ok(new Viewable(QUESTION_JSP, model)).build();
 			}
 		}
 		else
@@ -741,72 +772,6 @@ public class CollectionRequestService
 		}
 
 		return resp;
-	}
-
-	/**
-	 * addMessage
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * Adds a message to the set of its type - errors, warnings, infos and successes. Sets that contain messages are included in the model when creating a
-	 * viewable for a response. The JSP displays messages on top of the page with the relevant formatting in addition to any other data that may be included in
-	 * the model. See statusmessages.jsp .
-	 * 
-	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		3/05/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 * 
-	 * @param msgType
-	 *            Type of the message as enum MessageType.
-	 * @param message
-	 *            Message to be displayed as string.
-	 */
-	private void addMessage(MessageType msgType, String message)
-	{
-		Set<String> msgSet = null;
-
-		LOGGER.trace("In addMessage. Params msgType={}, message={}.", msgType, message);
-
-		// Check if a HashSet exists for the message type provided. If not, create it and add it to model. Then add the message to the hashset for the message type.
-		switch (msgType)
-		{
-		case ERROR:
-			if (errors == null)
-				errors = new HashSet<String>();
-			msgSet = errors;
-			if (!model.containsValue(msgSet))
-				model.put("errors", msgSet);
-
-			break;
-
-		case WARNING:
-			if (warnings == null)
-				warnings = new HashSet<String>();
-			msgSet = warnings;
-			if (!model.containsValue(msgSet))
-				model.put("warnings", msgSet);
-			break;
-
-		case INFO:
-			if (infos == null)
-				infos = new HashSet<String>();
-			msgSet = infos;
-			if (!model.containsValue(msgSet))
-				model.put("infos", msgSet);
-			break;
-
-		case SUCCESS:
-			if (successes == null)
-				successes = new HashSet<String>();
-			msgSet = successes;
-			if (!model.containsValue(msgSet))
-				model.put("successes", msgSet);
-			break;
-		}
-
-		if (msgSet != null)
-			msgSet.add(message);
 	}
 
 	/**
@@ -848,7 +813,7 @@ public class CollectionRequestService
 
 				// Get a list of datastreams for the pid from the Fedora Repository.
 				List<DatastreamType> pidDsList = FedoraBroker.getDatastreamList(pid);
-				
+
 				// Get the IDs and Labels of datasets, create a JSONObject, add it to JSONArray
 				// TODO Exclude DC, XML_SOURCE, XML_TEMPLATE, RELS-EXT (?)
 				for (DatastreamType iDs : pidDsList)
@@ -884,7 +849,7 @@ public class CollectionRequestService
 
 				// Add the Id and question (String) for each Question (Object) into a JSONObject. 
 				for (Question iQuestion : curQuestionsPid)
-					questionsJson.put(iQuestion.getId(), iQuestion.getQuestion());
+					questionsJson.put(iQuestion.getId(), iQuestion.getQuestionText());
 
 				// Convert the JSONObject into a JSON String and include it in the Response object.
 				resp = Response.ok(questionsJson.toJSONString(), MediaType.APPLICATION_JSON_TYPE).build();
@@ -909,20 +874,20 @@ public class CollectionRequestService
 				List<CollectionRequest> reqStatusList = entityManager.createQuery("FROM CollectionRequest cr ORDER BY cr.timestamp DESC",
 						CollectionRequest.class).getResultList();
 				entityManager.getTransaction().commit();
-				
+
 				// Add the details of each CR into a JSONObject. Then add that JSONObject to a JSONArray.
-				for (CollectionRequest i : reqStatusList)
+				for (CollectionRequest iCr : reqStatusList)
 				{
 					JSONObject reqStatusJsonObj = new JSONObject();
-					reqStatusJsonObj.put("id", i.getId());
-					reqStatusJsonObj.put("pid", i.getPid());
-					reqStatusJsonObj.put("requestorId", i.getRequestorId());
-					reqStatusJsonObj.put("timestamp", i.getTimestamp().toString());
-					reqStatusJsonObj.put("lastStatus", i.getLastStatus().getStatus().toString());
-					reqStatusJsonObj.put("lastStatusTimestamp", i.getLastStatus().getTimestamp().toString());
+					reqStatusJsonObj.put("id", iCr.getId());
+					reqStatusJsonObj.put("pid", iCr.getPid());
+					reqStatusJsonObj.put("requestor", iCr.getRequestor().getDisplayName());
+					reqStatusJsonObj.put("timestamp", iCr.getTimestamp().toString());
+					reqStatusJsonObj.put("lastStatus", iCr.getLastStatus().getStatus().toString());
+					reqStatusJsonObj.put("lastStatusTimestamp", iCr.getLastStatus().getTimestamp().toString());
 					reqStatusListJsonArray.add(reqStatusJsonObj);
 				}
-				
+
 				// Convert the JSONArray into a JSON String and include in Response object.
 				resp = Response.ok(reqStatusListJsonArray.toJSONString(), MediaType.APPLICATION_JSON_TYPE).build();
 			}
@@ -936,5 +901,31 @@ public class CollectionRequestService
 		}
 
 		return resp;
+	}
+
+	/**
+	 * getAllQuestions
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Gets a list of all questions from the Question Bank.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		16/05/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return Questions as List<Questions>
+	 */
+	private List<Question> getAllQuestions()
+	{
+		boolean isActive;
+		
+		entityManager.getTransaction().begin();
+		// TODO Use CriteriaBuilder
+		List<Question> questions = entityManager.createQuery("FROM Question qb", Question.class).getResultList();
+		entityManager.getTransaction().commit();
+
+		return questions;
 	}
 }

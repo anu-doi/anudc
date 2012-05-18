@@ -137,4 +137,44 @@ public class LdapPerson
 	{
 		return getAttribute(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_GIVENNAME, "givenName"));
 	}
+	
+	/**
+	 * getFamilyName
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Returns the Family name of this person.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		17/05/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 * Family Name as String.
+	 */
+	public String getFamilyName()
+	{
+		return getAttribute(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_FAMILYNAME));
+	}
+	
+	/**
+	 * getEmail
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Returns the email address of this person.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		17/05/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 * Email address as String.
+	 */
+	public String getEmail()
+	{
+		return getAttribute(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_EMAIL));
+	}
 }

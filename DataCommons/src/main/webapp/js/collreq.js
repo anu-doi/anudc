@@ -33,7 +33,8 @@ function ajaxGetPidInfo(pid)
 {
 	// Empty the container element for Datastream List.
 	jQuery("#idDsListContainer").empty();
-	jQuery("#idDsListContainer").append(jQuery("<p></p").text("Getting Datastreams..."));
+	jQuery("#idDsListContainer").append(
+			jQuery("<p></p>").text("Getting Datastreams... ").append(jQuery("<img></img>").attr("src", "/DataCommons/images/ajax-loader.gif")));
 
 	// Get Datastreams for the pid and add each to the container.
 	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listDs&pid=" + pid, function(dsList)
@@ -49,7 +50,8 @@ function ajaxGetPidInfo(pid)
 
 	// Empty the container element for Questions that need to be answered.
 	jQuery("#idQuestionsContainer").empty();
-	jQuery("#idQuestionsContainer").append(jQuery("<p></p").text("Getting Questions..."));
+	jQuery("#idQuestionsContainer").append(
+			jQuery("<p></p").text("Getting Questions... ").append(jQuery("<img></img>").attr("src", "/DataCommons/images/ajax-loader.gif")));
 
 	// Get list of questions mapped to the Pid and add each to the container.
 	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listPidQuestions&pid=" + pid, function(qList)
@@ -59,7 +61,7 @@ function ajaxGetPidInfo(pid)
 		{
 			var pQuestion = jQuery("<p></p>");
 			pQuestion.append(jQuery("<label></label>").text(question));
-			pQuestion.append(jQuery("<textarea></textarea>").attr("name", "q" + id));
+			pQuestion.append(jQuery("<textarea rows='5' cols='50'></textarea>").attr("name", "q" + id));
 			jQuery("#idQuestionsContainer").append(pQuestion);
 		});
 	});
@@ -95,7 +97,7 @@ function ajaxGetCollReqs()
 				(jQuery("<td></td>").append(jQuery("<a></a>").attr("href", "/DataCommons/rest/collreq/" + collReq.id).text(collReq.id))).appendTo(tableRow);
 				jQuery("<td></td>").text(collReq.pid).appendTo(tableRow);
 				jQuery("<td></td>").text(collReq.timestamp).appendTo(tableRow);
-				jQuery("<td></td>").text(collReq.requestorId).appendTo(tableRow);
+				jQuery("<td></td>").text(collReq.requestor).appendTo(tableRow);
 				jQuery("<td></td>").text(collReq.lastStatus).appendTo(tableRow);
 				jQuery("<td></td>").text(collReq.id).appendTo(tableRow);
 				jQuery("#idReqStatusContainer > table").append(tableRow);

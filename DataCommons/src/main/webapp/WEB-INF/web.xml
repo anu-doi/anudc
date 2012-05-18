@@ -32,7 +32,7 @@
 			<param-name>com.sun.jersey.config.property.WebPageContentRegex</param-name>
 			<param-value>/(jsp|js|css)</param-value>
 		</init-param>
-		<load-on-startup>1</load-on-startup>
+		<load-on-startup>-1</load-on-startup>
 	</servlet>
 	
 	<servlet-mapping>

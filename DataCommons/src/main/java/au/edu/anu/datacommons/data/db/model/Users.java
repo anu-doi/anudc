@@ -6,9 +6,14 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.PostLoad;
 import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import au.edu.anu.datacommons.ldap.LdapPerson;
+import au.edu.anu.datacommons.ldap.LdapRequest;
 
 /**
  * Users
@@ -28,12 +33,19 @@ import javax.persistence.Table;
  * 
  */
 @Entity
-@Table(name="users")
-public class Users {
+@Table(name = "users")
+public class Users
+{
 	private Long id;
 	private String username;
 	private String password;
 	private Boolean enabled;
+
+	private String displayName;		// Transient
+	private String givenName;		// Transient
+	private String familyName;		// Transient
+	private String email;			// Transient
+
 	private Long user_type;
 	private UserRegistered user_registered;
 	
@@ -51,10 +63,11 @@ public class Users {
 	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	public Long getId() {
+	public Long getId()
+	{
 		return id;
 	}
-	
+
 	/**
 	 * setId
 	 * 
@@ -67,7 +80,8 @@ public class Users {
 	 * 
 	 * @param id The id of the domain
 	 */
-	public void setId(Long id) {
+	protected void setId(Long id)
+	{
 		this.id = id;
 	}
 
@@ -87,8 +101,6 @@ public class Users {
 	public String getUsername() {
 		return username;
 	}
-	
-
 	/**
 	 * setUsername
 	 * 
@@ -121,7 +133,6 @@ public class Users {
 	public String getPassword() {
 		return password;
 	}
-	
 
 	/**
 	 * setPassword
@@ -155,7 +166,6 @@ public class Users {
 	public Boolean getEnabled() {
 		return enabled;
 	}
-	
 
 	/**
 	 * setEnabled
@@ -171,6 +181,53 @@ public class Users {
 	 */
 	public void setEnabled(Boolean enabled) {
 		this.enabled = enabled;
+	}
+
+	@Transient
+	public String getDisplayName()
+	{
+		return displayName;
+	}
+
+	@Transient
+	public String getGivenName()
+	{
+		return givenName;
+	}
+
+	@Transient
+	public String getFamilyName()
+	{
+		return familyName;
+	}
+
+	@Transient
+	public String getEmail()
+	{
+		return email;
+	}
+
+	@PostLoad
+	public void getLdapPerson()
+	{
+		LdapPerson ldapPerson;
+		LdapRequest ldapReq = new LdapRequest();
+		try
+		{
+			ldapPerson = ldapReq.searchUniId(username);
+			displayName = ldapPerson.getDisplayName();
+			givenName = ldapPerson.getGivenName();
+			familyName = ldapPerson.getFamilyName();
+			email = ldapPerson.getEmail();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			displayName = "";
+			givenName = "";
+			familyName = "";
+			email = "";
+		}
 	}
 	
 	/**
