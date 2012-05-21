@@ -1,10 +1,14 @@
 package au.edu.anu.datacommons.data.db.model;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 @Entity
@@ -15,6 +19,7 @@ public class PublishLocation {
 	private String name;
 	private String execute_class;
 	private Long requires;
+	private List<FedoraObject> fedoraObjects;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -60,5 +65,14 @@ public class PublishLocation {
 	
 	public void setRequires(Long requires) {
 		this.requires = requires;
+	}
+	
+	@ManyToMany(mappedBy="publishedLocations", fetch=FetchType.LAZY)
+	public List<FedoraObject> getFedoraObjects() {
+		return fedoraObjects;
+	}
+
+	public void setFedoraObjects(List<FedoraObject> fedoraObjects) {
+		this.fedoraObjects = fedoraObjects;
 	}
 }

@@ -1,10 +1,17 @@
 package au.edu.anu.datacommons.data.db.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 
@@ -31,6 +38,11 @@ public class FedoraObject {
 	private String object_id;
 	private Long group_id;
 	private Boolean published;
+	private List<PublishLocation> publishedLocations;
+	
+	public FedoraObject() {
+		publishedLocations = new ArrayList<PublishLocation>();
+	}
 	
 	/**
 	 * getId
@@ -162,5 +174,18 @@ public class FedoraObject {
 	 */
 	public void setPublished(Boolean published) {
 		this.published = published;
+	}
+
+	@ManyToMany(fetch=FetchType.EAGER)
+	@JoinTable(name="published",
+			joinColumns=@JoinColumn(name="fedora_id", referencedColumnName="id")
+			,inverseJoinColumns=@JoinColumn(name="location_id", referencedColumnName="id")
+	)
+	public List<PublishLocation> getPublishedLocations() {
+		return publishedLocations;
+	}
+
+	public void setPublishedLocations(List<PublishLocation> publishedLocations) {
+		this.publishedLocations = publishedLocations;
 	}
 }

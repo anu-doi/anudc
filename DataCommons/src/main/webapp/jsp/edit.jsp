@@ -2,17 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <anu:content layout="narrow">
-	<anu:box style="solid">
-		<c:if test="${it.fedoraObject.published}">
-			<b>Status:</b> Published<br />
-		</c:if>
-		<c:if test="${not it.fedoraObject.published}">
-			<b>Status:</b> Unpublished<br />
-		</c:if>
-		<c:if test="${not empty it.fedoraObject.object_id}">
-			<b>Identifier:</b> ${it.fedoraObject.object_id}<br />
-		</c:if>
-	</anu:box>
+	<jsp:include page="status.jsp" />
 	<anu:box style="solid">
 	<p>Edit Fields:</p>
 	<p>
