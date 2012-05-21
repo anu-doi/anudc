@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://ands.org.au/standards/rif-cs/registryObjects">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 	<xsl:param name="key" />
+	<xsl:param name="external" />
 	<xsl:template match="/">
 		<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
@@ -194,6 +195,14 @@
 						</electronic>
 					</address>
 				</location>
+			</xsl:for-each>
+		</xsl:if>
+		<xsl:if test="$external">
+			<xsl:for-each select="document($external)//*[namespace-uri()='http://anu.edu.au/related/']">
+				<relatedObject>
+					<key><xsl:value-of select="substring-after(@rdf:resource, 'info:fedora/')" /></key>
+					<relation type="{name()}" />
+				</relatedObject>
 			</xsl:for-each>
 		</xsl:if>
 		<xsl:if test="data/anzforSubject">

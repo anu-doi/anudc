@@ -41,6 +41,7 @@
 					<fmm:Method operationName="getRIFCS" wsdlMsgName="getRIFCSRequest" wsdlMsgOutput="xslt_output">
 						<fmm:DatastreamInputParm parmName="XML_PUBLISHED" passBy="URL_REF" required="true" />
 						<fmm:DatastreamInputParm parmName="XSL_SOURCE" passBy="URL_REF" required="true" />
+						<fmm:DatastreamInputParm parmName="RELS-EXT" passBy="URL_REF" required="true" />
 						<fmm:DefaultInputParm defaultValue="yes" parmName="CLEAR_CACHE" passBy="VALUE" required="true" />
 						<fmm:DefaultInputParm defaultValue="$pid" parmName="pid" passBy="VALUE" required="true" />
 						<fmm:MethodReturnType wsdlMsgName="response" wsdlMsgTOMIME="text/xml" />
@@ -66,6 +67,11 @@
 						<fbs:DSInputLabel>XML Source</fbs:DSInputLabel>
 						<fbs:DSMIME>text/xml</fbs:DSMIME>
 						<fbs:DSInputInstruction>XML source file to transform</fbs:DSInputInstruction>
+					</fbs:DSInput>
+					<fbs:DSInput wsdlMsgPartName="RELS-EXT" DSMax="1" DSMin="1" DSOrdinality="false">
+						<fbs:DSInputLabel>RELS-EXT</fbs:DSInputLabel>
+						<fbs:DSMIME>text/xml</fbs:DSMIME>
+						<fbs:DSInputInstruction>RELS Ext source file to transform</fbs:DSInputInstruction>
 					</fbs:DSInput>
 				</fbs:DSInputSpec>
 			</foxml:xmlContent>
@@ -121,7 +127,7 @@
 					<wsdl:binding name="binding" type="this:portType">
 						<http:binding verb="GET" />
 						<wsdl:operation name="getRIFCS">
-							<http:operation location="SaxonServlet?source=(XML_PUBLISHED)&amp;style=(XSL_SOURCE)&amp;clear-stylesheet-cache=(CLEAR_CACHE)&amp;key=(pid)" />
+							<http:operation location="SaxonServlet?source=(XML_PUBLISHED)&amp;style=(XSL_SOURCE)&amp;clear-stylesheet-cache=(CLEAR_CACHE)&amp;key=(pid)&amp;external=(RELS-EXT)"></http:operation>
 							<wsdl:input>
 								<http:urlReplacement />
 							</wsdl:input>

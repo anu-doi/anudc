@@ -1,0 +1,10 @@
+<fmm:MethodMap xmlns:fmm="http://fedora.comm.nsdlib.org/service/methodmap" name="Method Map - Document Transform Methods">
+	<fmm:Method operationName="getRIFCS" wsdlMsgName="getRIFCSRequest" wsdlMsgOutput="xslt_output">
+		<fmm:DatastreamInputParm parmName="XML_PUBLISHED" passBy="URL_REF" required="true"></fmm:DatastreamInputParm>
+		<fmm:DatastreamInputParm parmName="XSL_SOURCE" passBy="URL_REF" required="true"></fmm:DatastreamInputParm>
+		<fmm:DatastreamInputParm parmName="RELS-EXT" passBy="URL_REF" required="true" />
+		<fmm:DefaultInputParm defaultValue="yes" parmName="CLEAR_CACHE" passBy="VALUE" required="true"></fmm:DefaultInputParm>
+		<fmm:DefaultInputParm defaultValue="$pid" parmName="pid" passBy="VALUE" required="true"></fmm:DefaultInputParm>
+		<fmm:MethodReturnType wsdlMsgName="response" wsdlMsgTOMIME="text/xml"></fmm:MethodReturnType>
+	</fmm:Method>
+</fmm:MethodMap>
