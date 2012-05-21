@@ -23,12 +23,6 @@
 			</p>
 		</fieldset>
 		<fieldset>
-			<legend>Datastream</legend>
-			<p>
-				<label class="req" for="idDsId">Datastream ID</label>
-				<input class="text" type="text" name="dsid" size="40" />
-			</p>
-			<p class="instruction">Instructions for user</p>
 			<p>
 				<label for="idLabel">Label: </label>
 				<input class="text" type="text" name="Label" size="40" />

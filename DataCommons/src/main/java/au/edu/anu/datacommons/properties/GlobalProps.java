@@ -61,6 +61,7 @@ public final class GlobalProps
 	public static final String PROP_UPLOAD_HTTPBASEURI = "upload.uploadHttpBaseURI";
 	public static final String PROP_PASSWORDGENERATOR_CHARS = "passwordGenerator.chars";
 	public static final String PROP_DROPBOX_PASSWORDLENGTH = "dropbox.passwordLength";
+	public static final String PROP_EMAIL_DEBUG_SEND = "email.debug.sendmail";
 
 	static
 	{

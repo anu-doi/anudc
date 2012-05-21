@@ -2,14 +2,12 @@ package au.edu.anu.datacommons.collectionrequest;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Resource;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
-import javax.persistence.NonUniqueResultException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -31,17 +29,16 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import au.edu.anu.datacommons.collectionrequest.CollectionRequestStatus.ReqStatus;
 import au.edu.anu.datacommons.collectionrequest.PageMessages.MessageType;
-import au.edu.anu.datacommons.data.db.dao.UsersDAO;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.persistence.HibernateUtil;
 import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.view.Viewable;
@@ -87,6 +84,9 @@ public class CollectionRequestService
 
 	@Context
 	private HttpServletRequest request;
+	
+	@Resource (name="mailSender")
+	JavaMailSenderImpl mailSender;
 
 	/**
 	 * doGetAsHtml
@@ -324,6 +324,21 @@ public class CollectionRequestService
 						+ "<br /><strong>Password: </strong>" + collReq.getDropbox().getAccessPassword(), model);
 
 			// TODO Send email to requestor. Add message to screen if email was successful.
+			HashMap<String, String> varMap = new HashMap<String, String>();
+			varMap.put("requestorGivenName", collReq.getRequestor().getGivenName());
+			varMap.put("collReqId", collReq.getId().toString());
+			varMap.put("changedByDispName", collReq.getLastStatus().getUser().getDisplayName());
+			varMap.put("dateChanged", collReq.getLastStatus().getTimestamp().toString());
+			varMap.put("status", collReq.getLastStatus().getStatus().toString());
+			varMap.put("reason", collReq.getLastStatus().getReason());
+			
+			Email email = new Email(mailSender);
+			email.setFromName("ANU DataCommons");
+			email.setFromEmail("no-reply@anu.edu.au");
+			email.setToName(collReq.getRequestor().getDisplayName());
+			email.setToEmail(collReq.getRequestor().getEmail());
+			email.setSubject("Dropbox# " + collReq.getId() + " Status Changed");
+			email.setBody("mailtmpl/dropboxstatus.txt", varMap);
 
 		}
 		catch (Exception e)
@@ -548,6 +563,12 @@ public class CollectionRequestService
 				url.append("/content");
 				downloadables.put(reqItem.getItem(), url.toString());
 			}
+			
+			// Make a log of access
+			entityManager.getTransaction().begin();
+			CollectionDropboxAccessLog log = new CollectionDropboxAccessLog(dropbox, request.getRemoteAddr());
+			entityManager.persist(log);
+			entityManager.getTransaction().commit();
 
 			model.put("downloadables", downloadables);
 		}
@@ -881,7 +902,7 @@ public class CollectionRequestService
 					JSONObject reqStatusJsonObj = new JSONObject();
 					reqStatusJsonObj.put("id", iCr.getId());
 					reqStatusJsonObj.put("pid", iCr.getPid());
-					reqStatusJsonObj.put("requestor", iCr.getRequestor().getDisplayName());
+					reqStatusJsonObj.put("requestor", iCr.getRequestor().getUsername());
 					reqStatusJsonObj.put("timestamp", iCr.getTimestamp().toString());
 					reqStatusJsonObj.put("lastStatus", iCr.getLastStatus().getStatus().toString());
 					reqStatusJsonObj.put("lastStatusTimestamp", iCr.getLastStatus().getTimestamp().toString());
