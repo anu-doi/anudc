@@ -5,6 +5,17 @@
 
 <anu:content layout="narrow">
 	<anu:box style="solid">
+		<c:if test="${it.fedoraObject.published}">
+			<b>Status:</b> Published<br />
+		</c:if>
+		<c:if test="${not it.fedoraObject.published}">
+			<b>Status:</b> Unpublished<br />
+		</c:if>
+		<c:if test="${not empty it.fedoraObject.object_id}">
+			<b>Identifier:</b> ${it.fedoraObject.object_id}<br />
+		</c:if>
+	</anu:box>
+	<anu:box style="solid">
 		<sec:authorize access="isAnonymous()">
 			Please login to request access to this dataset
 		</sec:authorize>
@@ -27,10 +38,7 @@
 				<c:url value="/rest/collreq" var="collReqLink">
 					<c:param name="pid" value="${it.fedoraObject.object_id}" />
 				</c:url>
-				<sec:accesscontrollist hasPermission="READ,WRITE,CREATE" domainObject="${it.fedoraObject.object_id}">
-				
 				<p><input type="button" id="editButton" name="editButton" value="Edit" onclick="window.location='${editLink}'" /></p>
-				</sec:accesscontrollist>
 				<p><input type="button" id="uploadButton" name="uploadButton" value="Upload" onclick="window.location='${uploadLink}'" /></p>
 				<p><input type="button" id="collReqButton" name="colReqButton" value="Request Collection Files" onclick="window.location='${collReqLink}'" /></p>
 				<jsp:include page="add_reference.jsp" />

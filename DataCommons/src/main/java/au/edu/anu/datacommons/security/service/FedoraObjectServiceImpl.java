@@ -358,12 +358,14 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		String page = null;
 		ViewTransform viewTransform = new ViewTransform();
 		try {
-			// Update this section if we want to have a full list of files
-			List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(fedoraObject.getObject_id());
-			for (DatastreamType dsType : datastreamList) {
-				if (dsType.getDsid().contains("FILE0") ){
-					values.put("filelist", "Files Pending Availability");
-					break;
+			if (fedoraObject != null) {
+				// Update this section if we want to have a full list of files
+				List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(fedoraObject.getObject_id());
+				for (DatastreamType dsType : datastreamList) {
+					if (dsType.getDsid().contains("FILE0") ){
+						values.put("filelist", "Files Pending Availability");
+						break;
+					}
 				}
 			}
 			

@@ -1,0 +1,17 @@
+<fbs:DSInputSpec xmlns:fbs="http://fedora.comm.nsdlib.org/service/bindspec" label="Data Source Input Specification">
+	<fbs:DSInput wsdlMsgPartName="XSL_SOURCE" pid="def:rif-cs" DSMax="1" DSMin="1" DSOrdinality="false">
+		<fbs:DSInputLabel>XSL Source</fbs:DSInputLabel>
+		<fbs:DSMIME>text/xml</fbs:DSMIME>
+		<fbs:DSInputInstruction>XSL source file to transform data</fbs:DSInputInstruction>
+	</fbs:DSInput>
+	<fbs:DSInput wsdlMsgPartName="XML_PUBLISHED" DSMax="1" DSMin="1" DSOrdinality="false">
+		<fbs:DSInputLabel>XML Source</fbs:DSInputLabel>
+		<fbs:DSMIME>text/xml</fbs:DSMIME>
+		<fbs:DSInputInstruction>XML source file to transform</fbs:DSInputInstruction>
+	</fbs:DSInput>
+	<fbs:DSInput wsdlMsgPartName="RELS-EXT" DSMax="1" DSMin="1" DSOrdinality="false">
+		<fbs:DSInputLabel>RELS-EXT</fbs:DSInputLabel>
+		<fbs:DSMIME>text/xml</fbs:DSMIME>
+		<fbs:DSInputInstruction>RELS Ext source file to transform</fbs:DSInputInstruction>
+	</fbs:DSInput>
+</fbs:DSInputSpec>

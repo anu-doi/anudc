@@ -1,0 +1,48 @@
+<wsdl:definitions xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap" xmlns:soapenc="http://schemas.xmlsoap.org/wsdl/soap/encoding" xmlns:this="something" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="definitions" targetNamespace="something">
+	<wsdl:types>
+		<xsd:schema targetNamespace="something">
+			<xsd:simpleType name="inputType">
+				<xsd:restriction base="xsd:string"></xsd:restriction>
+			</xsd:simpleType>
+			<xsd:simpleType name="CLEAR_CACHEType">
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="yes"></xsd:enumeration>
+					<xsd:enumeration value="no"></xsd:enumeration>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="getRIFCSRequest">
+		<wsdl:part name="XML_PUBLISHED" type="this:inputType"></wsdl:part>
+		<wsdl:part name="XSL_SOURCE" type="this:inputType"></wsdl:part>
+		<wsdl:part name="RELS-EXT" type="this:inputType"></wsdl:part>
+		<wsdl:part name="CLEAR_CACHE" type="this:CLEAR_CACHEType"></wsdl:part>
+		<wsdl:part name="pid" type="this:inputType"></wsdl:part>
+	</wsdl:message>
+	<wsdl:message name="response">
+		<wsdl:part name="exhibit" type="xsd:base64Binary"></wsdl:part>
+	</wsdl:message>
+	<wsdl:portType name="portType">
+		<wsdl:operation name="getRIFCS">
+			<wsdl:input message="this:getRIFCSRequest"></wsdl:input>
+			<wsdl:output message="this:response"></wsdl:output>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:service name="service">
+		<wsdl:port binding="this:binding" name="port">
+			<http:address location="http://localhost:8380/saxon/"></http:address>
+		</wsdl:port>
+	</wsdl:service>
+	<wsdl:binding name="binding" type="this:portType">
+		<http:binding verb="GET"></http:binding>
+		<wsdl:operation name="getRIFCS">
+			<http:operation location="SaxonServlet?source=(XML_PUBLISHED)&amp;style=(XSL_SOURCE)&amp;clear-stylesheet-cache=(CLEAR_CACHE)&amp;key=(pid)&amp;external=(RELS-EXT)"></http:operation>
+			<wsdl:input>
+				<http:urlReplacement></http:urlReplacement>
+			</wsdl:input>
+			<wsdl:output>
+				<mime:content type="text/xml"></mime:content>
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+</wsdl:definitions>
