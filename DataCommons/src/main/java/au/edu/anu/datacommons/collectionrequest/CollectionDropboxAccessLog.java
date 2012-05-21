@@ -25,8 +25,9 @@ public class CollectionDropboxAccessLog
 	{
 	}
 
-	public CollectionDropboxAccessLog(String ipAddress)
+	public CollectionDropboxAccessLog(CollectionDropbox dropbox, String ipAddress)
 	{
+		this.dropbox = dropbox;
 		this.ipAddress = ipAddress;
 	}
 
@@ -73,7 +74,7 @@ public class CollectionDropboxAccessLog
 		return timestamp;
 	}
 
-	public void setTimestamp(Date timestamp)
+	protected void setTimestamp(Date timestamp)
 	{
 		this.timestamp = timestamp;
 	}

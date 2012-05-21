@@ -54,6 +54,7 @@ public class UploadService
 	private static final String UPLOAD_DIR = GlobalProps.getProperty(GlobalProps.PROP_UPLOAD_DIR);
 	private static final String PART_FILE_SUFFIX = ".part";
 	private static final String UPLOAD_JSP = "/upload.jsp";
+	private static final String FILE_DS_PREFIX = "FILE0";
 
 	/**
 	 * doGetAsHtml
@@ -133,8 +134,8 @@ public class UploadService
 			// Iterate through each file item and process it.
 			for (FileItem iFileItem : uploadedItems)
 			{
-				LOGGER.debug("Processing file item with details, contentType={}, fieldName={}, name={}.", new Object[]
-				{ iFileItem.getContentType(), iFileItem.getFieldName(), iFileItem.getName() });
+				LOGGER.debug("Processing file item with details, contentType={}, fieldName={}, name={}.",
+						new Object[] { iFileItem.getContentType(), iFileItem.getFieldName(), iFileItem.getName() });
 
 				// Process this item based on its type - file or form field.
 				if (!iFileItem.isFormField())
@@ -176,9 +177,8 @@ public class UploadService
 				}
 			}
 
-			// Generate the properties filename: "[pid]-[dsid].properties" .
-			String dsPropFullFilename = UPLOAD_DIR + File.separator + Util.convertToDiskSafe(dsUploadProps.getProperty("pid")) + "-"
-					+ Util.convertToDiskSafe(dsUploadProps.getProperty("dsid")) + ".properties";
+			// Generate the properties filename: "[pid].properties" .
+			String dsPropFullFilename = UPLOAD_DIR + File.separator + Util.convertToDiskSafe(dsUploadProps.getProperty("pid")) + ".properties";
 
 			// Check if the properties file already exists. If yes, merge the new one with the existing one.
 			File dsPropFile = new File(dsPropFullFilename);
@@ -197,7 +197,7 @@ public class UploadService
 			dsPropFileWriter.close();
 
 			// Create a placeholder datastream.
-			FedoraBroker.addDatastreamBySource(dsUploadProps.getProperty("pid"), dsUploadProps.getProperty("dsid"), dsUploadProps.getProperty("Label"),
+			FedoraBroker.addDatastreamBySource(dsUploadProps.getProperty("pid"), FILE_DS_PREFIX, dsUploadProps.getProperty("Label"),
 					"<text>Pending processing of uploaded files.</text>");
 
 			// Text of response must adhere to param 'stringUploadSuccess' specified in the JUpload applet.

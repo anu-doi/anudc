@@ -28,6 +28,7 @@
 					<th>Notification</th>
 					<th>Active</th>
 					<th>Request</th>
+					<th>Download Link</th>
 				</tr>
 				<c:forEach var="iDropbox" items="${it.dropboxes}">
 					<tr>
@@ -39,6 +40,7 @@
 						<td><input type="checkbox" <c:if test="${iDropbox.notifyOnPickup == true}">checked="checked"</c:if> /></td>
 						<td><input type="checkbox" <c:if test="${iDropbox.active == true}">checked="checked"</c:if> /></td>
 						<td><a href="<c:url value='/rest/collreq' />/${iDropbox.collectionRequest.id}"><c:out value="${iDropbox.collectionRequest.id}" /></a></td>
+						<td><a href="<c:url value='/rest/collreq/dropbox/access' />/${iDropbox.accessCode}?p=${iDropbox.accessPassword}">Download</a>
 					</tr>
 				</c:forEach>
 			</table>
@@ -47,7 +49,7 @@
 
 	<c:when test="${not empty it.dropbox}">
 		<!-- Display details of a specific dropbox. -->
-		<anu:content layout="doublewide" title="Dropbox">
+		<anu:content layout="doublewide" title="Dropbox Administration">
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
@@ -64,8 +66,9 @@
 				</p>
 				<p>
 					<label>Creator</label>
-					<c:out value="${it.dropbox.creatorUserId}" />
+					<c:out value="${it.dropbox.creator.username}" />
 				</p>
+				<p class="instruction"><c:out value="${it.dropbox.creator.displayName}" /></p>
 				<p>
 					<label>Created</label>
 					<c:out value="${it.dropbox.timestamp}" />

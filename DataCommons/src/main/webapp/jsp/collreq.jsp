@@ -36,7 +36,7 @@
 					<label>Requestor</label>
 					<c:out value="${it.collReq.requestor.username}" />
 				</p>
-				<p class="instruction">[Placeholder for requestor name]</p>
+				<p class="instruction"><c:out value="${it.collReq.requestor.displayName}" /></p>
 				<p>
 					<label>Created</label>
 					<c:out value="${it.collReq.timestamp}" />

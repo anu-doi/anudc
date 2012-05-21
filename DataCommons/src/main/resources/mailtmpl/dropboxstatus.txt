@@ -1,0 +1,11 @@
+Dear ${requestorGivenName},
+This is to let you know that the status of your Collection Request has changed to the following...
+
+ID: ${collReqId}
+Changed By: ${changedByDispName}
+Changed On: ${dateChanged}
+New Status: ${status}
+Reason: ${reason}
+
+Regards,
+ANU
