@@ -30,7 +30,7 @@
 	</wsdl:portType>
 	<wsdl:service name="service">
 		<wsdl:port binding="this:binding" name="port">
-			<http:address location="http://localhost:8380/saxon/"></http:address>
+			<http:address location="http://local.fedora.server/saxon/"></http:address>
 		</wsdl:port>
 	</wsdl:service>
 	<wsdl:binding name="binding" type="this:portType">
