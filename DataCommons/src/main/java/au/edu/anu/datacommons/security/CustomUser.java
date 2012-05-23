@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.User;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+ * 0.2		23/05/2012	Genevieve Turner (GT)	Updated for display name
  * </pre>
  * 
  */
@@ -34,6 +35,7 @@ public class CustomUser extends User {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.2		23/05/2012	Genevieve Turner (GT)	Updated for display name
 	 * </pre>
 	 * 
 	 * @param username The username presented to the authentication provider
