@@ -78,14 +78,7 @@ public class CollectionRequestService
 	private static final String QUESTION_JSP = "/question.jsp";
 	private static final String DROPBOX_ACCESS_JSP = "/dropboxaccess.jsp";
 
-	private PageMessages messages = new PageMessages();
-	private Map<String, Object> model = new HashMap<String, Object>();
-	private Response resp = null;
-
-	@Context
-	private HttpServletRequest request;
-	
-	@Resource (name="mailSender")
+	@Resource(name = "mailSender")
 	JavaMailSenderImpl mailSender;
 
 	/**
@@ -106,7 +99,9 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	public Response doGetAsHtml()
 	{
-		resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
+		Response resp = null;
+
+		resp = Response.ok(new Viewable(COLL_REQ_JSP)).build();
 		return resp;
 	}
 
@@ -131,6 +126,10 @@ public class CollectionRequestService
 	@Path("{collReqId}")
 	public Response doGetReqItemAsHtml(@PathParam("collReqId") Long collReqId)
 	{
+		PageMessages messages = new PageMessages();
+		Map<String, Object> model = new HashMap<String, Object>();
+		Response resp = null;
+
 		LOGGER.trace("In method doGetReqItemAsHtml. Param collReqId={}.", collReqId);
 
 		try
@@ -187,10 +186,14 @@ public class CollectionRequestService
 	@POST
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response doPostCollReqAsHtml(@FormParam("pid") String pid, @FormParam("dsid") Set<String> dsIdSet, MultivaluedMap<String, String> allFormParams)
+	public Response doPostCollReqAsHtml(@Context HttpServletRequest request, @FormParam("pid") String pid, @FormParam("dsid") Set<String> dsIdSet,
+			MultivaluedMap<String, String> allFormParams)
 	{
-		LOGGER.trace("In method doPostCollReqAsHtml. Param pid={}, dsIdSet={}, allFormParams={}.", new Object[]
-		{ pid, dsIdSet, allFormParams });
+		PageMessages messages = new PageMessages();
+		Map<String, Object> model = new HashMap<String, Object>();
+		Response resp = null;
+
+		LOGGER.trace("In method doPostCollReqAsHtml. Param pid={}, dsIdSet={}, allFormParams={}.", new Object[] { pid, dsIdSet, allFormParams });
 
 		// Save the Collection Request for further processing.
 		try
@@ -280,10 +283,12 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	public Response doPostUpdateCollReqAsHtml(@PathParam("collReqId") long collReqId, @FormParam("status") ReqStatus status, @FormParam("reason") String reason)
 	{
+		PageMessages messages = new PageMessages();
+		Map<String, Object> model = new HashMap<String, Object>();
+		Response resp = null;
 		CollectionRequest collReq = null;
 
-		LOGGER.trace("In doPostUpdateCollReqAsHtml. Params collReqId={}, status={}, reason={}", new Object[]
-		{ collReqId, status, reason });
+		LOGGER.trace("In doPostUpdateCollReqAsHtml. Params collReqId={}, status={}, reason={}", new Object[] { collReqId, status, reason });
 
 		try
 		{
@@ -320,9 +325,15 @@ public class CollectionRequestService
 
 			// Add a message about the dropbox being created if the status is now Accepted.
 			if (status == ReqStatus.ACCEPTED)
+			{
 				messages.add(MessageType.INFO, "Dropbox created<br /><strong>Code: </strong>" + collReq.getDropbox().getAccessCode()
 						+ "<br /><strong>Password: </strong>" + collReq.getDropbox().getAccessPassword(), model);
+				// TODO Change hard code below.
+				messages.add(MessageType.INFO, "Dropbox Access Link: <a href='" + "/DataCommons/rest/collreq/dropbox/access/" + collReq.getDropbox().getAccessCode()
+						+ "?p=" + collReq.getDropbox().getAccessPassword() + "'>Dropbox Access</a>", model);
+			}
 
+			/*
 			// TODO Send email to requestor. Add message to screen if email was successful.
 			HashMap<String, String> varMap = new HashMap<String, String>();
 			varMap.put("requestorGivenName", collReq.getRequestor().getGivenName());
@@ -331,7 +342,7 @@ public class CollectionRequestService
 			varMap.put("dateChanged", collReq.getLastStatus().getTimestamp().toString());
 			varMap.put("status", collReq.getLastStatus().getStatus().toString());
 			varMap.put("reason", collReq.getLastStatus().getReason());
-			
+
 			Email email = new Email(mailSender);
 			email.setFromName("ANU DataCommons");
 			email.setFromEmail("no-reply@anu.edu.au");
@@ -339,6 +350,7 @@ public class CollectionRequestService
 			email.setToEmail(collReq.getRequestor().getEmail());
 			email.setSubject("Dropbox# " + collReq.getId() + " Status Changed");
 			email.setBody("mailtmpl/dropboxstatus.txt", varMap);
+			*/
 
 		}
 		catch (Exception e)
@@ -377,6 +389,10 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	public Response doGetDropboxesAsHtml()
 	{
+		PageMessages messages = new PageMessages();
+		Map<String, Object> model = new HashMap<String, Object>();
+		Response resp = null;
+
 		LOGGER.trace("In doGetDropboxesAsHtml.");
 
 		try
@@ -435,6 +451,10 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	public Response doGetDropboxAsHtml(@PathParam("dropboxId") long dropboxId)
 	{
+		PageMessages messages = new PageMessages();
+		Map<String, Object> model = new HashMap<String, Object>();
+		Response resp = null;
+
 		LOGGER.trace("In doGetDropboxAsHtml. Params dropboxId: {}", dropboxId);
 
 		try
@@ -487,6 +507,10 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	public Response doPostUpdateDropboxAsHtml(@PathParam("dropboxId") long dropboxId)
 	{
+		PageMessages messages = new PageMessages();
+		Map<String, Object> model = new HashMap<String, Object>();
+		Response resp = null;
+
 		// TODO Process updates to dropbox. Change notifyOnPickup and/or active status.
 
 		return resp;
@@ -513,9 +537,13 @@ public class CollectionRequestService
 	@GET
 	@Path("dropbox/access/{dropboxAccessCode}")
 	@Produces(MediaType.TEXT_HTML)
-	public Response doGetDropboxAccessAsHtml(@PathParam("dropboxAccessCode") long dropboxAccessCode, @QueryParam("p") String password)
+	public Response doGetDropboxAccessAsHtml(@Context HttpServletRequest request, @PathParam("dropboxAccessCode") long dropboxAccessCode,
+			@QueryParam("p") String password)
 	{
 		HashMap<String, String> downloadables;
+		PageMessages messages = new PageMessages();
+		Map<String, Object> model = new HashMap<String, Object>();
+		Response resp = null;
 
 		LOGGER.trace("In doGetDropboxAccessAsHtml. Params dropboxAccessCode={}, password={}.", dropboxAccessCode, password);
 
@@ -563,7 +591,7 @@ public class CollectionRequestService
 				url.append("/content");
 				downloadables.put(reqItem.getItem(), url.toString());
 			}
-			
+
 			// Make a log of access
 			entityManager.getTransaction().begin();
 			CollectionDropboxAccessLog log = new CollectionDropboxAccessLog(dropbox, request.getRemoteAddr());
@@ -610,6 +638,10 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	public Response doGetQuestionsAsHtml()
 	{
+		PageMessages messages = new PageMessages();
+		Map<String, Object> model = new HashMap<String, Object>();
+		Response resp = null;
+
 		LOGGER.trace("In doGetQuestionsAsHtml");
 
 		try
@@ -670,8 +702,11 @@ public class CollectionRequestService
 	public Response doPostQuestionAsHtml(@FormParam("submit") String submit, @FormParam("q") String questionText, @FormParam("pid") String pid,
 			@FormParam("qid") Set<Long> qIdSet)
 	{
-		LOGGER.trace("In doPostQuestionAsHtml. Params submit={}, questionStr={}, pid={}, qid={}.", new Object[]
-		{ submit, questionText, pid, qIdSet });
+		PageMessages messages = new PageMessages();
+		Map<String, Object> model = new HashMap<String, Object>();
+		Response resp = null;
+
+		LOGGER.trace("In doPostQuestionAsHtml. Params submit={}, questionStr={}, pid={}, qid={}.", new Object[] { submit, questionText, pid, qIdSet });
 
 		if (Util.isNotEmpty(submit))
 		{
@@ -688,8 +723,7 @@ public class CollectionRequestService
 					Question question = new Question(questionText);
 					entityManager.persist(question);
 					entityManager.getTransaction().commit();
-					messages.add(MessageType.SUCCESS, "The question <em>" + question.getQuestionText() + "</em> saved in the Question Bank.",
-							model);
+					messages.add(MessageType.SUCCESS, "The question <em>" + question.getQuestionText() + "</em> saved in the Question Bank.", model);
 					LOGGER.debug("Saved question in question bank.");
 				}
 				catch (Exception e)
@@ -761,7 +795,7 @@ public class CollectionRequestService
 					}
 
 					entityManager.getTransaction().commit();
-					
+
 					// Add question list to model.
 					try
 					{
@@ -821,6 +855,10 @@ public class CollectionRequestService
 	// To eliminate warnings thrown by JSONObject and JSONArray.
 	public Response doGetDsListAsJson(@QueryParam("task") String task, @QueryParam("pid") String pid)
 	{
+		PageMessages messages = new PageMessages();
+		Map<String, Object> model = new HashMap<String, Object>();
+		Response resp = null;
+
 		LOGGER.trace("In doGetDsListAsJson. Params task={}, pid={}.", task, pid);
 
 		// Gets a list of datastreams in a Fedora Object.
@@ -940,8 +978,6 @@ public class CollectionRequestService
 	 */
 	private List<Question> getAllQuestions()
 	{
-		boolean isActive;
-		
 		entityManager.getTransaction().begin();
 		// TODO Use CriteriaBuilder
 		List<Question> questions = entityManager.createQuery("FROM Question qb", Question.class).getResultList();
