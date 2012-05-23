@@ -2,11 +2,12 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 	<xsl:param name="key" />
 	<xsl:param name="external" />
+	<xsl:variable name="anukey">http://anu.edu.au/</xsl:variable>
 	<xsl:template match="/">
 		<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
 			<registryObject group="The Australian National University">
-				<key>http://anu.edu.au/<xsl:value-of select="$key" /></key>
+				<key><xsl:value-of select="$anukey" /><xsl:value-of select="$key" /></key>
 				<originatingSource>http://anu.edu.au</originatingSource>
 				<xsl:choose>
 					<xsl:when test="data/type/text() = 'Collection'">
@@ -200,7 +201,7 @@
 		<xsl:if test="$external">
 			<xsl:for-each select="document($external)//*[namespace-uri()='http://anu.edu.au/related/']">
 				<relatedObject>
-					<key><xsl:value-of select="substring-after(@rdf:resource, 'info:fedora/')" /></key>
+					<key><xsl:value-of select="$anukey" /><xsl:value-of select="substring-after(@rdf:resource, 'info:fedora/')" /></key>
 					<relation type="{name()}" />
 				</relatedObject>
 			</xsl:for-each>
