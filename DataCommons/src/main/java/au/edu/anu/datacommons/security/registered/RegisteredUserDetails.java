@@ -51,8 +51,9 @@ public class RegisteredUserDetails extends JdbcDaoImpl {
 		UsersDAO usersDAO = new UsersDAOImpl(Users.class);
 		Users users = usersDAO.getUserByName(username);
 		CustomUser user = null;
+		LOGGER.info("displayName: {})", users.getDisplayName());
 		if (users != null) {
-			user = new CustomUser(userDetails.getUsername(), userDetails.getPassword(), userDetails.isEnabled(), true, true, true, authorities, users.getId());
+			user = new CustomUser(userDetails.getUsername(), userDetails.getPassword(), userDetails.isEnabled(), true, true, true, authorities, users.getId(), users.getDisplayName());
 		}
 		else {
 			LOGGER.error("User {} not found in the database", username);

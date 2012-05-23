@@ -109,7 +109,8 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 		Users users = usersDAO.getUserByName(username);
 		CustomUser user = null;
 		if (users != null) {
-			user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authorities, users.getId());
+			LOGGER.info("displayName: {})", users.getDisplayName());
+			user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authorities, users.getId(), users.getDisplayName());
 		}
 		else {
 			Users newUser = new Users();
@@ -118,8 +119,9 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 			newUser.setEnabled(Boolean.TRUE);
 			newUser.setUser_type(new Long(1));
 			usersDAO.create(newUser);
-			
-			user = new CustomUser(newUser.getUsername(), newUser.getPassword(), true, true, true, true, authorities, newUser.getId());
+
+			LOGGER.info("New User displayName: {})", newUser.getDisplayName());
+			user = new CustomUser(newUser.getUsername(), newUser.getPassword(), true, true, true, true, authorities, newUser.getId(), newUser.getDisplayName());
 		}
 		return user;
 	}
