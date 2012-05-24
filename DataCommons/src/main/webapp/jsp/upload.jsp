@@ -53,11 +53,11 @@
 			<param name="stringUploadSuccess" value="^SUCCESS$" />
 			<param name="stringUploadError" value="^ERROR: (.*)$" />
 			<param name="stringUploadWarning" value="^WARNING: (.*)$" />
-			<param name="debugLevel" value="99" />
+			<param name="debugLevel" value="1" />
 			<param name="maxChunkSize" value="10485760" />
 			<param name="afterUploadURL" value="javascript:alert('Upload successful.');" />
 			<param name="formdata" value="uploadForm" />
-			<param name="showLogWindow" value="true" />
+			<param name="showLogWindow" value="false" />
 			<param name="showStatusBar" value="true" />
 			<param name="sendMD5Sum" value="true" />
 			This Java Applet requires Java 1.5 or higher.
