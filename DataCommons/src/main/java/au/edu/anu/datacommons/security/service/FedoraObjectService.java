@@ -8,8 +8,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
 
-import com.sun.jersey.api.view.Viewable;
-
 /**
  * FedoraObjectService
  * 
@@ -61,7 +59,7 @@ public interface FedoraObjectService {
 	 * @param tmplt The template that determines the fields on the screen
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Viewable getViewPage(FedoraObject fedoraObject, String layout, String tmplt);
+	public Map<String, Object> getViewPage(FedoraObject fedoraObject, String layout, String tmplt);
 	
 	/**
 	 * getNewPage
@@ -77,7 +75,7 @@ public interface FedoraObjectService {
 	 * @param tmplt The template that determines the fields on the screen
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Viewable getNewPage(String layout, String tmplt);
+	public Map<String, Object> getNewPage(String layout, String tmplt);
 	
 	/**
 	 * saveNew
@@ -93,7 +91,7 @@ public interface FedoraObjectService {
 	 * @param form Contains the parameters from the request
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Viewable saveNew(String layout, String tmplt, Map<String, List<String>> form);
+	public Map<String, Object> saveNew(String layout, String tmplt, Map<String, List<String>> form);
 	
 	/**
 	 * getEditPage
@@ -111,7 +109,7 @@ public interface FedoraObjectService {
 	 * @return Returns the viewable for the jsp file to pick up
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
-	public Viewable getEditPage(FedoraObject fedoraObject, String layout, String tmplt);
+	public Map<String, Object> getEditPage(FedoraObject fedoraObject, String layout, String tmplt);
 
 	/**
 	 * getEditItem
@@ -148,7 +146,7 @@ public interface FedoraObjectService {
 	 * @return Returns the viewable for the jsp file to pick up
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
-	public Viewable saveEdit(FedoraObject fedoraObject, String layout, String tmplt, Map<String, List<String>> form);
+	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String layout, String tmplt, Map<String, List<String>> form);
 	
 	/**
 	 * addLink

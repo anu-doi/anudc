@@ -75,8 +75,9 @@ public class DisplayResource {
 	public Response getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item)
 	{
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
-		Viewable viewable = fedoraObjectService.getViewPage(fedoraObject, layout, tmplt);
-
+		Map<String, Object> values = fedoraObjectService.getViewPage(fedoraObject, layout, tmplt);
+		
+		Viewable viewable = new Viewable((String)values.remove("topage"), values);
 		return Response.ok(viewable).build();
 	}
 	
@@ -100,7 +101,8 @@ public class DisplayResource {
 	@Produces(MediaType.TEXT_HTML)
 	public Response newItemPage(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item)
 	{
-		Viewable viewable = fedoraObjectService.getNewPage(layout, tmplt);
+		Map<String, Object> values = fedoraObjectService.getNewPage(layout, tmplt);
+		Viewable viewable = new Viewable((String)values.remove("topage"), values);
 		return Response.ok(viewable).build();
 	}
 	
@@ -130,7 +132,8 @@ public class DisplayResource {
 	public Response postItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item, @Context HttpServletRequest request)
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
-		Viewable viewable = fedoraObjectService.saveNew(layout, tmplt, form);
+		Map<String, Object> values = fedoraObjectService.saveNew(layout, tmplt, form);
+		Viewable viewable = new Viewable((String)values.remove("topage"), values);
 		return Response.ok(viewable).build();
 	}
 	
@@ -185,8 +188,9 @@ public class DisplayResource {
 	public Response editItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item)
 	{
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
-		Viewable viewable = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt);
-
+		Map<String, Object> values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt);
+		Viewable viewable = new Viewable((String)values.remove("topage"), values);
+		
 		return Response.ok(viewable).build();
 	}
 	
@@ -216,8 +220,9 @@ public class DisplayResource {
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
-		
-		Viewable viewable = fedoraObjectService.saveEdit(fedoraObject, layout, tmplt, form);
+
+		Map<String, Object> values = fedoraObjectService.saveEdit(fedoraObject, layout, tmplt, form);
+		Viewable viewable = new Viewable((String)values.remove("topage"), values);
 		
 		return Response.ok(viewable).build();
 	}
