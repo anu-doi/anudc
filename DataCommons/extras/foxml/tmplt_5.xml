@@ -27,7 +27,7 @@
         <template>
           <name>Person Template</name>
           <item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type" readonly="readonly" saveType="single"/>
-          <item defaultValue="group" editPerm="admin" fieldType="TextField" label="Party Type" name="subType"
+          <item defaultValue="person" editPerm="admin" fieldType="TextField" label="Party Type" name="subType"
             readonly="readonly" saveType="single"/>
           <item fieldType="TextField" label="Title" name="title" saveType="single"/>
           <item fieldType="TextField" label="Given Name" name="givenName" saveType="single"/>
