@@ -27,7 +27,6 @@ jQuery(document).ready(function() {
 					type: jQuery("#itemType").val()
 				},
 				success: function(data) {
-					console.log('Data was retrieved: ' + data.results.length);
 					response ( jQuery.map(data.results, function(item, i) {
 						return {
 							label: item.title,
@@ -93,6 +92,9 @@ jQuery("#formAddLink").live('submit', function() {
 		data: dataString,
 		success: function() {
 			disablePopup();
+		},
+		error: function() {
+			alert('Error Adding Link');
 		}
 	});
 });
