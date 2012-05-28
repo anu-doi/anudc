@@ -14,7 +14,8 @@
  * to the itemId text field
  * 
  * Version	Date		Developer			Description
- * 0.1		07/05/2012	Genevieve Turner	Initial
+ * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
+ * 0.2		29/05/2012	Genevieve Turner (GT)	Removed console.log which was causing issues in browsers other than firefox
  */
 jQuery(document).ready(function() {
 	jQuery("#itemId").autocomplete({
@@ -48,6 +49,9 @@ jQuery(document).ready(function() {
 
 /**
  * Centre and open the popup
+ * 
+ * Version	Date		Developer				Description
+ * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
  */
 jQuery("#itemLinkButton").live('click', function(){
 	centrePopup();
@@ -56,6 +60,9 @@ jQuery("#itemLinkButton").live('click', function(){
 
 /**
  * Close the popup when the close button as been clicked
+ * 
+ * Version	Date		Developer				Description
+ * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
  */
 jQuery("#popupLinkClose").live('click', function(){
 	disablePopup();
@@ -63,6 +70,9 @@ jQuery("#popupLinkClose").live('click', function(){
 
 /**
  * Close the popup when the background has been clicked
+ * 
+ * Version	Date		Developer				Description
+ * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
  */
 jQuery("#backgroundPopup").live('click', function() {
 	disablePopup();
@@ -70,6 +80,9 @@ jQuery("#backgroundPopup").live('click', function() {
 
 /**
  * Close the popup when the escape button has been pressed
+ * 
+ * Version	Date		Developer				Description
+ * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
  */
 jQuery(document).keypress(function(e) {
 	if(e.keyCode==27 && popupStatus==1) {
@@ -79,6 +92,10 @@ jQuery(document).keypress(function(e) {
 
 /**
  * Perform an ajax call when the add link form is submitted
+ * 
+ * Version	Date		Developer				Description
+ * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
+ * 0.3		29/05/2012	Genevieve Turner (GT)	Added error notification
  */
 jQuery("#formAddLink").live('submit', function() {
 	var hash = getURLVars();
@@ -106,6 +123,9 @@ var popupStatus = 0;
  * loadPopup
  * 
  * Display the popup on the screen
+ * 
+ * Version	Date		Developer				Description
+ * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
  */
 function loadPopup() {
 	if (popupStatus == 0) {
@@ -125,6 +145,9 @@ function loadPopup() {
  * centrePopup
  * 
  * Centre the popup in the screen
+ * 
+ * Version	Date		Developer				Description
+ * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
  */
 function centrePopup() {
 	var windowWidth = document.documentElement.clientWidth;
@@ -147,6 +170,9 @@ function centrePopup() {
  * disablePopup
  * 
  * Close the popup
+ * 
+ * Version	Date		Developer				Description
+ * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
  */
 function disablePopup() {
 	if (popupStatus == 1) {
