@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
+		xmlns:xalan="http://xml.apache.org/xalan" exclude-result-prefixes="xalan">
 	<xsl:param name="item" />
 	<xsl:param name="tmplt" />
 	<xsl:param name="data" />
+	<xsl:param name="options" />
 	<xsl:variable name="mData" select="$data" />
+	<xsl:variable name="mOptions" select="$options" />
 	<xsl:template match="/">
 		<html>
 			<body>
@@ -102,11 +105,25 @@
 		<td>
 			<xsl:variable name="mName" select="@name" />
 			<select name="{@name}" class="{@class}">
-				<xsl:for-each select="option">
-					<option value="{@value}">
-						<xsl:value-of select="@label" />
-					</option>
-				</xsl:for-each>
+				<xsl:choose>
+					<xsl:when test="$options != '' and $mOptions/options/*[name() = $mName]">
+						<option value="">
+							- No Value Selected -
+						</option>
+						<xsl:for-each select="$mOptions/options/*[name() = $mName]">
+							<option value="{id}">
+								<xsl:value-of select="name" />
+							</option>
+						</xsl:for-each>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:for-each select="option">
+							<option value="{@value}">
+								<xsl:value-of select="@label" />
+							</option>
+						</xsl:for-each>
+					</xsl:otherwise>
+				</xsl:choose>
 			</select>
 		</td>
 	</xsl:template>

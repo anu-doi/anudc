@@ -4,6 +4,10 @@
 		readonly="readonly" saveType="single"/>
 	<item defaultValue="person" editPerm="admin" fieldType="TextField" label="Party Type" name="subType"
 		readonly="readonly" saveType="single"/>
+	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required">
+		<option value="" label="-No Value Selected-" />
+		<option value="1" label="Administrator" />
+	</item>
 	<item fieldType="TextField" label="Title" name="title" saveType="single" />
 	<item fieldType="TextField" label="Given Name" name="givenName" saveType="single" />
 	<item fieldType="TextField" label="Surname" name="lastName" saveType="single" />

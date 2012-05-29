@@ -21,11 +21,11 @@ insert into acl_sid (id, principal, sid) values
 select setval('acl_sid_id_seq', (SELECT MAX(id) FROM acl_sid));
 
 insert into acl_class (id, class) values
-(1,'au.edu.anu.datacommons.connection.db.model.Domains');
+(1,'au.edu.anu.datacommons.data.db.model.Domains');
 insert into acl_class (id, class) values
-(2,'au.edu.anu.datacommons.connection.db.model.Groups');
+(2,'au.edu.anu.datacommons.data.db.model.Groups');
 insert into acl_class (id, class) values
-(3,'au.edu.anu.datacommons.connection.db.model.FedoraObject');
+(3,'au.edu.anu.datacommons.data.db.model.FedoraObject');
 
 select setval('acl_class_id_seq', (SELECT MAX(id) FROM acl_class));
 

@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -36,14 +37,18 @@ import au.edu.anu.datacommons.data.db.dao.AclObjectIdentityDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.model.AclObjectIdentity;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.security.service.GroupService;
+import au.edu.anu.datacommons.security.service.GroupServiceImpl;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.data.Data;
 import au.edu.anu.datacommons.xml.data.DataItem;
 import au.edu.anu.datacommons.xml.dc.DublinCore;
 import au.edu.anu.datacommons.xml.dc.DublinCoreConstants;
+import au.edu.anu.datacommons.xml.other.OptionList;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.template.TemplateColumn;
 import au.edu.anu.datacommons.xml.template.TemplateItem;
@@ -70,6 +75,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.5		03/05/2012	Genevieve Turner (GT)	Updated to use fedora objects instead of a string for fedora items
  * 0.6		14/05/2012	Genevieve Turner (GT)	Updated to use namespace from a property
  * 0.7		15/05/2012	Genevieve Turner (GT)	Updated to fix issue with the dublin core title field
+ * 0.8		28/05/2012	Genevieve Turner (GT)	Added groups to code
  * </pre>
  * 
  */
@@ -105,6 +111,7 @@ public class ViewTransform
 	 * 0.1		19/03/2012	Genevieve Turner (GT)	Initial build
 	 * 0.4		26/04/2012	Genevieve Turner (GT)	Some updates for differences between published and non-published records
 	 * 0.5		02/05/2012	Genevieve Turner (GT)	Updates to display differences between published and non-published records
+	 * 0.8		28/05/2012	Genevieve Turner (GT)	Updated for retrieving data from the database
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -196,7 +203,7 @@ public class ViewTransform
 					Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(dataStream);
 					parameters.put("data", doc);
 					if (modifiedDocument != null) {
-						LOGGER.info("Adding modified data");
+						LOGGER.debug("Adding modified data");
 						parameters.put("modifiedData", modifiedDocument);
 					}
 				}
@@ -217,6 +224,13 @@ public class ViewTransform
 		}
 		String result = "";
 		try {
+			Document options = getOptionsXML();
+			if (options != null) {
+				parameters.put("options", options);
+			}
+			else {
+				LOGGER.info("Options are null");
+			}
 			result = transform(xmlStream, xslStream, parameters);
 		}
 		catch (Exception e) {
@@ -311,6 +325,44 @@ public class ViewTransform
 			LOGGER.error("Exception transforming page", e);
 		}
 		return result;
+	}
+	
+	/**
+	 * getOptionsXML
+	 * 
+	 * Gets an xml representation of of options for select boxes.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.8		28/05/2012	Genevieve Turner (GT)	Updated for retrieving data from the database
+	 * </pre>
+	 * 
+	 * @return Returns an xml document that contains values for drop down lists
+	 */
+	public Document getOptionsXML() {
+		Document doc = null;
+		try {
+			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+		}
+		catch (ParserConfigurationException e) {
+			LOGGER.error("Error creating document", e);
+		}
+		OptionList optionList = new OptionList();
+		GroupService groupService = new GroupServiceImpl();
+		List<Groups> groups = groupService.getAll();
+		if (groups.size() > 0) {
+			optionList.getGroups().addAll(groups);
+		}
+		
+		try {
+			JAXBContext jaxbContext = JAXBContext.newInstance(OptionList.class);
+			Marshaller marshaller = jaxbContext.createMarshaller();
+			marshaller.marshal(optionList, doc);
+		}
+		catch(JAXBException e) {
+			LOGGER.error("Exception transforming document", e);
+		}
+		return doc;
 	}
 	
 	/**
@@ -710,12 +762,20 @@ public class ViewTransform
 			if(Util.isNotEmpty(dcSW.toString())) {
 				FedoraBroker.modifyDatastreamBySource(item, Constants.DC, "Dublin Core Record for this object", dcSW.toString());
 			}
+			String group_id = "1";
+			if (form.get("ownerGroup") != null) {
+				LOGGER.info("There is an ownerGroup");
+				group_id = form.get("ownerGroup").get(0);
+			}
+			else {
+				LOGGER.info("There is no ownerGroup");
+			}
 			
 			fedoraObject = new FedoraObject();
 			fedoraObject.setObject_id(item);
 			
 			//TODO Update so this is not a hard coded value
-			fedoraObject.setGroup_id(new Long(1));
+			fedoraObject.setGroup_id(new Long(group_id));
 			fedoraObject.setPublished(Boolean.FALSE);
 
 			FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);

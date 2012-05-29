@@ -384,7 +384,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			SparqlResultSet resultSet = getLinks(fedoraObject);
 			values.put("resultSet", resultSet);
 		}
-		LOGGER.info("Map: {}", values);
 		
 		return values;
 	}

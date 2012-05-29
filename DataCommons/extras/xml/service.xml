@@ -3,12 +3,17 @@
 	<item defaultValue="Service" editPerm="admin" fieldType="TextField" label="Type" name="type"
 		readonly="readonly" saveType="single"/>
 	<item fieldType="Combobox" label="Service Type" name="subType" saveType="single" class="required">
+		<option value="" label="-No Value Selected-" />
 		<option label="Create" value="create"/>
 		<option label="Generate" value="generate"/>
 		<option label="Annotate" value="annotate"/>
 		<option label="Report" value="report"/>
 		<option label="Transform" value="transform"/>
 		<option label="Assemble" value="assemble"/>
+	</item>
+	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required">
+		<option value="" label="-No Value Selected-" />
+		<option value="1" label="Administrator" />
 	</item>
 	<item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"/>
 	<item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"/>

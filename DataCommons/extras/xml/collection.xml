@@ -2,7 +2,7 @@
 <template>
 	<name>Collection Template</name>
 	<item name="type" label="Type" fieldType="TextField" saveType="single" defaultValue="Collection" readonly="readonly" editPerm="admin" />
-	<item name="subType" label="Collection Type" fieldType="Combobox" saveType="single">
+	<item name="subType" label="Collection Type" fieldType="Combobox" saveType="single" class="required">
 		<option value="" label="-No Value Selected-" />
 		<option value="dataset" label="Dataset" />
 		<option value="catalogueOrIndex" label="Catalogue or Index" />
@@ -10,7 +10,10 @@
 		<option value="registry" label="Registry" />
 		<option value="repository" label="Repository" />
 	</item>
-	<item name="ownerGroup" label="Owner Group" fieldType="ComboBox" saveType="single" class="required" />
+	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required">
+		<option value="" label="-No Value Selected-" />
+		<option value="1" label="Administrator" />
+	</item>
 	<item name="name" label="Name" fieldType="TextField" saveType="single" maxLength="80" class="required" />
 	<item name="abbrName" label="Abbreviated Name" fieldType="TextField" saveType="single" maxLength="255" />
 	<item name="altName" label="Alternate Name" fieldType="TextField" saveType="single" maxLength="255" />
