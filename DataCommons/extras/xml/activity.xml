@@ -9,6 +9,10 @@
 		<option label="Award" value="award"/>
 		<option label="Event" value="event"/>
 	</item>
+	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required">
+		<option value="" label="-No Value Selected-" />
+		<option value="1" label="Administrator" />
+	</item>
 	<item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"/>
 	<item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"/>
 	<item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single"/>

@@ -34,6 +34,7 @@ import au.edu.anu.datacommons.security.CustomUser;
  * 0.2		16/05/2012	Genevieve Turner (GT)	Updated to use a custom user
  * 0.3		17/05/2012	Genevieve Turner (GT)	Renamed loadCustomUser to createUserDetails 
  * 0.4		17/05/2012	Geneiveve Turner (GT)	Updated to insert user into database when they log in 
+ * 0.5		23/05/2012	Genevieve Turner (GT)	Updated for display name
  * </pre>
  * 
  */
@@ -97,6 +98,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 * 0.2		16/05/2012	Genevieve Turner (GT)	Updated to use a custom user
 	 * 0.3		17/05/2012	Genevieve Turner (GT)	Renamed from loadCustomUser to createUserDetails
 	 * 0.4		17/05/2012	Genevieve Turner (GT)	Updated to insert user into database when they log in
+	 * 0.5		23/05/2012	Genevieve Turner (GT)	Updated for display name
 	 * </pre>
 	 * 
 	 * @param username The username of the person logging in
@@ -109,7 +111,8 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 		Users users = usersDAO.getUserByName(username);
 		CustomUser user = null;
 		if (users != null) {
-			user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authorities, users.getId());
+			LOGGER.info("displayName: {})", users.getDisplayName());
+			user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authorities, users.getId(), users.getDisplayName());
 		}
 		else {
 			Users newUser = new Users();
@@ -118,8 +121,9 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 			newUser.setEnabled(Boolean.TRUE);
 			newUser.setUser_type(new Long(1));
 			usersDAO.create(newUser);
-			
-			user = new CustomUser(newUser.getUsername(), newUser.getPassword(), true, true, true, true, authorities, newUser.getId());
+
+			LOGGER.info("New User displayName: {})", newUser.getDisplayName());
+			user = new CustomUser(newUser.getUsername(), newUser.getPassword(), true, true, true, true, authorities, newUser.getId(), newUser.getDisplayName());
 		}
 		return user;
 	}

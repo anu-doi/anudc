@@ -27,56 +27,57 @@
     <foxml:datastreamVersion ID="XML_TEMPLATE.0" LABEL="XML Template"
       MIMETYPE="text/xml" SIZE="3864">
       <foxml:xmlContent>
-        <template>
-          <name>Collection Template</name>
-          <item defaultValue="Collection" editPerm="admin" fieldType="TextField" label="Type" name="type"
-            readonly="readonly" saveType="single"/>
-          <item fieldType="Combobox" label="Collection Type" name="subType" saveType="single">
-            <option label="-No Value Selected-" value=""/>
-            <option label="Dataset" value="dataset"/>
-            <option label="Catalogue or Index" value="catalogueOrIndex"/>
-            <option label="Collection" value="collection"/>
-            <option label="Registry" value="registry"/>
-            <option label="Repository" value="repository"/>
-          </item>
-          <item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"/>
-          <item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"/>
-          <item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single"/>
-          <item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single"/>
-          <item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single"/>
-          <item class="required email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple"/>
-          <item fieldType="TextArea" label="Contact Address" name="postalAddress" saveType="single"/>
-          <item fieldType="TextFieldMulti" label="Contact Phone Number" name="phone" saveType="multiple"/>
-          <item fieldType="TextFieldMulti" label="Contact Fax Number" name="fax" saveType="multiple"/>
-          <item fieldType="TextFieldMulti" label="Website Address" name="websiteAddress" saveType="multiple"/>
-          <item class="required" fieldType="TextFieldMulti" label="ANZSRC-FOR Subject" name="anzforSubject" saveType="multiple"/>
-          <item fieldType="TextFieldMulti" label="Other Subject" name="locSubject" saveType="multiple"/>
-          <item fieldType="Table" label="Coverage Dates" name="coverageDates" saveType="table">
-            <column class="date" fieldType="TextField" label="Date From" name="dateFrom"/>
-            <column class="date" fieldType="TextField" label="Date To" name="dateTo"/>
-          </item>
-          <item fieldType="Table" label="Coverage Area" name="coverageArea" saveType="table">
-            <column fieldType="Combobox" label="Location Type" name="covAreaType">
-              <option label="-No Value Selected-" value=""/>
-              <option label="Text" value="text"/>
-              <option label="OpenGIS Geography Markup Language (GML) Encoding Standard" value="gml"/>
-            </column>
-            <column fieldType="TextField" name="covAreaValue"/>
-          </item>
-          <item fieldType="TableVertical" label="Publications" name="publication" saveType="table">
-            <column fieldType="Combobox" label="Publication Type" name="pubType">
-              <option label="-No Value Selected-" value=""/>
-              <option label="Digital Object Identifier" value="doi"/>
-              <option label="International Standard Serial Number" value="issn"/>
-              <option label="International Standard Book Number" value="isbn"/>
-            </column>
-            <column fieldType="TextField" label="Publication Value" name="pubValue"/>
-            <column fieldType="TextArea" label="Publication Title" name="pubTitle"/>
-          </item>
-          <item fieldType="TextArea" label="Rights Statement" name="rightsStatement" saveType="single" tooltip="Intellectual property rights information"/>
-          <item fieldType="TextArea" label="Licence" name="licence" saveType="single" tooltip="Licence Information"/>
-          <item fieldType="TextArea" label="Access Rights" name="accessRights" saveType="single" tooltip="Information about who and when people may access the information in this collection"/>
-        </template>
+<template>
+	<name>Collection Template</name>
+	<item name="type" label="Type" fieldType="TextField" saveType="single" defaultValue="Collection" readonly="readonly" editPerm="admin" />
+	<item name="subType" label="Collection Type" fieldType="Combobox" saveType="single">
+		<option value="" label="-No Value Selected-" />
+		<option value="dataset" label="Dataset" />
+		<option value="catalogueOrIndex" label="Catalogue or Index" />
+		<option value="collection" label="Collection" />
+		<option value="registry" label="Registry" />
+		<option value="repository" label="Repository" />
+	</item>
+	<item name="name" label="Name" fieldType="TextField" saveType="single" maxLength="80" class="required" />
+	<item name="abbrName" label="Abbreviated Name" fieldType="TextField" saveType="single" maxLength="255" />
+	<item name="altName" label="Alternate Name" fieldType="TextField" saveType="single" maxLength="255" />
+	<item name="significanceStatement" label="Significance Statement" fieldType="TextArea" saveType="single" maxLength="4000" />
+	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000" class="required" />
+	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" maxLength="4000" />
+	<item name="email" label="Contact Email" fieldType="TextFieldMulti" saveType="multiple" class="required email" />
+	<item name="postalAddress" label="Contact Address" fieldType="TextArea" saveType="single" />
+	<item name="phone" label="Contact Phone Number" fieldType="TextFieldMulti" saveType="multiple" />
+	<item name="fax" label="Contact Fax Number" fieldType="TextFieldMulti"  saveType="multiple" />
+	<item name="websiteAddress" label="Website Address" fieldType="TextFieldMulti" saveType="multiple" />
+	<item name="anzforSubject" label="ANZSRC-FOR Subject" fieldType="TextFieldMulti" saveType="multiple" class="required" />
+	<item name="locSubject" label="Other Subject" fieldType="TextFieldMulti" saveType="multiple" />
+	<item name="coverageDates" label="Coverage Dates" fieldType="Table" saveType="table">
+		<column name="dateFrom" label="Date From" fieldType="TextField" class="date" />
+		<column name="dateTo" label="Date To" fieldType="TextField" class="date" />
+	</item>
+	<item name="coverageArea" label="Coverage Area" fieldType="Table" saveType="table">
+		<column name="covAreaType" label="Location Type" fieldType="Combobox">
+			<option value="" label="-No Value Selected-" />
+			<option value="text" label="Text" />
+			<option value="gml" label="OpenGIS Geography Markup Language (GML) Encoding Standard" />
+		</column>
+		<column name="covAreaValue" fieldType="TextField" />
+	</item>
+	<item name="publication" label="Publications" fieldType="TableVertical" saveType="table">
+		<column name="pubType" label="Publication Type" fieldType="Combobox">
+			<option value="" label="-No Value Selected-" />
+			<option value="doi" label="Digital Object Identifier" />
+			<option value="issn" label="International Standard Serial Number" />
+			<option value="isbn" label="International Standard Book Number" />
+		</column>
+		<column name="pubValue" label="Publication Value" fieldType="TextField" />
+		<column name="pubTitle" label="Publication Title" fieldType="TextArea" />
+	</item>
+	<item name="rightsStatement" label="Rights Statement" fieldType="TextArea" saveType="single" tooltip="Intellectual property rights information" />
+	<item name="licence" label="Licence" fieldType="TextArea" saveType="single" tooltip="Licence Information" />
+	<item name="accessRights" label="Access Rights" fieldType="TextArea" saveType="single" tooltip="Information about who and when people may access the information in this collection" />
+</template>
+
       </foxml:xmlContent>
     </foxml:datastreamVersion>
   </foxml:datastream>

@@ -1,7 +1,26 @@
-create table users(
-	username varchar(50) not null primary key,
-	password varchar(50) not null,
-	enabled boolean not null
+CREATE TABLE users_type (
+	id	bigserial	not null
+	,type_name	varchar(255)	not null
+	,PRIMARY KEY (id)
+);
+
+create table users (
+	id			bigserial	not null,
+	username	varchar(50)	not null,
+	password	varchar(50)	not null,
+	enabled		boolean		not null,
+	user_type	bigint		not null,
+	primary key (id)
+	,CONSTRAINT fk_users_1 FOREIGN KEY (user_type) REFERENCES users_type (id)
+);
+create unique index ix_user_username on users (username);
+
+CREATE TABLE user_registered (
+	id bigint	not null
+	,last_name	varchar(40)	not null
+	,given_name	varchar(40)	not null
+	,PRIMARY KEY (id)
+	,CONSTRAINT fk_user_registered_1 FOREIGN KEY(id) REFERENCES users(id)
 );
 
 create table authorities (
@@ -86,6 +105,13 @@ CREATE TABLE publish_location (
 	,UNIQUE (code)
 );
 
+CREATE TABLE published (
+	fedora_id				bigint		NOT NULL
+	, location_id			bigint		NOT NULL
+	, PRIMARY KEY (fedora_id, location_id)
+	, CONSTRAINT fk_published_fedora foreign key (fedora_id) references fedora_object(id)
+	, CONSTRAINT fk_published_location foreign key (location_id) references publish_location(id)
+);
 -- Table: collection_requests
 
 -- DROP TABLE collection_requests;
@@ -94,11 +120,12 @@ CREATE TABLE collection_requests
 (
   id bigserial NOT NULL,
   pid character varying(255) NOT NULL,
-  requestor_id bigint NOT NULL,
   requestor_ip character varying(255),
   "timestamp" timestamp without time zone NOT NULL,
   dropbox_id bigint,
-  CONSTRAINT collection_requests_pkey PRIMARY KEY (id )
+  requestor_fk bigint NOT NULL,
+  CONSTRAINT collection_requests_pkey PRIMARY KEY (id ),
+  CONSTRAINT fk71967445661730c1 FOREIGN KEY (requestor_fk) REFERENCES users (id)
   )
 ;
 ALTER TABLE collection_requests
@@ -114,14 +141,15 @@ CREATE TABLE collection_dropboxes
   access_code bigint NOT NULL,
   access_password character varying(255) NOT NULL,
   active boolean NOT NULL,
-  creator_user_id bigint NOT NULL,
   expiry date NOT NULL,
   notifyonpickup boolean,
   created timestamp without time zone NOT NULL,
   request_fk bigint,
+  creator_fk bigint NOT NULL,
   CONSTRAINT collection_dropboxes_pkey PRIMARY KEY (id ),
   CONSTRAINT fk79688dc93ef24101 FOREIGN KEY (request_fk)
       REFERENCES collection_requests (id),
+  CONSTRAINT fk79688dc969bf5f07 FOREIGN KEY (creator_fk) REFERENCES users (id),
         CONSTRAINT collection_dropboxes_access_code_key UNIQUE (access_code )
 )
 ;
@@ -155,9 +183,9 @@ ALTER TABLE collection_dropbox_access_logs
 CREATE TABLE question_bank
 (
   id bigserial NOT NULL,
-  question character varying(255) NOT NULL,
+  question_text character varying(255) NOT NULL,
   CONSTRAINT question_bank_pkey PRIMARY KEY (id ),
-  CONSTRAINT question_bank_question_key UNIQUE (question )
+  CONSTRAINT question_bank_question_key UNIQUE (question_text )
 )
 ;
 ALTER TABLE question_bank
@@ -212,11 +240,12 @@ CREATE TABLE collection_request_status
   reason character varying(255) NOT NULL,
   status integer NOT NULL,
   "timestamp" timestamp without time zone NOT NULL,
-  user_id bigint NOT NULL,
   request_fk bigint,
+  user_fk bigint not null,
   CONSTRAINT collection_request_status_pkey PRIMARY KEY (id ),
   CONSTRAINT fka6ce9b633ef24101 FOREIGN KEY (request_fk)
-      REFERENCES collection_requests (id)
+      REFERENCES collection_requests (id),
+  CONSTRAINT fka6ce9b63ec35b08 FOREIGN KEY (user_fk) REFERENCES users (id)
       )
 ;
 ALTER TABLE collection_request_status

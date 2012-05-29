@@ -24,7 +24,8 @@ import au.edu.anu.datacommons.security.CustomUser;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		17/05/2012	Genevieve Turner (GT)	Initial
- * </pre>
+ * 0.2		23/05/2012	Genevieve Turner (GT)	Updated for display name
+ *  </pre>
  * 
  */
 public class RegisteredUserDetails extends JdbcDaoImpl {
@@ -38,6 +39,7 @@ public class RegisteredUserDetails extends JdbcDaoImpl {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		17/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.2		23/05/2012	Genevieve Turner (GT)	Updated for display name
 	 * </pre>
 	 * 
 	 * @param username The username of the person logging in
@@ -51,8 +53,9 @@ public class RegisteredUserDetails extends JdbcDaoImpl {
 		UsersDAO usersDAO = new UsersDAOImpl(Users.class);
 		Users users = usersDAO.getUserByName(username);
 		CustomUser user = null;
+		LOGGER.info("displayName: {})", users.getDisplayName());
 		if (users != null) {
-			user = new CustomUser(userDetails.getUsername(), userDetails.getPassword(), userDetails.isEnabled(), true, true, true, authorities, users.getId());
+			user = new CustomUser(userDetails.getUsername(), userDetails.getPassword(), userDetails.isEnabled(), true, true, true, authorities, users.getId(), users.getDisplayName());
 		}
 		else {
 			LOGGER.error("User {} not found in the database", username);

@@ -1,7 +1,9 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:param name="data" />
 	<xsl:param name="fieldName" />
+	<xsl:param name="options" />
 	<xsl:variable name="mData" select="$data" />
+	<xsl:variable name="mOptions" select="$options" />
 	<xsl:template match="/">
 		<xsl:if test="$fieldName != ''">
 			<xsl:for-each select="template/item[@name=$fieldName]">
@@ -89,14 +91,28 @@
 		<xsl:param name="mValue" />
 		<xsl:variable name="mName" select="@name" />
 		<select name="{@name}">
-			<xsl:for-each select="option">
-				<option value="{@value}">
-					<xsl:if test="$mValue = @value">
-						<xsl:attribute name="selected" />
-					</xsl:if>
-					<xsl:value-of select="@label" />
-				</option>
-			</xsl:for-each>
+			<xsl:choose>
+				<xsl:when test="$options != '' and $mOptions/options/*[name() = $mName]">
+					<option value="">
+						- No Value Selected -
+					</option>
+					<xsl:for-each select="$mOptions/options/*[name() = $mName]">
+						<option value="{id}">
+							<xsl:value-of select="name" />
+						</option>
+					</xsl:for-each>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:for-each select="option">
+						<option value="{@value}">
+							<xsl:if test="$mValue = @value">
+								<xsl:attribute name="selected" />
+							</xsl:if>
+							<xsl:value-of select="@label" />
+						</option>
+					</xsl:for-each>
+				</xsl:otherwise>
+			</xsl:choose>
 		</select>
 	</xsl:template>
 	

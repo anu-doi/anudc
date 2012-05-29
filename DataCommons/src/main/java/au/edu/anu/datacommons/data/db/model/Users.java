@@ -6,11 +6,14 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.PostLoad;
 import javax.persistence.OneToOne;
+import javax.persistence.PostLoad;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.ldap.LdapPerson;
 import au.edu.anu.datacommons.ldap.LdapRequest;
@@ -36,6 +39,8 @@ import au.edu.anu.datacommons.ldap.LdapRequest;
 @Table(name = "users")
 public class Users
 {
+	static final Logger LOGGER = LoggerFactory.getLogger(Users.class);
+	
 	private Long id;
 	private String username;
 	private String password;
@@ -208,21 +213,43 @@ public class Users
 	}
 
 	@PostLoad
-	public void getLdapPerson()
+	public void getPersonDetails()
 	{
-		LdapPerson ldapPerson;
-		LdapRequest ldapReq = new LdapRequest();
-		try
-		{
-			ldapPerson = ldapReq.searchUniId(username);
-			displayName = ldapPerson.getDisplayName();
-			givenName = ldapPerson.getGivenName();
-			familyName = ldapPerson.getFamilyName();
-			email = ldapPerson.getEmail();
+		boolean detailsFound = true;
+		if (user_type.longValue() == 1) {
+			LdapPerson ldapPerson;
+			LdapRequest ldapReq = new LdapRequest();
+			try
+			{
+				ldapPerson = ldapReq.searchUniId(username);
+				displayName = ldapPerson.getDisplayName();
+				givenName = ldapPerson.getGivenName();
+				familyName = ldapPerson.getFamilyName();
+				email = ldapPerson.getEmail();
+			}
+			catch (Exception e)
+			{
+				//TODO retrieve details for users that are no longer at ANU
+				detailsFound = false;
+			}
 		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
+		else if (user_type.longValue() == 2) {
+			if (user_registered == null ) {
+				LOGGER.error("User {} does not have any details", id);
+				detailsFound = false;
+			}
+			else {
+				displayName = user_registered.getGiven_name() + " " + user_registered.getLast_name();
+				givenName = user_registered.getGiven_name();
+				familyName = user_registered.getLast_name();
+				email = username;
+			}
+		}
+		else {
+			detailsFound = false;
+		}
+		if (!detailsFound) {
+			LOGGER.error("Unable to find details for user: {}", id);
 			displayName = "";
 			givenName = "";
 			familyName = "";

@@ -11,3 +11,9 @@
 
 CREATE USER dcuser WITH PASSWORD 'dcpassword';
 CREATE DATABASE datacommonsdb WITH ENCODING='UTF8' OWNER dcuser;
+
+CREATE USER pmhuser WITH PASSWORD 'pmhpassword';
+CREATE DATABASE pmhdb WITH ENCODING='UTF8' OWNER pmhuser;
+
+CREATE USER fedoraAdmin WITH PASSWORD 'fedoraAdminPassword';
+CREATE DATABASE fedora3 WITH ENCODING='UTF8' OWNER fedoraAdmin;

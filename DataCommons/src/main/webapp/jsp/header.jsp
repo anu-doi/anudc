@@ -17,7 +17,7 @@
 			Welcome Guest <a href='<c:url value="/login" />'>Login</a> <a href="<c:url value='${casserver}/login'><c:param name='service' value='${appserver}/DataCommons/j_spring_cas_security_check' /></c:url>">ANU Login</a>
 		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
-			Welcome <sec:authentication property="principal.username" /> <a href='<c:url value="/j_spring_security_logout" />' >Logout</a>
+			Welcome <sec:authentication property="principal.displayName" /> <a href='<c:url value="/j_spring_security_logout" />' >Logout</a>
 		</sec:authorize>
 	</anu:tabmeta>
 </anu:tabnav>

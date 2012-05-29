@@ -18,12 +18,14 @@ import org.springframework.security.core.userdetails.User;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+ * 0.2		23/05/2012	Genevieve Turner (GT)	Updated for display name
  * </pre>
  * 
  */
 public class CustomUser extends User {
 	private static final long serialVersionUID = 1L;
 	private long id;
+	private String displayName;
 	
 	/**
 	 * Constructor
@@ -33,6 +35,7 @@ public class CustomUser extends User {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.2		23/05/2012	Genevieve Turner (GT)	Updated for display name
 	 * </pre>
 	 * 
 	 * @param username The username presented to the authentication provider
@@ -47,10 +50,11 @@ public class CustomUser extends User {
 	 */
 	public CustomUser (String username, String password, boolean enabled,
 			boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked,
-			List<GrantedAuthority> authorities, long id) throws IllegalArgumentException {
+			List<GrantedAuthority> authorities, long id, String displayName) throws IllegalArgumentException {
 		super(username, password, enabled, accountNonExpired, credentialsNonExpired,
 				accountNonLocked, authorities);
 		this.id = id;
+		this.displayName = displayName;
 	}
 
 	/**
@@ -83,6 +87,38 @@ public class CustomUser extends User {
 	 */
 	public void setId(long id) {
 		this.id = id;
+	}
+
+	/**
+	 * getDisplayName
+	 * 
+	 * Gets the user display name
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		23/05/2012	Genevieve Turner (GT)	Initial
+	 * </pre>
+	 * 
+	 * @return The users display name
+	 */
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	/**
+	 * setId
+	 * 
+	 * Sets the user display name
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		23/05/2012	Genevieve Turner (GT)	Initial
+	 * </pre>
+	 * 
+	 * @param displayName The users display name
+	 */
+	public void setDisplayName(String displayName) {
+		this.displayName = displayName;
 	}
 	
 	/**

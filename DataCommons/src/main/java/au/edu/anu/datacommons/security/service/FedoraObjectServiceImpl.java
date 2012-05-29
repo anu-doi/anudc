@@ -35,7 +35,6 @@ import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
 
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.view.Viewable;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
 
@@ -111,9 +110,9 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param tmplt The template that determines the fields on the screen
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Viewable getViewPage(FedoraObject fedoraObject, String layout, String tmplt) {
-		Viewable viewable = getPage(layout, tmplt, fedoraObject);
-		return viewable;
+	public Map<String, Object> getViewPage(FedoraObject fedoraObject, String layout, String tmplt) {
+		Map<String, Object> values = getPage(layout, tmplt, fedoraObject);
+		return values;
 	}
 	
 	/**
@@ -130,9 +129,9 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param tmplt The template that determines the fields on the screen
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Viewable getNewPage(String layout, String tmplt) {
-		Viewable viewable = getPage(layout, tmplt, null);
-		return viewable;
+	public Map<String, Object> getNewPage(String layout, String tmplt) {
+		Map<String, Object> values = getPage(layout, tmplt, null);
+		return values;
 	}
 	
 	/**
@@ -150,9 +149,10 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param form Contains the parameters from the request
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Viewable saveNew(String layout, String tmplt, Map<String, List<String>> form) {
+	public Map<String, Object> saveNew(String layout, String tmplt, Map<String, List<String>> form) {
+		Map<String, Object> values = new HashMap<String, Object>();
 		//TODO place post logic and return a proper screen.
-		String toPage = "/page.jsp";
+		values.put("topage", "/page.jsp");
 		String page = null;
 		FedoraObject fedoraObject = null;
 		ViewTransform viewTransform = new ViewTransform();
@@ -162,23 +162,21 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 		catch (JAXBException e) {
 			LOGGER.error("Exception transforming jaxb", e);
-			toPage = "/error.jsp";
+			values.put("topage", "/error.jsp");
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception creating/retrieving objects", e);
-			toPage = "/error.jsp";
+			values.put("topage", "/error.jsp");
 		}
 		
 		//TODO this should probably be changed
 		String sidepage = "buttons.jsp";
 		
-		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("page", page);
 		values.put("sidepage", sidepage);
 		values.put("fedoraObject", fedoraObject);
-		Viewable viewable = new Viewable(toPage, values);
 		
-		return viewable;
+		return values;
 	}
 
 	/**
@@ -225,29 +223,24 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param tmplt The template that determines the fields on the screen
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Viewable getEditPage(FedoraObject fedoraObject, String layout, String tmplt) {
-		Viewable viewable = getPage(layout, tmplt, fedoraObject);
-
-		Object model = viewable.getModel();
-		if(model instanceof Map) {
-			Map<String, Object> values = (Map<String, Object>) model;
-			try {
-				// Add the template objects to the viewable, and change the side page
-				Template template = new ViewTransform().getTemplateObject(tmplt, fedoraObject);
-				values.put("template", template);
-				values.put("fedoraObject", fedoraObject);
-				values.put("sidepage", "edit.jsp");
-				
-			}
-			catch (FedoraClientException e) {
-				LOGGER.error("Exception: ", e);
-			}
-			catch (JAXBException e) {
-				LOGGER.error("Error transforming object: ", e);
-			}
+	public Map<String, Object> getEditPage(FedoraObject fedoraObject, String layout, String tmplt) {
+		Map<String, Object> values = getPage(layout, tmplt, fedoraObject);
+		try {
+			// Add the template objects to the viewable, and change the side page
+			Template template = new ViewTransform().getTemplateObject(tmplt, fedoraObject);
+			values.put("template", template);
+			values.put("fedoraObject", fedoraObject);
+			values.put("sidepage", "edit.jsp");
 		}
-		
-		return viewable;
+		catch (FedoraClientException e) {
+			LOGGER.error("Exception: ", e);
+			values.put("topage", "/error.jsp");
+		}
+		catch (JAXBException e) {
+			LOGGER.error("Error transforming object: ", e);
+			values.put("topage", "/error.jsp");
+		}
+		return values;
 	}
 	
 	/**
@@ -265,8 +258,9 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param form The form fields of the screen
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Viewable saveEdit(FedoraObject fedoraObject, String layout, String tmplt, Map<String, List<String>> form) {
-		String toPage = "/page.jsp";
+	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String layout, String tmplt, Map<String, List<String>> form) {
+		Map<String, Object> values = new HashMap<String, Object>();
+		values.put("topage", "/page.jsp");
 		String sidepage = "edit.jsp";
 		String page = null;
 		Template template = null;
@@ -278,14 +272,13 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 		catch (JAXBException e) {
 			LOGGER.error("Exception transforming jaxb", e);
-			toPage = "/error.jsp";
+			values.put("topage", "/error.jsp");
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception creating/retrieving objects", e);
-			toPage = "/error.jsp";
+			values.put("topage", "/error.jsp");
 		}
 
-		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("page", page);
 		values.put("sidepage", sidepage);
 		values.put("template", template);
@@ -293,9 +286,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		SparqlResultSet resultSet = getLinks(fedoraObject);
 		values.put("resultSet", resultSet);
 		
-		Viewable viewable = new Viewable(toPage, values);
-		
-		return viewable;
+		return values;
 	}
 	
 	/**
@@ -349,13 +340,12 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param fedoraObject The object of the page to retrieve
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	private Viewable getPage(String layout, String template, FedoraObject fedoraObject) {
+	private Map<String, Object> getPage(String layout, String template, FedoraObject fedoraObject) {
 		if (fedoraObject == null) {
 			LOGGER.info("Fedora Object is null");
 		}
 		Map<String, Object> values = new HashMap<String, Object>();
-		
-		String toPage = "/page.jsp";
+		values.put("topage", "/page.jsp");
 		String page = null;
 		ViewTransform viewTransform = new ViewTransform();
 		try {
@@ -371,15 +361,16 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			}
 			
 			page = viewTransform.getPage(layout, template, fedoraObject, null, false);
+			values.put("page", page);
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception: ", e);
-			toPage = "/error.jsp";
+			values.put("topage", "/error.jsp");
 		}
 
 		if(!Util.isNotEmpty(page)) {
 			LOGGER.error("Page is empty");
-			toPage = "/error.jsp";
+			values.put("topage", "/error.jsp");
 		}
 		
 		values.put("page", page);
@@ -394,9 +385,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			values.put("resultSet", resultSet);
 		}
 		
-		Viewable viewable = new Viewable(toPage, values);
-		
-		return viewable;
+		return values;
 	}
 	
 	/**

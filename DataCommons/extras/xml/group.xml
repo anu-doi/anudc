@@ -2,10 +2,14 @@
 	<name>Party Template</name>
 	<item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type"
 		readonly="readonly" saveType="single"/>
-	<item editPerm="admin" fieldType="Combobox" label="Party Type" name="subType" saveType="single">
+	<item editPerm="admin" fieldType="Combobox" label="Party Type" name="subType" saveType="single" class="required">
 		<option label="- No Value Selected -" value="" />
 		<option label="Group" value="group" />
 		<option label="Administrative Position" value="administrativePosition" />
+	</item>
+	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required">
+		<option value="" label="-No Value Selected-" />
+		<option value="1" label="Administrator" />
 	</item>
 	<item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"/>
 	<item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"/>

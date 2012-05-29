@@ -2,8 +2,10 @@
 <xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:param name="data" />
 	<xsl:param name="modifiedData" />
+	<xsl:param name="options" />
 	<xsl:variable name="mData" select="$data" />
 	<xsl:variable name="mModifiedData" select="$modifiedData" />
+	<xsl:variable name="mOptions" select="$options" />
 	
 	<xsl:template match="/">
 		<xsl:if test="$data != null"></xsl:if>
@@ -25,6 +27,11 @@
 														<xsl:with-param name="tableVal" select="$mData" />
 													</xsl:call-template>
 												</xsl:when>
+													<xsl:when test="@fieldType='Combobox'">
+														<xsl:call-template name="Combobox">
+															<xsl:with-param name="comboVal" select="$mData" />
+														</xsl:call-template>
+													</xsl:when>
 												<xsl:otherwise>
 													<xsl:for-each select="$mData/data/*[name() = $name]">
 														<xsl:value-of select="text()" /><br />
@@ -64,6 +71,25 @@
 				</xsl:choose>
 			</body>
 		</html>
+	</xsl:template>
+	
+	<xsl:template name="Combobox">
+		<xsl:param name="comboVal" />
+		<xsl:variable name="something" select="." />
+		<xsl:for-each select="$comboVal/data/*[name() = $something/@name]">
+			<xsl:variable name="comboContent" select="." />
+			<xsl:choose>
+				<xsl:when test="$mOptions/options/*[name() = $something/@name]">
+					<xsl:value-of select="$mOptions/options/*[name() = $something/@name][id = $comboContent/text()]/name" />
+				</xsl:when>
+				<xsl:when test="$something/option[@value = $comboContent/text()]">
+					<xsl:value-of select="$something/option[@value = $comboContent/text()]/@label" />
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of select="text()" /><br />
+				</xsl:otherwise>
+			</xsl:choose>
+		</xsl:for-each>
 	</xsl:template>
 	
 	<xsl:template name='Table'>
