@@ -36,7 +36,7 @@
 		</sec:authorize>
 		<sec:authorize access="hasRole('ROLE_ANU_USER')">
 		<li><a href="<c:url value='/rest/list/template' />">New</a></li>
-		<li><a href="<c:url value='/jsp/upload.jsp' />">Upload</a></li>
+		<li><a href="<c:url value='/rest/upload' />">Upload</a></li>
 		</sec:authorize>
 	</anu:submenu>
 

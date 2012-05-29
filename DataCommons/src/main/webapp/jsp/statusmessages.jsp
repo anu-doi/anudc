@@ -37,3 +37,27 @@
 		</c:forEach>
 	</c:if>
 </c:if>
+
+<c:forEach var="error" items="${paramValues.emsg}">
+	<p class="msg-error">
+		<c:out value="${error}" escapeXml="false" />
+	</p>
+</c:forEach>
+
+<c:forEach var="warning" items="${paramValues.wmsg}">
+	<p class="msg-warn">
+		<c:out value="${warning}" escapeXml="false" />
+	</p>
+</c:forEach>
+
+<c:forEach var="info" items="${paramValues.imsg}">
+	<p class="msg-info">
+		<c:out value="${info}" escapeXml="false" />
+	</p>
+</c:forEach>
+
+<c:forEach var="success" items="${paramValues.smsg}">
+	<p class="msg-success">
+		<c:out value="${success}" escapeXml="false" />
+	</p>
+</c:forEach>

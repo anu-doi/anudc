@@ -55,7 +55,7 @@
 					<c:forEach var="downloadable" items="${it.downloadables}">
 						<tr>
 							<td><c:out value="${downloadable.key}" /></td>
-							<td><a href="<c:out value='${downloadable.value}' />">Download</a></td>
+							<td><a href="<c:url value='${downloadable.value}' />">Download</a></td>
 						</tr>
 					</c:forEach>
 				</table>

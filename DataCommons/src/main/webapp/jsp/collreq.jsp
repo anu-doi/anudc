@@ -8,9 +8,6 @@
 	<link href="http://styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
 	<script type="text/javascript" src="<c:url value='/js/jquery.jmpopups-0.5.1.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/collreq.js' />"></script>
-	<script type="text/javascript">
-		jQuery(document).ready(ajaxGetCollReqs());
-	</script>
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
@@ -36,14 +33,15 @@
 					<label>Requestor</label>
 					<c:out value="${it.collReq.requestor.username}" />
 				</p>
-				<p class="instruction"><c:out value="${it.collReq.requestor.displayName}" /></p>
+				<p class="instruction">
+					<c:out value="${it.collReq.requestor.displayName}" />
+				</p>
 				<p>
 					<label>Created</label>
 					<c:out value="${it.collReq.timestamp}" />
 				</p>
 				<p>
-					<label>Status</label>
-					<select name="status">
+					<label>Status</label> <select name="status">
 						<option value=""></option>
 						<option value="SUBMITTED" <c:if test="${it.collReq.lastStatus.status == 'SUBMITTED'}"> selected="selected"</c:if> value="0">Submitted</option>
 						<option value="ACCEPTED" <c:if test="${it.collReq.lastStatus.status == 'ACCEPTED'}"> selected="selected"</c:if> value="1">Accepted</option>
@@ -92,9 +90,9 @@
 					<label class="req" for="idPid">Pid</label>
 					<input class="text" type="text" id="idPid" name="pid" value="<c:out value='${param.pid}' />" />
 					<input type="button" onclick="ajaxPopup()" value="Search" />
-					<input type="button" onclick="ajaxGetPidInfo(document.collReqSubmitForm.pid.value)" value="Get Datastreams" />
+					<input type="button" onclick="ajaxGetPidInfo(document.collReqSubmitForm.pid.value)" value="Get Items for Request" />
 				</p>
-				<p id="idDsListContainer">
+				<p id="idFileListContainer">
 					<!-- Container for Datastream List. -->
 				</p>
 				<p id="idQuestionsContainer">
@@ -113,12 +111,23 @@
 						<th>Date</th>
 						<th>Requestor</th>
 						<th>Status</th>
-						<th>Details</th>
 					</tr>
+					<c:forEach var="iCollReq" items="${it.collReqs}">
+						<tr>
+							<td><a href="<c:url value='/rest/collreq' />/${iCollReq.id}"><c:out value="${iCollReq.id}" /></a></td>
+							<td><a href="<c:url value='/rest/collreq' />/${iCollReq.id}"><c:out value="${iCollReq.pid}" /></a></td>
+							<td><c:out value="${iCollReq.timestamp}" /></td>
+							<td><c:out value="${iCollReq.requestor.username}" /></td>
+							<td><c:out value="${iCollReq.lastStatus.status}" /></td>
+						</tr>
+					</c:forEach>
 				</table>
 			</div>
 		</anu:content>
 	</c:otherwise>
 </c:choose>
+<script type="text/javascript">
+	jQuery(document).ready(ajaxGetPidInfo(document.collReqSubmitForm.pid.value));
+</script>
 
 <jsp:include page="/jsp/footer.jsp" />
