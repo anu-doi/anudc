@@ -14,6 +14,9 @@
 <jsp:include page="/jsp/header.jsp" />
 
 <anu:content layout="doublewide" title="Upload">
+	<jsp:include page="/jsp/statusmessages.jsp">
+		<jsp:param value="${it}" name="it" />
+	</jsp:include>
 	<form class="anuform" name="uploadForm" id="idUploadForm" enctype="multipart/form-data" method="post" action="<c:url value='/rest/upload' />">
 		<fieldset>
 			<legend>Fedora Object</legend>
@@ -31,7 +34,7 @@
 		<fieldset>
 			<legend>
 				URL References
-				<input type="button" id="button1" onclick="cloneUrlFields(this.parentNode.parentNode)" value=" + " />
+				<input type="button" onclick="cloneUrlFields(this.parentNode.parentNode)" value=" + " />
 			</legend>
 			<p>
 				<label>URL</label>
@@ -55,7 +58,7 @@
 			<param name="stringUploadWarning" value="^WARNING: (.*)$" />
 			<param name="debugLevel" value="1" />
 			<param name="maxChunkSize" value="10485760" />
-			<param name="afterUploadURL" value="javascript:alert('Upload successful.');" />
+			<param name="afterUploadURL" value="javascript:window.location='<c:url value="/rest/upload/bagit/" />' + document.uploadForm.pid.value;" />
 			<param name="formdata" value="uploadForm" />
 			<param name="showLogWindow" value="false" />
 			<param name="showStatusBar" value="true" />

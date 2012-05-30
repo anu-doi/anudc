@@ -31,20 +31,23 @@ function ajaxPopup()
  */
 function ajaxGetPidInfo(pid)
 {
+	if (pid.trim() == "")
+		return;
+
 	// Empty the container element for Datastream List.
-	jQuery("#idDsListContainer").empty();
-	jQuery("#idDsListContainer").append(
-			jQuery("<p></p>").text("Getting Datastreams... ").append(jQuery("<img></img>").attr("src", "/DataCommons/images/ajax-loader.gif")));
+	jQuery("#idFileListContainer").empty();
+	jQuery("#idFileListContainer").append(
+			jQuery("<p></p>").text("Getting item list... ").append(jQuery("<img></img>").attr("src", "/DataCommons/images/ajax-loader.gif")));
 
 	// Get Datastreams for the pid and add each to the container.
-	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listDs&pid=" + pid, function(dsList)
+	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listPidItems&pid=" + pid, function(fileList)
 	{
-		jQuery("#idDsListContainer").empty();
-		jQuery.each(dsList, function(i, dsListItem)
+		jQuery("#idFileListContainer").empty();
+		jQuery.each(fileList, function(i, fileItem)
 		{
-			jQuery("<input></input>").attr("type", "checkbox").attr("name", "dsid").attr("value", dsListItem.dsId).appendTo("#idDsListContainer");
-			jQuery("#idDsListContainer").append(dsListItem.dsLabel);
-			jQuery("#idDsListContainer").append("<br />");
+			jQuery("<input></input>").attr("type", "checkbox").attr("name", "file").attr("value", fileItem.filename).appendTo("#idFileListContainer");
+			jQuery("#idFileListContainer").append(fileItem.filename);
+			jQuery("#idFileListContainer").append("<br />");
 		});
 	});
 
@@ -68,46 +71,6 @@ function ajaxGetPidInfo(pid)
 }
 
 /**
- * ajaxGetCollReqs
- * 
- * Australian National University Data Commons
- * 
- * Gets a list of Collection Requests from CollectionRequestService.
- * 
- * <pre>
- * Version	Date		Developer				Description
- * 0.1		30/04/2012	Rahul Khanna (RK)		Initial
- * </pre>
- */
-function ajaxGetCollReqs()
-{
-	console.log("Retrieving Collection Requests...");
-	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listCollReq", function(data)
-	{
-		console.log("IN");
-		console.log("Data Length: " + data.length);
-		if (data.length > 0)
-		{
-			console.log("JSON data returned for status list query.");
-			jQuery.each(data, function(i, collReq)
-			{
-				// console.log("Key: " + key + ". Value: " + val);
-				var tableRow = jQuery("<tr></tr>");
-
-				(jQuery("<td></td>").append(jQuery("<a></a>").attr("href", "/DataCommons/rest/collreq/" + collReq.id).text(collReq.id))).appendTo(tableRow);
-				jQuery("<td></td>").text(collReq.pid).appendTo(tableRow);
-				jQuery("<td></td>").text(collReq.timestamp).appendTo(tableRow);
-				jQuery("<td></td>").text(collReq.requestor).appendTo(tableRow);
-				jQuery("<td></td>").text(collReq.lastStatus).appendTo(tableRow);
-				jQuery("<td></td>").text(collReq.id).appendTo(tableRow);
-				jQuery("#idReqStatusContainer > table").append(tableRow);
-			});
-			jQuery("#idReqStatusContainer").show("slow");
-		}
-	});
-}
-
-/**
  * ajaxGetPidQuestions
  * 
  * Australian National University Data Commons
@@ -127,14 +90,11 @@ function ajaxGetPidQuestions(pid)
 	if (pid.trim() == "")
 		return;
 
-	console.log("Retrieving questions for PID " + pid);
 	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listPidQuestions&pid=" + pid, function(data)
 	{
-		console.log("Populating SELECT with options.");
 		jQuery("#idPidQ").empty();
 		jQuery.each(data, function(key, val)
 		{
-			console.log(key + " " + val);
 			jQuery("<option></option>").attr("value", key).text(val).appendTo("#idPidQ");
 		});
 	});
@@ -157,7 +117,7 @@ function ajaxGetPidQuestions(pid)
  */
 function addRemovePidQuestions(action)
 {
-	if (action == "Add")
+	if (action.trim() == "Add")
 	{
 		// Get array of selected option elements in the question bank.
 		var options = jQuery("#idQuestionBank :selected");
@@ -177,4 +137,28 @@ function addRemovePidQuestions(action)
 	{
 		jQuery("#idPidQ :selected").remove();
 	}
+}
+
+/**
+ * validateAddQuestionForm
+ * 
+ * Australian National University Data Commons
+ * 
+ * Validates the Add Questions Form before submission.
+ * 
+ * @returns {Boolean} true if valid, false otherwise.
+ * 
+ */
+function validateAddQuestionForm()
+{
+	var isValid = true;
+
+	document.questionBankForm.pid.value = document.pidQuestions.pid.value;
+	if (document.questionBankForm.q.value.trim() == "")
+	{
+		alert("Question cannot be blank. Please enter a question.");
+		isValid = false;
+	}
+
+	return isValid;
 }

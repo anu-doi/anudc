@@ -21,10 +21,10 @@
 
 		<!-- Question Bank -->
 		<anu:content layout="wide" title="Questions">
-			<form method="post" action="<c:url value='/rest/collreq/question' />">
+			<form method="post" name="questionBankForm" action="<c:url value='/rest/collreq/question' />" onsubmit="return validateAddQuestionForm()">
 				<p>
-					<label for="idQuestion">New Question</label>
-					<input type="text" name="q" id="idQuestion" size="30" />
+					<label for="idQuestion" class="req">New Question</label>
+					<input type="text" name="q" id="idQuestion" size="30" required="required"  />
 				</p>
 				<p>
 					<input type="submit" name="submit" value="Add Question" />
@@ -38,6 +38,7 @@
 						</c:forEach>
 					</select>
 				</p>
+				<input type="hidden" name="pid" value="" />
 			</form>
 		</anu:content>
 
@@ -73,5 +74,9 @@
 		</anu:content>
 	</c:otherwise>
 </c:choose>
+
+<script type="text/javascript">
+	jQuery(document).ready(ajaxGetPidQuestions(document.pidQuestions.pid.value));
+</script>
 
 <jsp:include page="/jsp/footer.jsp" />
