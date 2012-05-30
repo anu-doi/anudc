@@ -31,7 +31,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.PropertyException;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -608,23 +607,21 @@ public class CollectionRequestService
 			model.put("downloadables", downloadables);
 
 			// Fetch List.
-			Map<String, String> fetchables = new HashMap<String, String>();
-			try
+			DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(dropbox.getCollectionRequest().getPid())),
+					LoadOption.BY_MANIFESTS);
+			if (dcBag != null && dcBag.getFetchEntries() != null)
 			{
-				DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(dropbox.getCollectionRequest().getPid())),
-						LoadOption.BY_MANIFESTS);
+				Map<String, String> fetchables = new HashMap<String, String>();
 				for (FilenameSizeUrl iFetchItem : dcBag.getFetchEntries())
 				{
 					LOGGER.debug("Added fetch item {}", iFetchItem.toString());
 					fetchables.put(iFetchItem.getFilename(), iFetchItem.getUrl());
 				}
+
+				if (fetchables.size() > 0)
+					model.put("fetchables", fetchables);
+
 			}
-			finally
-			{
-				// GlobalProps throws exception if no Bags Dir specified in props file.
-			}
-			if (fetchables.size() > 0)
-				model.put("fetchables", fetchables);
 
 			// Make a log of access
 			entityManager.getTransaction().begin();
@@ -913,11 +910,6 @@ public class CollectionRequestService
 				resp = Response.ok(itemsAvail.toString(), MediaType.APPLICATION_JSON_TYPE).build();
 			}
 			catch (FedoraClientException e)
-			{
-				LOGGER.error("Unable to retrieve list of datastreams.", e);
-				resp = Response.serverError().build();
-			}
-			catch (PropertyException e)
 			{
 				LOGGER.error("Unable to retrieve list of datastreams.", e);
 				resp = Response.serverError().build();

@@ -251,32 +251,23 @@ public class UploadService
 		DcBag dcBag = null;
 		Response resp = null;
 
-		try
-		{
-			dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid)), LoadOption.BY_MANIFESTS);
-			JSONArray filenames = new JSONArray();
+		dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid)), LoadOption.BY_MANIFESTS);
+		JSONArray filenames = new JSONArray();
 
-			for (Entry<String, String> iEntry : dcBag.getPayloadFileList())
+		for (Entry<String, String> iEntry : dcBag.getPayloadFileList())
+		{
+			try
 			{
-				try
-				{
-					JSONObject obj = new JSONObject();
-					obj.put("name", iEntry.getKey());				// Key is filename, value is Hash value.
-					filenames.put(obj);
-				}
-				catch (JSONException e)
-				{
-					LOGGER.debug("Unable to add file to JSON Object: " + iEntry.getKey());
-				}
+				JSONObject obj = new JSONObject();
+				obj.put("name", iEntry.getKey());				// Key is filename, value is Hash value.
+				filenames.put(obj);
 			}
-
-			resp = Response.ok(filenames.toString(), MediaType.APPLICATION_JSON_TYPE).build();
+			catch (JSONException e)
+			{
+				LOGGER.debug("Unable to add file to JSON Object: " + iEntry.getKey());
+			}
 		}
-		catch (PropertyException e)
-		{
-			resp = Response.serverError().build();
-		}
-
+		resp = Response.ok(filenames.toString(), MediaType.APPLICATION_JSON_TYPE).build();
 		return resp;
 	}
 
@@ -292,20 +283,12 @@ public class UploadService
 
 		// TODO Do custom user checking here - if the user has a valid dropbox etc.
 
-		try
-		{
-			dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid)), LoadOption.BY_FILES);
-			ResponseBuilder respBuilder = Response.ok(dcBag.getBagFileStream("data/" + filename), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-			respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=" + filename);			// Filename on client's computer.
-			respBuilder = respBuilder.header("Content-MD5", dcBag.getBagFileHash("data/" + filename));			// Hash of file. Header not used by most web browsers.
-			respBuilder = respBuilder.header("Content-Length", dcBag.getBagFileSize("data/" + filename));		// File size.
-			resp = respBuilder.build();
-		}
-		catch (PropertyException e)
-		{
-			resp = null;
-		}
-
+		dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid)), LoadOption.BY_FILES);
+		ResponseBuilder respBuilder = Response.ok(dcBag.getBagFileStream("data/" + filename), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+		respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=" + filename);			// Filename on client's computer.
+		respBuilder = respBuilder.header("Content-MD5", dcBag.getBagFileHash("data/" + filename));			// Hash of file. Header not used by most web browsers.
+		respBuilder = respBuilder.header("Content-Length", dcBag.getBagFileSize("data/" + filename));		// File size.
+		resp = respBuilder.build();
 		return resp;
 	}
 
