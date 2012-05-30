@@ -40,6 +40,14 @@
 					<label>Created</label>
 					<c:out value="${it.collReq.timestamp}" />
 				</p>
+				<c:forEach var="answer" items="${it.collReq.answers}">
+					<p>
+						<label>
+							<c:out value="${answer.question.questionText}" />
+						</label>
+						<c:out value="${answer.answer}"></c:out>
+					</p>
+				</c:forEach>
 				<p>
 					<label>Status</label> <select name="status">
 						<option value=""></option>

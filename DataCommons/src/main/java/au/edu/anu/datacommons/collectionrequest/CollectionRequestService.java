@@ -1,6 +1,7 @@
 package au.edu.anu.datacommons.collectionrequest;
 
 import gov.loc.repository.bagit.BagFactory.LoadOption;
+import gov.loc.repository.bagit.FetchTxt.FilenameSizeUrl;
 
 import java.io.File;
 import java.util.Date;
@@ -114,8 +115,8 @@ public class CollectionRequestService
 		Map<String, Object> model = new HashMap<String, Object>();
 
 		entityManager.getTransaction().begin();
-		List<CollectionRequest> collReqs = entityManager.createQuery("FROM CollectionRequest cr ORDER BY cr.timestamp DESC",
-				CollectionRequest.class).getResultList();
+		List<CollectionRequest> collReqs = entityManager.createQuery("FROM CollectionRequest cr ORDER BY cr.timestamp DESC", CollectionRequest.class)
+				.getResultList();
 		entityManager.getTransaction().commit();
 		model.put("collReqs", collReqs);
 		resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
@@ -203,7 +204,7 @@ public class CollectionRequestService
 	@POST
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response doPostCollReqAsHtml(@Context HttpServletRequest request, @FormParam("pid") String pid, @FormParam("dsid") Set<String> requestedFileSet,
+	public Response doPostCollReqAsHtml(@Context HttpServletRequest request, @FormParam("pid") String pid, @FormParam("file") Set<String> requestedFileSet,
 			MultivaluedMap<String, String> allFormParams)
 	{
 		PageMessages messages = new PageMessages();
@@ -556,10 +557,9 @@ public class CollectionRequestService
 	@GET
 	@Path("dropbox/access/{dropboxAccessCode}")
 	@Produces(MediaType.TEXT_HTML)
-	public Response doGetDropboxAccessAsHtml(@Context HttpServletRequest request, @Context UriInfo uriInfo, @PathParam("dropboxAccessCode") long dropboxAccessCode,
-			@QueryParam("p") String password)
+	public Response doGetDropboxAccessAsHtml(@Context HttpServletRequest request, @Context UriInfo uriInfo,
+			@PathParam("dropboxAccessCode") long dropboxAccessCode, @QueryParam("p") String password)
 	{
-		HashMap<String, String> downloadables;
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
@@ -598,22 +598,39 @@ public class CollectionRequestService
 				throw new Exception("Incorrect password entered.");
 
 			// Create HashMap downloadables with a link for each item to be downloaded.
-			downloadables = new HashMap<String, String>();
+			HashMap<String, String> downloadables = new HashMap<String, String>();
 			for (CollectionRequestItem reqItem : dropbox.getCollectionRequest().getItems())
 			{
-				UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(UploadService.class)
-						.path(UploadService.class, "doGetFileInBagAsOctetStream");
+				UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream");
 				LOGGER.debug("Adding URI {} to downloadables", uriBuilder.build(dropbox.getCollectionRequest().getPid(), reqItem.getItem()).toString());
 				downloadables.put(reqItem.getItem(), uriBuilder.build(dropbox.getCollectionRequest().getPid(), reqItem.getItem()).toString());
 			}
+			model.put("downloadables", downloadables);
+
+			// Fetch List.
+			Map<String, String> fetchables = new HashMap<String, String>();
+			try
+			{
+				DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(dropbox.getCollectionRequest().getPid())),
+						LoadOption.BY_MANIFESTS);
+				for (FilenameSizeUrl iFetchItem : dcBag.getFetchEntries())
+				{
+					LOGGER.debug("Added fetch item {}", iFetchItem.toString());
+					fetchables.put(iFetchItem.getFilename(), iFetchItem.getUrl());
+				}
+			}
+			finally
+			{
+				// GlobalProps throws exception if no Bags Dir specified in props file.
+			}
+			if (fetchables.size() > 0)
+				model.put("fetchables", fetchables);
 
 			// Make a log of access
 			entityManager.getTransaction().begin();
 			CollectionDropboxAccessLog log = new CollectionDropboxAccessLog(dropbox, request.getRemoteAddr());
 			entityManager.persist(log);
 			entityManager.getTransaction().commit();
-
-			model.put("downloadables", downloadables);
 		}
 		catch (Exception e)
 		{
@@ -714,14 +731,16 @@ public class CollectionRequestService
 	@Path("question")
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public Response doPostQuestionAsHtml(@FormParam("submit") String submit, @FormParam("q") String questionText, @FormParam("pid") String pid,
-			@FormParam("qid") Set<Long> qIdSet)
+	public Response doPostQuestionAsHtml(@Context UriInfo uriInfo, @FormParam("submit") String submit, @FormParam("q") String questionText,
+			@FormParam("pid") String pid, @FormParam("qid") Set<Long> qIdSet)
 	{
-		PageMessages messages = new PageMessages();
-		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
+		UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(CollectionRequestService.class).path(CollectionRequestService.class, "doGetQuestionsAsHtml");
 
 		LOGGER.trace("In doPostQuestionAsHtml. Params submit={}, questionStr={}, pid={}, qid={}.", new Object[] { submit, questionText, pid, qIdSet });
+
+		if (Util.isNotEmpty(pid))
+			uriBuilder = uriBuilder.queryParam("pid", pid);
 
 		if (Util.isNotEmpty(submit))
 		{
@@ -741,29 +760,18 @@ public class CollectionRequestService
 					Question question = new Question(questionText);
 					entityManager.persist(question);
 					entityManager.getTransaction().commit();
-					messages.add(MessageType.SUCCESS, "The question <em>" + question.getQuestionText() + "</em> saved in the Question Bank.", model);
-					LOGGER.debug("Saved question in question bank.");
+					uriBuilder = uriBuilder.queryParam("smsg", "The question <em>" + question.getQuestionText() + "</em> saved in the Question Bank.");
+					LOGGER.info("Saved question in question bank: {}", question.getQuestionText());
 				}
 				catch (Exception e)
 				{
 					LOGGER.error("Unable to save question in the question bank.", e);
+					uriBuilder.queryParam("emsg", "Unable to save question in the question bank.");
 					if (entityManager.getTransaction().isActive())
 						entityManager.getTransaction().rollback();
-					messages.clear();
-					messages.add(MessageType.ERROR, e.getMessage(), model);
 				}
 
-				// Add question list to model.
-				try
-				{
-					model.put("questions", getAllQuestions());
-				}
-				catch (Exception e)
-				{
-					LOGGER.warn("Unable to retrieve questions from Question Bank after adding question.");
-				}
-
-				resp = Response.ok(new Viewable(QUESTION_JSP, model)).build();
+				resp = Response.seeOther(uriBuilder.build()).build();
 			}
 			// Assigning questions to a pid.
 			else if (submit.equals("Save"))
@@ -813,29 +821,17 @@ public class CollectionRequestService
 					}
 
 					entityManager.getTransaction().commit();
-
-					// Add question list to model.
-					try
-					{
-						model.put("questions", getAllQuestions());
-					}
-					catch (Exception e)
-					{
-						LOGGER.warn("Unable to retrieve questions from Question Bank after adding question.");
-					}
-
-					messages.add(MessageType.SUCCESS, "Question List updated for this Fedora object.", model);
+					uriBuilder = uriBuilder.queryParam("smsg", "Question List updated for this Fedora object.");
 				}
 				catch (Exception e)
 				{
 					LOGGER.error("Unable to update questions for Pid " + pid, e);
 					if (entityManager.getTransaction().isActive())
 						entityManager.getTransaction().rollback();
-					messages.clear();
-					messages.add(MessageType.ERROR, e.getMessage(), model);
+					uriBuilder = uriBuilder.queryParam("emsg", "Unable to update questions for this Collection.");
 				}
 
-				resp = Response.ok(new Viewable(QUESTION_JSP, model)).build();
+				resp = Response.seeOther(uriBuilder.build()).build();
 			}
 		}
 		else
@@ -871,57 +867,47 @@ public class CollectionRequestService
 	@Path("json")
 	public Response doGetCollReqInfoAsJson(@QueryParam("task") String task, @QueryParam("pid") String pid)
 	{
-		PageMessages messages = new PageMessages();
-		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
 
 		LOGGER.trace("In doGetDsListAsJson. Params task={}, pid={}.", task, pid);
 
-		// Gets a list of datastreams in a Fedora Object.
-		if (task.equals("listDs"))
+		// Gets a list of items available for request in a Collection.
+		if (task.equals("listPidItems"))
 		{
 			JSONArray itemsAvail = new JSONArray();
-
 			try
 			{
-				LOGGER.debug("Requested Datastream List for pid {} as JSON.", pid);
-
 				// Get a list of datastreams for the pid from the Fedora Repository.
 				List<DatastreamType> pidDsList = FedoraBroker.getDatastreamList(pid);
-				
+
 				//Iterate through the files holding datastreams - FILE0 onwards.
 				for (DatastreamType iDs : pidDsList)
 				{
 					if (iDs.getDsid().startsWith("FILE"))
 					{
-						DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid)), LoadOption.BY_MANIFESTS);
-						for (Entry<String, String> iFileItem : dcBag.getPayloadFileList())
+						try
 						{
-							try
+							DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid)), LoadOption.BY_MANIFESTS);
+							for (Entry<String, String> iFileItem : dcBag.getPayloadFileList())
 							{
-								JSONObject dsJsonObj = new JSONObject();
-								dsJsonObj.put("filename", iFileItem.getKey().replaceFirst("data/", ""));
-								itemsAvail.put(dsJsonObj);
+								try
+								{
+									JSONObject dsJsonObj = new JSONObject();
+									dsJsonObj.put("filename", iFileItem.getKey().replaceFirst("data/", ""));
+									itemsAvail.put(dsJsonObj);
+								}
+								catch (JSONException e)
+								{
+								}
 							}
-							catch (JSONException e)
-							{
-							}
+						}
+						catch (RuntimeException e)
+						{
+							// Thrown when the bag doesn't exist.
 						}
 					}
 				}
 
-				/*
-				// Get the IDs and Labels of datasets, create a JSONObject, add it to JSONArray
-				// TODO Exclude DC, XML_SOURCE, XML_TEMPLATE, RELS-EXT (?)
-				for (DatastreamType iDs : pidDsList)
-				{
-					JSONObject dsJsonObj = new JSONObject();
-					dsJsonObj.put("dsId", iDs.getDsid());
-					dsJsonObj.put("dsLabel", iDs.getLabel());
-					itemsAvail.put(dsJsonObj);
-				}
-				*/
-				
 				// Convert the JSONArray containing datastream details into a JSON string and create a Response object for return.
 				LOGGER.debug("Returning JSON Object: {}", itemsAvail.toString());
 				resp = Response.ok(itemsAvail.toString(), MediaType.APPLICATION_JSON_TYPE).build();

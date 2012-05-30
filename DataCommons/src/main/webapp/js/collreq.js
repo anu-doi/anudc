@@ -31,16 +31,16 @@ function ajaxPopup()
  */
 function ajaxGetPidInfo(pid)
 {
-	if (pid == "")
+	if (pid.trim() == "")
 		return;
 
 	// Empty the container element for Datastream List.
 	jQuery("#idFileListContainer").empty();
 	jQuery("#idFileListContainer").append(
-			jQuery("<p></p>").text("Getting Datastreams... ").append(jQuery("<img></img>").attr("src", "/DataCommons/images/ajax-loader.gif")));
+			jQuery("<p></p>").text("Getting item list... ").append(jQuery("<img></img>").attr("src", "/DataCommons/images/ajax-loader.gif")));
 
 	// Get Datastreams for the pid and add each to the container.
-	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listDs&pid=" + pid, function(fileList)
+	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listPidItems&pid=" + pid, function(fileList)
 	{
 		jQuery("#idFileListContainer").empty();
 		jQuery.each(fileList, function(i, fileItem)
@@ -90,15 +90,11 @@ function ajaxGetPidQuestions(pid)
 	if (pid.trim() == "")
 		return;
 
-	console.log("Retrieving questions for PID " + pid);
 	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listPidQuestions&pid=" + pid, function(data)
 	{
-		console.log("Populating SELECT with options.");
 		jQuery("#idPidQ").empty();
-		console.log(data.length);
 		jQuery.each(data, function(key, val)
 		{
-			console.log(key + " " + val);
 			jQuery("<option></option>").attr("value", key).text(val).appendTo("#idPidQ");
 		});
 	});
@@ -121,7 +117,7 @@ function ajaxGetPidQuestions(pid)
  */
 function addRemovePidQuestions(action)
 {
-	if (action == "Add")
+	if (action.trim() == "Add")
 	{
 		// Get array of selected option elements in the question bank.
 		var options = jQuery("#idQuestionBank :selected");
@@ -158,7 +154,7 @@ function validateAddQuestionForm()
 	var isValid = true;
 
 	document.questionBankForm.pid.value = document.pidQuestions.pid.value;
-	if (document.questionBankForm.q.value == "")
+	if (document.questionBankForm.q.value.trim() == "")
 	{
 		alert("Question cannot be blank. Please enter a question.");
 		isValid = false;

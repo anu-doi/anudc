@@ -45,7 +45,7 @@
 					<input type="submit" value="Submit" />
 				</p>
 			</form>
-			
+
 			<c:if test="${it.downloadables != null}">
 				<table>
 					<tr>
@@ -56,6 +56,19 @@
 						<tr>
 							<td><c:out value="${downloadable.key}" /></td>
 							<td><a href="<c:url value='${downloadable.value}' />">Download</a></td>
+						</tr>
+					</c:forEach>
+				</table>
+			</c:if>
+
+			<c:if test="${it.fetchables != null}">
+				<table>
+					<tr>
+						<th>External Link</th>
+					</tr>
+					<c:forEach var="fetchable" items="${it.fetchables}">
+						<tr>
+							<td><a href="<c:url value='${fetchable.value}' />"><c:out value="${fetchable.value}" /></a></td>
 						</tr>
 					</c:forEach>
 				</table>

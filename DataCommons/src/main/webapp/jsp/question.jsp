@@ -75,4 +75,8 @@
 	</c:otherwise>
 </c:choose>
 
+<script type="text/javascript">
+	jQuery(document).ready(ajaxGetPidQuestions(document.pidQuestions.pid.value));
+</script>
+
 <jsp:include page="/jsp/footer.jsp" />
