@@ -1,3 +1,6 @@
 select {
 	width:150px;
 }
+label.error {
+	color: red;
+}

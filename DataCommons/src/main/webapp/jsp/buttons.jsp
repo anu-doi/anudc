@@ -31,7 +31,7 @@
 				<c:url value="/rest/upload" var="uploadLink">
 					<c:param name="pid" value="${it.fedoraObject.object_id}" />
 				</c:url>
-				<sec:accesscontrollist hasPermission="WRITE" domainObject="${it.fedoraObject}">
+				<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">
 					<p><input type="button" id="editButton" name="editButton" value="Edit" onclick="window.location='${editLink}'" /></p>
 				</sec:accesscontrollist>
 				<p><input type="button" id="uploadButton" name="uploadButton" value="Upload" onclick="window.location='${uploadLink}'" /></p>
