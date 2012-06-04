@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -289,6 +290,34 @@ public class UploadService
 		respBuilder = respBuilder.header("Content-MD5", dcBag.getBagFileHash("data/" + filename));			// Hash of file. Header not used by most web browsers.
 		respBuilder = respBuilder.header("Content-Length", dcBag.getBagFileSize("data/" + filename));		// File size.
 		resp = respBuilder.build();
+		return resp;
+	}
+
+	@GET
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	@Path("bag/{pid}/{fileInBag:.*}")
+	public Response doGetFileInBagAsOctetStream2(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag)
+	{
+		Response resp = null;
+		DcBag dcBag = null;
+
+		LOGGER.debug("pid: {}, filename: {}", pid, fileInBag);
+
+		// TODO Do custom user checking here - if the user has a valid dropbox etc.
+
+		dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid)), LoadOption.BY_FILES);
+		InputStream inStream = dcBag.getBagFileStream(fileInBag);
+		if (inStream != null)
+		{
+			ResponseBuilder respBuilder = Response.ok(dcBag.getBagFileStream(fileInBag), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+			respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=" + fileInBag);			// Filename on client's computer.
+			respBuilder = respBuilder.header("Content-MD5", dcBag.getBagFileHash(fileInBag));					// Hash of file. Header not used by most web browsers.
+			respBuilder = respBuilder.header("Content-Length", dcBag.getBagFileSize(fileInBag));				// File size.
+			resp = respBuilder.build();
+		}
+		else
+			resp = Response.noContent().build();
+
 		return resp;
 	}
 

@@ -1,45 +1,34 @@
 package au.edu.anu.datacommons.upload;
 
+import gov.loc.repository.bagit.Bag;
+import gov.loc.repository.bagit.Bag.Format;
+import gov.loc.repository.bagit.BagFactory;
+import gov.loc.repository.bagit.BagFactory.LoadOption;
+import gov.loc.repository.bagit.BagFile;
+import gov.loc.repository.bagit.BagInfoTxt;
+import gov.loc.repository.bagit.FetchTxt.FilenameSizeUrl;
+import gov.loc.repository.bagit.Manifest.Algorithm;
+import gov.loc.repository.bagit.ManifestHelper;
+import gov.loc.repository.bagit.PreBag;
+import gov.loc.repository.bagit.utilities.BagVerifyResult;
+import gov.loc.repository.bagit.utilities.MessageDigestHelper;
+import gov.loc.repository.bagit.writer.Writer;
+import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
+import gov.loc.repository.bagit.writer.impl.ZipWriter;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.xml.bind.PropertyException;
-
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
-
-import gov.loc.repository.bagit.Bag;
-import gov.loc.repository.bagit.Bag.Format;
-import gov.loc.repository.bagit.BagFactory;
-import gov.loc.repository.bagit.BagFactory.Version;
-import gov.loc.repository.bagit.BagFile;
-import gov.loc.repository.bagit.BagInfoTxt;
-import gov.loc.repository.bagit.BagItTxt;
-import gov.loc.repository.bagit.FetchTxt;
-import gov.loc.repository.bagit.Manifest.Algorithm;
-import gov.loc.repository.bagit.ManifestHelper;
-import gov.loc.repository.bagit.BagFactory.LoadOption;
-import gov.loc.repository.bagit.FetchTxt.FilenameSizeUrl;
-import gov.loc.repository.bagit.Manifest;
-import gov.loc.repository.bagit.PreBag;
-import gov.loc.repository.bagit.utilities.BagVerifyResult;
-import gov.loc.repository.bagit.utilities.MessageDigestHelper;
-import gov.loc.repository.bagit.v0_97.impl.BagImpl;
-import gov.loc.repository.bagit.writer.Writer;
-import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
-import gov.loc.repository.bagit.writer.impl.ZipWriter;
 
 public class DcBag
 {
@@ -182,7 +171,10 @@ public class DcBag
 
 	public InputStream getBagFileStream(String baggedFile)
 	{
-		return this.bag.getBagFile(baggedFile).newInputStream();
+		if (this.bag.getBagFile(baggedFile) != null)
+			return this.bag.getBagFile(baggedFile).newInputStream();
+		else
+			return null;
 	}
 	
 	public long getBagFileSize(String baggedFile)
