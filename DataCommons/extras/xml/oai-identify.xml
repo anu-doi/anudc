@@ -1,0 +1,21 @@
+<Identify>
+	<repositoryName>ANU Data Commons OAI Repository</repositoryName>
+	<baseURL>http://dc7-dev1.anu.edu.au/oaiprovider</baseURL>
+	<protocolVersion>2.0</protocolVersion>
+	<adminEmail>doug.moncur@anu.edu.au</adminEmail>
+	<earliestDatestamp>2012-01-01T00:00:00Z</earliestDatestamp>
+	<deletedRecords></deletedRecords>
+	<granularity>YYYY-MM-DDThh:mm:ssZ</granularity>
+	<description>
+		<oai-identifier xmlns="http://www.openarchives.org/OAI/2.0/oai-identifier" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai-identifier http://www.openarchives.org/OAI/2.0/oai-identifier.xsd">
+			<scheme>oai</scheme>
+			<repositoryIdentifier>
+				example.org
+			</repositoryIdentifier>
+			<delimiter>:</delimiter>
+			<sampleIdentifier>
+				oai:test:xyz
+			</sampleIdentifier>
+		</oai-identifier>
+	</description>
+</Identify>

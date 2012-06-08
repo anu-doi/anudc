@@ -18,7 +18,7 @@
 	
 	<context:component-scan base-package="au.edu.anu.datacommons" />
 	
-	<bean id="riSearchService" class="au.edu.anu.datacommons.search.SparqlPoster">
+	<bean id="riSearchService" class="au.edu.anu.datacommons.search.ExternalPoster">
 		<property name="username" value="${fedora.username}" />
 		<property name="password" value="${fedora.password}" />
 		<property name="url" value="${fedora.baseURI}${fedora.riSearchURI}" />
@@ -35,7 +35,7 @@
 		</property>
 	</bean>
 	
-	<bean id="riSearchJSONService" class="au.edu.anu.datacommons.search.SparqlPoster">
+	<bean id="riSearchJSONService" class="au.edu.anu.datacommons.search.ExternalPoster">
 		<property name="username" value="${fedora.username}" />
 		<property name="password" value="${fedora.password}" />
 		<property name="url" value="${fedora.baseURI}${fedora.riSearchURI}" />
@@ -50,6 +50,13 @@
 				<entry key="type" value="tuples" />
 			</map>
 		</property>
+	</bean>
+	
+	<bean id="solrSearchService" class="au.edu.anu.datacommons.search.ExternalPoster">
+		<property name="username" value="${fedora.username}" />
+		<property name="password" value="${fedora.password}" />
+		<property name="url" value="${search.solr}" />
+		<property name="type" value="application/x-www-form-urlencoded" />
 	</bean>
 	
 	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">

@@ -22,7 +22,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import au.edu.anu.datacommons.search.SparqlPoster;
+import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.search.SparqlResultSet;
 import au.edu.anu.datacommons.util.Util;
@@ -44,6 +44,7 @@ import com.sun.jersey.api.view.Viewable;
  * Version	Date		Developer				Description
  * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
  * 0.2		14/05/2012	Genevieve Turner (GT)	Updated to include a JSON search for items
+ * 0.3		08/06/2012	Genevieve Turner (GT)	Updated for changes to post
  * </pre>
  * 
  */
@@ -53,10 +54,10 @@ public class ListResource {
 	static final Logger LOGGER = LoggerFactory.getLogger(ListResource.class);
 
 	@Resource(name="riSearchService")
-	SparqlPoster riSearchService;
+	ExternalPoster riSearchService;
 
 	@Resource(name="riSearchJSONService")
-	SparqlPoster riSearchJSONService;
+	ExternalPoster riSearchJSONService;
 	
 	/**
 	 * getTemplates
@@ -66,6 +67,7 @@ public class ListResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.3		08/06/2012	Genevieve Turner (GT)	Updated for changes to post
 	 * </pre>
 	 * 
 	 * Returns a list of templates 
@@ -92,7 +94,7 @@ public class ListResource {
 			LOGGER.info("riSearchService is not null");
 		}
 
-		ClientResponse riSearchResponse = riSearchService.post(sparqlQuery.generateQuery());
+		ClientResponse riSearchResponse = riSearchService.post("query", sparqlQuery.generateQuery());
 		try {
 			String responseString = riSearchResponse.getEntity(String.class);
 			LOGGER.debug("riSearchResponse: {}", responseString);
@@ -127,6 +129,12 @@ public class ListResource {
 	 * 
 	 * Returns a list of items with the given title name part and type of object
 	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		14/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.3		08/06/2012	Genevieve Turner (GT)	Updated for changes to post
+	 * </pre>
+	 * 
 	 * @param title Part of the title to search for
 	 * @param type The type of item to search in
 	 * @return The list of items
@@ -149,7 +157,7 @@ public class ListResource {
 			String typeFilterString = "regex(str(?type), '" + type +"', 'i')";
 			sparqlQuery.addFilter(typeFilterString.toString(), "&&");
 			
-			ClientResponse riSearchResponse = riSearchJSONService.post(sparqlQuery.generateQuery());
+			ClientResponse riSearchResponse = riSearchJSONService.post("query", sparqlQuery.generateQuery());
 			LOGGER.info("Return statis is: {}", riSearchResponse.getStatus());
 			String jsonArray = riSearchResponse.getEntity(String.class);
 			LOGGER.info("JSON Response: {}", jsonArray);

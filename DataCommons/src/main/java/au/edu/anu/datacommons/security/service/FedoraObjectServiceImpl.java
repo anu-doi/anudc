@@ -26,10 +26,11 @@ import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.datacommons.publish.GenericPublish;
-import au.edu.anu.datacommons.search.SparqlPoster;
+import au.edu.anu.datacommons.publish.Publish;
+import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.search.SparqlResultSet;
+import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
@@ -41,7 +42,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
 /**
  * FedoraObjectServiceImpl
  * 
- * Australian National University Data Comons
+ * Australian National University Data Commons
  * 
  * Service implementation for Retrieving pages, creating, and saving information for
  * objects.
@@ -57,6 +58,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.4		15/05/2012	Genevieve Turner (GT)	Publishing to publishers
  * 0.5		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
  * 0.6		21/05/2012	Genevieve Turner (GT)	Added saving publication locations to database
+ * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to amend some of the publishing processes
  * </pre>
  * 
  */
@@ -65,7 +67,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	static final Logger LOGGER = LoggerFactory.getLogger(FedoraObjectServiceImpl.class);
 
 	@Resource(name="riSearchService")
-	SparqlPoster riSearchService;
+	ExternalPoster riSearchService;
 	
 	/**
 	 * getItemByName
@@ -251,6 +253,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.7		04/06/2012	Genevieve Turner (GT)	Fixed an issue where the fedora object was not returned in the values map
 	 * </pre>
 	 * 
 	 * @param fedoraObject The  fedora object to get the page for
@@ -269,6 +272,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			fedoraObject = viewTransform.saveData(tmplt, fedoraObject, form);
 			page = viewTransform.getPage(layout, null, fedoraObject, null, false);
 			template = new ViewTransform().getTemplateObject(tmplt, fedoraObject);
+			values.put("fedoraObject", fedoraObject);
 		}
 		catch (JAXBException e) {
 			LOGGER.error("Exception transforming jaxb", e);
@@ -396,6 +400,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.3		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to cater for change to post method in the riSearchService
 	 * </pre>
 	 * 
 	 * @param fedoraObject The object to retrieve the links for
@@ -413,7 +418,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		String filterString = "regex(str(?predicate), '" + GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI) + "', 'i')";
 		sparqlQuery.addFilter(filterString, "");
 		
-		ClientResponse respFromRiSearch = riSearchService.post(sparqlQuery.generateQuery());
+		ClientResponse respFromRiSearch = riSearchService.post("query", sparqlQuery.generateQuery());
 		try {
 			// For some reason XPath doesn't work properly if you directly get the document from the stream
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -466,6 +471,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.4		15/05/2012	Genevieve Turner (GT)	Initial
 	 * 0.5		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
 	 * 0.6		21/05/2012	Genevieve Turner (GT)	Added saving publication locations to database
+	 * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to use generic publishing options
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to publish
@@ -475,33 +481,24 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	public String publish(FedoraObject fedoraObject, List<String> publishers) {
 		GenericDAOImpl<PublishLocation, Long> publishLocationDAO = new GenericDAOImpl<PublishLocation, Long>(PublishLocation.class);
 		StringBuffer message = new StringBuffer();
-		//List<PublishLocation> publishLocations = fedoraObject.getPublishedLocations();
+		
+		// Set the base publishing information
+		generalPublish(fedoraObject.getObject_id());
+		
 		for (String publisher : publishers) {
 			Long id = Long.parseLong(publisher);
 			PublishLocation publishLocation = publishLocationDAO.getSingleById(id);
 			LOGGER.debug("Publish class: {}", publishLocation.getExecute_class());
 			try {
-				GenericPublish genericPublish = (GenericPublish) Class.forName(publishLocation.getExecute_class()).newInstance();
-				genericPublish.publish(fedoraObject.getObject_id());
+				Publish genericPublish = (Publish) Class.forName(publishLocation.getExecute_class()).newInstance();
+				genericPublish.publish(fedoraObject.getObject_id(), publishLocation.getCode());
 				if (!fedoraObject.getPublished()) {
 					fedoraObject.setPublished(Boolean.TRUE);
 				}
 				message.append(publishLocation.getName());
 				message.append("<br />");
-				boolean addPublisher = true;
-				for (int i = 0; addPublisher && i < fedoraObject.getPublishedLocations().size(); i++) {
-					PublishLocation loc = fedoraObject.getPublishedLocations().get(i);
-					if (loc.equals(publishLocation)) {
-						addPublisher = false;
-					}
-					else if (loc.getId().equals(publishLocation.getId()) &&
-							loc.getName().equals(publishLocation.getName())) {
-						addPublisher = false;
-					}
-				}
-				if (addPublisher) {
-					fedoraObject.getPublishedLocations().add(publishLocation);
-				}
+				
+				addPublishLocation(fedoraObject, publishLocation);
 			}
 			catch (ClassNotFoundException e) {
 				LOGGER.error("Class not found class: " + publishLocation.getExecute_class(), e);
@@ -516,5 +513,61 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
 		object.update(fedoraObject);
 		return message.toString();
+	}
+	
+	/**
+	 * generalPublish
+	 * 
+	 * Sets information used by various publishing options.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.7		08/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * @param pid The pid to set the publishing information for
+	 */
+	private void generalPublish(String pid) {
+		FedoraReference fedoraReference = new FedoraReference();
+		fedoraReference.setPredicate_(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_OAIPROVIDER_URL));
+		fedoraReference.setObject_("oai:" + pid);
+		fedoraReference.setIsLiteral_(Boolean.FALSE);
+		
+		String location = String.format("%s/objects/%s/datastreams/XML_SOURCE/content", GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI), pid);
+		try {
+			FedoraBroker.addDatastreamByReference(pid, Constants.XML_PUBLISHED, "M", "XML Published", location);
+			FedoraBroker.addRelationship(pid, fedoraReference);
+		}
+		catch (FedoraClientException e) {
+			LOGGER.info("Exception publishing to ANU: ", e);
+		}
+	}
+	
+	/**
+	 * addPublishLocation
+	 *
+	 * Adds a publish location to the database
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.7		08/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * @param fedoraObject The object to publish to
+	 * @param publishLocation The location the object is being published to
+	 */
+	private void addPublishLocation(FedoraObject fedoraObject, PublishLocation publishLocation) {
+		boolean addPublisher = true;
+		for (int i = 0; addPublisher && i < fedoraObject.getPublishedLocations().size(); i++) {
+			PublishLocation loc = fedoraObject.getPublishedLocations().get(i);
+			if (loc.equals(publishLocation)) {
+				addPublisher = false;
+			}
+			else if (loc.getId().equals(publishLocation.getId()) &&
+					loc.getName().equals(publishLocation.getName())) {
+				addPublisher = false;
+			}
+		}
+		if (addPublisher) {
+			fedoraObject.getPublishedLocations().add(publishLocation);
+		}
 	}
 }

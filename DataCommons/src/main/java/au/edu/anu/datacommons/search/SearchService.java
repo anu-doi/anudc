@@ -2,14 +2,21 @@ package au.edu.anu.datacommons.search;
 
 import java.io.StringReader;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.slf4j.Logger;
@@ -22,6 +29,8 @@ import au.edu.anu.datacommons.search.RiSearchRequest.Format;
 import au.edu.anu.datacommons.search.RiSearchRequest.Language;
 import au.edu.anu.datacommons.search.RiSearchRequest.Type;
 import au.edu.anu.datacommons.util.Util;
+import au.edu.anu.datacommons.xml.solr.SolrResponse;
+import au.edu.anu.datacommons.xml.transform.JAXBTransform;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.view.Viewable;
@@ -48,7 +57,7 @@ public class SearchService
 	private static final String SEARCH_JSP = "/search.jsp";
 
 	@Resource(name = "riSearchService")
-	SparqlPoster riSearchService;
+	ExternalPoster riSearchService;
 
 	// TODO Once determined how object info such as published flag, group etc. are stored use this parameter to filter out results.
 	//	@QueryParam("filter") private String filter;
@@ -80,7 +89,7 @@ public class SearchService
 		// Generate the SPARQL query from the terms
 		SparqlQuery sparqlQuery = new SparqlQuery(q);
 
-		ClientResponse respFromRiSearch = riSearchService.post(sparqlQuery.generateQuery());
+		ClientResponse respFromRiSearch = riSearchService.post("query", sparqlQuery.generateQuery());
 
 		return Response.ok(respFromRiSearch.getEntity(String.class)).build();
 	}

@@ -1,6 +1,5 @@
 package au.edu.anu.datacommons.search;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
@@ -15,7 +14,7 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
- * SparqlPoster
+ * ExternalPoster
  * 
  * Australian National University Data Comons
  * 
@@ -28,11 +27,12 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
  * Version	Date		Developer				Description
  * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
  * 0.2		11/05/2012	Genevieve Turner (GT)	Added logger row
+ * 0.3		08/06/2012	Genevieve Turner (GT)	Renamed and added additional post type
  * </pre>
  * 
  */
-public class SparqlPoster {
-	static final Logger LOGGER = LoggerFactory.getLogger(SparqlPoster.class);
+public class ExternalPoster {
+	static final Logger LOGGER = LoggerFactory.getLogger(ExternalPoster.class);
 	
 	private MultivaluedMapImpl parameters;
 	private String url;
@@ -275,24 +275,67 @@ public class SparqlPoster {
 	 * Version	Date		Developer				Description
 	 * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
 	 * 0.2		11/05/2012	Genevieve Turner (GT)	Added logger statement of the url that is being posted to
+	 * 0.3		08/06/2012	Genevieve Turner (GT)	Moved the retrieval of the resource
 	 * </pre>
 	 * 
 	 * @param query The query to execute
 	 * @return The response object from the query
 	 */
-	public ClientResponse post(String query) {
+	public ClientResponse post(String queryParamName, String query) {
+		WebResource webService = getResource();
+		// This is separate so it is not added to the parameters field and thus the parameters can be reused
+		webService = webService.queryParam(queryParamName, query);
+		LOGGER.debug("Posting url is: {}", webService.getURI());
+		ClientResponse clientResponse = webService.type(type).accept(acceptType).post(ClientResponse.class);
+		
+		return clientResponse;
+	}
+	
+	/**
+	 * post
+	 *
+	 * Executes a post given the classes properties and the multivalued map properties
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		08/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param mv A multivalued map that contains the posting options
+	 * @return The response from the post
+	 */
+	public ClientResponse post(MultivaluedMapImpl mv) {
+		WebResource webService = getResource();
+		webService = webService.queryParams(mv);
+		
+		LOGGER.info("Posting url is: {}", webService.getURI());
+		ClientResponse clientResponse = webService.type(type).accept(acceptType).post(ClientResponse.class);
+		
+		return clientResponse;
+	}
+	
+	/**
+	 * getResource
+	 *
+	 * Retrieves the web resource
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		08/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return The web resource to perform actions on
+	 */
+	private WebResource getResource() {
 		ClientConfig config = new DefaultClientConfig();
 		Client client = Client.create(config);
 		client.addFilter(new HTTPBasicAuthFilter(username, password));
 		
 		WebResource webService = client.resource(UriBuilder.fromUri(url).build());
-		webService = webService.queryParams(parameters);
+		if(parameters != null) {
+			webService = webService.queryParams(parameters);
+		}
 		
-		// This is separate so it is not added to the parameters field and thus the parameters can be reused
-		webService = webService.queryParam("query", query);
-		LOGGER.debug("Posting url is: {}", webService.getURI());
-		ClientResponse clientResponse = webService.type(type).accept(acceptType).post(ClientResponse.class);
-		
-		return clientResponse;
+		return webService;
 	}
 }

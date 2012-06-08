@@ -34,7 +34,7 @@
 													</xsl:when>
 												<xsl:otherwise>
 													<xsl:for-each select="$mData/data/*[name() = $name]">
-														<xsl:value-of select="text()" /><br />
+														<xsl:value-of disable-output-escaping="yes" select="text()" /><br />
 													</xsl:for-each>
 												</xsl:otherwise>
 											</xsl:choose>
@@ -54,7 +54,7 @@
 													</xsl:when>
 													<xsl:otherwise>
 														<xsl:for-each select="$mModifiedData/data/*[name() = $name]">
-															<xsl:value-of select="text()" /><br />
+															<xsl:value-of disable-output-escaping="yes" select="text()" /><br />
 														</xsl:for-each>
 													</xsl:otherwise>
 												</xsl:choose>
@@ -86,7 +86,7 @@
 					<xsl:value-of select="$something/option[@value = $comboContent/text()]/@label" />
 				</xsl:when>
 				<xsl:otherwise>
-					<xsl:value-of select="text()" /><br />
+					<xsl:value-of disable-output-escaping="yes" select="text()" /><br />
 				</xsl:otherwise>
 			</xsl:choose>
 		</xsl:for-each>
@@ -110,7 +110,7 @@
 					<xsl:for-each select="$table/column">
 						<td>
 							<xsl:variable name="colname" select="@name" />
-							<xsl:value-of select="$tabledata/*[name() = $colname]/text()" />
+							<xsl:value-of disable-output-escaping="yes" select="$tabledata/*[name() = $colname]/text()" />
 						</td>
 					</xsl:for-each>
 				</tr>

@@ -21,10 +21,11 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		15/05/2012	Genevieve Turner (GT)	Initial build
+ * 0.2		08/06/2012	Genevieve Turner (GT)	Updated to incorporate some changes to publishing
  * </pre>
  * 
  */
-public class ANDSPublish implements GenericPublish {
+public class ANDSPublish extends GenericPublish implements Publish {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ANDSPublish.class);
 
 	/**
@@ -35,13 +36,14 @@ public class ANDSPublish implements GenericPublish {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		15/05/2012	Genevieve Turner (GT)	Initial build
+	 * 0.2		08/06/2012	Genevieve Turner (GT)	Updated to incorporate some changes to publishing
 	 * </pre>
 	 * 
 	 * @param pid The id of the object to publish
 	 */
 	@Override
-	public void publish(String pid) {
-		LOGGER.info("publishing to ands");
+	public void publish(String pid, String publishCode) {
+		super.publish(pid, publishCode);
 		FedoraReference reference = new FedoraReference();
 		reference.setPredicate_("info:fedora/fedora-system:def/model#hasModel");
 		reference.setObject_("info:fedora/def:RIFCSContentModel");
@@ -68,7 +70,7 @@ public class ANDSPublish implements GenericPublish {
 	 * @param pid The id of the object to publish
 	 */
 	@Override
-	public void unpublish(String pid) {
+	public void unpublish(String pid, String publishCode) {
 		//TODO Create information for unpublishing
 		LOGGER.info("unpublishing from ands");
 	}

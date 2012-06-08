@@ -1096,14 +1096,16 @@ public class ViewTransform
 		for (TemplateColumn column : item.getTemplateColumns()) {
 			columnName = column.getName();
 			List<String> values = (List<String>) form.get(columnName);
-			for (int i = 0; i < values.size(); i++) {
-				if (tableData.size() <= i) {
-					DataItem dataItem = new DataItem();
-					dataItem.setName_(itemName);
-					tableData.add(dataItem);
-				}
-				if(Util.isNotEmpty(values.get(i))) {
-					tableData.get(i).getChildValues_().put(columnName, values.get(i));
+			if (values != null) {
+				for (int i = 0; i < values.size(); i++) {
+					if (tableData.size() <= i) {
+						DataItem dataItem = new DataItem();
+						dataItem.setName_(itemName);
+						tableData.add(dataItem);
+					}
+					if(Util.isNotEmpty(values.get(i))) {
+						tableData.get(i).getChildValues_().put(columnName, values.get(i));
+					}
 				}
 			}
 		}
