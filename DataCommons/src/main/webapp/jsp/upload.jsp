@@ -34,12 +34,12 @@
 		<fieldset>
 			<legend>
 				URL References
-				<input type="button" onclick="cloneUrlFields(this.parentNode.parentNode)" value=" + " />
+				<input type="button" onclick="cloneUrlFields(this.parentNode.parentNode)" value=" Add URL " />
 			</legend>
 			<p>
 				<label>URL</label>
 				<input class="text" type="text" name="url" size="40" />
-				<input type="button" onclick="removeElement(this.parentNode)" value=" - " />
+				<input type="button" onclick="removeElement(this.parentNode)" value=" Remove URL " hidden="hidden" />
 			</p>
 		</fieldset>
 		<input type="hidden" name="state" value="A" />

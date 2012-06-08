@@ -33,7 +33,8 @@ function removeElement(e)
  */
 function cloneUrlFields(e)
 {
-	var a = jQuery(e).children("p:first").clone();
-	a.find("input[type='text']").attr("value", "");
-	a.appendTo(jQuery(e));
+	var cloned = jQuery(e).children("p:first").clone();
+	cloned.find("input[type='text']").attr("value", "");
+	cloned.find("input[type='button']").removeAttr("hidden");
+	cloned.appendTo(jQuery(e));
 }

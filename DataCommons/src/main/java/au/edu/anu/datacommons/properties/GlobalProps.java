@@ -111,41 +111,32 @@ public final class GlobalProps
 		return globalProperties.getProperty(key, defaultValue);
 	}
 
-	public static String getUploadDirAsString() throws PropertyException
+	public static String getUploadDirAsString()
 	{
-		String uploadDirString = getProperty(PROP_UPLOAD_DIR);
-		if (!Util.isNotEmpty(uploadDirString))
-			throw new PropertyException("Property " + PROP_UPLOAD_DIR + " not specified in Global Properties.");
-		return uploadDirString;
+		return getProperty(PROP_UPLOAD_DIR);
 	}
 
-	public static File getUploadDirAsFile() throws PropertyException
+	public static File getUploadDirAsFile()
 	{
 		return new File(getUploadDirAsString());
 	}
 
-	public static String getBagsDirAsString() throws PropertyException
+	public static String getBagsDirAsString()
 	{
-		String bagsDirString = getProperty(PROP_UPLOAD_BAGSDIR);
-		if (!Util.isNotEmpty(bagsDirString))
-			throw new PropertyException("Property " + PROP_UPLOAD_BAGSDIR + " not specified in Global Properties.");
-		return bagsDirString;
+		return getProperty(PROP_UPLOAD_BAGSDIR);
 	}
 
-	public static File getBagsDirAsFile() throws PropertyException
+	public static File getBagsDirAsFile()
 	{
 		return new File(getBagsDirAsString());
 	}
 
-	public static String getTempDirAsString() throws PropertyException
+	public static String getTempDirAsString()
 	{
-		String tempDirString = getProperty(PROP_UPLOAD_TEMPDIR);
-		if (!Util.isNotEmpty(tempDirString))
-			throw new PropertyException("Property " + PROP_UPLOAD_TEMPDIR + " not specified in Global Properties.");
-		return tempDirString;
+		return getProperty(PROP_UPLOAD_TEMPDIR);
 	}
 
-	public static File getTempDirAsFile() throws PropertyException
+	public static File getTempDirAsFile()
 	{
 		return new File(getTempDirAsString());
 	}
@@ -158,7 +149,7 @@ public final class GlobalProps
 		if (emailDebugSendString != null)
 			emailDebugSend = Boolean.parseBoolean(getProperty(PROP_EMAIL_DEBUG_SEND));
 		else
-			LOGGER.warn("Property " + PROP_EMAIL_DEBUG_SEND + " not specified in Global Properties.");
+			LOGGER.warn("Property " + PROP_EMAIL_DEBUG_SEND + " not specified in Global Properties. Using Default: false");
 
 		return emailDebugSend;
 	}
