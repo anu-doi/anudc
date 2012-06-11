@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<foxml:digitalObject VERSION="1.1" PID="tmplt:7" FEDORA_URI="info:fedora/tmplt:7"
+xmlns:foxml="info:fedora/fedora-system:def/foxml#"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
+<foxml:objectProperties>
+<foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+<foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="PAMBU Collection Template"/>
+</foxml:objectProperties>
+<foxml:datastream ID="DC" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="DC.0" LABEL="Dublin Core Record for this object" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/">
+<foxml:xmlContent>
+<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+  <dc:title>PAMBU Collection Template</dc:title>
+  <dc:description>Template for creating PAMBU Microfilm Records</dc:description>
+  <dc:type>Template</dc:type>
+  <dc:identifier>tmplt:7</dc:identifier>
+</oai_dc:dc>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="XML_TEMPLATE" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="XML_TEMPLATE.0" LABEL="XML Template" MIMETYPE="text/xml">
+<foxml:xmlContent>
+<template>
+  <name>PAMBU Microfilm Collection Template</name>
+  <item defaultValue="Collection" editPerm="admin" fieldType="TextField" label="Type" name="type" readonly="readonly" saveType="single"></item>
+  <item class="required" fieldType="Combobox" label="Collection Type" name="subType" saveType="single">
+    <option label="-No Value Selected-" value=""></option>
+    <option label="Dataset" value="dataset"></option>
+    <option label="Catalogue or Index" value="catalogueOrIndex"></option>
+    <option label="Collection" value="collection"></option>
+    <option label="Registry" value="registry"></option>
+    <option label="Repository" value="repository"></option>
+  </item>
+  <item class="required" fieldType="Combobox" label="Owner Group" name="ownerGroup" saveType="single">
+    <option label="-No Value Selected-" value=""></option>
+    <option label="Administrator" value="1"></option>
+  </item>
+  <item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"></item>
+  <item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"></item>
+  <item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single"></item>
+  <item fieldType="TextField" label="PAMBU ID" name="externalId" saveType="single"></item>
+  <item fieldType="Table" label="Coverage Dates" name="coverageDates" saveType="table">
+    <column class="date" fieldType="TextField" label="Date From" name="dateFrom"></column>
+    <column class="date" fieldType="TextField" label="Date To" name="dateTo"></column>
+    <column fieldType="TextField" label="Text" name="dateText"></column>
+  </item>
+  <item fieldType="TextField" label="Number of Reels" name="numReels" saveType="single"></item>
+  <item fieldType="TextField" label="Format" name="format" saveType="single"></item>
+  <item class="required" fieldType="Combobox" label="PAMBU Holding Type" name="holdingType" saveType="single">
+    <option label="-No Value Selected-" value=""></option>
+    <option label="Manuscript Series" value="ms"></option>
+    <option label="Printed Document Series" value="doc"></option>
+  </item>
+  <item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single"></item>
+  <item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single"></item>
+  <item fieldType="TextField" label="Holding" name="holdingLocation" saveType="single"></item>
+  <item fieldType="TextField" label="Serial Number" name="serialNum" saveType="single"></item>
+  <item fieldType="Combobox" label="Digitized" name="digital" saveType="single">
+    <option label="No" value="NO"></option>
+    <option label="Yes" value="YES"></option>
+  </item>
+  <item class="number" fieldType="TextField" label="Sort Value" name="sortVal" saveType="single"></item>
+  <item fieldType="TextArea" label="Significance Statement" maxLength="4000" name="significanceStatement" saveType="single"></item>
+  <item class="required email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple"></item>
+  <item fieldType="TextArea" label="Contact Address" name="postalAddress" saveType="single"></item>
+  <item fieldType="TextFieldMulti" label="Contact Phone Number" name="phone" saveType="multiple"></item>
+  <item fieldType="TextFieldMulti" label="Contact Fax Number" name="fax" saveType="multiple"></item>
+  <item fieldType="TextFieldMulti" label="Website Address" name="websiteAddress" saveType="multiple"></item>
+  <item class="required" fieldType="TextFieldMulti" label="ANZSRC-FOR Subject" name="anzforSubject" saveType="multiple"></item>
+  <item fieldType="TextFieldMulti" label="Other Subject" name="locSubject" saveType="multiple"></item>
+  <item fieldType="Table" label="Coverage Area" name="coverageArea" saveType="table">
+    <column fieldType="Combobox" label="Type" name="covAreaType">
+      <option label="-No Value Selected-" value=""></option>
+      <option label="Text" value="text"></option>
+      <option label="OpenGIS Geography Markup Language (GML) Encoding Standard" value="gml"></option>
+    </column>
+    <column fieldType="TextField" label="Location" name="covAreaValue"></column>
+  </item>
+  <item fieldType="TableVertical" label="Publications" name="publication" saveType="table">
+    <column fieldType="Combobox" label="Publication Type" name="pubType">
+      <option label="-No Value Selected-" value=""></option>
+      <option label="Digital Object Identifier" value="doi"></option>
+      <option label="International Standard Serial Number" value="issn"></option>
+      <option label="International Standard Book Number" value="isbn"></option>
+    </column>
+    <column fieldType="TextField" label="Publication Value" name="pubValue"></column>
+    <column fieldType="TextArea" label="Publication Title" name="pubTitle"></column>
+  </item>
+  <item fieldType="TextArea" label="Rights Statement" name="rightsStatement" saveType="single" tooltip="Intellectual property rights information"></item>
+  <item fieldType="TextArea" label="Licence" name="licence" saveType="single" tooltip="Licence Information"></item>
+  <item fieldType="TextArea" label="Access Rights" name="accessRights" saveType="single" tooltip="Information about who and when people may access the information in this collection"></item>
+</template>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+</foxml:digitalObject>
