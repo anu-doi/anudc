@@ -19,6 +19,7 @@ import au.edu.anu.datacommons.data.db.model.Groups;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		28/05/2012	Genevieve Turner (GT)	Initial
+ * 0.2		13/06/2012	Genevieve Turner (GT)	Updated filter permissions
  * </pre>
  * 
  */	
@@ -31,10 +32,11 @@ public interface GroupService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		28/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.2		13/06/2012	Genevieve Turner (GT)	Updated filter permissions
 	 * </pre>
 	 * 
 	 * @return Returns a list of groups
 	 */
-	@PostFilter("hasPermission(filterObject,'READ') or hasPermission(filterObject,'WRITE')")
+	@PostFilter("hasPermission(filterObject,'READ') or hasPermission(filterObject,'WRITE') or hasPermission(filterObject,'ADMINISTRATION') or hasPermission(filterObject,'CREATE')")
 	public List<Groups> getAll();
 }

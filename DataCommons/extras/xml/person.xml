@@ -1,5 +1,6 @@
 <template>
 	<name>Person Template</name>
+	<briefDesc>Template for creating people</briefDesc>
 	<item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type"
 		readonly="readonly" saveType="single"/>
 	<item defaultValue="person" editPerm="admin" fieldType="TextField" label="Party Type" name="subType"

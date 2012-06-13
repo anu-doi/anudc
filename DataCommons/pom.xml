@@ -225,6 +225,11 @@
 			<artifactId>jersey-json</artifactId>
 			<version>1.12</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.solr</groupId>
+			<artifactId>solr-solrj</artifactId>
+			<version>3.5.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>DataCommons</finalName>

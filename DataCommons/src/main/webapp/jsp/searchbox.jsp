@@ -2,9 +2,13 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
 <form name="frmBasicSearch" action="<c:url value='/rest/search/'></c:url>" method="get">
 	<p>
+		<fmt:bundle basename='global'>
+			<fmt:message var="searchItemsPerPage" key='search.resultsPerPage' />
+		</fmt:bundle>
 		<label for="basicSearchTerms">Search</label>
 		<input class="text" type="text" name="q" id="idBasicSearchTerms" size="30" value="<c:out value="${param.q}" />" />
 		<!-- Display a dropdown when a user's logged in allowing one to select filters such as Published, Personal, Team. Does not display for Guests. -->

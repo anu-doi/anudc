@@ -1,22 +1,14 @@
 #!/usr/bin/perl
-#
-# pambu.pl
-# 
-# Australian National University Data Commons
-#
-# This script allows the loading of data from the pambu microfilm database in to the
-# Data Commons
-#
-# Version	Date		Developer				Description
-# 0.1		08/06/2012	Genevieve Turner (GT)	Initial
 
-my $author_tmplt_id = [AUTH TMPLT ID];
-my $coll_tmplt_id = [COLL TMPLT ID;
+my $author_tmplt_id = "tmplt:6";
+my $coll_tmplt_id = "tmplt:7";
 my $layout = "def:display";
 my $matchstring = "<b>Identifier:<\/b> (([A-Za-z0-9]|-|\.)+:(([A-Za-z0-9])|-|\.|~|_|(%[0-9A-F]{2}))+)<br \/>";
 
-my $author_file = "test_authors.txt";
-my $collection_file = "test_titles.txt";
+my $layout = "def:display";
+
+my $author_file = "test_authors_2.txt";
+my $collection_file = "test_titles_2.txt";
 
 my %authorids = ();
 
@@ -25,20 +17,18 @@ open (OUTPUTFILE, '>output.txt');
 my $group_id = "9";
 my $curl = "C:/WorkSpace/Software/curl/curl-7.24.0-ssl-sspi-zlib-static-bin-w32/curl";
 my $user = "-X POST --user user2:visitor";
-my $auth_url = "http://[APP SERVER:PORT]/DataCommons/rest/display/new?layout=$layout&tmplt=$author_tmplt_id";
-my $coll_url = "http://[APP SERVER:PORT]/DataCommons/rest/display/new?layout=$layout&tmplt=$coll_tmplt_id";
-my $linkurl = "http://[APP SERVER:PORT]/DataCommons/rest/display/addLink?item=";
+my $auth_url = "http://67h5p1s.uds.anu.edu.au:9081/DataCommons/rest/display/new?layout=$layout&tmplt=$author_tmplt_id";
+my $coll_url = "http://67h5p1s.uds.anu.edu.au:9081/DataCommons/rest/display/new?layout=$layout&tmplt=$coll_tmplt_id";
+my $linkurl = "http://67h5p1s.uds.anu.edu.au:9081/DataCommons/rest/display/addLink?item=";
 
 my $curlcmd = $curl.' '.$user.' '.$auth_url;
 
 # Save the authors
-open FILE, $author_file or die $!;
+open AUTH_FILE, $author_file or die $!;
 
-while (<FILE>) {
+while (<AUTH_FILE>) {
 	print OUTPUTFILE "-----------------------------\n";
 	my @author = split(/;/);
-	
-# Set the form fields
 	my $data='--data "type=Party"';
 	$data=$data.' --data "subType=author"';
 	$data=$data.' --data "ownerGroup='.$group_id.'"';
@@ -48,8 +38,8 @@ while (<FILE>) {
 	
 	my $command = $curlcmd.' '.$data;
 	print OUTPUTFILE $command."\n";
-	my $return = `$command`;
-	if ($return =~ m/$matchstring/i) {
+	my $response = `$command`;
+	if ($response =~ m/$matchstring/i) {
 		print OUTPUTFILE "Has Identifier: ".$1."\n";
 		$authorids{@author[0]} = $1;
 	}
@@ -57,24 +47,24 @@ while (<FILE>) {
 		print OUTPUTFILE "Error saving document for @author[0]"."\n";
 	}
 }
-close(FILE);
+close(AUTH_FILE);
 
 #!/usr/bin/perl
 
-while (($key, $value) = each(%authorids)) {
-	print "Key: ".$key.", Value: ".$value."\n";
-}
+# while (($key, $value) = each(%authorids)) {
+#	print "Key: ".$key.", Value: ".$value."\n";
+# }
 
 $curlcmd = $curl.' '.$user.' '.$coll_url;
 
 # Save the collections and add a link to the author
-open FILE, $collection_file or die $!;
+open COLL_FILE, $collection_file or die $!;
 
-while (<FILE>) {
+while (<COLL_FILE>) {
 	print OUTPUTFILE "-----------------------------\n";
 	my @collection = split(/;/);
-	
-# Set the form fields
+	my $size = @collection;
+	print OUTPUTFILE "Size: ".$size."\n";
 	my $data='--data "type=Collection"';
 	$data=$data.' --data "subType=collection"';
 	$data=$data.' --data "ownerGroup='.$group_id.'"';
@@ -102,8 +92,8 @@ while (<FILE>) {
 	
 	my $command = $curlcmd.' '.$data;
 	print OUTPUTFILE $command."\n";
-	my $return = `$command`;
-	if ($return =~ m/$matchstring/i) {
+	my $response = `$command`;
+	if ($response =~ m/$matchstring/i) {
 		print OUTPUTFILE "Has Identifier: ".$1."\n";
 		my $author = @collection[1];
 		print OUTPUTFILE "Collection Author: ".$author."\n";
@@ -114,14 +104,13 @@ while (<FILE>) {
 			$linkdata = ' --data "linkType=isOutputOf"';
 			$linkdata = $linkdata.' --data "itemId=info:fedora/'.$authoritem.'"';
 			$linkcommand = $curl.' '.$user.' '.$linkurl.$1.$linkdata;
-			$return = `$linkcommand`;
-			print OUTPUTFILE $return."\n";
+			$response = `$linkcommand`;
 		}
 	}
 	else {
 		print OUTPUTFILE "Error saving document for @collection[0]\n";
 	}
 }
-close(FILE);
+close(COLL_FILE);
 
 close(OUTPUTFILE);

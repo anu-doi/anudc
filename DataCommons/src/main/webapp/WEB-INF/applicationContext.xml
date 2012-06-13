@@ -52,11 +52,18 @@
 		</property>
 	</bean>
 	
-	<bean id="solrSearchService" class="au.edu.anu.datacommons.search.ExternalPoster">
+	<bean id="gsearchUpdateService" class="au.edu.anu.datacommons.search.ExternalPoster">
 		<property name="username" value="${fedora.username}" />
 		<property name="password" value="${fedora.password}" />
-		<property name="url" value="${search.solr}" />
+		<property name="url" value="${gsearch.url}/rest" />
 		<property name="type" value="application/x-www-form-urlencoded" />
+		<property name="acceptType" value="text/html" />
+		<property name="parameters">
+			<map>
+				<entry key="operation" value="updateIndex" />
+				<entry key="action" value="fromPid" />
+			</map>
+		</property>
 	</bean>
 	
 	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">

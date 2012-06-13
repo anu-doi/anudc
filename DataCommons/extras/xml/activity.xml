@@ -1,5 +1,6 @@
 <template>
 	<name>Activity Template</name>
+	<briefDesc>Template for creating activities</briefDesc>
 	<item defaultValue="Activity" editPerm="admin" fieldType="TextField" label="Type" name="type" readonly="readonly" saveType="single" />
 	<item fieldType="Combobox" label="Activity Type" name="subType" saveType="single" class="required">
 		<option label="-No Value Selected-" value=""/>

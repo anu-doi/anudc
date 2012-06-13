@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <template>
 	<name>PAMBU Author Template</name>
+	<briefDesc>Template for creating PAMBU Authors</briefDesc>
 	<item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type"
 		readonly="readonly" saveType="single"/>
 	<item defaultValue="author" editPerm="admin" fieldType="TextField" label="Party Type" name="subType"

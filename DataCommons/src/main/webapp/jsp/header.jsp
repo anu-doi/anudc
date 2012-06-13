@@ -40,9 +40,8 @@
 	</anu:submenu>
 	<sec:authorize access="hasRole('ROLE_ADMIN')">
 		<anu:submenu title="Admin">
-			<li><a href="#">Item</a></li>
-			<li><a href="#">Item 2</a></li>
-			<li><a href="#">Item 3</a></li>
+			<li><a href="<c:url value='/rest/search/admin' />">Update Index</a></li>
+			<li><a href="<c:url value='/jsp/pambu/pambuadmin.jsp' />">Pambu Administration</a></li>
 		</anu:submenu>
 	</sec:authorize>
 	

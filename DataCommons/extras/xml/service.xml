@@ -1,5 +1,6 @@
 <template>
 	<name>Service Template</name>
+	<briefDesc>Template for creating services</briefDesc>
 	<item defaultValue="Service" editPerm="admin" fieldType="TextField" label="Type" name="type"
 		readonly="readonly" saveType="single"/>
 	<item fieldType="Combobox" label="Service Type" name="subType" saveType="single" class="required">

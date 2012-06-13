@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <template>
 	<name>Collection Template</name>
+	<briefDesc>Template for creating collections</briefDesc>
 	<item name="type" label="Type" fieldType="TextField" saveType="single" defaultValue="Collection" readonly="readonly" editPerm="admin" />
 	<item name="subType" label="Collection Type" fieldType="Combobox" saveType="single" class="required">
 		<option value="" label="-No Value Selected-" />

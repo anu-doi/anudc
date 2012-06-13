@@ -1,5 +1,6 @@
 <template>
 	<name>Party Template</name>
+	<briefDesc>Template for creating groups and administrative positions</briefDesc>
 	<item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type"
 		readonly="readonly" saveType="single"/>
 	<item editPerm="admin" fieldType="Combobox" label="Party Type" name="subType" saveType="single" class="required">
