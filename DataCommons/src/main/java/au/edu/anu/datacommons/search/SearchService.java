@@ -1,8 +1,10 @@
 package au.edu.anu.datacommons.search;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -19,7 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.solr.SolrManager;
+import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.client.ClientResponse.Status;
@@ -37,6 +42,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.1		26/03/2012	Rahul Khanna (RK)		Initial.
  * 0.2		04/05/2012	Genevieve Turner (GT)	Updated for the removal of the method 'runRiSearch'
  * 0.4		13/06/2012	Genevieve Turner (GT)	Updated for changes to use solr as the search engine
+ * 0.5		13/06/2012	Genevieve Turner (GT)	Updated for varying search filters
  * </pre>
  * 
  */
@@ -47,9 +53,9 @@ public class SearchService
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchService.class);
 	private static final String SEARCH_JSP = "/search.jsp";
 	
-	// TODO Once determined how object info such as published flag, group etc. are stored use this parameter to filter out results.
-	//	@QueryParam("filter") private String filter;
-
+	@Resource(name="groupServiceImpl")
+	GroupService groupService;
+	
 	/**
 	 * doGetAsXml
 	 * 
@@ -179,6 +185,7 @@ public class SearchService
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.4		13/06/2012	Genevieve Turner(GT)	Initial
+	 * 0.5		13/06/2012	Genevieve Turner (GT)	Updated for varying search filters
 	 * </pre>
 	 * 
 	 * @param q	Search terms
@@ -191,18 +198,142 @@ public class SearchService
 	private QueryResponse executeQuery (String q, int offset, int limit, String filter) throws SolrServerException {
 		Object[] list = {q, offset, limit};
 		LOGGER.info("Query Term: {}, Offset: {}, Limit: {}", list);
-		
+
+		LOGGER.info("Filter is: {}", filter);
 		SolrQuery solrQuery = new SolrQuery();
-		solrQuery.setQuery("unpublished.all:(" + q + ")");
 		
-		solrQuery.addField("id");
-		solrQuery.addField("unpublished.name");
-		solrQuery.addField("unpublished.briefDesc");
-		
+		if ("team".equals(filter)) {
+			setTeamQuery(solrQuery, q);
+		}
+		else if ("published".equals(filter)) {
+			setPublishedQuery(solrQuery, q);
+		}
+		else {
+			setAllQuery(solrQuery, q);
+		}
 		solrQuery.setStart(offset);
 		solrQuery.setRows(limit);
 		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
 		QueryResponse queryResponse = solrServer.query(solrQuery);
 		return queryResponse;
 	}
+
+	/**
+	 * setAllQuery
+	 *
+	 * Creates the query for where the all/no filter has been selected
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		13/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param solrQuery The query that will be sent to the SolrServer
+	 * @param q The values to search for
+	 */
+	private void setAllQuery(SolrQuery solrQuery, String q) {
+		String filterGroups = getGroupsString();
+		solrQuery.setQuery("published.all:(" + q + ") unpublished.all:(" + q + ")");
+		
+		solrQuery.addField("id");
+		setReturnFields("published", solrQuery);
+		setReturnFields("unpublished", solrQuery);
+		
+		solrQuery.addFilterQuery("(location.published:ANU or unpublished.ownerGroup:(" + filterGroups + "))");
+	}
+	
+	/**
+	 * setTeamQuery
+	 *
+	 * Creates the query where the team filter has been selected
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		13/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param solrQuery The query that will be sent to the SolrServer
+	 * @param q The values to search for
+	 */
+	private void setTeamQuery(SolrQuery solrQuery, String q) {
+
+		if (groupService == null) {
+			LOGGER.error("Group service is null");
+		}
+		else {
+			String filterGroups = getGroupsString();
+			solrQuery.setQuery("unpublished.all:(" + q + ")");
+			
+			solrQuery.addField("id");
+			setReturnFields("unpublished", solrQuery);
+			solrQuery.addFilterQuery("unpublished.ownerGroup:(" + filterGroups + ")");
+		}
+	}
+	
+	/**
+	 * setPublishedQuery
+	 *
+	 * Creates the query where the published filter has been selected
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		13/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param solrQuery The query that will be sent to the SolrServer
+	 * @param q The values to search for
+	 */
+	private void setPublishedQuery(SolrQuery solrQuery, String q) {
+		solrQuery.setQuery("published.all:(" + q + ")");
+		
+		solrQuery.addField("id");
+		setReturnFields("published", solrQuery);
+		
+		solrQuery.addFilterQuery("location.published:ANU");
+	}
+	
+	/**
+	 * getGroupsString
+	 *
+	 * Creates a string of combined groups to be used in filters
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		13/06/2012	Genevieve Turner (GT)	Initial
+	 * </pre>
+	 * 
+	 * @return Returns a string of combined groups
+	 */
+	private String getGroupsString() {
+		StringBuffer filterGroups = new StringBuffer();
+		List<Groups> groups = groupService.getAll();
+		for (Groups group : groups) {
+			filterGroups.append(group.getId());
+			filterGroups.append(" ");
+		}
+		LOGGER.debug("Filter Groups: {}", filterGroups.toString());
+		return filterGroups.toString();
+	}
+	
+	/**
+	 * setReturnFields
+	 *
+	 * Sets the return fields for the solr query based upon the property
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		14/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param type The prefix of the field to search (e.g. 'published' or 'unpublished')
+	 * @param solrQuery The query that will be sent to the SolrServer
+	 */
+	private void setReturnFields(String type, SolrQuery solrQuery) {
+		String returnFields = GlobalProps.getProperty(GlobalProps.PROP_SEARCH_SOLR_RETURNFIELDS);
+		String[] splitReturnFields = returnFields.split(",");
+		for (String field : splitReturnFields) {
+			solrQuery.addField(type + "." + field);
+		}
+	}
+	
 }

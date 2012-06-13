@@ -14,10 +14,9 @@
 		<!-- Display a dropdown when a user's logged in allowing one to select filters such as Published, Personal, Team. Does not display for Guests. -->
 		<c:if test="${not empty pageContext.request.remoteUser}">
 			<select name="filter">
-				<option value="all" selected="selected">All</option>
-				<option value="published">Published</option>
-				<option value="personal">Personal</option>
-				<option value="team">Team</option>
+				<option value="all" <c:if test="${param.filter == 'all'}">selected="selected" </c:if>>All</option>
+				<option value="published" <c:if test="${param.filter == 'published'}">selected="selected" </c:if>>Published</option>
+				<option value="team" <c:if test="${param.filter == 'team'}">selected="selected" </c:if>>Team</option>
 			</select>
 		</c:if>
 		<input type="hidden" name="limit" value="<c:out value='${searchItemsPerPage}' />" />
