@@ -1,8 +1,7 @@
 package au.edu.anu.datacommons.services;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.ws.rs.GET;
@@ -11,20 +10,23 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import javax.ws.rs.core.Response.Status;
 
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
+import au.edu.anu.datacommons.data.solr.SolrManager;
+import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
+import au.edu.anu.datacommons.search.SolrSearchResult;
 import au.edu.anu.datacommons.search.SparqlQuery;
-import au.edu.anu.datacommons.search.SparqlResultSet;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -45,6 +47,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
  * 0.2		14/05/2012	Genevieve Turner (GT)	Updated to include a JSON search for items
  * 0.3		08/06/2012	Genevieve Turner (GT)	Updated for changes to post
+ * 0.4		14/06/2012	Genevieve Turner (GT)	Updated for new templates to search solr
  * </pre>
  * 
  */
@@ -52,10 +55,7 @@ import com.sun.jersey.api.view.Viewable;
 @Path("list")
 public class ListResource {
 	static final Logger LOGGER = LoggerFactory.getLogger(ListResource.class);
-
-	@Resource(name="riSearchService")
-	ExternalPoster riSearchService;
-
+	
 	@Resource(name="riSearchJSONService")
 	ExternalPoster riSearchJSONService;
 	
@@ -78,47 +78,35 @@ public class ListResource {
 	@Path("template")
 	public Response getTemplates() {
 		Response response = null;
-		SparqlQuery sparqlQuery = new SparqlQuery();
-
-		sparqlQuery.addVar("?item");
-		sparqlQuery.addVar("?title");
-		sparqlQuery.addVar("?description");
-		sparqlQuery.addTriple("?item", "<dc:type>", "'Template'", false);
-		sparqlQuery.addTriple("?item", "<dc:title>", "?title", false);
-		sparqlQuery.addTriple("?item", "<dc:description>", "?description", true);
+		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
 		
-		if (riSearchService == null) {
-			LOGGER.info("riSearchService is null");
-		}
-		else {
-			LOGGER.info("riSearchService is not null");
+		SolrQuery solrQuery = new SolrQuery();
+		
+		solrQuery.setQuery("*:*");
+		solrQuery.addFilterQuery("template.type:template");
+		
+		solrQuery.addField("id");
+		
+		String returnFields = GlobalProps.getProperty(GlobalProps.PROP_SEARCH_SOLR_RETURNFIELDS);
+		String[] splitReturnFields = returnFields.split(",");
+		for (String field : splitReturnFields) {
+			solrQuery.addField("template." + field);
 		}
 
-		ClientResponse riSearchResponse = riSearchService.post("query", sparqlQuery.generateQuery());
+		Map<String, Object> model = new HashMap<String, Object>();
+
 		try {
-			String responseString = riSearchResponse.getEntity(String.class);
-			LOGGER.debug("riSearchResponse: {}", responseString);
-			// For some reason XPath doesn't work properly if you directly get the document from the stream
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			Document resultsXmlDoc = factory.newDocumentBuilder().parse(new InputSource(new StringReader(responseString)));
-			SparqlResultSet resultSet = new SparqlResultSet(resultsXmlDoc);
+			QueryResponse queryResponse = solrServer.query(solrQuery);
 
-			HashMap<String, Object> model = new HashMap<String, Object>();
-			model.put("resultSet", resultSet);
-			
+			SolrDocumentList resultList = queryResponse.getResults();
+			LOGGER.info("Number of results: {}",resultList.getNumFound());
+			SolrSearchResult solrSearchResult = new SolrSearchResult(resultList);
+			model.put("resultSet", solrSearchResult);
 			response = Response.ok(new Viewable("/listtemplate.jsp", model)).build();
 		}
-		catch (SAXException e)
-		{
-			LOGGER.error("Error creating document", e);
-		}
-		catch (ParserConfigurationException e)
-		{
-			LOGGER.error("Error creating document", e);
-		}
-		catch (IOException e)
-		{
-			LOGGER.error("Error creating document", e);
+		catch(SolrServerException e) {
+			LOGGER.error("Exception querying field");
+			Response.status(Status.INTERNAL_SERVER_ERROR);
 		}
 		
 		return response;

@@ -601,12 +601,16 @@
    <field name="location.published" type="text_general" index="true" stored="true" multiValued="true" />
    <field name="published.name" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="published.combinedDates" type="text_general" indexed="true" stored="true" multiValued="false" />
-   <field name="published.sortVal" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="published.sortVal" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="published.combinedAuthors" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="unpublished.name" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="unpublished.combinedDates" type="text_general" indexed="true" stored="true" multiValued="false" />
-   <field name="unpublished.sortVal" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="unpublished.sortVal" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="unpublished.combinedAuthors" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="template.name" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="template.type" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="template.briefDesc" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="template.subType" type="text_general" indexed="true" stored="true" multiValued="false" />
    <dynamicField name="fgs.*" type="string" indexed="true" stored="true" multiValued="true" />
    <!--
    <dynamicField name="item.*" type="text_general" index="true" stored="true" multiValued="true" />

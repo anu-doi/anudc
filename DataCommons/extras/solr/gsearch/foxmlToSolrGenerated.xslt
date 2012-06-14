@@ -83,6 +83,21 @@
 					</field>
 				</xsl:for-each>
 				
+				<xsl:for-each select="foxml:datastream[@ID='XML_TEMPLATE' and @CONTROL_GROUP='X']/foxml:datastreamVersion[last()]/foxml:xmlContent/*">
+					<field name="template.name">
+						<xsl:value-of select="//name" />
+					</field>
+					<field name="template.briefDesc">
+						<xsl:value-of select="//briefDesc" />
+					</field>
+					<field name="template.type">
+						<xsl:text>Template</xsl:text>
+					</field>
+					<field name="template.subType">
+						<xsl:value-of select="//item[@name='type']/@defaultValue" />
+					</field>
+				</xsl:for-each>
+				
 				<field name="published.combinedAuthors">
 					<xsl:for-each select="foxml:datastream[@ID='RELS-EXT']/foxml:datastreamVersion[last()]/foxml:xmlContent/rdf:RDF/rdf:Description/*[namespace-uri()='http://anu.edu.au/related/' and local-name()='isOutputOf']">
 						<xsl:variable name="docstr"><xsl:value-of select="$REPOSBASEURL" />/get/<xsl:value-of select="substring-after(@rdf:resource, 'info:fedora/')" />/XML_PUBLISHED</xsl:variable>

@@ -24,6 +24,7 @@ xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/
 <foxml:xmlContent>
 <template>
   <name>PAMBU Microfilm Collection Template</name>
+  <briefDesc>Template for creating PAMBU Microfilm Records</briefDesc>
   <item defaultValue="Collection" editPerm="admin" fieldType="TextField" label="Type" name="type" readonly="readonly" saveType="single"></item>
   <item class="required" fieldType="Combobox" label="Collection Type" name="subType" saveType="single">
     <option label="-No Value Selected-" value=""></option>
