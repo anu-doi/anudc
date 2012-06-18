@@ -43,6 +43,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.2		04/05/2012	Genevieve Turner (GT)	Updated for the removal of the method 'runRiSearch'
  * 0.4		13/06/2012	Genevieve Turner (GT)	Updated for changes to use solr as the search engine
  * 0.5		13/06/2012	Genevieve Turner (GT)	Updated for varying search filters
+ * 0.6		18/06/2012	Genevieve Turner (GT)	Fixed an issue where there is an error in the query if the user has no associated groups
  * </pre>
  * 
  */
@@ -226,6 +227,7 @@ public class SearchService
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.5		13/06/2012	Genevieve Turner(GT)	Initial
+	 * 0.6		18/06/2012	Genevieve Turner (GT)	Fixed an issue where there is an exception if the filterGroups is null
 	 * </pre>
 	 * 
 	 * @param solrQuery The query that will be sent to the SolrServer
@@ -238,8 +240,12 @@ public class SearchService
 		solrQuery.addField("id");
 		setReturnFields("published", solrQuery);
 		setReturnFields("unpublished", solrQuery);
-		
-		solrQuery.addFilterQuery("(location.published:ANU or unpublished.ownerGroup:(" + filterGroups + "))");
+		if (Util.isNotEmpty(filterGroups)) {
+			solrQuery.addFilterQuery("(location.published:ANU or unpublished.ownerGroup:(" + filterGroups + "))");
+		}
+		else {
+			solrQuery.addFilterQuery("location.published:ANU");
+		}
 	}
 	
 	/**

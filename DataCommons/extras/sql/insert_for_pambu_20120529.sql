@@ -36,6 +36,8 @@ WHERE acl_sid.sid = 'ROLE_ADMIN'
 AND groups.group_name = 'Pacific Manuscripts Bureau'
 AND aoi2.object_id_identity = domains.id
 AND domains.domain_name = 'Pacific Manuscripts Bureau';
+
+-- add domain in to acl_entry;
 */
 UPDATE publish_location
 SET execute_class = 'au.edu.anu.datacommons.publish.GenericPublish'
@@ -44,5 +46,5 @@ WHERE code = 'ANU';
 UPDATE publish_location
 SET requires = null;
 
-INSERT INTO publish_location (code, name, execute_class, requires) VALUES
-('PAMBU', 'Pacific Manuscripts Bureau','au.edu.anu.datacommons.publish.GenericPublish',1);
+INSERT INTO publish_location (code, name, execute_class) VALUES
+('PAMBU', 'Pacific Manuscripts Bureau','au.edu.anu.datacommons.publish.GenericPublish');
