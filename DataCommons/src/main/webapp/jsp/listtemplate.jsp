@@ -17,7 +17,7 @@
 			<hr />
 			${it.resultSet.numFound} results found <br /><br />
 			<c:forEach items="${it.resultSet.documentList}" var="row">
-				<a href="<c:url value="/rest/display?layout=def:display&item=${row['id']}" />"><c:out value="${row['template.name']}" /></a> <br />
+				<a href="<c:url value="/rest/display/new?layout=def:new&tmplt=${row['id']}" />"><c:out value="${row['template.name']}" /></a> <br />
 				${row['template.briefDesc']} <br /><br />
 			</c:forEach>
 			<br />
