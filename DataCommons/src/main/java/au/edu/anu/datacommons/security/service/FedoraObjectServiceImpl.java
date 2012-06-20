@@ -2,7 +2,6 @@ package au.edu.anu.datacommons.security.service;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,10 +11,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -35,17 +30,18 @@ import org.xml.sax.SAXException;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
-import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.publish.Publish;
 import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.search.SparqlResultSet;
+import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.template.Template;
@@ -75,7 +71,8 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.5		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
  * 0.6		21/05/2012	Genevieve Turner (GT)	Added saving publication locations to database
  * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to amend some of the publishing processes
- * 0.8		20/06/2012	Genevieve Turner (GT)	Moved permissiosn and change the page retrieval from a String to a Map
+ * 0.8		20/06/2012	Genevieve Turner (GT)	Moved permissions and change the page retrieval from a String to a Map
+ * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to add an audit row when an object is published
  * </pre>
  * 
  */
@@ -533,6 +530,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.5		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
 	 * 0.6		21/05/2012	Genevieve Turner (GT)	Added saving publication locations to database
 	 * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to use generic publishing options
+	 * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to add an audit row when an object is published
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to publish
@@ -573,6 +571,20 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
 		object.update(fedoraObject);
+		
+		CustomUser customUser = (CustomUser)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		
+		LOGGER.info("User id: {}",customUser.getId());
+		
+		AuditObject auditObject = new AuditObject();
+		auditObject.setLog_date(new java.util.Date());
+		auditObject.setLog_type("PUBLISH");
+		auditObject.setObject_id(fedoraObject.getId());
+		auditObject.setUser_id(customUser.getId());
+		auditObject.setAfter(message.toString());
+		GenericDAO<AuditObject,Long> auditObjectDAO = new GenericDAOImpl<AuditObject,Long>(AuditObject.class);
+		auditObjectDAO.create(auditObject);
+		
 		return message.toString();
 	}
 	

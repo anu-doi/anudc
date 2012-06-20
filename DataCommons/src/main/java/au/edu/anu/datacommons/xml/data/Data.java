@@ -28,8 +28,7 @@ import org.slf4j.LoggerFactory;
 public class Data {
 	static final Logger LOGGER = LoggerFactory.getLogger(Data.class);
 	
-	
-	private List<DataItem> items;
+	private List<DataItem> items_;
 	
 	/**
 	 * Constructor
@@ -39,7 +38,7 @@ public class Data {
 	 * 0.2		29/03/2012	Genevieve Turner (GT)	Updated to fix issue when unmarshalling
 	 */
 	public Data() {
-		items = new ArrayList<DataItem>();
+		items_ = new ArrayList<DataItem>();
 	}
 	
 	/**
@@ -55,7 +54,23 @@ public class Data {
 	 */
 	@XmlAnyElement
 	public List<DataItem> getItems() {
-		return items;
+		return items_;
+	}
+	
+	/**
+	 * setItems
+	 *
+	 * Sets the list of items
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		20/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param items The list of elements
+	 */
+	public void setItems(List<DataItem> items) {
+		this.items_ = items;
 	}
 	
 	/**
@@ -63,17 +78,22 @@ public class Data {
 	 * 
 	 * Removes all the elements with the given name
 	 * 
+	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		29/03/2012	Genevieve Turner (GT)	Added function
+	 * 0.3		20/06/2012	Genevieve Turner (GT)	Amended to return a list of removed items
+	 * </pre>
 	 * 
 	 * @param localpart The name of the fields to remove
 	 */
-	public void removeElementsByName(String localpart) {
-		for (int i = items.size() - 1; i >= 0; i--) {
-			DataItem item = items.get(i);
+	public List<DataItem> removeElementsByName(String localpart) {
+		List<DataItem> removedItems = new ArrayList<DataItem>();
+		for (int i = items_.size() - 1; i >= 0; i--) {
+			DataItem item = items_.get(i);
 			if(item.getName_().equals(localpart)) {
-				items.remove(i);
+				removedItems.add(items_.remove(i));
 			}
 		}
+		return removedItems;
 	}
 }

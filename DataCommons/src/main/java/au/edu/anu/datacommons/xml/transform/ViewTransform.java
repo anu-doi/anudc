@@ -27,6 +27,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -34,10 +35,14 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.GenericDAO;
+import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.security.service.GroupServiceImpl;
 import au.edu.anu.datacommons.util.Constants;
@@ -75,6 +80,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.7		15/05/2012	Genevieve Turner (GT)	Updated to fix issue with the dublin core title field
  * 0.8		28/05/2012	Genevieve Turner (GT)	Added groups to code
  * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to allow the display of the object type
+ * 0.10		20/06/2012	Genevieve Turner (GT)	Updated to perform additions to the audit object table
  * </pre>
  * 
  */
@@ -83,6 +89,9 @@ public class ViewTransform
 	static final Logger LOGGER = LoggerFactory.getLogger(ViewTransform.class);
 	
 	private List<String> processedValues_;
+	
+	private List<DataItem> removedItems_;
+	private List<DataItem> addedItems_;
 	
 	/**
 	 * Constructor
@@ -96,6 +105,8 @@ public class ViewTransform
 	 */
 	public ViewTransform() {
 		processedValues_ = new ArrayList<String>();
+		removedItems_ = new ArrayList<DataItem>();
+		addedItems_ = new ArrayList<DataItem>();
 	}
 	
 	/**
@@ -185,7 +196,6 @@ public class ViewTransform
 					return values;
 				}
 				if(hasXMLPublished && hasXMLSource) {
-					LOGGER.info("has both published and source");
 					InputStream dataStream2 = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_PUBLISHED);
 					InputStream modifiedDatastream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
 					try {
@@ -194,7 +204,6 @@ public class ViewTransform
 					catch (Exception e) {
 						LOGGER.warn("Exception retrieving differences between documents");
 					}
-				//	LOGGER.info("Modified Data: " + modifiedData);
 				}
 			}
 			if (dataStream != null) {
@@ -270,7 +279,7 @@ public class ViewTransform
 	{
 		Map<String, Object> values = new HashMap<String, Object>();
 		
-		LOGGER.info("In getPublishedPage");
+		LOGGER.debug("In getPublishedPage");
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		InputStream xmlStream = getXMLInputStream(template, fedoraObject);
 
@@ -390,7 +399,7 @@ public class ViewTransform
 		if (nodeList.getLength() > 0) {
 			Node node = nodeList.item(0);
 			String objectType = node.getTextContent();
-			LOGGER.info("Template Type {}", objectType);
+			LOGGER.debug("Template Type {}", objectType);
 			return objectType;
 		}
 		return "";
@@ -714,6 +723,7 @@ public class ViewTransform
 	 * 0.4		26/04/2012	Genevieve Turner (GT)	Updated to fix an issue with the Form class when introducing security
 	 * 0.5		03/05/2012	Genevieve Turner (GT)	Updated so the fedora object is used to get the input stream
 	 * 0.6		14/05/2012	Genevieve Turner (GT)	Updated to retrieve the pid namespace from a global property
+	 * 0.10		20/06/2012	Genevieve Turner (GT)	Updated to perform additions to the audit object table
 	 * </pre>
 	 * 
 	 * @param tmplt The id of the template
@@ -752,7 +762,7 @@ public class ViewTransform
 			if (values != null) {
 				TemplateItem templateItem = templateItemMap.get(key);
 				if(templateItem == null) {
-					LOGGER.warn("Could not find " + key + " in template" + tmplt);
+					LOGGER.debug("Could not find " + key + " in template" + tmplt);
 				}
 				else if (!processedValues_.contains(key)) {
 					processItem(templateItemMap.get(key), key, values, data, form);
@@ -795,11 +805,11 @@ public class ViewTransform
 			}
 			String group_id = "1";
 			if (form.get("ownerGroup") != null) {
-				LOGGER.info("There is an ownerGroup");
+				LOGGER.debug("There is an ownerGroup");
 				group_id = form.get("ownerGroup").get(0);
 			}
 			else {
-				LOGGER.info("There is no ownerGroup");
+				LOGGER.debug("There is no ownerGroup");
 			}
 			
 			fedoraObject = new FedoraObject();
@@ -812,16 +822,63 @@ public class ViewTransform
 			FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
 			fedoraObjectDAO.create(fedoraObject);
 			LOGGER.debug("fedora object id: {}", fedoraObject.getId());
+			saveAuditModifyRow(fedoraObject);
 		} else {
 			FedoraBroker.modifyDatastreamBySource(fedoraObject.getObject_id(), Constants.XML_SOURCE, "XML Source", sw.toString());
 			if(Util.isNotEmpty(dcSW.toString())) {
 				FedoraBroker.modifyDatastreamBySource(fedoraObject.getObject_id(), Constants.DC, "Dublin Core Record for this object", dcSW.toString());
 			}
+			saveAuditModifyRow(fedoraObject);
 		}
 		
 		processedValues_.clear();
 		
 		return fedoraObject;
+	}
+	
+	/**
+	 * saveAuditModifyRow
+	 *
+	 * Saves the changed information for the fedora object
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.10		20/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedora object to add an audit row to
+	 */
+	private void saveAuditModifyRow(FedoraObject fedoraObject) {
+		CustomUser customUser = (CustomUser)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		
+		AuditObject auditObject = new AuditObject();
+		auditObject.setLog_date(new java.util.Date());
+		auditObject.setLog_type("MODIFIED");
+		auditObject.setObject_id(fedoraObject.getId());
+		auditObject.setUser_id(customUser.getId());
+		
+		JAXBTransform jaxbTransform = new JAXBTransform();
+		
+		Data removeData = new Data();
+		removeData.setItems(removedItems_);
+		StringWriter removedString = new StringWriter();
+		
+		Data addData = new Data();
+		addData.setItems(addedItems_);
+		StringWriter addedString = new StringWriter();
+		
+		try {
+			jaxbTransform.marshalStream(removedString, removeData, Data.class);
+			jaxbTransform.marshalStream(addedString, addData, Data.class);
+		}
+		catch (JAXBException e) {
+			LOGGER.error("Exception creating audit information", e);
+		}
+		auditObject.setBefore(removedString.toString());
+		auditObject.setAfter(addedString.toString());
+		
+		GenericDAO<AuditObject,Long> auditDao = new GenericDAOImpl<AuditObject,Long>(AuditObject.class);
+		auditDao.create(auditObject);
 	}
 	
 	/**
@@ -919,10 +976,8 @@ public class ViewTransform
 			DataItem dataItem = dataItems.get(i);
 			
 			String fieldName = dataItem.getName_();
-			LOGGER.info("field name: {}", fieldName);
 			String dublinCoreLocalpart = DublinCoreConstants.getFieldName(fieldName);
 			if(Util.isNotEmpty(dublinCoreLocalpart)) {
-				LOGGER.info("field is in dc");
 				dublinCore.getItems_().add(createJAXBElement(DublinCoreConstants.DC, dublinCoreLocalpart, dataItem.getValue_()));
 			}
 		}
@@ -1004,7 +1059,7 @@ public class ViewTransform
 	 * @return Whether the processing has completed
 	 */
 	private boolean processItem(TemplateItem item, String key, List values, Data data, Map<String, List<String>> form) {
-		data.removeElementsByName(item.getName());
+		removedItems_.addAll(data.removeElementsByName(item.getName()));
 		
 		if (item.getSaveType() == null) {
 			return true;
@@ -1046,6 +1101,7 @@ public class ViewTransform
 					dataItem.setName_(key);
 					dataItem.setValue_(strValue);
 					data.getItems().add(dataItem);
+					addedItems_.add(dataItem);
 				}
 			}
 		}
@@ -1077,6 +1133,7 @@ public class ViewTransform
 					dataItem.setName_(key);
 					dataItem.setValue_(strValue);
 					data.getItems().add(dataItem);
+					addedItems_.add(dataItem);
 				}
 			}
 		}
@@ -1121,6 +1178,7 @@ public class ViewTransform
 						DataItem dataItem = new DataItem();
 						dataItem.setName_(itemName);
 						tableData.add(dataItem);
+						addedItems_.add(dataItem);
 					}
 					if(Util.isNotEmpty(values.get(i))) {
 						tableData.get(i).getChildValues_().put(columnName, values.get(i));
