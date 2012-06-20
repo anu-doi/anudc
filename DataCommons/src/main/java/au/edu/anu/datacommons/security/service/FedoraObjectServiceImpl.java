@@ -2,6 +2,7 @@ package au.edu.anu.datacommons.security.service;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,8 +12,21 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.NotFoundException;
+import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.acls.model.Sid;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -22,9 +36,11 @@ import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
+import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.publish.Publish;
 import au.edu.anu.datacommons.search.ExternalPoster;
@@ -59,6 +75,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.5		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
  * 0.6		21/05/2012	Genevieve Turner (GT)	Added saving publication locations to database
  * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to amend some of the publishing processes
+ * 0.8		20/06/2012	Genevieve Turner (GT)	Moved permissiosn and change the page retrieval from a String to a Map
  * </pre>
  * 
  */
@@ -68,6 +85,9 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 
 	@Resource(name="riSearchService")
 	ExternalPoster riSearchService;
+	
+	@Resource(name="aclService")
+	MutableAclService aclService;
 	
 	/**
 	 * getItemByName
@@ -144,6 +164,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * </pre>
 	 * 
 	 * @param layout The layout to display the page
@@ -155,12 +176,12 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		Map<String, Object> values = new HashMap<String, Object>();
 		//TODO place post logic and return a proper screen.
 		values.put("topage", "/page.jsp");
-		String page = null;
 		FedoraObject fedoraObject = null;
 		ViewTransform viewTransform = new ViewTransform();
 		try {
 			fedoraObject = viewTransform.saveData(tmplt, null, form);
-			page = viewTransform.getPage(layout, null, fedoraObject, null, false);
+			saveObjectPermissions(fedoraObject);
+			values.putAll(viewTransform.getPage(layout, null, fedoraObject, null, false));
 		}
 		catch (JAXBException e) {
 			LOGGER.error("Exception transforming jaxb", e);
@@ -174,11 +195,53 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		//TODO this should probably be changed
 		String sidepage = "buttons.jsp";
 		
-		values.put("page", page);
 		values.put("sidepage", sidepage);
 		values.put("fedoraObject", fedoraObject);
 		
 		return values;
+	}
+	
+	/**
+	 * saveObjectPermissions
+	 *
+	 * Updates/sets the permissions for the permissions for an object
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		20/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject
+	 */
+	public void saveObjectPermissions(FedoraObject fedoraObject) {
+		LOGGER.info("Id: {}", fedoraObject.getId());
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		Sid sid = new PrincipalSid(authentication.getName());
+		
+		ObjectIdentity group_oi = new ObjectIdentityImpl(Groups.class, fedoraObject.getGroup_id());
+		MutableAcl groupAcl = null;
+		try {
+			groupAcl = (MutableAcl) aclService.readAclById(group_oi);
+		}
+		catch (NotFoundException nfe) {
+			groupAcl = aclService.createAcl(group_oi);
+		}
+		
+		ObjectIdentity fedora_oi = new ObjectIdentityImpl(FedoraObject.class, fedoraObject.getId());
+		MutableAcl fedoraAcl = null;
+		try {
+			fedoraAcl = (MutableAcl) aclService.readAclById(fedora_oi);
+		}
+		catch (NotFoundException nfe) {
+			fedoraAcl = aclService.createAcl(fedora_oi);
+		}
+		
+		fedoraAcl.setParent(groupAcl);
+		fedoraAcl.setEntriesInheriting(Boolean.TRUE);
+		fedoraAcl.setOwner(sid);
+		
+		aclService.updateAcl(fedoraAcl);
 	}
 
 	/**
@@ -189,6 +252,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to transform to a display
@@ -202,7 +266,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		String fields = "";
 		ViewTransform viewTransform = new ViewTransform();
 		try {
-			fields = viewTransform.getPage(layout, tmplt, fedoraObject, fieldName, true);
+			fields = (String)viewTransform.getPage(layout, tmplt, fedoraObject, fieldName, true).get("page");
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception: ", e);
@@ -254,6 +318,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * 0.7		04/06/2012	Genevieve Turner (GT)	Fixed an issue where the fedora object was not returned in the values map
+	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * </pre>
 	 * 
 	 * @param fedoraObject The  fedora object to get the page for
@@ -265,12 +330,11 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("topage", "/page.jsp");
 		String sidepage = "edit.jsp";
-		String page = null;
 		Template template = null;
 		ViewTransform viewTransform = new ViewTransform();
 		try {
 			fedoraObject = viewTransform.saveData(tmplt, fedoraObject, form);
-			page = viewTransform.getPage(layout, null, fedoraObject, null, false);
+			values.putAll(viewTransform.getPage(layout, null, fedoraObject, null, false));
 			template = new ViewTransform().getTemplateObject(tmplt, fedoraObject);
 			values.put("fedoraObject", fedoraObject);
 		}
@@ -283,7 +347,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			values.put("topage", "/error.jsp");
 		}
 
-		values.put("page", page);
 		values.put("sidepage", sidepage);
 		values.put("template", template);
 
@@ -337,6 +400,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * 0.2		03/05/2012	Genevieve Turner (GT)	Updated to add related links to the page
+	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -350,7 +414,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("topage", "/page.jsp");
-		String page = null;
 		ViewTransform viewTransform = new ViewTransform();
 		try {
 			if (fedoraObject != null) {
@@ -364,20 +427,18 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 				}
 			}
 			
-			page = viewTransform.getPage(layout, template, fedoraObject, null, false);
-			values.put("page", page);
+			values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false));
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception: ", e);
 			values.put("topage", "/error.jsp");
 		}
 
-		if(!Util.isNotEmpty(page)) {
+		if (!values.containsKey("page")) {
 			LOGGER.error("Page is empty");
 			values.put("topage", "/error.jsp");
 		}
 		
-		values.put("page", page);
 		if (fedoraObject != null) {
 			//TODO This is should probably be modified
 			values.put("fedoraObject", fedoraObject);

@@ -77,6 +77,10 @@
 		<listener-class>au.edu.anu.datacommons.data.db.PersistenceAppListener</listener-class>
 	</listener>
 	
+	<listener>
+		<listener-class>au.edu.anu.datacommons.data.solr.SolrAppListener</listener-class>
+	</listener>
+	
 	<session-config>
 		<session-timeout>30</session-timeout>
 	</session-config>

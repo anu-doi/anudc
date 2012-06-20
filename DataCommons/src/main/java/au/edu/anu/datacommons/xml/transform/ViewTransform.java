@@ -33,9 +33,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import au.edu.anu.datacommons.data.db.dao.AclObjectIdentityDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
-import au.edu.anu.datacommons.data.db.model.AclObjectIdentity;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
@@ -76,6 +74,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.6		14/05/2012	Genevieve Turner (GT)	Updated to use namespace from a property
  * 0.7		15/05/2012	Genevieve Turner (GT)	Updated to fix issue with the dublin core title field
  * 0.8		28/05/2012	Genevieve Turner (GT)	Added groups to code
+ * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to allow the display of the object type
  * </pre>
  * 
  */
@@ -112,6 +111,7 @@ public class ViewTransform
 	 * 0.4		26/04/2012	Genevieve Turner (GT)	Some updates for differences between published and non-published records
 	 * 0.5		02/05/2012	Genevieve Turner (GT)	Updates to display differences between published and non-published records
 	 * 0.8		28/05/2012	Genevieve Turner (GT)	Updated for retrieving data from the database
+	 * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to allow the display of the object type
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -119,25 +119,26 @@ public class ViewTransform
 	 * @param fedoraObject The item to retrieve data for
 	 * @param fieldName The field to retrieve data for
 	 * @param editMode Whether the request is in edit mode or not
-	 * @return Returns a string representation of the page
+	 * @return Returns a map containing the page information and what type the object is
 	 * @throws FedoraClientException
 	 */
-	public String getPage (String layout, String template, FedoraObject fedoraObject, String fieldName, boolean editMode) throws FedoraClientException
+	public Map<String, Object> getPage (String layout, String template, FedoraObject fedoraObject, String fieldName, boolean editMode) throws FedoraClientException
 	{
+		Map<String, Object> values = new HashMap<String, Object>();
 		LOGGER.debug("In getPage");
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		InputStream xmlStream = getXMLInputStream(template, fedoraObject);
 
 		if (xmlStream == null) {
 			LOGGER.warn("XML Stream is empty");
-			return "";
+			return values;
 		}
 		
 		InputStream xslStream = getInputStream(layout, Constants.XSL_SOURCE);
 		
 		if (xslStream == null) {
 			LOGGER.warn("XSL Stream is empty");
-			return "";
+			return values;
 		}
 		
 		if(Util.isNotEmpty(template)) {
@@ -181,7 +182,7 @@ public class ViewTransform
 				}
 				else {
 					LOGGER.warn("item specified does not exist");
-					return "";
+					return values;
 				}
 				if(hasXMLPublished && hasXMLSource) {
 					LOGGER.info("has both published and source");
@@ -201,6 +202,7 @@ public class ViewTransform
 					// Xalan appears to have issues tranforming when a stream is sent to the document so making
 					// it a w3c Document 
 					Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(dataStream);
+					values.put("itemType", getObjectType(doc));
 					parameters.put("data", doc);
 					if (modifiedDocument != null) {
 						LOGGER.debug("Adding modified data");
@@ -219,10 +221,10 @@ public class ViewTransform
 			}
 			else {
 				LOGGER.warn("item specified does not exist");
-				return "";
+				return values;
 			}
 		}
-		String result = "";
+		
 		try {
 			Document options = getOptionsXML();
 			if (options != null) {
@@ -231,12 +233,13 @@ public class ViewTransform
 			else {
 				LOGGER.info("Options are null");
 			}
-			result = transform(xmlStream, xslStream, parameters);
+			String result = transform(xmlStream, xslStream, parameters);
+			values.put("page", result);
 		}
 		catch (Exception e) {
 			LOGGER.error("Exception transforming page", e);
 		}
-		return result;
+		return values;
 	}
 	
 	/**
@@ -253,31 +256,34 @@ public class ViewTransform
 	 * 0.1		19/03/2012	Genevieve Turner (GT)	Initial build
 	 * 0.4		26/04/2012	Genevieve Turner (GT)	Some updates for differences between published and non-published records
 	 * 0.5		03/05/2012	Genevieve Turner (GT)	Updated so the fedora object is used to get the input stream
+	 * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to allow the display of the object type
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
 	 * @param template The template that determines the fields on the screen
 	 * @param fedoraObject The item to retrieve data for
 	 * @param fieldName The field to retrieve data for
-	 * @return Returns a string representation of the page
+	 * @return Returns a map containing the page information and what type the object is
 	 * @throws FedoraClientException
 	 */
-	public String getPublishedPage(String layout, String template, FedoraObject fedoraObject, String fieldName) throws FedoraClientException
+	public Map<String, Object> getPublishedPage(String layout, String template, FedoraObject fedoraObject, String fieldName) throws FedoraClientException
 	{
+		Map<String, Object> values = new HashMap<String, Object>();
+		
 		LOGGER.info("In getPublishedPage");
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		InputStream xmlStream = getXMLInputStream(template, fedoraObject);
 
 		if (xmlStream == null) {
 			LOGGER.warn("XML Stream is empty");
-			return "";
+			return values;
 		}
 		
 		InputStream xslStream = getInputStream(layout, Constants.XSL_SOURCE);
 		
 		if (xslStream == null) {
 			LOGGER.warn("XSL Stream is empty");
-			return "";
+			return values;
 		}
 		
 		if(Util.isNotEmpty(template)) {
@@ -314,17 +320,18 @@ public class ViewTransform
 			}
 			else {
 				LOGGER.warn("item specified does not exist");
-				return "";
+				return values;
 			}
 		}
-		String result = "";
+		
 		try {
-			result = transform(xmlStream, xslStream, parameters);
+			String result = transform(xmlStream, xslStream, parameters);
+			values.put("page", result);
 		}
 		catch (Exception e) {
 			LOGGER.error("Exception transforming page", e);
 		}
-		return result;
+		return values;
 	}
 	
 	/**
@@ -349,7 +356,7 @@ public class ViewTransform
 		}
 		OptionList optionList = new OptionList();
 		GroupService groupService = new GroupServiceImpl();
-		List<Groups> groups = groupService.getAll();
+		List<Groups> groups = groupService.getCreateGroups();
 		if (groups.size() > 0) {
 			optionList.getGroups().addAll(groups);
 		}
@@ -363,6 +370,30 @@ public class ViewTransform
 			LOGGER.error("Exception transforming document", e);
 		}
 		return doc;
+	}
+	
+	/**
+	 * getObjectType
+	 *
+	 * Returns the type of object i.e. whether it is a Collection, Activity, Party or Service
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.9		20/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param doc The document with the saved information
+	 * @return The object type
+	 */
+	private String getObjectType(Document doc) {
+		NodeList nodeList = doc.getElementsByTagName("type");
+		if (nodeList.getLength() > 0) {
+			Node node = nodeList.item(0);
+			String objectType = node.getTextContent();
+			LOGGER.info("Template Type {}", objectType);
+			return objectType;
+		}
+		return "";
 	}
 	
 	/**
@@ -781,18 +812,6 @@ public class ViewTransform
 			FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
 			fedoraObjectDAO.create(fedoraObject);
 			LOGGER.debug("fedora object id: {}", fedoraObject.getId());
-			AclObjectIdentityDAOImpl<AclObjectIdentity, Long> aclObjectIdentityDAO = new AclObjectIdentityDAOImpl<AclObjectIdentity, Long>(AclObjectIdentity.class);
-			AclObjectIdentity parentAclObjectIdentity = (AclObjectIdentity) aclObjectIdentityDAO.getObjectByClassAndIdentity(new Long(2), fedoraObject.getGroup_id());
-			
-			//TODO This could be updated to use the spring acl classes?
-			AclObjectIdentity aclObjectIdentity = new AclObjectIdentity();
-			aclObjectIdentity.setObject_id_class(new Long(3));
-			aclObjectIdentity.setObject_id_identity(fedoraObject.getId());
-			aclObjectIdentity.setOwner_sid(new Long(1));
-			aclObjectIdentity.setParent_object(parentAclObjectIdentity.getId());
-			aclObjectIdentity.setEntries_inheriting(Boolean.TRUE);
-			aclObjectIdentityDAO.create(aclObjectIdentity);
-			
 		} else {
 			FedoraBroker.modifyDatastreamBySource(fedoraObject.getObject_id(), Constants.XML_SOURCE, "XML Source", sw.toString());
 			if(Util.isNotEmpty(dcSW.toString())) {
