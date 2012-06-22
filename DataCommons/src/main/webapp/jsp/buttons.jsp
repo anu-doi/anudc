@@ -21,7 +21,7 @@
 				</sec:authorize>
 			</c:if>
 			<sec:authorize access="hasRole('ROLE_ANU_USER')">
-				<sec:accesscontrollist hasPermission="PUBLISH" domainObject="${it.fedoraObject}">
+				<sec:accesscontrollist hasPermission="PUBLISH,ADMINISTRATION" domainObject="${it.fedoraObject}">
 					<c:url value="/rest/publish" var="publishLink">
 						<c:param name="item" value="${it.fedoraObject.object_id}" />
 						<c:param name="tmplt" value="${param.tmplt}" />
