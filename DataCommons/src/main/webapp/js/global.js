@@ -10,13 +10,14 @@
  * 0.2		20/03/2012	Genevieve Turner	Added functions for adding/removing rows
  * 0.3		26/03/2012	Genevieve Turner	Removed existing functions for adding/removing rows and changed to use jQuery
  * 0.4		07/05/2012	Genevieve Turner	Removed add link functionality from global.js
+ * 0.5		20/06/2012	Genevieve Turner	Added remove selected function
  */
 
 /**
  * Performs functions when the html document has completed and is ready. Currently this disables the submit button on the edit page.
  * 
- * Version Date Developer Description 0.3 26/03/2012 Genevieve Turner Created function
- * 
+ * Version	Date		Developer			Description
+ * 0.3		26/03/2012	Genevieve Turner	Created function
  */
 jQuery(document).ready(function()
 {
@@ -26,7 +27,8 @@ jQuery(document).ready(function()
 /**
  * When the edit drop down lists selected value changes this event fires. It performs an ajax request that returns html to add to the screen.
  * 
- * Version Date Developer Description 0.3 26/03/2012 Genevieve Turner Created function
+ * Version	Date		Developer			Description
+ * 0.3		26/03/2012	Genevieve Turner	Created function
  */
 jQuery("#editSelect").live('change', function()
 {
@@ -50,7 +52,8 @@ jQuery("#editSelect").live('change', function()
  * 
  * Returns a map of parameters
  * 
- * Version Date Developer Description 0.3 26/03/2012 Genevieve Turner Created function
+ * Version	Date		Developer			Description
+ * 0.3		26/03/2012	Genevieve Turner	Created function
  * 
  */
 function getURLVars()
@@ -68,7 +71,8 @@ function getURLVars()
 /**
  * processReturn Adds the given values to the html document.
  * 
- * Version Date Developer Description 0.3 26/03/2012 Genevieve Turner Created function
+ * Version	Date		Developer			Description
+ * 0.3		26/03/2012	Genevieve Turner	Created function
  * 
  * @param xml
  *            The fields to add to the document.
@@ -78,6 +82,7 @@ function processReturn(xml)
 	jQuery("#extraFields").empty();
 	jQuery("#extraFields").append(xml);
 	jQuery("#editSubmit").removeAttr("disabled");
+	jQuery('#anzforSubject2').combobox();
 }
 
 /**
@@ -104,7 +109,8 @@ function groupDigits(nStr)
 /**
  * Adds a new row to the specified table
  * 
- * Version Date Developer Description 0.3 26/03/2012 Genevieve Turner Created function
+ * Version	Date		Developer			Description
+ * 0.3		26/03/2012	Genevieve Turner	Created function
  * 
  * @param tableName
  *            The name of the table to add a row to
@@ -121,7 +127,8 @@ function addTableRow(tableName)
 /**
  * Removes the table row of the clicked button. If it is the last row in the table then the values are cleared.
  * 
- * Version Date Developer Description 0.3 26/03/2012 Genevieve Turner Created function
+ * Version	Date		Developer			Description
+ * 0.3		26/03/2012	Genevieve Turner	Created function
  * 
  * @param buttonField
  *            The button that was clicked
@@ -140,4 +147,15 @@ function removeTableRow(buttonField)
 		tableRow.find("select option:first-child").attr("selected", "selected");
 		tableRow.find("textarea").val('');
 	}
+}
+
+/**
+ * Removes the selected options from the given list
+ * 
+ * Version	Date		Developer			Description
+ * 0.5		21/06/2012	Genevieve Turner	Created function
+ * @param fieldName The name of the field to remove values from
+ */
+function removeSelected(fieldName) {
+	jQuery("#" + fieldName + " option:selected").remove();
 }

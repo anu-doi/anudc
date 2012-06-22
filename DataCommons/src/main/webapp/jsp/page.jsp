@@ -3,8 +3,11 @@
 
 <anu:header id="1998" title="Page" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au" ssl="true">
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/default.css' />" />
-	<script type="text/javascript" src="<c:url value='/js/global.js' />"></script>
+	<link rel="stylesheet" type="text/css" href="<c:url value='/css/jquery-ui-1.8.20.custom.css' />" />
 	<script type="text/javascript" src="<c:url value='/js/jquery.validate.min.js' />"></script>
+	<script type="text/javascript" src="<c:url value='/js/jquery-ui-1.8.20.custom.min.js' />"></script>
+	<script type="text/javascript" src="<c:url value='/js/global.js' />"></script>
+	<script type="text/javascript" src="<c:url value='/js/page.js' />"></script>
 </anu:header>
 
 <jsp:include page="header.jsp" />

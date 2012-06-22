@@ -27,7 +27,7 @@
 														<xsl:with-param name="tableVal" select="$mData" />
 													</xsl:call-template>
 												</xsl:when>
-													<xsl:when test="@fieldType='Combobox'">
+													<xsl:when test="@fieldType='Combobox' or @fieldType='ComboBoxMulti'">
 														<xsl:call-template name="Combobox">
 															<xsl:with-param name="comboVal" select="$mData" />
 														</xsl:call-template>
@@ -89,6 +89,7 @@
 					<xsl:value-of disable-output-escaping="yes" select="text()" /><br />
 				</xsl:otherwise>
 			</xsl:choose>
+			<br />
 		</xsl:for-each>
 	</xsl:template>
 	

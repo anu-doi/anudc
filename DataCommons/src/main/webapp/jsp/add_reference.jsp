@@ -26,7 +26,7 @@
 				<p><label for="itemId">Item Id</label><input type="text" id="itemId" name="itemId" /></p>
 				<p><label for="linkType">Link Type</label>
 					<select id="linkType" name="linkType">
-						<option value="isPartOf">isPartOf</option>
+						<option value="isPartOf">Is Part Of</option>
 						<option value="hasPart">hasPart</option>
 						<option value="hasOutput">hasOutput</option>
 						<option value="isManagedBy">isManagedBy</option>

@@ -16,7 +16,7 @@
 		</select>
 	</p>
 	
-	<form id="form" method="post" action="" onsubmit="return jQuery('#form').validate().form()" action="">
+	<form id="form" method="post" action="" action="">
 		<div id="extraFields">
 			
 		</div>

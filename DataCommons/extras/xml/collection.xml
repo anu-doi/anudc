@@ -26,7 +26,9 @@
 	<item name="phone" label="Contact Phone Number" fieldType="TextFieldMulti" saveType="multiple" />
 	<item name="fax" label="Contact Fax Number" fieldType="TextFieldMulti"  saveType="multiple" />
 	<item name="websiteAddress" label="Website Address" fieldType="TextFieldMulti" saveType="multiple" />
-	<item name="anzforSubject" label="ANZSRC-FOR Subject" fieldType="TextFieldMulti" saveType="multiple" class="required" />
+	<item name="anzforSubject" label="ANZSRC-FOR Subject" fieldType="ComboBoxMulti" saveType="multiple" class="required">
+		<option value="" label="-No Value Selected-" />
+	</item>
 	<item name="locSubject" label="Other Subject" fieldType="TextFieldMulti" saveType="multiple" />
 	<item name="coverageDates" label="Coverage Dates" fieldType="Table" saveType="table">
 		<column name="dateFrom" label="Date From" fieldType="TextField" class="date" />

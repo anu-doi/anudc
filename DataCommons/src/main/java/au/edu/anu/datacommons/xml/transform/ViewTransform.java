@@ -37,9 +37,12 @@ import org.xml.sax.SAXException;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.SelectCodeDAO;
+import au.edu.anu.datacommons.data.db.dao.SelectCodeDAOImpl;
 import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
+import au.edu.anu.datacommons.data.db.model.SelectCode;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.CustomUser;
@@ -81,6 +84,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.8		28/05/2012	Genevieve Turner (GT)	Added groups to code
  * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to allow the display of the object type
  * 0.10		20/06/2012	Genevieve Turner (GT)	Updated to perform additions to the audit object table
+ * 0.11		21/06/2012	Genevieve Turner (GT)	Updated to add anzfor subjects to be retrieved from the database
  * </pre>
  * 
  */
@@ -351,6 +355,7 @@ public class ViewTransform
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.8		28/05/2012	Genevieve Turner (GT)	Updated for retrieving data from the database
+	 * 0.11		22/06/2012	Genevieve Turner (GT)	Updated to add anzfor subjects to be retrieved from the database
 	 * </pre>
 	 * 
 	 * @return Returns an xml document that contains values for drop down lists
@@ -370,10 +375,22 @@ public class ViewTransform
 			optionList.getGroups().addAll(groups);
 		}
 		
+		//TODO could make this an automatic grab from the template?
+		List<String> fieldNames = new ArrayList<String>();
+		fieldNames.add("anzforSubject");
+		
+		SelectCodeDAO selectCodeDAO = new SelectCodeDAOImpl(SelectCode.class);
+		List<SelectCode> selectCodes = selectCodeDAO.getOptionsByNames(fieldNames);
+		
+		if (selectCodes.size() > 0) {
+			optionList.getSelectCodes().addAll(selectCodes);
+		}
+		
 		try {
 			JAXBContext jaxbContext = JAXBContext.newInstance(OptionList.class);
 			Marshaller marshaller = jaxbContext.createMarshaller();
 			marshaller.marshal(optionList, doc);
+			LOGGER.debug(Util.getXmlAsString(doc));
 		}
 		catch(JAXBException e) {
 			LOGGER.error("Exception transforming document", e);
