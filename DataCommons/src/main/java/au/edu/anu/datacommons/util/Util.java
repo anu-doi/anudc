@@ -259,6 +259,6 @@ public final class Util
 	 */
 	public static String convertToDiskSafe(String source)
 	{
-		return source.replaceAll("\\*|\\?|\\\\|:|/|\\.|\\s", "_");
+		return source.replaceAll("\\*|\\?|\\\\|:|/|\\s", "_");
 	}
 }

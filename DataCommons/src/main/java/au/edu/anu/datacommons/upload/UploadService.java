@@ -1,7 +1,10 @@
 package au.edu.anu.datacommons.upload;
 
+import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.Bag.Format;
+import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
+import gov.loc.repository.bagit.transfer.BagTransferException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -12,11 +15,13 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import javax.print.attribute.standard.Media;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -29,26 +34,35 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.PropertyException;
+import javax.xml.ws.WebServiceException;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.util.Util;
+import au.edu.anu.dcbag.DcBag;
 
+import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.core.spi.scanning.FilesScanner;
+import com.sun.jersey.multipart.FormDataParam;
 
 /**
  * UploadService
@@ -69,6 +83,7 @@ public class UploadService
 	private static final String PART_FILE_SUFFIX = ".part";
 	private static final String UPLOAD_JSP = "/upload.jsp";
 	private static final String FILE_DS_PREFIX = "FILE";
+	private static final String ZIP_FILE_SUFFIX = ".zip";
 
 	/**
 	 * doGetAsHtml
@@ -90,7 +105,6 @@ public class UploadService
 	public Response doGetAsHtml()
 	{
 		LOGGER.info("In doGetAsHtml");
-		LOGGER.info("Username: " + SecurityContextHolder.getContext().getAuthentication().getName());
 
 		return Response.ok(new Viewable(UPLOAD_JSP)).build();
 	}
@@ -233,7 +247,7 @@ public class UploadService
 			}
 
 			// Save the bag.
-			dcBag.save(Format.FILESYSTEM);
+			dcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, Format.FILESYSTEM);
 			resp = Response.temporaryRedirect(UriBuilder.fromPath("/upload").queryParam("smsg", "Upload Successful.").build()).build();
 		}
 		catch (Exception e)
@@ -303,22 +317,150 @@ public class UploadService
 
 		LOGGER.debug("pid: {}, filename: {}", pid, fileInBag);
 
-		// TODO Do custom user checking here - if the user has a valid dropbox etc.
+		// TODO Do custom user checking here - if the user has a valid dropbox etc. Return 401 Unauthorised if required.
 
-		dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid)), LoadOption.BY_FILES);
+		// Check for a FileSystem bag.
+		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
+		if (bagFile != null)
+			dcBag = new DcBag(bagFile, LoadOption.BY_FILES);
+		else
+			throw new NotFoundException(MessageFormat.format("No bag found for Pid {0}.", pid));
+
 		InputStream inStream = dcBag.getBagFileStream(fileInBag);
 		if (inStream != null)
 		{
-			ResponseBuilder respBuilder = Response.ok(dcBag.getBagFileStream(fileInBag), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-			respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=" + fileInBag);			// Filename on client's computer.
+			ResponseBuilder respBuilder = Response.ok(inStream, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+			respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=\"" + fileInBag + "\"");			// Filename on client's computer.
 			respBuilder = respBuilder.header("Content-MD5", dcBag.getBagFileHash(fileInBag));					// Hash of file. Header not used by most web browsers.
 			respBuilder = respBuilder.header("Content-Length", dcBag.getBagFileSize(fileInBag));				// File size.
 			resp = respBuilder.build();
 		}
 		else
-			resp = Response.noContent().build();
+			throw new NotFoundException(MessageFormat.format("File {0} not found in bag.", fileInBag));
 
 		return resp;
+	}
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("bag/{pid}")
+	public Response doGetBagInfoAsJson(@PathParam("pid") String pid)
+	{
+		Response resp = null;
+
+		JSONObject bagInfo = new JSONObject();
+		DcBag dcBag = getPidBag(pid);
+		if (dcBag != null)
+		{
+			// Bag Info Txt
+			JSONObject bagInfoTxt = new JSONObject();
+			for (Entry<String, String> entry : dcBag.getBagInfoTxt().entrySet())
+			{
+				try
+				{
+					bagInfoTxt.put(entry.getKey(), entry.getValue());
+				}
+				catch (JSONException e)
+				{
+				}
+			}
+
+			try
+			{
+				bagInfo.put(dcBag.getBag().getBagConstants().getBagInfoTxt(), bagInfoTxt);
+			}
+			catch (JSONException e)
+			{
+			}
+
+			dcBag.close();
+			resp = Response.ok(bagInfo.toString(), MediaType.APPLICATION_JSON_TYPE).build();
+		}
+		else
+		{
+			resp = Response.status(Status.NOT_FOUND).build();
+		}
+
+		LOGGER.debug("Returning JSON string {}", bagInfo.toString());
+		return resp;
+	}
+
+	@POST
+	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
+	@Path("bag/{pid}")
+	public Response doPostBag(@Context HttpServletRequest request, @PathParam("pid") String pid, File uploadedFile)
+	{
+		Response resp = null;
+		DcBag dcBag = null;
+		File curPidBagFile = null;
+		File backupPidBagFile = null;
+
+		try
+		{
+			dcBag = new DcBag(uploadedFile, LoadOption.BY_FILES);
+			if (!dcBag.verifyValid().isSuccess())
+				throw new BagTransferException("Bag received is incomplete or invalid.");
+
+			if (!dcBag.getBagInfoTxt().getExternalIdentifier().equals(pid))
+				throw new BagTransferException("Bag received is not for the Pid " + pid);
+
+			// Check if a current bag exists.
+			curPidBagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
+			if (curPidBagFile != null)
+				DcBag.deleteDir(curPidBagFile);
+
+			// Copy the uploaded bag to the bag dir.
+			dcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, dcBag.getBag().getFormat());
+			dcBag.close();
+			resp = Response.ok().build();
+		}
+		catch (Exception e)
+		{
+			LOGGER.error("Unable to upload bag.", e);
+			resp = Response.serverError().build();
+		}
+
+		return resp;
+	}
+
+	private File saveFileOnServer(FileItem fileItem, File uploadDir, String subDir) throws Exception
+	{
+		File fileOnServer = null;
+
+		try
+		{
+			LOGGER.debug("Beginning to save file {}, in {}, subdir {}.", new Object[] { fileItem.getName(), uploadDir.getAbsolutePath(), subDir });
+			String targetFilename = getFilenameFromPath(fileItem.getName());
+
+			File targetDir;
+			if (Util.isNotEmpty(subDir))
+				targetDir = new File(uploadDir, subDir);
+			else
+				targetDir = uploadDir;
+
+			if (!targetDir.exists())
+				targetDir.mkdirs();
+
+			fileOnServer = new File(targetDir, targetFilename);
+			// Check if file already exists in pid dir. If not, write the file. Otherwise check if the file on server's the same size as the one uploaded. If not, write it.
+			// TODO Perform hash check instead of checking for same file size.
+			if (!fileOnServer.exists() || (fileOnServer.exists() && fileOnServer.length() != fileItem.getSize()))
+			{
+				LOGGER.debug("Writing file {}", fileOnServer.getAbsolutePath());
+				fileItem.write(fileOnServer);
+			}
+			else
+			{
+				LOGGER.warn("File {} exists on server with same size. Not overwriting it.", fileOnServer.getAbsolutePath());
+			}
+		}
+		catch (Exception e)
+		{
+			LOGGER.error("Exception writing to file: " + e.toString());
+			throw e;
+		}
+
+		return fileOnServer;
 	}
 
 	/**
@@ -343,6 +485,8 @@ public class UploadService
 	 */
 	private void saveFileOnServer(FileItem fileItem, int partNum, boolean isLastPart, String pid) throws Exception
 	{
+		// TODO This method is a duplicate of the other saveFileOnServer. This needs to be removed.
+
 		String clientFullFilename = fileItem.getName();
 		String serverFilename = getFilenameFromPath(clientFullFilename);
 
@@ -572,5 +716,31 @@ public class UploadService
 				}
 			}
 		}
+	}
+
+	private boolean deleteDir(File dir)
+	{
+		if (dir.isDirectory())
+		{
+			String[] children = dir.list();
+			for (int i = 0; i < children.length; i++)
+				if (!deleteDir(new File(dir, children[i])))
+					return false;
+		}
+
+		// The directory is now empty so delete it
+		return dir.delete();
+	}
+
+	private DcBag getPidBag(String pid)
+	{
+		File bagFile;
+		DcBag pidBag = null;
+		if ((bagFile = new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid))).exists())
+			pidBag = new DcBag(bagFile, LoadOption.BY_FILES);
+		else if ((bagFile = new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid) + ZIP_FILE_SUFFIX)).exists())
+			pidBag = new DcBag(bagFile, LoadOption.BY_FILES);
+
+		return pidBag;
 	}
 }
