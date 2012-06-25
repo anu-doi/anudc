@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<foxml:digitalObject VERSION="1.1" PID="tmplt:6" FEDORA_URI="info:fedora/tmplt:6"
+xmlns:foxml="info:fedora/fedora-system:def/foxml#"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
+<foxml:objectProperties>
+<foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+<foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="PAMBU Author Template"/>
+</foxml:objectProperties>
+<foxml:datastream ID="DC" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="DC.0" LABEL="Dublin Core Record for this object" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/">
+<foxml:xmlContent>
+<oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+  <dc:title>PAMBU Author Template</dc:title>
+  <dc:description>Template for creating PAMBU Authors</dc:description>
+  <dc:type>Template</dc:type>
+  <dc:identifier>tmplt:6</dc:identifier>
+</oai_dc:dc>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="XML_TEMPLATE" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="XML_TEMPLATE.0" LABEL="XML Template" MIMETYPE="text/xml">
+<foxml:xmlContent>
+<template>
+  <name>PAMBU Author Template</name>
+  <briefDesc>Template for creating PAMBU Authors</briefDesc>
+  <item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type" readonly="readonly" saveType="single"></item>
+  <item defaultValue="author" editPerm="admin" fieldType="TextField" label="Party Type" name="subType" readonly="readonly" saveType="single"></item>
+  <item class="required" fieldType="Combobox" label="Owner Group" name="ownerGroup" saveType="single">
+    <option label="-No Value Selected-" value=""></option>
+    <option label="Administrator" value="1"></option>
+  </item>
+  <item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"></item>
+  <item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"></item>
+  <item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single"></item>
+  <item fieldType="TextField" label="Author ID" name="externalId" saveType="single"></item>
+  <item fieldType="TextArea" label="Brief Description" name="briefDesc" saveType="single"></item>
+</template>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+</foxml:digitalObject>

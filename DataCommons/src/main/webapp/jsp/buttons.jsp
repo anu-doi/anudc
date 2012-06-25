@@ -6,35 +6,52 @@
 <anu:content layout="narrow">
 	<jsp:include page="status.jsp" />
 	<anu:box style="solid">
-		<sec:authorize access="isAnonymous()">
-			Please login to request access to this dataset
-		</sec:authorize>
-		<sec:authorize access="isAuthenticated()">
-			<sec:authorize access="hasRole('ROLE_REGISTERED')">
-				<c:url value="/rest/collreq" var="collReqLink">
-					<c:param name="pid" value="${it.fedoraObject.object_id}" />
-				</c:url>
-				<p><input type="button" id="collReqButton" name="colReqButton" value="Request Collection Files" onclick="window.location='${collReqLink}'" /></p>
+		<c:if test="${it.itemType == 'Collection'}">
+			<sec:authorize access="isAnonymous()">
+				Please login to request access to this dataset
 			</sec:authorize>
+		</c:if>
+		<sec:authorize access="isAuthenticated()">
+			<c:if test="${it.itemType == 'Collection'}">
+				<sec:authorize access="hasRole('ROLE_REGISTERED')">
+					<c:url value="/rest/collreq" var="collReqLink">
+						<c:param name="pid" value="${it.fedoraObject.object_id}" />
+					</c:url>
+					<p><input type="button" id="collReqButton" name="colReqButton" value="Request Collection Files" onclick="window.location='${collReqLink}'" /></p>
+				</sec:authorize>
+			</c:if>
 			<sec:authorize access="hasRole('ROLE_ANU_USER')">
-				<c:url value="/rest/publish" var="publishLink">
-					<c:param name="item" value="${it.fedoraObject.object_id}" />
-					<c:param name="tmplt" value="${param.tmplt}" />
-					<c:param name="layout" value="${param.layout}" />
-				</c:url>
-				<p><input type="button" id="publishButton" name="publishButton" value="Publish" onclick="window.location='${publishLink}'" /></p>
+				<sec:accesscontrollist hasPermission="PUBLISH,ADMINISTRATION" domainObject="${it.fedoraObject}">
+					<c:url value="/rest/publish" var="publishLink">
+						<c:param name="item" value="${it.fedoraObject.object_id}" />
+						<c:param name="tmplt" value="${param.tmplt}" />
+						<c:param name="layout" value="${param.layout}" />
+					</c:url>
+					<p><input type="button" id="publishButton" name="publishButton" value="Publish" onclick="window.location='${publishLink}'" /></p>
+				</sec:accesscontrollist>
 				<c:url value="/rest/display/edit" var="editLink">
 					<c:param name="item" value="${it.fedoraObject.object_id}" />
 					<c:param name="tmplt" value="${param.tmplt}" />
 					<c:param name="layout" value="${param.layout}" />
 				</c:url>
-				<c:url value="/rest/upload" var="uploadLink">
-					<c:param name="pid" value="${it.fedoraObject.object_id}" />
-				</c:url>
+				<c:if test="${it.itemType == 'Collection'}">
+					<c:url value="/rest/upload" var="uploadLink">
+						<c:param name="pid" value="${it.fedoraObject.object_id}" />
+					</c:url>
+				</c:if>
 				<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">
 					<p><input type="button" id="editButton" name="editButton" value="Edit" onclick="window.location='${editLink}'" /></p>
 				</sec:accesscontrollist>
+				<c:if test="${it.itemType == 'Collection'}">
 				<p><input type="button" id="uploadButton" name="uploadButton" value="Upload" onclick="window.location='${uploadLink}'" /></p>
+				
+					<sec:accesscontrollist hasPermission="REVIEW,PUBLISH" domainObject="${it.fedoraObject}">
+						<c:url value="/rest/collreq/question" var="questionLink">
+							<c:param name="pid" value="${it.fedoraObject.object_id}" />
+						</c:url>
+						<p><input type="button" id="questionButton" name="questionButton" value="Set Request Questions" onclick="window.location='${questionLink}'" /></p>
+					</sec:accesscontrollist>
+				</c:if>
 				<jsp:include page="add_reference.jsp" />
 			</sec:authorize>
 		</sec:authorize>
@@ -42,6 +59,8 @@
 	<jsp:include page="listrelated.jsp" />
 	<c:if test="${not empty it.filelist}">
 		<anu:boxheader text="List of files" />
-		<anu:box style="solid">${it.filelist}</anu:box>
+		<c:if test="${it.itemType == 'Collection'}">
+			<anu:box style="solid">${it.filelist}</anu:box>
+		</c:if>
 	</c:if>
 </anu:content>

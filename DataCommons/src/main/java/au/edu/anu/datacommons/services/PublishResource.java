@@ -17,6 +17,7 @@ import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
@@ -40,10 +41,12 @@ import com.sun.jersey.api.view.Viewable;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+ * 0.2		08/06/2012	Genevieve Turner (GT)	Fixed issue with an exception when publish button is clicked and no optiosn have been selected
  * </pre>
  * 
  */
 @Component
+@Scope("request")
 @Path("publish")
 public class PublishResource {
 	static final Logger LOGGER = LoggerFactory.getLogger(ListResource.class);
@@ -87,6 +90,7 @@ public class PublishResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		15/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.2		08/06/2012	Genevieve Turner (GT)	Fixed issue with an exception when publish button is clicked and no optiosn have been selected
 	 * </pre>
 	 * 
 	 * @param item The item to publish
@@ -102,8 +106,11 @@ public class PublishResource {
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		List<String> publishers = form.get("publish");
 		LOGGER.debug("Locations to publish to: {}", publishers);
+		String message = "No publishers selected";
+		if (publishers != null && publishers.size() > 0) {
+			message = fedoraObjectService.publish(fedoraObject, publishers);
+		}
 		
-		String message = fedoraObjectService.publish(fedoraObject, publishers);
 		List<PublishLocation> publishLocations = fedoraObjectService.getPublishers();
 		
 		Map<String, Object> model = new HashMap<String, Object>();

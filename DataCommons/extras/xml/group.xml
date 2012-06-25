@@ -1,5 +1,6 @@
 <template>
 	<name>Party Template</name>
+	<briefDesc>Template for creating groups and administrative positions</briefDesc>
 	<item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type"
 		readonly="readonly" saveType="single"/>
 	<item editPerm="admin" fieldType="Combobox" label="Party Type" name="subType" saveType="single" class="required">
@@ -22,6 +23,8 @@
 	<item fieldType="TextFieldMulti" label="Contact Phone Number" name="phone" saveType="multiple"/>
 	<item fieldType="TextFieldMulti" label="Contact Fax Number" name="fax" saveType="multiple"/>
 	<item fieldType="TextFieldMulti" label="Website Address" name="websiteAddress" saveType="multiple"/>
-	<item class="required" fieldType="TextFieldMulti" label="ANZSRC-FOR Subject" name="anzforSubject" saveType="multiple"/>
+	<item name="anzforSubject" label="ANZSRC-FOR Subject" fieldType="ComboBoxMulti" saveType="multiple" class="required">
+		<option value="" label="-No Value Selected-" />
+	</item>
 	<item fieldType="TextFieldMulti" label="Other Subject" name="locSubject" saveType="multiple"/>
 </template>

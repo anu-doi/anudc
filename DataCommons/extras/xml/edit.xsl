@@ -26,6 +26,11 @@
 							<xsl:with-param name="mValue"><xsl:value-of select="$mData/data/*[name() = $fieldName]" /></xsl:with-param>
 						</xsl:call-template>
 					</xsl:when>
+					<xsl:when test="@fieldType = 'ComboBoxMulti'">
+						<xsl:call-template name="ComboBoxMulti">
+							<xsl:with-param name="mValue"><xsl:value-of select="$mData/data/*[name() = $fieldName]" /></xsl:with-param>
+						</xsl:call-template>
+					</xsl:when>
 					<xsl:when test="@fieldType = 'Table'">
 						<xsl:call-template name="Table" />
 					</xsl:when>
@@ -114,6 +119,41 @@
 				</xsl:otherwise>
 			</xsl:choose>
 		</select>
+	</xsl:template>
+	
+	<xsl:template name="ComboBoxMulti">
+		<xsl:param name="mValue" />
+		<xsl:variable name="mName" select="@name" />
+		<select id="{@name}2">
+			<xsl:choose>
+				<xsl:when test="$options != '' and $mOptions/options/*[name() = $mName]">
+					<option value="">
+						- No Value Selected -
+					</option>
+					<xsl:for-each select="$mOptions/options/*[name() = $mName]">
+						<option value="{id}">
+							<xsl:value-of select="name" />
+						</option>
+					</xsl:for-each>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:for-each select="option">
+						<option value="{@value}">
+							<xsl:value-of select="@label" />
+						</option>
+					</xsl:for-each>
+				</xsl:otherwise>
+			</xsl:choose>
+		</select>
+		<select id="{@name}" name="{@name}" class="{@class}" multiple="multiple">
+			<xsl:for-each select="$mData/data/*[name() = $mName]">
+				<xsl:variable name="mCurrText" select="text()" />
+				<option value="{$mCurrText}">
+					<xsl:value-of select="$mOptions/options/*[name() = $mName][id=$mCurrText]/name" />
+				</option>
+			</xsl:for-each>
+		</select>
+		<input type="button" value="Remove Selected" onClick="removeSelected('{@name}')" />
 	</xsl:template>
 	
 	<xsl:template name="Table">

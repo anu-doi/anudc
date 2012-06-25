@@ -13,6 +13,15 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.acls.domain.ObjectIdentityImpl;
+import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.MutableAclService;
+import org.springframework.security.acls.model.NotFoundException;
+import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.acls.model.Sid;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -21,15 +30,19 @@ import org.xml.sax.SAXException;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.datacommons.publish.GenericPublish;
-import au.edu.anu.datacommons.search.SparqlPoster;
+import au.edu.anu.datacommons.publish.Publish;
+import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.search.SparqlResultSet;
+import au.edu.anu.datacommons.security.CustomUser;
+import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
@@ -41,7 +54,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
 /**
  * FedoraObjectServiceImpl
  * 
- * Australian National University Data Comons
+ * Australian National University Data Commons
  * 
  * Service implementation for Retrieving pages, creating, and saving information for
  * objects.
@@ -57,6 +70,9 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.4		15/05/2012	Genevieve Turner (GT)	Publishing to publishers
  * 0.5		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
  * 0.6		21/05/2012	Genevieve Turner (GT)	Added saving publication locations to database
+ * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to amend some of the publishing processes
+ * 0.8		20/06/2012	Genevieve Turner (GT)	Moved permissions and change the page retrieval from a String to a Map
+ * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to add an audit row when an object is published
  * </pre>
  * 
  */
@@ -65,7 +81,10 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	static final Logger LOGGER = LoggerFactory.getLogger(FedoraObjectServiceImpl.class);
 
 	@Resource(name="riSearchService")
-	SparqlPoster riSearchService;
+	ExternalPoster riSearchService;
+	
+	@Resource(name="aclService")
+	MutableAclService aclService;
 	
 	/**
 	 * getItemByName
@@ -142,6 +161,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * </pre>
 	 * 
 	 * @param layout The layout to display the page
@@ -149,34 +169,64 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param form Contains the parameters from the request
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Map<String, Object> saveNew(String layout, String tmplt, Map<String, List<String>> form) {
-		Map<String, Object> values = new HashMap<String, Object>();
-		//TODO place post logic and return a proper screen.
-		values.put("topage", "/page.jsp");
-		String page = null;
+	public FedoraObject saveNew(String layout, String tmplt, Map<String, List<String>> form) {
 		FedoraObject fedoraObject = null;
 		ViewTransform viewTransform = new ViewTransform();
 		try {
 			fedoraObject = viewTransform.saveData(tmplt, null, form);
-			page = viewTransform.getPage(layout, null, fedoraObject, null, false);
+			saveObjectPermissions(fedoraObject);
 		}
 		catch (JAXBException e) {
 			LOGGER.error("Exception transforming jaxb", e);
-			values.put("topage", "/error.jsp");
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception creating/retrieving objects", e);
-			values.put("topage", "/error.jsp");
 		}
 		
-		//TODO this should probably be changed
-		String sidepage = "buttons.jsp";
+		return fedoraObject;
+	}
+	
+	/**
+	 * saveObjectPermissions
+	 *
+	 * Updates/sets the permissions for the permissions for an object
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		20/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject
+	 */
+	public void saveObjectPermissions(FedoraObject fedoraObject) {
+		LOGGER.info("Id: {}", fedoraObject.getId());
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		Sid sid = new PrincipalSid(authentication.getName());
 		
-		values.put("page", page);
-		values.put("sidepage", sidepage);
-		values.put("fedoraObject", fedoraObject);
+		ObjectIdentity group_oi = new ObjectIdentityImpl(Groups.class, fedoraObject.getGroup_id());
+		MutableAcl groupAcl = null;
+		try {
+			groupAcl = (MutableAcl) aclService.readAclById(group_oi);
+		}
+		catch (NotFoundException nfe) {
+			groupAcl = aclService.createAcl(group_oi);
+		}
 		
-		return values;
+		ObjectIdentity fedora_oi = new ObjectIdentityImpl(FedoraObject.class, fedoraObject.getId());
+		MutableAcl fedoraAcl = null;
+		try {
+			fedoraAcl = (MutableAcl) aclService.readAclById(fedora_oi);
+		}
+		catch (NotFoundException nfe) {
+			fedoraAcl = aclService.createAcl(fedora_oi);
+		}
+		
+		fedoraAcl.setParent(groupAcl);
+		fedoraAcl.setEntriesInheriting(Boolean.TRUE);
+		fedoraAcl.setOwner(sid);
+		
+		aclService.updateAcl(fedoraAcl);
 	}
 
 	/**
@@ -187,6 +237,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to transform to a display
@@ -200,7 +251,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		String fields = "";
 		ViewTransform viewTransform = new ViewTransform();
 		try {
-			fields = viewTransform.getPage(layout, tmplt, fedoraObject, fieldName, true);
+			fields = (String)viewTransform.getPage(layout, tmplt, fedoraObject, fieldName, true).get("page");
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception: ", e);
@@ -251,6 +302,8 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.7		04/06/2012	Genevieve Turner (GT)	Fixed an issue where the fedora object was not returned in the values map
+	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * </pre>
 	 * 
 	 * @param fedoraObject The  fedora object to get the page for
@@ -260,31 +313,18 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 */
 	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String layout, String tmplt, Map<String, List<String>> form) {
 		Map<String, Object> values = new HashMap<String, Object>();
-		values.put("topage", "/page.jsp");
-		String sidepage = "edit.jsp";
-		String page = null;
-		Template template = null;
 		ViewTransform viewTransform = new ViewTransform();
 		try {
 			fedoraObject = viewTransform.saveData(tmplt, fedoraObject, form);
-			page = viewTransform.getPage(layout, null, fedoraObject, null, false);
-			template = new ViewTransform().getTemplateObject(tmplt, fedoraObject);
 		}
 		catch (JAXBException e) {
 			LOGGER.error("Exception transforming jaxb", e);
-			values.put("topage", "/error.jsp");
+			values.put("error", "true");
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception creating/retrieving objects", e);
-			values.put("topage", "/error.jsp");
+			values.put("error", "true");
 		}
-
-		values.put("page", page);
-		values.put("sidepage", sidepage);
-		values.put("template", template);
-
-		SparqlResultSet resultSet = getLinks(fedoraObject);
-		values.put("resultSet", resultSet);
 		
 		return values;
 	}
@@ -333,6 +373,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * 0.2		03/05/2012	Genevieve Turner (GT)	Updated to add related links to the page
+	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -346,7 +387,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("topage", "/page.jsp");
-		String page = null;
 		ViewTransform viewTransform = new ViewTransform();
 		try {
 			if (fedoraObject != null) {
@@ -360,20 +400,18 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 				}
 			}
 			
-			page = viewTransform.getPage(layout, template, fedoraObject, null, false);
-			values.put("page", page);
+			values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false));
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception: ", e);
 			values.put("topage", "/error.jsp");
 		}
 
-		if(!Util.isNotEmpty(page)) {
+		if (!values.containsKey("page")) {
 			LOGGER.error("Page is empty");
 			values.put("topage", "/error.jsp");
 		}
 		
-		values.put("page", page);
 		if (fedoraObject != null) {
 			//TODO This is should probably be modified
 			values.put("fedoraObject", fedoraObject);
@@ -396,6 +434,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.3		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to cater for change to post method in the riSearchService
 	 * </pre>
 	 * 
 	 * @param fedoraObject The object to retrieve the links for
@@ -413,7 +452,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		String filterString = "regex(str(?predicate), '" + GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI) + "', 'i')";
 		sparqlQuery.addFilter(filterString, "");
 		
-		ClientResponse respFromRiSearch = riSearchService.post(sparqlQuery.generateQuery());
+		ClientResponse respFromRiSearch = riSearchService.post("query", sparqlQuery.generateQuery());
 		try {
 			// For some reason XPath doesn't work properly if you directly get the document from the stream
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -466,6 +505,8 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.4		15/05/2012	Genevieve Turner (GT)	Initial
 	 * 0.5		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
 	 * 0.6		21/05/2012	Genevieve Turner (GT)	Added saving publication locations to database
+	 * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to use generic publishing options
+	 * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to add an audit row when an object is published
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to publish
@@ -475,33 +516,24 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	public String publish(FedoraObject fedoraObject, List<String> publishers) {
 		GenericDAOImpl<PublishLocation, Long> publishLocationDAO = new GenericDAOImpl<PublishLocation, Long>(PublishLocation.class);
 		StringBuffer message = new StringBuffer();
-		//List<PublishLocation> publishLocations = fedoraObject.getPublishedLocations();
+		
+		// Set the base publishing information
+		generalPublish(fedoraObject.getObject_id());
+		
 		for (String publisher : publishers) {
 			Long id = Long.parseLong(publisher);
 			PublishLocation publishLocation = publishLocationDAO.getSingleById(id);
 			LOGGER.debug("Publish class: {}", publishLocation.getExecute_class());
 			try {
-				GenericPublish genericPublish = (GenericPublish) Class.forName(publishLocation.getExecute_class()).newInstance();
-				genericPublish.publish(fedoraObject.getObject_id());
+				Publish genericPublish = (Publish) Class.forName(publishLocation.getExecute_class()).newInstance();
+				genericPublish.publish(fedoraObject.getObject_id(), publishLocation.getCode());
 				if (!fedoraObject.getPublished()) {
 					fedoraObject.setPublished(Boolean.TRUE);
 				}
 				message.append(publishLocation.getName());
 				message.append("<br />");
-				boolean addPublisher = true;
-				for (int i = 0; addPublisher && i < fedoraObject.getPublishedLocations().size(); i++) {
-					PublishLocation loc = fedoraObject.getPublishedLocations().get(i);
-					if (loc.equals(publishLocation)) {
-						addPublisher = false;
-					}
-					else if (loc.getId().equals(publishLocation.getId()) &&
-							loc.getName().equals(publishLocation.getName())) {
-						addPublisher = false;
-					}
-				}
-				if (addPublisher) {
-					fedoraObject.getPublishedLocations().add(publishLocation);
-				}
+				
+				addPublishLocation(fedoraObject, publishLocation);
 			}
 			catch (ClassNotFoundException e) {
 				LOGGER.error("Class not found class: " + publishLocation.getExecute_class(), e);
@@ -515,6 +547,76 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
 		object.update(fedoraObject);
+		
+		CustomUser customUser = (CustomUser)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		
+		LOGGER.info("User id: {}",customUser.getId());
+		
+		AuditObject auditObject = new AuditObject();
+		auditObject.setLog_date(new java.util.Date());
+		auditObject.setLog_type("PUBLISH");
+		auditObject.setObject_id(fedoraObject.getId());
+		auditObject.setUser_id(customUser.getId());
+		auditObject.setAfter(message.toString());
+		GenericDAO<AuditObject,Long> auditObjectDAO = new GenericDAOImpl<AuditObject,Long>(AuditObject.class);
+		auditObjectDAO.create(auditObject);
+		
 		return message.toString();
+	}
+	
+	/**
+	 * generalPublish
+	 * 
+	 * Sets information used by various publishing options.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.7		08/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * @param pid The pid to set the publishing information for
+	 */
+	private void generalPublish(String pid) {
+		FedoraReference fedoraReference = new FedoraReference();
+		fedoraReference.setPredicate_(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_OAIPROVIDER_URL));
+		fedoraReference.setObject_("oai:" + pid);
+		fedoraReference.setIsLiteral_(Boolean.FALSE);
+		
+		String location = String.format("%s/objects/%s/datastreams/XML_SOURCE/content", GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI), pid);
+		try {
+			FedoraBroker.addDatastreamByReference(pid, Constants.XML_PUBLISHED, "M", "XML Published", location);
+			FedoraBroker.addRelationship(pid, fedoraReference);
+		}
+		catch (FedoraClientException e) {
+			LOGGER.info("Exception publishing to ANU: ", e);
+		}
+	}
+	
+	/**
+	 * addPublishLocation
+	 *
+	 * Adds a publish location to the database
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.7		08/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * @param fedoraObject The object to publish to
+	 * @param publishLocation The location the object is being published to
+	 */
+	private void addPublishLocation(FedoraObject fedoraObject, PublishLocation publishLocation) {
+		boolean addPublisher = true;
+		for (int i = 0; addPublisher && i < fedoraObject.getPublishedLocations().size(); i++) {
+			PublishLocation loc = fedoraObject.getPublishedLocations().get(i);
+			if (loc.equals(publishLocation)) {
+				addPublisher = false;
+			}
+			else if (loc.getId().equals(publishLocation.getId()) &&
+					loc.getName().equals(publishLocation.getName())) {
+				addPublisher = false;
+			}
+		}
+		if (addPublisher) {
+			fedoraObject.getPublishedLocations().add(publishLocation);
+		}
 	}
 }

@@ -26,7 +26,7 @@
 					<c:out value="${it.collReq.id}" />
 				</p>
 				<p>
-					<label>Pid</label>
+					<label>Item ID</label>
 					<c:out value="${it.collReq.pid}" />
 				</p>
 				<p>
@@ -95,9 +95,8 @@
 
 			<form name="collReqSubmitForm" class="anuform" method="post" action="<c:url value='/rest/collreq/' />">
 				<p>
-					<label class="req" for="idPid">Pid</label>
+					<label class="req" for="idPid">Item ID</label>
 					<input class="text" type="text" id="idPid" name="pid" value="<c:out value='${param.pid}' />" />
-					<input type="button" onclick="ajaxPopup()" value="Search" />
 					<input type="button" onclick="ajaxGetPidInfo(document.collReqSubmitForm.pid.value)" value="Get Items for Request" />
 				</p>
 				<p id="idFileListContainer">
@@ -115,7 +114,7 @@
 				<table id="idReqStatusTable" class="tbl-row-bdr w-doublewide">
 					<tr>
 						<th>Id</th>
-						<th>Pid</th>
+						<th>Item ID</th>
 						<th>Date</th>
 						<th>Requestor</th>
 						<th>Status</th>

@@ -11,7 +11,7 @@
 		<html>
 			<body>
 				<h1><xsl:value-of select="template/name" /></h1>
-				<form id="form" method="post" onsubmit="return jQuery('#form').validate().form()" action="new?layout=def:display&amp;tmplt={$tmplt}&amp;item={$item}">
+				<form id="form" method="post" action="new?layout=def:display&amp;tmplt={$tmplt}&amp;item={$item}">
 					<table>
 						<xsl:for-each select="template/item">
 							<tr>
@@ -31,6 +31,10 @@
 									<xsl:when test="@fieldType='Combobox'">
 										<xsl:call-template name="Label" />
 										<xsl:call-template name="ComboBox" />
+									</xsl:when>
+									<xsl:when test="@fieldType='ComboBoxMulti'">
+										<xsl:call-template name="Label" />
+										<xsl:call-template name="ComboBoxMulti" />
 									</xsl:when>
 									<xsl:when test="@fieldType='Table'">
 										<xsl:call-template name="Label" />
@@ -104,7 +108,7 @@
 	<xsl:template name="ComboBox">
 		<td>
 			<xsl:variable name="mName" select="@name" />
-			<select name="{@name}" class="{@class}">
+			<select id="{@name}" name="{@name}" class="{@class}">
 				<xsl:choose>
 					<xsl:when test="$options != '' and $mOptions/options/*[name() = $mName]">
 						<option value="">
@@ -125,6 +129,39 @@
 					</xsl:otherwise>
 				</xsl:choose>
 			</select>
+		</td>
+	</xsl:template>
+	
+	<xsl:template name="ComboBoxMulti">
+		<td>
+			<xsl:variable name="mName" select="@name" />
+			<select id="{@name}2">
+				<xsl:choose>
+					<xsl:when test="$options != '' and $mOptions/options/*[name() = $mName]">
+						<option value="">
+							- No Value Selected -
+						</option>
+						<xsl:for-each select="$mOptions/options/*[name() = $mName]">
+							<option value="{id}">
+								<xsl:value-of select="name" />
+							</option>
+						</xsl:for-each>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:for-each select="option">
+							<option value="{@value}">
+								<xsl:value-of select="@label" />
+							</option>
+						</xsl:for-each>
+					</xsl:otherwise>
+				</xsl:choose>
+			</select>
+			<br />
+			<select id="{@name}" name="{@name}" class="{@class}" multiple="multiple">
+				
+			</select>
+			<br />
+			<input type="button" value="Remove Selected" onClick="removeSelected('{@name}')" />
 		</td>
 	</xsl:template>
 	

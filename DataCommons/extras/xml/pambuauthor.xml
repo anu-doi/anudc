@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<template>
+	<name>PAMBU Author Template</name>
+	<briefDesc>Template for creating PAMBU Authors</briefDesc>
+	<item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type"
+		readonly="readonly" saveType="single"/>
+	<item defaultValue="author" editPerm="admin" fieldType="TextField" label="Party Type" name="subType"
+		readonly="readonly" saveType="single"/>
+	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required">
+		<option value="" label="-No Value Selected-" />
+		<option value="1" label="Administrator" />
+	</item>
+	<item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"/>
+	<item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"/>
+	<item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single"/>
+	<item fieldType="TextField" label="Author ID" name="externalId" saveType="single" />
+	<item fieldType="TextArea" label="Brief Description" name="briefDesc" saveType="single" />
+</template>

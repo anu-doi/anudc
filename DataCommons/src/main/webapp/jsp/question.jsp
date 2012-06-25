@@ -43,11 +43,11 @@
 		</anu:content>
 
 		<!-- Questions assigned to a specific Pid -->
-		<anu:content layout="wide" title="Pid">
+		<anu:content layout="wide" title="Add Question to Item">
 			<form name="pidQuestions" method="post" action="<c:url value='/rest/collreq/question' />"
 				onsubmit="jQuery('#idPidQ > option').attr('selected', 'selected')">
 				<p>
-					<label>Pid</label>
+					<label>Item ID</label>
 					<input type="text" name="pid" value="<c:out value='${param.pid}' />" />
 					<input type="button" value="Get Questions" onclick="ajaxGetPidQuestions(document.pidQuestions.pid.value)" />
 				</p>

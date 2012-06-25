@@ -22,6 +22,7 @@ import au.edu.anu.datacommons.data.db.model.Groups;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		28/05/2012	Genevieve Turner (GT)	Initial
+ * 0.2		20/06/2012	Genevieve Turner (GT)	Created a select all groups that filters out those for which the user has create permissions
  * </pre>
  * 
  */	
@@ -44,7 +45,31 @@ public class GroupServiceImpl implements GroupService {
 	public List<Groups> getAll() {
 		GenericDAOImpl genericDAO = new GenericDAOImpl(Groups.class);
 		List<Groups> groups = genericDAO.getAll();
-		LOGGER.info("Returning groups");
+		return groups;
+	}
+	
+	/**
+	 * getCreateGroups
+	 * 
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		20/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 * @see au.edu.anu.datacommons.security.service.GroupService#getCreateGroups()
+	 */
+	public List<Groups> getCreateGroups() {
+		GenericDAOImpl genericDAO = new GenericDAOImpl(Groups.class);
+		List<Groups> groups = genericDAO.getAll();
+		return groups;
+	}
+	
+	public List<Groups> getReviewGroups() {
+		GenericDAOImpl genericDAO = new GenericDAOImpl(Groups.class);
+		List<Groups> groups = genericDAO.getAll();
 		return groups;
 	}
 }

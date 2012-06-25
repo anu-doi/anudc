@@ -4,13 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import javax.xml.bind.PropertyException;
-
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.anu.datacommons.util.Util;
 
 /**
  * GlobalProps
@@ -33,7 +29,8 @@ import au.edu.anu.datacommons.util.Util;
  * 0.3		20/03/2012	Rahul Khanna (RK)		Added File Upload properties.
  * 0.4		4/05/2012	Rahul Khanna (RK)		Added Random Password chars property.
  * 0.5		12/05/2012	Genevieve Turner (GT)	Changed case of properties, related uri and save namespace
- * 
+ * 0.6		08/06/2012	Genevieve Turner (GT)	Added solr location
+ * 0.7		13/06/2012	Genevieve Turner (GT)	Added solr standard return fields
  * <pre>
  * 
  */
@@ -66,6 +63,8 @@ public final class GlobalProps
 	public static final String PROP_SEARCH_SEARCHFIELDS = "search.dcSearchFields";
 	public static final String PROP_SEARCH_RETURNFIELDS = "search.dcReturnFields";
 	public static final String PROP_SEARCH_URIREPLACE = "search.uriReplace";
+	public static final String PROP_SEARCH_SOLR = "search.solr";
+	public static final String PROP_SEARCH_SOLR_RETURNFIELDS = "search.solr.returnFields";
 	public static final String PROP_UPLOAD_DIR = "upload.uploadDir";
 	public static final String PROP_UPLOAD_TEMPDIR = "upload.tempDir";
 	public static final String PROP_UPLOAD_MAXSIZEINMEM = "upload.maxSizeInMemInBytes";

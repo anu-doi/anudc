@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<template>
+	<name>PAMBU Microfilm Collection Template</name>
+	<briefDesc>Template for creating PAMBU Microfilm Records</briefDesc>
+	<item name="type" label="Type" fieldType="TextField" saveType="single" defaultValue="Collection" readonly="readonly" editPerm="admin" />
+	<item name="subType" label="Collection Type" fieldType="Combobox" saveType="single" class="required">
+		<option value="" label="-No Value Selected-" />
+		<option value="dataset" label="Dataset" />
+		<option value="catalogueOrIndex" label="Catalogue or Index" />
+		<option value="collection" label="Collection" />
+		<option value="registry" label="Registry" />
+		<option value="repository" label="Repository" />
+	</item>
+	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required">
+		<option value="" label="-No Value Selected-" />
+		<option value="1" label="Administrator" />
+	</item>
+	<item name="name" label="Name" fieldType="TextField" saveType="single" maxLength="80" class="required" />
+	<item name="abbrName" label="Abbreviated Name" fieldType="TextField" saveType="single" maxLength="255" />
+	<item name="altName" label="Alternate Name" fieldType="TextField" saveType="single" maxLength="255" />
+	<item name="externalId" label="PAMBU ID" fieldType="TextField" saveType="single" />
+	<item name="coverageDates" label="Coverage Dates" fieldType="Table" saveType="table">
+		<column name="dateFrom" label="Date From" fieldType="TextField" class="date" />
+		<column name="dateTo" label="Date To" fieldType="TextField" class="date" />
+		<column name="dateText" label="Text" fieldType="TextField" />
+	</item>
+	<item name="numReels" label="Number of Reels" fieldType="TextField" saveType="single"/>
+	<item name="format" label="Format" fieldType="TextField" saveType="single" />
+	<item name="holdingType" label="PAMBU Holding Type" fieldType="Combobox" saveType="single" class="required">
+		<option value="" label="-No Value Selected-" />
+		<option value="ms" label="Manuscript Series" />
+		<option value="doc" label="Printed Document Series" />
+	</item>
+	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000" class="required" />
+	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" maxLength="4000" />
+	<item name="holdingLocation" label="Holding" fieldType="TextField" saveType="single" />
+	<item name="serialNum" label="Serial Number" fieldType="TextField" saveType="single" />
+	<item name="digital" label="Digitized" fieldType="Combobox" saveType="single">
+		<option value="NO" label="No" />
+		<option value="YES" label="Yes" />
+	</item>
+	<item name="sortVal" label="Sort Value" fieldType="TextField" saveType="single" class="number" />
+	<item name="significanceStatement" label="Significance Statement" fieldType="TextArea" saveType="single" maxLength="4000" />
+	<item name="email" label="Contact Email" fieldType="TextFieldMulti" saveType="multiple" class="required email" />
+	<item name="postalAddress" label="Contact Address" fieldType="TextArea" saveType="single" />
+	<item name="phone" label="Contact Phone Number" fieldType="TextFieldMulti" saveType="multiple" />
+	<item name="fax" label="Contact Fax Number" fieldType="TextFieldMulti"  saveType="multiple" />
+	<item name="websiteAddress" label="Website Address" fieldType="TextFieldMulti" saveType="multiple" />
+	<item name="anzforSubject" label="ANZSRC-FOR Subject" fieldType="ComboBoxMulti" saveType="multiple" class="required">
+		<option value="" label="-No Value Selected-" />
+	</item>
+	<item name="locSubject" label="Other Subject" fieldType="TextFieldMulti" saveType="multiple" />
+	
+	<item name="coverageArea" label="Coverage Area" fieldType="Table" saveType="table">
+		<column name="covAreaType" label="Type" fieldType="Combobox">
+			<option value="" label="-No Value Selected-" />
+			<option value="text" label="Text" />
+			<option value="gml" label="OpenGIS Geography Markup Language (GML) Encoding Standard" />
+		</column>
+		<column name="covAreaValue" label="Location" fieldType="TextField" />
+	</item>
+	<item name="publication" label="Publications" fieldType="TableVertical" saveType="table">
+		<column name="pubType" label="Publication Type" fieldType="Combobox">
+			<option value="" label="-No Value Selected-" />
+			<option value="doi" label="Digital Object Identifier" />
+			<option value="issn" label="International Standard Serial Number" />
+			<option value="isbn" label="International Standard Book Number" />
+		</column>
+		<column name="pubValue" label="Publication Value" fieldType="TextField" />
+		<column name="pubTitle" label="Publication Title" fieldType="TextArea" />
+	</item>
+	<item name="rightsStatement" label="Rights Statement" fieldType="TextArea" saveType="single" tooltip="Intellectual property rights information" />
+	<item name="licence" label="Licence" fieldType="TextArea" saveType="single" tooltip="Licence Information" />
+	<item name="accessRights" label="Access Rights" fieldType="TextArea" saveType="single" tooltip="Information about who and when people may access the information in this collection" />
+	
+</template>

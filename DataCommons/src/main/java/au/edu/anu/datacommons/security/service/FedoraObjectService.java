@@ -25,6 +25,7 @@ import au.edu.anu.datacommons.data.db.model.PublishLocation;
  * 0.2		05/05/2012	Genevieve Turner (GT)	Added getting a list of publishers
  * 0.3		15/05/2012	Genevieve Turner (GT)	Publishing to publishers
  * 0.4		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
+ * 0.5		22/06/2012	Genevieve Turner (GT)	Updated to only allow people with ADMIN or Publish permissions the ability to publish
  * </pre>
  * 
  */
@@ -91,7 +92,7 @@ public interface FedoraObjectService {
 	 * @param form Contains the parameters from the request
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Map<String, Object> saveNew(String layout, String tmplt, Map<String, List<String>> form);
+	public FedoraObject saveNew(String layout, String tmplt, Map<String, List<String>> form);
 	
 	/**
 	 * getEditPage
@@ -188,10 +189,12 @@ public interface FedoraObjectService {
 	 * Version	Date		Developer				Description
 	 * 0.3		15/05/2012	Genevieve Turner (GT)	Initial
 	 * 0.4		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
+	 * 0.5		22/06/2012	Genevieve Turner (GT)	Updated to only allow people with ADMIN or Publish permissions the ability to publish
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to publish
 	 * @param publishers The list of publishers to publish to
 	 */
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'PUBLISH')")
 	public String publish(FedoraObject fedoraObject, List<String> publishers);
 }

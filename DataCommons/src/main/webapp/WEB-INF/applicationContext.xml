@@ -18,7 +18,7 @@
 	
 	<context:component-scan base-package="au.edu.anu.datacommons" />
 	
-	<bean id="riSearchService" class="au.edu.anu.datacommons.search.SparqlPoster">
+	<bean id="riSearchService" class="au.edu.anu.datacommons.search.ExternalPoster">
 		<property name="username" value="${fedora.username}" />
 		<property name="password" value="${fedora.password}" />
 		<property name="url" value="${fedora.baseURI}${fedora.riSearchURI}" />
@@ -35,7 +35,7 @@
 		</property>
 	</bean>
 	
-	<bean id="riSearchJSONService" class="au.edu.anu.datacommons.search.SparqlPoster">
+	<bean id="riSearchJSONService" class="au.edu.anu.datacommons.search.ExternalPoster">
 		<property name="username" value="${fedora.username}" />
 		<property name="password" value="${fedora.password}" />
 		<property name="url" value="${fedora.baseURI}${fedora.riSearchURI}" />
@@ -48,6 +48,20 @@
 				<entry key="lang" value="sparql" />
 				<entry key="limit" value="10" />
 				<entry key="type" value="tuples" />
+			</map>
+		</property>
+	</bean>
+	
+	<bean id="gsearchUpdateService" class="au.edu.anu.datacommons.search.ExternalPoster">
+		<property name="username" value="${fedora.username}" />
+		<property name="password" value="${fedora.password}" />
+		<property name="url" value="${gsearch.url}/rest" />
+		<property name="type" value="application/x-www-form-urlencoded" />
+		<property name="acceptType" value="text/html" />
+		<property name="parameters">
+			<map>
+				<entry key="operation" value="updateIndex" />
+				<entry key="action" value="fromPid" />
 			</map>
 		</property>
 	</bean>

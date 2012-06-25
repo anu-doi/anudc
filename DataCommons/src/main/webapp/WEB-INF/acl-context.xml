@@ -27,6 +27,7 @@
 		We'll rely on the standard AclPermissionEvaluator implementation -->
 	<bean class="org.springframework.security.acls.AclPermissionEvaluator" id="permissionEvaluator">
 		<constructor-arg ref="aclService"/>
+		<property name="permissionFactory" ref="permissionFactory" />
 	</bean>
 	
 	<!-- Declare an acl service -->
@@ -42,6 +43,7 @@
 		<constructor-arg ref="aclCache"/>
 		<constructor-arg ref="aclAuthorizationStrategy"/>
 		<constructor-arg ref="auditLogger"/>
+		<property name="permissionFactory" ref="permissionFactory" />
 	</bean>
 	
 	<!-- Declare an acl cache-->  
@@ -72,6 +74,8 @@
 			</list>
 		</constructor-arg>
 	</bean>
+	
+	<bean id="permissionFactory" class="au.edu.anu.datacommons.security.acl.CustomPermissionFactory" />
 	
 	<!-- Declare an audit logger-->
 	<bean id="auditLogger" class="org.springframework.security.acls.domain.ConsoleAuditLogger"/>

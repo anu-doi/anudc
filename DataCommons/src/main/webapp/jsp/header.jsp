@@ -25,11 +25,9 @@
 <anu:menu showSearch="true" id="1108" shortTitle="Data Commons" ssl="true">
 	<anu:submenu title="Data Commons">
 		<li><a href="<c:url value='/jsp/welcome.jsp' />">Home</a></li>
-		<li><a href="<c:url value='/rest/search' />">Search</a></li>
 		<sec:authorize access="hasRole('ROLE_REGISTERED')">
 		<li><a href="<c:url value='/rest/collreq' />">Collection Request</a>
 			<ul>
-				<li><a href="<c:url value='/rest/collreq/question' />">Question Bank</a></li>
 				<li><a href="<c:url value='/rest/collreq/dropbox' />">Dropboxes</a></li>
 			</ul>
 		</li>
@@ -39,10 +37,16 @@
 		<li><a href="<c:url value='/rest/upload' />">Upload</a></li>
 		</sec:authorize>
 	</anu:submenu>
-
-	<anu:submenu title="ANU">
-		<li><a href="#">Item</a></li>
-		<li><a href="#">Item 2</a></li>
-		<li><a href="#">Item 3</a></li>
+	<sec:authorize access="hasRole('ROLE_ADMIN')">
+		<anu:submenu title="Admin">
+			<li><a href="<c:url value='/rest/search/admin' />">Update Index</a></li>
+			<li><a href="<c:url value='/jsp/pambu/pambuadmin.jsp' />">Pambu Administration</a></li>
+		</anu:submenu>
+	</sec:authorize>
+	
+	<anu:submenu title="External Links">
+		<li><a href="<c:url value='http://ands.org.au/' />">ANDS</a></li>
+		<li><a href="<c:url value='http://services.ands.org.au/home/orca/rda/' />">Research Data Australia</a></li>
+		<li><a href="<c:url value='/rest/search/pambu' />">PAMBU Catalogue Search</a>
 	</anu:submenu>
 </anu:menu>

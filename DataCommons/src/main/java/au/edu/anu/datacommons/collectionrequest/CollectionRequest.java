@@ -7,10 +7,12 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -20,6 +22,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import au.edu.anu.datacommons.collectionrequest.CollectionRequestStatus.ReqStatus;
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Users;
 
 @Entity
@@ -35,6 +38,7 @@ public class CollectionRequest
 	private Set<CollectionRequestItem> items = new HashSet<CollectionRequestItem>();
 	private Set<CollectionRequestAnswer> answers = new HashSet<CollectionRequestAnswer>();
 	private CollectionDropbox dropbox;
+	private FedoraObject fedoraObject;
 
 	protected CollectionRequest()
 	{
@@ -153,6 +157,40 @@ public class CollectionRequest
 	public void setDropbox(CollectionDropbox dropbox)
 	{
 		this.dropbox = dropbox;
+	}
+
+	/**
+	 * getFedoraObject
+	 *
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		25/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return the fedoraObject
+	 */
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name="object_fk", referencedColumnName="id")
+	public FedoraObject getFedoraObject() {
+		return fedoraObject;
+	}
+
+	/**
+	 * setFedoraObject
+	 *
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		25/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject the fedoraObject to set
+	 */
+	public void setFedoraObject(FedoraObject fedoraObject) {
+		this.fedoraObject = fedoraObject;
 	}
 
 	@PrePersist

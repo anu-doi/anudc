@@ -15,10 +15,13 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
@@ -45,6 +48,7 @@ import com.sun.jersey.api.view.Viewable;
  * </pre>
  */
 @Component
+@Scope("request")
 @Path("/display")
 public class DisplayResource {
 	static final Logger LOGGER = LoggerFactory.getLogger(DisplayResource.class);
@@ -99,9 +103,12 @@ public class DisplayResource {
 	@Path("/new")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Produces(MediaType.TEXT_HTML)
-	public Response newItemPage(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item)
+	public Response newItemPage(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item, @QueryParam("error") String error)
 	{
 		Map<String, Object> values = fedoraObjectService.getNewPage(layout, tmplt);
+		if (Util.isNotEmpty(error)) {
+			values.put("error", "Error saving item");
+		}
 		Viewable viewable = new Viewable((String)values.remove("topage"), values);
 		return Response.ok(viewable).build();
 	}
@@ -132,9 +139,16 @@ public class DisplayResource {
 	public Response postItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item, @Context HttpServletRequest request)
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
-		Map<String, Object> values = fedoraObjectService.saveNew(layout, tmplt, form);
-		Viewable viewable = new Viewable((String)values.remove("topage"), values);
-		return Response.ok(viewable).build();
+		
+		FedoraObject fedoraObject = fedoraObjectService.saveNew(layout, tmplt, form);
+		UriBuilder uriBuilder = null;
+		if (fedoraObject == null || Util.isNotEmpty(fedoraObject.getObject_id())) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+		else {
+			uriBuilder = UriBuilder.fromPath("/display").queryParam("layout", layout).queryParam("tmplt", tmplt).queryParam("item", fedoraObject.getObject_id());
+		}
+		return Response.seeOther(uriBuilder.build()).build();
 	}
 	
 	/**
@@ -222,9 +236,14 @@ public class DisplayResource {
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
 
 		Map<String, Object> values = fedoraObjectService.saveEdit(fedoraObject, layout, tmplt, form);
-		Viewable viewable = new Viewable((String)values.remove("topage"), values);
-		
-		return Response.ok(viewable).build();
+		UriBuilder uriBuilder = null;
+		if (values.containsKey("error")) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+		else {
+			uriBuilder = UriBuilder.fromPath("/display/edit").queryParam("layout", layout).queryParam("tmplt", tmplt).queryParam("item", item);
+		}
+		return Response.seeOther(uriBuilder.build()).build();
 	}
 	
 	/**

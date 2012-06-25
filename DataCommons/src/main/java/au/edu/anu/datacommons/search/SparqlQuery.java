@@ -34,6 +34,7 @@ import au.edu.anu.datacommons.properties.GlobalProps;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		14/03/2012	Rahul Khanna (RK)		Initial
+ * 0.2		13/06/2012	Genevieve Turner (GT)	Changed query string output to debug
  * </pre>
  */
 public final class SparqlQuery
@@ -477,6 +478,7 @@ public final class SparqlQuery
 	 * <pre>
 	 * Version	Date		Developer			Description
 	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
+	 * 0.2		13/06/2012	Genevieve Turner (GT)	Changed query string output to debug
 	 * </pre>
 	 * 
 	 * @return The SPARQL query as a String.
@@ -538,7 +540,7 @@ public final class SparqlQuery
 			sparqlQuery.append(limit);
 		}
 
-		LOGGER.info("Returning SPARQL query:\r\n" + sparqlQuery);
+		LOGGER.debug("Returning SPARQL query:\r\n" + sparqlQuery);
 		return sparqlQuery.toString();
 	}
 }

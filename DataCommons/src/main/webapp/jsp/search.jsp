@@ -1,6 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 
@@ -19,59 +18,48 @@
 	<div id="divSearchResults">
 		<c:if test="${it.resultSet != null}">
 			<hr />
-			<c:forEach items="${it.resultSet.allResults}" var="row">
-				<c:forEach var="iCol" begin="0" end="${it.resultSet.numCols - 1}">
-					<c:choose>
-						<c:when test="${iCol == 1}">
-							<!-- Label -->
-							<a href="<c:url value="/rest/display?layout=def:display&item=${row[0]}" />"><c:out value="${row[iCol]}" /></a>
-						</c:when>
-						<c:when test="${iCol == 2}">
-							<!-- Description -->
-							<c:choose>
-								<c:when test="${fn:length(row[iCol]) <= 200}">
-									<c:out value="${row[iCol]}" />
-								</c:when>
-								<c:when test="${fn:length(row[iCol]) > 200}">
-									<c:out value="${fn:substring(row[iCol], 0, 200)}" />...
-								</c:when>
-							</c:choose>
-						</c:when>
-					</c:choose>
-					<br />
-				</c:forEach>
+			${it.resultSet.numFound} results found <br /><br />
+			<c:forEach items="${it.resultSet.documentList}" var="row">
+				<c:choose>
+					<c:when test="${not empty row['published.name']}">
+						<a href="<c:url value="/rest/display?layout=def:display&item=${row['id']}" />"><c:out value="${row['published.name']}" /></a> <br />
+						${row['published.briefDesc'][0]} <br />
+					</c:when>
+					<c:when test="${not empty row['unpublished.name']}">
+						<a href="<c:url value="/rest/display?layout=def:display&item=${row['id']}" />"><c:out value="${row['unpublished.name']}" /></a> <br />
+						${row['unpublished.briefDesc'][0]} <br />
+					</c:when>
+				</c:choose>
+				<br />
 			</c:forEach>
-			<!-- Pagination -->
 			<br />
+			
 			<fmt:bundle basename='global'>
 				<fmt:message var="searchItemsPerPage" key='search.resultsPerPage' />
 			</fmt:bundle>
 			<c:set var="curPage" value="${(param.offset == null ? 0 : param.offset) / searchItemsPerPage + 1}" />
-			<p class="text-center">
-				<c:if test="${it.totalResults > 0}">
+			<p class="text-centre">
+				<c:if test="${it.resultSet.numFound > 0}">
 					Pages&nbsp;
-					<c:forEach begin="0" end="${((it.totalResults - 1) / searchItemsPerPage) - (((it.totalResults - 1) / searchItemsPerPage) % 1)}" var="i">
+					
+					<c:forEach begin="0" end="${((it.resultSet.numFound - 1) / searchItemsPerPage) - (((it.resultSet.numFound - 1) / searchItemsPerPage) % 1)}" var="i">
+						<c:url var="searchURL" value='/rest/search'>
+							<c:param name='q' value='${param.q}' />
+							<c:param name='offset' value='${i * searchItemsPerPage}' />
+							<c:param name='limit' value='${searchItemsPerPage}' />
+						</c:url>
 						<a class="nounderline"
-							href="
-				<c:url value='/rest/search'>
-					<c:param name='q' value='${param.q}' />
-					<c:param name='offset' value='${i * searchItemsPerPage}' />
-					<c:param name='limit' value='${searchItemsPerPage}' />
-				</c:url>
-				"><c:if
-								test="${i == curPage - 1}">
+							href="${searchURL}">
+							<c:if test="${i == curPage - 1}">
 								<strong>
-							</c:if> <c:out value="[ ${i + 1} ]" /> <c:if test="${i == curPage - 1}">
+							</c:if>
+							<c:out value="[ ${i + 1} ]" />
+							<c:if test="${i == curPage - 1}">
 								</strong>
-							</c:if></a>
+							</c:if>
+						</a>
 					</c:forEach>
 				</c:if>
-			</p>
-
-			<!-- Number of search results found. -->
-			<p class="msg-info margintop">
-				<c:out value="${it.totalResults}" />
-				result(s) found.
 			</p>
 		</c:if>
 	</div>
