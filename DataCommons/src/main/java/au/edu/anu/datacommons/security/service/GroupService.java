@@ -56,4 +56,7 @@ public interface GroupService {
 	 */
 	@PostFilter("hasPermission(filterObject,'CREATE') or hasPermission(filterObject,'ADMINISTRATION')")
 	public List<Groups> getCreateGroups();
+	
+	@PostFilter("hasPermission(filterObject,'REVIEW')")
+	public List<Groups> getReviewGroups();
 }

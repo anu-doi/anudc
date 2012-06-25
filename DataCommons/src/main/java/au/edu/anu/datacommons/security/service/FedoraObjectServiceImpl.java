@@ -169,33 +169,21 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param form Contains the parameters from the request
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Map<String, Object> saveNew(String layout, String tmplt, Map<String, List<String>> form) {
-		Map<String, Object> values = new HashMap<String, Object>();
-		//TODO place post logic and return a proper screen.
-		values.put("topage", "/page.jsp");
+	public FedoraObject saveNew(String layout, String tmplt, Map<String, List<String>> form) {
 		FedoraObject fedoraObject = null;
 		ViewTransform viewTransform = new ViewTransform();
 		try {
 			fedoraObject = viewTransform.saveData(tmplt, null, form);
 			saveObjectPermissions(fedoraObject);
-			values.putAll(viewTransform.getPage(layout, null, fedoraObject, null, false));
 		}
 		catch (JAXBException e) {
 			LOGGER.error("Exception transforming jaxb", e);
-			values.put("topage", "/error.jsp");
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception creating/retrieving objects", e);
-			values.put("topage", "/error.jsp");
 		}
 		
-		//TODO this should probably be changed
-		String sidepage = "buttons.jsp";
-		
-		values.put("sidepage", sidepage);
-		values.put("fedoraObject", fedoraObject);
-		
-		return values;
+		return fedoraObject;
 	}
 	
 	/**
@@ -325,30 +313,18 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 */
 	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String layout, String tmplt, Map<String, List<String>> form) {
 		Map<String, Object> values = new HashMap<String, Object>();
-		values.put("topage", "/page.jsp");
-		String sidepage = "edit.jsp";
-		Template template = null;
 		ViewTransform viewTransform = new ViewTransform();
 		try {
 			fedoraObject = viewTransform.saveData(tmplt, fedoraObject, form);
-			values.putAll(viewTransform.getPage(layout, null, fedoraObject, null, false));
-			template = new ViewTransform().getTemplateObject(tmplt, fedoraObject);
-			values.put("fedoraObject", fedoraObject);
 		}
 		catch (JAXBException e) {
 			LOGGER.error("Exception transforming jaxb", e);
-			values.put("topage", "/error.jsp");
+			values.put("error", "true");
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception creating/retrieving objects", e);
-			values.put("topage", "/error.jsp");
+			values.put("error", "true");
 		}
-
-		values.put("sidepage", sidepage);
-		values.put("template", template);
-
-		SparqlResultSet resultSet = getLinks(fedoraObject);
-		values.put("resultSet", resultSet);
 		
 		return values;
 	}

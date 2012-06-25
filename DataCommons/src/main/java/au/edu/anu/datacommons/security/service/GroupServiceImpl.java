@@ -66,4 +66,10 @@ public class GroupServiceImpl implements GroupService {
 		List<Groups> groups = genericDAO.getAll();
 		return groups;
 	}
+	
+	public List<Groups> getReviewGroups() {
+		GenericDAOImpl genericDAO = new GenericDAOImpl(Groups.class);
+		List<Groups> groups = genericDAO.getAll();
+		return groups;
+	}
 }

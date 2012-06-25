@@ -92,7 +92,7 @@ public interface FedoraObjectService {
 	 * @param form Contains the parameters from the request
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Map<String, Object> saveNew(String layout, String tmplt, Map<String, List<String>> form);
+	public FedoraObject saveNew(String layout, String tmplt, Map<String, List<String>> form);
 	
 	/**
 	 * getEditPage

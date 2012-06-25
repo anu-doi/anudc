@@ -4,6 +4,7 @@ import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.FetchTxt.FilenameSizeUrl;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -37,17 +39,23 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.collectionrequest.CollectionRequestStatus.ReqStatus;
 import au.edu.anu.datacommons.collectionrequest.PageMessages.MessageType;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
+import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.persistence.HibernateUtil;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.security.CustomUser;
+import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.upload.DcBag;
 import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Util;
@@ -77,6 +85,8 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * </pre>
  * 
  */
+@Component
+@Scope("request")
 @Path("/collreq")
 public class CollectionRequestService
 {
@@ -91,6 +101,9 @@ public class CollectionRequestService
 
 	@Resource(name = "mailSender")
 	JavaMailSenderImpl mailSender;
+	
+	@Resource(name = "groupServiceImpl")
+	GroupService groupService;
 
 	/**
 	 * doGetAsHtml
@@ -102,20 +115,43 @@ public class CollectionRequestService
 	 * <pre>
 	 * Version	Date		Developer			Description
 	 * 0.1		1/05/2012	Rahul Khanna (RK)	Initial
+	 * 0.2		25/06/2012	Genevieve Turner (GT)	Updated to filter out requests to either the logged in user or those they have review access to
 	 * </pre>
 	 * 
 	 * @return Collection Request page as HTML.
 	 */
 	@GET
+	@PreAuthorize("hasRole('ROLE_REGISTERED')")
 	@Produces(MediaType.TEXT_HTML)
 	public Response doGetAsHtml()
 	{
 		Response resp = null;
 		Map<String, Object> model = new HashMap<String, Object>();
-
+		
+		CustomUser customUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		Long id = customUser.getId();
+		
+		List<Groups> reviewGroups = groupService.getReviewGroups();
+		List<Long> groupIds = new ArrayList<Long>();
+		for (Groups group : reviewGroups) {
+			groupIds.add(group.getId());
+			LOGGER.info("Review group: {}", group.getId());
+		}
+		
 		entityManager.getTransaction().begin();
-		List<CollectionRequest> collReqs = entityManager.createQuery("FROM CollectionRequest cr ORDER BY cr.timestamp DESC", CollectionRequest.class)
-				.getResultList();
+		Query query = null;
+		if (groupIds.size() > 0) {
+			query = entityManager.createQuery("SELECT cr FROM CollectionRequest cr join cr.fedoraObject fo WHERE (cr.requestor.id = :user_id) OR (fo.group_id IN (:groups)) ORDER BY cr.timestamp DESC",CollectionRequest.class);
+			query.setParameter("user_id", id);
+			query.setParameter("groups", groupIds);
+		}
+		else {
+			query = entityManager.createQuery("SELECT cr FROM CollectionRequest cr WHERE cr.requestor.id = :user_id ORDER BY cr.timestamp DESC",CollectionRequest.class);
+			query.setParameter("user_id", id);
+		}
+		
+		List<CollectionRequest> collReqs = query.getResultList();
+		
 		entityManager.getTransaction().commit();
 		model.put("collReqs", collReqs);
 		resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();

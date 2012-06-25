@@ -28,7 +28,6 @@
 		<sec:authorize access="hasRole('ROLE_REGISTERED')">
 		<li><a href="<c:url value='/rest/collreq' />">Collection Request</a>
 			<ul>
-				<li><a href="<c:url value='/rest/collreq/question' />">Question Bank</a></li>
 				<li><a href="<c:url value='/rest/collreq/dropbox' />">Dropboxes</a></li>
 			</ul>
 		</li>

@@ -19,6 +19,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
@@ -52,6 +53,7 @@ import com.sun.jersey.api.view.Viewable;
  * 
  */
 @Component
+@Scope("request")
 @Path("list")
 public class ListResource {
 	static final Logger LOGGER = LoggerFactory.getLogger(ListResource.class);

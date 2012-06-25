@@ -44,6 +44,13 @@
 				</sec:accesscontrollist>
 				<c:if test="${it.itemType == 'Collection'}">
 				<p><input type="button" id="uploadButton" name="uploadButton" value="Upload" onclick="window.location='${uploadLink}'" /></p>
+				
+					<sec:accesscontrollist hasPermission="REVIEW,PUBLISH" domainObject="${it.fedoraObject}">
+						<c:url value="/rest/collreq/question" var="questionLink">
+							<c:param name="pid" value="${it.fedoraObject.object_id}" />
+						</c:url>
+						<p><input type="button" id="questionButton" name="questionButton" value="Set Request Questions" onclick="window.location='${questionLink}'" /></p>
+					</sec:accesscontrollist>
 				</c:if>
 				<jsp:include page="add_reference.jsp" />
 			</sec:authorize>
