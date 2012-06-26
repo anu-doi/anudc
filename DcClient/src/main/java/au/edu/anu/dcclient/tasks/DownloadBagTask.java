@@ -24,17 +24,53 @@ import au.edu.anu.dcclient.Global;
 public final class DownloadBagTask extends AbstractDcBagTask implements Callable<File>
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
-	
+
 	private URI pidBagUri;
 	private File localBagFile;
-	
+
+	/**
+	 * DownloadBagTask
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Constructor for DownloadBagTask
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param bagBaseUri
+	 *            Base URI of bags in ANU Data Commons.
+	 * @param pid
+	 *            Pid of the collection whose bag will be downloaded.
+	 * @param targetDir
+	 *            Directory where the bag will be downloaded.
+	 */
 	public DownloadBagTask(URI bagBaseUri, String pid, File targetDir)
 	{
 		super();
 		localBagFile = new File(targetDir, DcBag.convertToDiskSafe(pid));
 		pidBagUri = UriBuilder.fromUri(bagBaseUri).path(pid).build();
 	}
-	
+
+	/**
+	 * call
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Method called by the ExecutorService to perform the download bag task.
+	 * 
+	 * @see java.util.concurrent.Callable#call()
+	 * 
+	 *      <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return Bag downloaded as File.
+	 * @throws Exception
+	 */
 	@Override
 	public File call() throws Exception
 	{

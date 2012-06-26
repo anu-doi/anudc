@@ -29,7 +29,18 @@ public class ProgressDialog extends JDialog implements ProgressListener
 	private Component parentComponent;
 
 	/**
-	 * Create the dialog.
+	 * ProgressDialog
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Constructor for ProgressDialog
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param parentComponent
 	 */
 	public ProgressDialog(Component parentComponent)
 	{
@@ -43,7 +54,7 @@ public class ProgressDialog extends JDialog implements ProgressListener
 		getContentPane().add(this.contentPanel, BorderLayout.CENTER);
 		this.contentPanel.setLayout(new BorderLayout(0, 0));
 		logTextPane = new JTextPane();
-		((DefaultCaret) logTextPane.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);	// To move the caret to end everytime text is added.
+		((DefaultCaret) logTextPane.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE); // To move the caret to end everytime text is added.
 		this.logTextPane.setText("Initialising...");
 		this.contentPanel.add(logTextPane, BorderLayout.CENTER);
 		buttonPane = new JPanel();
@@ -58,11 +69,29 @@ public class ProgressDialog extends JDialog implements ProgressListener
 		buttonPane.add(cancelButton);
 	}
 
+	/**
+	 * reportProgress
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Updates the components on this page to reflect the progress update values passed to this method as arguments.
+	 * 
+	 * @see gov.loc.repository.bagit.ProgressListener#reportProgress(java.lang.String, java.lang.Object, java.lang.Long, java.lang.Long)
+	 * 
+	 *      <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param activity
+	 * @param item
+	 * @param count
+	 * @param total
+	 */
 	@Override
 	public void reportProgress(final String activity, final Object item, final Long count, final Long total)
 	{
-		SwingUtilities.invokeLater(new Runnable()
-		{
+		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run()
 			{

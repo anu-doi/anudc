@@ -51,14 +51,17 @@ public class MainWindow
 	private JButton btnDebug;
 
 	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args)
-	{
-	}
-
-	/**
-	 * Create the application.
+	 * MainWindow
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Constructor for MainWindow
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
 	 */
 	public MainWindow()
 	{
@@ -67,7 +70,17 @@ public class MainWindow
 	}
 
 	/**
-	 * Initialize the contents of the frame.
+	 * initialize
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Initializes the contents of this window by adding controls.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
 	 */
 	private void initialize()
 	{
@@ -85,8 +98,7 @@ public class MainWindow
 		this.menuBar.add(this.mnFile);
 
 		this.mntmExit = new JMenuItem("Exit");
-		this.mntmExit.addActionListener(new ActionListener()
-		{
+		this.mntmExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
 				System.exit(0);
@@ -98,8 +110,7 @@ public class MainWindow
 		this.menuBar.add(this.mnEdit);
 
 		this.mntmRefresh = new JMenuItem("Refresh");
-		this.mntmRefresh.addActionListener(new ActionListener()
-		{
+		this.mntmRefresh.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
 				LOGGER.info("Refresh");
@@ -189,13 +200,25 @@ public class MainWindow
 		this.tabbedPane.addTab("New tab", null, this.tabbedPane_1, null);
 	}
 
+	/**
+	 * initActions
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Initializes the ActionListeners on components in this window.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 */
 	private void initActions()
 	{
 		this.btnRetrieve.addActionListener(new GetPidBagAction(this.frmAnuDataCommons, this.txtPid, this.bagExplorer));
 		this.btnSave.addActionListener(new SavePidBagAction(this.frmAnuDataCommons, this.txtPid, this.bagExplorer));
 		this.btnUpload.addActionListener(new UploadPidBagAction(this.frmAnuDataCommons, this.txtPid, this.bagExplorer));
-		this.txtPid.getDocument().addDocumentListener(new DocumentListener()
-		{
+		this.txtPid.getDocument().addDocumentListener(new DocumentListener() {
 
 			@Override
 			public void insertUpdate(DocumentEvent e)
@@ -224,8 +247,7 @@ public class MainWindow
 			}
 		});
 
-		this.btnDebug.addActionListener(new ActionListener()
-		{
+		this.btnDebug.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e)
 			{
 				// bagExplorer.changeDir(new File("C:\\Rahul\\FileUpload\\Store\\test_5"));
@@ -233,7 +255,22 @@ public class MainWindow
 			}
 		});
 	}
-	
+
+	/**
+	 * setVisible
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Changes the visibility status of this window.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param isVisible
+	 *            true to display, false to hide.
+	 */
 	public void setVisible(boolean isVisible)
 	{
 		this.frmAnuDataCommons.setVisible(isVisible);

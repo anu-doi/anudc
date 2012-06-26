@@ -15,8 +15,6 @@ import gov.loc.repository.bagit.BagFactory;
 public abstract class Global
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
-	
-	private static final BagFactory bagFactory = new BagFactory();
 
 	// Name of the properties file from which properties will be read.
 	private static final String GLOBAL_PROPERTIES_FILENAME = "global.properties";
@@ -36,26 +34,77 @@ public abstract class Global
 		}
 	}
 
-	public static BagFactory getBagFactory()
-	{
-		return bagFactory;
-	}
-	
+	/**
+	 * getBagUploadUrl
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Gets the Url of from where bags are accessible in the ANU Data Commons.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return Url as String
+	 */
 	public static String getBagUploadUrl()
 	{
 		return globalProperties.getProperty("app.server.uploadUri");
 	}
-	
+
+	/**
+	 * getBagUploadUri
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Gets the base Uri of bags in ANU Data Commons.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return Base Uri as Uri
+	 */
 	public static URI getBagUploadUri()
 	{
 		return UriBuilder.fromPath(getBagUploadUrl()).build();
 	}
-	
+
+	/**
+	 * getLocalBagStoreAsString
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Gets the local directory where bags are stored.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return Local bags directory as String
+	 */
 	public static String getLocalBagStoreAsString()
 	{
 		return globalProperties.getProperty("local.bagStore");
 	}
-	
+
+	/**
+	 * getLocalBagStoreAsFile
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Gets the local directory where bags are stored.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return Local bags directory as File
+	 */
 	public static File getLocalBagStoreAsFile()
 	{
 		return new File(getLocalBagStoreAsString());

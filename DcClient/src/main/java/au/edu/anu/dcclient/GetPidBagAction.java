@@ -61,6 +61,25 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 	private JTextComponent txtPid;
 	private File localBagFile;
 
+	/**
+	 * GetPidBagAction
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Constructor for GetPidBagAction
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param parentComponent
+	 *            Parent component used when displaying dialog boxes etc.
+	 * @param txtPid
+	 *            The textbox containing the pid to process.
+	 * @param bagExplorer
+	 *            The bag explorer control.
+	 */
 	public GetPidBagAction(Component parentComponent, JTextComponent txtPid, FileExplorer bagExplorer)
 	{
 		this.parentComponent = parentComponent;
@@ -68,6 +87,22 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 		this.bagExplorer = bagExplorer;
 	}
 
+	/**
+	 * actionPerformed
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Performs the actions required to get a bag from ANU Data Commons.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 * 
+	 * @param e
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
@@ -89,8 +124,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 						Global.getLocalBagStoreAsFile());
 				dlBagTask.addProgressListener(new ProgressDialog(parentComponent));
 				final Future<File> taskResult = execSvc.submit(dlBagTask);
-				execSvc.submit(new Runnable()
-				{
+				execSvc.submit(new Runnable() {
 					@Override
 					public void run()
 					{
@@ -132,8 +166,8 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 							else
 							{
 								// Local bag isn't valid. Redownload.
-								if (JOptionPane.showConfirmDialog(parentComponent, "Local bag seems to be corrupted. The bag needs to be redownloaded.", "Confirm Dialog",
-										JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE) == JOptionPane.OK_OPTION)
+								if (JOptionPane.showConfirmDialog(parentComponent, "Local bag seems to be corrupted. The bag needs to be redownloaded.",
+										"Confirm Dialog", JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE) == JOptionPane.OK_OPTION)
 								{
 									DcBag.deleteDir(localBagFile);
 									localBagFile.mkdirs();
@@ -169,8 +203,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 								Global.getLocalBagStoreAsFile());
 						dlBagTask.addProgressListener(new ProgressDialog(parentComponent));
 						final Future<File> dlTaskResult = execSvc.submit(dlBagTask);
-						execSvc.submit(new Runnable()
-						{
+						execSvc.submit(new Runnable() {
 							@Override
 							public void run()
 							{
@@ -201,8 +234,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 			GetInfoTask getInfoTask = new GetInfoTask(pidBagUri);
 			getInfoTask.addProgressListener(new ProgressDialog(parentComponent));
 			final Future<ClientResponse> getInfoTaskResult = execSvc.submit(getInfoTask);
-			execSvc.submit(new Runnable()
-			{
+			execSvc.submit(new Runnable() {
 				@Override
 				public void run()
 				{
@@ -212,8 +244,8 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 						resp = getInfoTaskResult.get();
 						if (resp.getStatus() == HttpStatus.SC_NOT_FOUND)
 						{
-							if (JOptionPane.showConfirmDialog(parentComponent, "Bag doesn't exist in Data Commons. Would you like to create one?", "Bag not found",
-									JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
+							if (JOptionPane.showConfirmDialog(parentComponent, "Bag doesn't exist in Data Commons. Would you like to create one?",
+									"Bag not found", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
 							{
 								DcBag.deleteDir(localBagFile);
 								DcBag dcBag = new DcBag(txtPid.getText());
@@ -250,8 +282,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 			DownloadBagTask dlBagTask = new DownloadBagTask(Global.getBagUploadUri(), txtPid.getText().toLowerCase().trim(), Global.getLocalBagStoreAsFile());
 			dlBagTask.addProgressListener(new ProgressDialog(parentComponent));
 			final Future<File> taskResult = execSvc.submit(dlBagTask);
-			execSvc.submit(new Runnable()
-			{
+			execSvc.submit(new Runnable() {
 				@Override
 				public void run()
 				{

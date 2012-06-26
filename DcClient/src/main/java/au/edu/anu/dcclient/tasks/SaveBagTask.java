@@ -14,13 +14,49 @@ public final class SaveBagTask extends AbstractDcBagTask implements Callable<Fil
 	private File targetDir = null;
 	private Bag.Format format = null;
 	private String extId = null;
-	
+
+	/**
+	 * SaveBagTask
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Constructor for SaveBagTask
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param dcBag
+	 *            The bag to be saved.
+	 */
 	public SaveBagTask(DcBag dcBag)
 	{
 		super();
 		this.dcBag = dcBag;
 	}
-	
+
+	/**
+	 * SaveBagTask
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Constructor for SaveBagTask
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param dcBag
+	 *            The bag to be saved.
+	 * @param targetDir
+	 *            The directory where the bag is to be saved.
+	 * @param extId
+	 *            The external identifier (pid) of the bag.
+	 * @param format
+	 *            Format of the bag.
+	 */
 	public SaveBagTask(DcBag dcBag, File targetDir, String extId, Bag.Format format)
 	{
 		super();
@@ -30,6 +66,23 @@ public final class SaveBagTask extends AbstractDcBagTask implements Callable<Fil
 		this.format = format;
 	}
 
+	/**
+	 * call
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Saves the bag.
+	 * 
+	 * @see java.util.concurrent.Callable#call()
+	 * 
+	 *      <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return The saved bag as File.
+	 * @throws Exception
+	 */
 	@Override
 	public File call() throws Exception
 	{
@@ -39,7 +92,7 @@ public final class SaveBagTask extends AbstractDcBagTask implements Callable<Fil
 		if (this.plSet != null)
 			for (ProgressListener l : plSet)
 				dcBag.addProgressListener(l);
-		
+
 		File savedFile;
 		if (this.targetDir == null)
 			savedFile = dcBag.save();

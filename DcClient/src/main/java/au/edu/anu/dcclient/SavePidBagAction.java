@@ -35,6 +35,25 @@ public class SavePidBagAction extends AbstractAction implements ActionListener
 	private FileExplorer bagExplorer;
 	private JTextComponent txtPid;
 
+	/**
+	 * SavePidBagAction
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Constructor for SavePidBagAction
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param parentComponent
+	 *            Parent component for Dialogs etc.
+	 * @param txtPid
+	 *            Component containing the pid whose bag will be saved.
+	 * @param bagExplorer
+	 *            The bag explorer component.
+	 */
 	public SavePidBagAction(Component parentComponent, JTextComponent txtPid, FileExplorer bagExplorer)
 	{
 		this.parentComponent = parentComponent;
@@ -42,6 +61,22 @@ public class SavePidBagAction extends AbstractAction implements ActionListener
 		this.bagExplorer = bagExplorer;
 	}
 
+	/**
+	 * actionPerformed
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Saves the bag after changes made.
+	 * 
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 * 
+	 *      <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param e
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
@@ -52,8 +87,7 @@ public class SavePidBagAction extends AbstractAction implements ActionListener
 		SaveBagTask saveTask = new SaveBagTask(bag, Global.getLocalBagStoreAsFile(), txtPid.getText(), Format.FILESYSTEM);
 		saveTask.addProgressListener(new ProgressDialog(parentComponent));
 		final Future<File> saveTaskResult = execSvc.submit(saveTask);
-		execSvc.submit(new Runnable()
-		{
+		execSvc.submit(new Runnable() {
 			@Override
 			public void run()
 			{
@@ -77,8 +111,7 @@ public class SavePidBagAction extends AbstractAction implements ActionListener
 					e.printStackTrace();
 				}
 			}
-		}
-		);
-		
+		});
+
 	}
 }

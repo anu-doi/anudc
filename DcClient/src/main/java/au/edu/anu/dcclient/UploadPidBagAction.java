@@ -53,6 +53,25 @@ public class UploadPidBagAction extends AbstractAction implements ActionListener
 	private JTextComponent txtPid;
 	private FileExplorer bagExplorer;
 
+	/**
+	 * UploadPidBagAction
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Constructor for UploadPidBagAction
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param parentComponent
+	 *            Parent component for dialogs etc.
+	 * @param txtPid
+	 *            Component containing the pid whose bag will be uploaded.
+	 * @param bagExplorer
+	 *            The bag explorer component.
+	 */
 	public UploadPidBagAction(Component parentComponent, JTextComponent txtPid, FileExplorer bagExplorer)
 	{
 		this.parentComponent = parentComponent;
@@ -60,6 +79,22 @@ public class UploadPidBagAction extends AbstractAction implements ActionListener
 		this.bagExplorer = bagExplorer;
 	}
 
+	/**
+	 * actionPerformed
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Uploads the bag to the ANU Data Commons
+	 * 
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param e
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
@@ -74,7 +109,7 @@ public class UploadPidBagAction extends AbstractAction implements ActionListener
 		UploadBagTask uploadTask = new UploadBagTask(dcBag, Global.getBagUploadUri());
 		uploadTask.addProgressListener(new ProgressDialog(this.parentComponent));
 		final Future<ClientResponse> uploadTaskResult = execSvc.submit(uploadTask);
-		
+
 		// Check if upload was successful.
 		execSvc.submit(new Runnable() {
 
@@ -114,6 +149,6 @@ public class UploadPidBagAction extends AbstractAction implements ActionListener
 				}
 			}
 		});
-		
+
 	}
 }

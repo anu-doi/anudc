@@ -15,12 +15,44 @@ public final class GetInfoTask extends AbstractDcBagTask implements Callable<Cli
 {
 	private URI pidBagUri;
 
+	/**
+	 * 
+	 * GetInfoTask
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Constructor for GetInfoTask
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param pidBagUri
+	 */
 	public GetInfoTask(URI pidBagUri)
 	{
 		super();
 		this.pidBagUri = pidBagUri;
 	}
-	
+
+	/**
+	 * call
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Gets basic information about a collection's bag.
+	 * 
+	 * @see java.util.concurrent.Callable#call()
+	 * 
+	 *      <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return Response of the request as ClientResponse
+	 * @throws Exception
+	 */
 	@Override
 	public ClientResponse call() throws Exception
 	{

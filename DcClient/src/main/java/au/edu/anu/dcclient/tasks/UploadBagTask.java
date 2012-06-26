@@ -32,6 +32,21 @@ public class UploadBagTask extends AbstractDcBagTask implements Callable<ClientR
 	private DcBag dcBag;
 	private URI bagBaseUri;
 
+	/**
+	 * UploadBagTask
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Constructor for UploadBagTask
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param dcBag
+	 * @param bagBaseUri
+	 */
 	public UploadBagTask(DcBag dcBag, URI bagBaseUri)
 	{
 		super();
@@ -39,6 +54,23 @@ public class UploadBagTask extends AbstractDcBagTask implements Callable<ClientR
 		this.bagBaseUri = bagBaseUri;
 	}
 
+	/**
+	 * call
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Uploads a bag to ANU Data Commons
+	 * 
+	 * @see java.util.concurrent.Callable#call()
+	 * 
+	 *      <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @return Response from the server as ClientResponse.
+	 * @throws Exception
+	 */
 	@Override
 	public ClientResponse call() throws Exception
 	{
@@ -68,6 +100,25 @@ public class UploadBagTask extends AbstractDcBagTask implements Callable<ClientR
 
 	}
 
+	/**
+	 * uploadFile
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Submits a POST request to Bags URI.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param serializedBagFile
+	 *            Bagfile
+	 * @return Response from the server as ClientResponse
+	 * @throws UniformInterfaceException
+	 * @throws ClientHandlerException
+	 * @throws FileNotFoundException
+	 */
 	private ClientResponse uploadFile(File serializedBagFile) throws UniformInterfaceException, ClientHandlerException, FileNotFoundException
 	{
 		Client client = Client.create(new DefaultClientConfig());

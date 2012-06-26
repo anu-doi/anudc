@@ -28,13 +28,13 @@ import au.edu.anu.dcclient.tasks.VerifyBagTask;
 public class DcClient
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
-	
+
 	/**
 	 * main
 	 * 
 	 * Australian National University Data Commons
 	 * 
-	 * DESCRIPTION
+	 * The main entry point for this desktop application.
 	 * 
 	 * <pre>
 	 * Version	Date		Developer			Description
@@ -42,6 +42,7 @@ public class DcClient
 	 * </pre>
 	 * 
 	 * @param args
+	 *            Command line arguments
 	 */
 	public static void main(String[] args)
 	{
@@ -56,7 +57,20 @@ public class DcClient
 			System.exit(exitCode);
 		}
 	}
-	
+
+	/**
+	 * startGui
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Starts the GUI interface of the desktop client.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 */
 	private static void startGui()
 	{
 		try
@@ -69,8 +83,7 @@ public class DcClient
 		catch (Throwable e)
 		{
 		}
-		EventQueue.invokeLater(new Runnable()
-		{
+		EventQueue.invokeLater(new Runnable() {
 			public void run()
 			{
 				try
@@ -86,11 +99,27 @@ public class DcClient
 			}
 		});
 	}
-	
+
+	/**
+	 * cmdMgr
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Parses the command line arguments specified to perform tasks.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param args
+	 *            Command line arguments passed from the main method.
+	 * @return Returns the exit code. 0 for a normal exit, >0 otherwise.
+	 */
 	private static int cmdMgr(String[] args)
 	{
 		int exitCode = 0;
-		
+
 		if (args.length < 2)
 		{
 			System.out.println("Performs an action on a bag.");
@@ -100,7 +129,7 @@ public class DcClient
 			System.out.println(" -S\tSaves a bag. Any files added/removed/edited are acknowledged and included in their respective manifests.");
 			System.out.println(" -U\t Uploads a bag to ANU Data Commons.");
 		}
-		
+
 		if (args[0].toLowerCase().trim().equals("-d"))
 		{
 			// Download bag.
@@ -184,7 +213,7 @@ public class DcClient
 					exitCode = 1;
 					throw new Exception("Bag verification failed.");
 				}
-				
+
 			}
 			catch (Exception e)
 			{
