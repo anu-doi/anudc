@@ -24,8 +24,7 @@ public class PopupMenu extends JPopupMenu
 	{
 		// Rename menu item.
 		add(menuItem = new JMenuItem("Rename"));
-		menuItem.setIcon(new ImageIcon("edit.png"));
-		// menuItem.setIcon(new ImageIcon(this.getClass().getResource("edit.png")));
+		menuItem.setIcon(new ImageIcon(this.getClass().getResource("edit.png")));
 		menuItem.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent ae)
@@ -48,7 +47,7 @@ public class PopupMenu extends JPopupMenu
 		
 		// Delete menu item.
 		add(menuItem = new JMenuItem("Delete"));
-		menuItem.setIcon(new ImageIcon("delete.png"));
+		menuItem.setIcon(new ImageIcon(this.getClass().getResource("delete.png")));
 		menuItem.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent ae)
@@ -68,7 +67,7 @@ public class PopupMenu extends JPopupMenu
 		// Cut menu item.
 		addSeparator();
 		add(menuItem = new JMenuItem("Cut"));
-		menuItem.setIcon(new ImageIcon("cut.png"));
+		menuItem.setIcon(new ImageIcon(this.getClass().getResource("cut.png")));
 		menuItem.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent ae)
@@ -80,7 +79,7 @@ public class PopupMenu extends JPopupMenu
 		
 		// Copy menu item.
 		add(menuItem = new JMenuItem("Copy"));
-		menuItem.setIcon(new ImageIcon("copy.png"));
+		menuItem.setIcon(new ImageIcon(this.getClass().getResource("copy.png")));
 		menuItem.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent ae)
@@ -92,7 +91,7 @@ public class PopupMenu extends JPopupMenu
 		
 		// Paste menu item.
 		add(menuItem = new JMenuItem("Paste"));
-		menuItem.setIcon(new ImageIcon("paste.png"));
+		menuItem.setIcon(new ImageIcon(this.getClass().getResource("paste.png")));
 		menuItem.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent ae)

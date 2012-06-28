@@ -84,6 +84,14 @@ public final class DownloadBagTask extends AbstractDcBagTask implements Callable
 				fetcher.addProgressListener(l);
 		LOGGER.info("Beginning download of bag...");
 		SimpleResult result = fetcher.fetchRemoteBag(localBagFile, pidBagUri.toString(), false);
+		// Following code is added due to a possible bug in BagIt lib - the fetch.txt should be deleted after all payload files are downloaded.
+		if (result.isSuccess())
+		{
+			DcBag dcBag = new DcBag(localBagFile, LoadOption.BY_FILES);
+			dcBag.removeBagFile(dcBag.getBag().getFetchTxt().getFilepath());
+			dcBag.save();
+			dcBag.close();
+		}
 		updateProgress("done", null, null, null);
 		LOGGER.debug("Result from Bag Fetch: {}.", result.toString());
 		if (!result.isSuccess())

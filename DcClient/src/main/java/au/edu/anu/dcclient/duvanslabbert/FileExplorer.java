@@ -138,46 +138,27 @@ public class FileExplorer extends JPanel
 						DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
 						for (File file : files)
 						{
-							String msg = MessageFormat.format("Copy: \r\n{0}\r\nto\r\n{1} ?", file.getName(),
-									(MutableTreeNode) tree.getLastSelectedPathComponent());
-							// msg = "Copy : " + file.getName() + " to\n" + (MutableTreeNode) tree.getLastSelectedPathComponent();
-
-							if (JOptionPane.showConfirmDialog(tree, msg, "Confirm Dialog", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
+							ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
+							// Copy.
+							threadExecutor.execute(new CopyDialog(file, new File(((MutableTreeNode) tree.getLastSelectedPathComponent()).toString() + "\\"
+									+ file.getName()), false));
+							DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new File(((MutableTreeNode) tree.getLastSelectedPathComponent())
+									.toString() + "\\" + file.getName()));
+							if (file.isDirectory())
 							{
-								ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
-								if (action == 1)
-								{
-									// Move.
-									String str = node.toString();
-									str = str.substring(str.lastIndexOf("\\"), str.length());
-									threadExecutor.execute(new CopyDialog((File) node.getUserObject(), new File(((MutableTreeNode) tree
-											.getLastSelectedPathComponent()).toString() + str), true));
-									threadExecutor.shutdown();
-									DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new File(
-											((MutableTreeNode) tree.getLastSelectedPathComponent()).toString() + str));
-									if (node.getChildCount() != 0)
-										newNode.add(new DefaultMutableTreeNode("**"));
-									treeModel.insertNodeInto(newNode, (MutableTreeNode) tree.getLastSelectedPathComponent(), 0);
-									treeModel.removeNodeFromParent(node);
-								}
-								else
-								{
-									// Copy.
-									threadExecutor.execute(new CopyDialog(file, new File(((MutableTreeNode) tree.getLastSelectedPathComponent()).toString()
-											+ "\\" + file.getName()), false));
-									DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new File(
-											((MutableTreeNode) tree.getLastSelectedPathComponent()).toString() + "\\" + file.getName()));
-									if (file.isDirectory())
-									{
-										if (file.listFiles() != null)
-											newNode.add(new DefaultMutableTreeNode("**"));
-									}
-									treeModel.insertNodeInto(newNode, (MutableTreeNode) tree.getLastSelectedPathComponent(), 0);
-									LOGGER.debug("Added {} to tree", newNode.toString());
-								}
-								threadExecutor.shutdown();
-								// refresh();
+								if (file.listFiles() != null)
+									newNode.add(new DefaultMutableTreeNode("**"));
 							}
+							treeModel.insertNodeInto(newNode, (MutableTreeNode) tree.getLastSelectedPathComponent(), 0);
+							LOGGER.debug("Added {} to tree", newNode.toString());
+							threadExecutor.submit(new Runnable() {
+								@Override
+								public void run()
+								{
+									refresh();
+								}
+							});
+							threadExecutor.shutdown();
 						}
 					}
 				}
@@ -273,7 +254,7 @@ public class FileExplorer extends JPanel
 		LOGGER.trace("In getBagDir");
 		if (this.root.getChildCount() != 1)
 			throw new RuntimeException("Tree root has more than one child nodes.");
-		
+
 		File dataDir = (File) ((DefaultMutableTreeNode) this.root.getFirstChild()).getUserObject();
 		return dataDir.getParentFile();
 	}

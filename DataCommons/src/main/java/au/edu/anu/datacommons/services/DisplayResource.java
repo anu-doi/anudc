@@ -45,6 +45,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.3		23/03/2012	Genevieve Turner (GT)	Updated to include saving of new records and a side page
  * 0.4		29/03/2012	Genevieve Turner (GT)	Updated to include editing
  * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
+ * 0.6		28/06/2012	Rahul Khanna (RK)		Fixed failure condition
  * </pre>
  */
 @Component
@@ -123,6 +124,7 @@ public class DisplayResource {
 	 * 0.2		20/03/2012	Genevieve Turner (GT)	Added as a placeholder
 	 * 0.3		23/03/2012	Genevieve Turner (GT)	Modified to save data
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
+	 * 0.6		28/06/2012	Rahul Khanna (RK)		Fixed failure condition
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -142,7 +144,7 @@ public class DisplayResource {
 		
 		FedoraObject fedoraObject = fedoraObjectService.saveNew(layout, tmplt, form);
 		UriBuilder uriBuilder = null;
-		if (fedoraObject == null || Util.isNotEmpty(fedoraObject.getObject_id())) {
+		if (fedoraObject == null || !Util.isNotEmpty(fedoraObject.getObject_id())) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 		else {

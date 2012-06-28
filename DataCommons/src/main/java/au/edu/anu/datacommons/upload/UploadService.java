@@ -59,10 +59,12 @@ import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.DcBag;
 
 import com.sun.jersey.api.NotFoundException;
+import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.api.view.Viewable;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.core.spi.scanning.FilesScanner;
 import com.sun.jersey.multipart.FormDataParam;
+import com.sun.jersey.spi.monitoring.ResponseListener;
 
 /**
  * UploadService
@@ -83,7 +85,6 @@ public class UploadService
 	private static final String PART_FILE_SUFFIX = ".part";
 	private static final String UPLOAD_JSP = "/upload.jsp";
 	private static final String FILE_DS_PREFIX = "FILE";
-	private static final String ZIP_FILE_SUFFIX = ".zip";
 
 	/**
 	 * doGetAsHtml
@@ -105,7 +106,6 @@ public class UploadService
 	public Response doGetAsHtml()
 	{
 		LOGGER.info("In doGetAsHtml");
-
 		return Response.ok(new Viewable(UPLOAD_JSP)).build();
 	}
 
@@ -171,7 +171,7 @@ public class UploadService
 			}
 
 			// Check if the properties file '[pid].properties' already exists. If yes, merge the new one with the existing one.
-			File dsPropFile = new File(GlobalProps.getUploadDirAsFile(), Util.convertToDiskSafe(uploadProps.getProperty("pid")) + ".properties");
+			File dsPropFile = new File(GlobalProps.getUploadDirAsFile(), DcBag.convertToDiskSafe(uploadProps.getProperty("pid")) + ".properties");
 			if (dsPropFile.exists())
 			{
 				Properties existingProps = new Properties();
@@ -223,20 +223,20 @@ public class UploadService
 		{
 			// Read properties file [Pid].properties.
 			uploadProps.load(new BufferedInputStream(new FileInputStream(
-					new File(GlobalProps.getUploadDirAsFile(), Util.convertToDiskSafe(pid) + ".properties"))));
+					new File(GlobalProps.getUploadDirAsFile(), DcBag.convertToDiskSafe(pid) + ".properties"))));
 
 			// Create a new Bag.
 			pid = uploadProps.getProperty("pid");
 			if (!Util.isNotEmpty(pid))
 				throw new Exception("Missing Pid value.");
-			DcBag dcBag = new DcBag(Util.convertToDiskSafe(pid));
+			DcBag dcBag = new DcBag(DcBag.convertToDiskSafe(pid));
 
 			// Add the files to the bag.
 			String filename;
 			for (int i = 0; (filename = uploadProps.getProperty("file" + i)) != null; i++)
 			{
 				LOGGER.debug("Adding file {} to Bag {}.", filename, pid);
-				dcBag.addFileToPayload(new File(new File(GlobalProps.getUploadDirAsFile(), Util.convertToDiskSafe(pid)), filename));
+				dcBag.addFileToPayload(new File(new File(GlobalProps.getUploadDirAsFile(), DcBag.convertToDiskSafe(pid)), filename));
 			}
 
 			// Add URLs to Fetch file.
@@ -266,7 +266,7 @@ public class UploadService
 		DcBag dcBag = null;
 		Response resp = null;
 
-		dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid)), LoadOption.BY_MANIFESTS);
+		dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), DcBag.convertToDiskSafe(pid)), LoadOption.BY_MANIFESTS);
 		JSONArray filenames = new JSONArray();
 
 		for (Entry<String, String> iEntry : dcBag.getPayloadFileList())
@@ -298,7 +298,7 @@ public class UploadService
 
 		// TODO Do custom user checking here - if the user has a valid dropbox etc.
 
-		dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid)), LoadOption.BY_FILES);
+		dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), DcBag.convertToDiskSafe(pid)), LoadOption.BY_FILES);
 		ResponseBuilder respBuilder = Response.ok(dcBag.getBagFileStream("data/" + filename), MediaType.APPLICATION_OCTET_STREAM_TYPE);
 		respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=" + filename);			// Filename on client's computer.
 		respBuilder = respBuilder.header("Content-MD5", dcBag.getBagFileHash("data/" + filename));			// Hash of file. Header not used by most web browsers.
@@ -347,41 +347,39 @@ public class UploadService
 	public Response doGetBagInfoAsJson(@PathParam("pid") String pid)
 	{
 		Response resp = null;
-
-		JSONObject bagInfo = new JSONObject();
-		DcBag dcBag = getPidBag(pid);
-		if (dcBag != null)
+		JSONObject bagInfoJson = new JSONObject();
+		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
+		if (bagFile == null)
 		{
-			// Bag Info Txt
-			JSONObject bagInfoTxt = new JSONObject();
-			for (Entry<String, String> entry : dcBag.getBagInfoTxt().entrySet())
-			{
-				try
-				{
-					bagInfoTxt.put(entry.getKey(), entry.getValue());
-				}
-				catch (JSONException e)
-				{
-				}
-			}
-
+			LOGGER.warn(MessageFormat.format("Bag for {0} doesn't exist.", pid));
+			throw new NotFoundException(MessageFormat.format("Bag for {0} doesn't exist.", pid));
+		}
+		
+		// Bag Info Txt
+		DcBag dcBag = new DcBag(bagFile,  LoadOption.BY_MANIFESTS);
+		JSONObject bagInfoTxtJson = new JSONObject();
+		for (Entry<String, String> entry : dcBag.getBagInfoTxt().entrySet())
+		{
 			try
 			{
-				bagInfo.put(dcBag.getBag().getBagConstants().getBagInfoTxt(), bagInfoTxt);
+				bagInfoTxtJson.put(entry.getKey(), entry.getValue());
 			}
 			catch (JSONException e)
 			{
+				// Do nothing.
 			}
-
-			dcBag.close();
-			resp = Response.ok(bagInfo.toString(), MediaType.APPLICATION_JSON_TYPE).build();
 		}
-		else
+		try
 		{
-			resp = Response.status(Status.NOT_FOUND).build();
+			bagInfoJson.put(dcBag.getBag().getBagConstants().getBagInfoTxt(), bagInfoTxtJson);
 		}
-
-		LOGGER.debug("Returning JSON string {}", bagInfo.toString());
+		catch (JSONException e)
+		{
+			// Do nothing.
+		}
+		dcBag.close();
+		resp = Response.ok(bagInfoJson.toString(), MediaType.APPLICATION_JSON_TYPE).build();
+		LOGGER.debug("Returning JSON string {}", bagInfoJson.toString());
 		return resp;
 	}
 
@@ -410,8 +408,10 @@ public class UploadService
 				DcBag.deleteDir(curPidBagFile);
 
 			// Copy the uploaded bag to the bag dir.
-			dcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, dcBag.getBag().getFormat());
+			File oldBagFile = dcBag.getFile();
+			dcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, Format.FILESYSTEM);
 			dcBag.close();
+			oldBagFile.delete();
 			resp = Response.ok().build();
 		}
 		catch (Exception e)
@@ -456,7 +456,7 @@ public class UploadService
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("Exception writing to file: " + e.toString());
+			LOGGER.error("Exception writing to file: " + e.toString(), e);
 			throw e;
 		}
 
@@ -498,7 +498,7 @@ public class UploadService
 
 		try
 		{
-			File pidDir = new File(GlobalProps.getUploadDirAsFile(), Util.convertToDiskSafe(pid));
+			File pidDir = new File(GlobalProps.getUploadDirAsFile(), DcBag.convertToDiskSafe(pid));
 			if (!pidDir.exists())
 				pidDir.mkdir();
 			File fileOnServer = new File(pidDir, serverFilename);
@@ -716,31 +716,5 @@ public class UploadService
 				}
 			}
 		}
-	}
-
-	private boolean deleteDir(File dir)
-	{
-		if (dir.isDirectory())
-		{
-			String[] children = dir.list();
-			for (int i = 0; i < children.length; i++)
-				if (!deleteDir(new File(dir, children[i])))
-					return false;
-		}
-
-		// The directory is now empty so delete it
-		return dir.delete();
-	}
-
-	private DcBag getPidBag(String pid)
-	{
-		File bagFile;
-		DcBag pidBag = null;
-		if ((bagFile = new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid))).exists())
-			pidBag = new DcBag(bagFile, LoadOption.BY_FILES);
-		else if ((bagFile = new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid) + ZIP_FILE_SUFFIX)).exists())
-			pidBag = new DcBag(bagFile, LoadOption.BY_FILES);
-
-		return pidBag;
 	}
 }

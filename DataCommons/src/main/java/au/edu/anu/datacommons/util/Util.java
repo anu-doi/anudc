@@ -241,24 +241,4 @@ public final class Util
 		// Convert hash value to a hex string and return it. 
 		return new BigInteger(1, hashValue).toString(16);
 	}
-	
-	/**
-	 * convertToDiskSafe
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * Replace special characters in a string with '_'. Special characters that are replaced are: *?\:/. and whitespace chars.
-	 * 
-	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		11/05/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 * 
-	 * @param source
-	 * @return
-	 */
-	public static String convertToDiskSafe(String source)
-	{
-		return source.replaceAll("\\*|\\?|\\\\|:|/|\\s", "_");
-	}
 }

@@ -644,7 +644,7 @@ public class CollectionRequestService
 			model.put("downloadables", downloadables);
 
 			// Fetch List.
-			DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(dropbox.getCollectionRequest().getPid())),
+			DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), DcBag.convertToDiskSafe(dropbox.getCollectionRequest().getPid())),
 					LoadOption.BY_MANIFESTS);
 			if (dcBag != null && dcBag.getBag().getFetchTxt() != null)
 			{
@@ -923,7 +923,7 @@ public class CollectionRequestService
 					{
 						try
 						{
-							DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid)), LoadOption.BY_MANIFESTS);
+							DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), DcBag.convertToDiskSafe(pid)), LoadOption.BY_MANIFESTS);
 							for (Entry<String, String> iFileItem : dcBag.getPayloadFileList())
 							{
 								try
