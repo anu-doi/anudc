@@ -1,0 +1,4 @@
+External-Identifier: test:1
+Payload-Oxum: 2097152.1
+Bagging-Date: 2012-06-21
+Bag-Size: 2 MB

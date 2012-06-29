@@ -6,6 +6,7 @@ import gov.loc.repository.bagit.FetchTxt.FilenameSizeUrl;
 import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -58,9 +59,9 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.security.service.GroupService;
-import au.edu.anu.datacommons.upload.DcBag;
 import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Util;
+import au.edu.anu.dcbag.DcBag;
 
 import com.sun.jersey.api.view.Viewable;
 import com.yourmediashelf.fedora.client.FedoraClientException;
@@ -631,17 +632,19 @@ public class CollectionRequestService
 			model.put("downloadables", downloadables);
 
 			// Fetch List.
-			DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(dropbox.getCollectionRequest().getPid())),
+			DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), DcBag.convertToDiskSafe(dropbox.getCollectionRequest().getPid())),
 					LoadOption.BY_MANIFESTS);
-			if (dcBag != null && dcBag.getFetchEntries() != null)
+			if (dcBag != null && dcBag.getBag().getFetchTxt() != null)
 			{
 				Map<String, String> fetchables = new HashMap<String, String>();
-				for (FilenameSizeUrl iFetchItem : dcBag.getFetchEntries())
+				
+				for (Iterator<FilenameSizeUrl> iter = dcBag.getBag().getFetchTxt().iterator(); iter.hasNext(); )
 				{
+					FilenameSizeUrl iFetchItem = iter.next();
 					LOGGER.debug("Added fetch item {}", iFetchItem.toString());
 					fetchables.put(iFetchItem.getFilename(), iFetchItem.getUrl());
 				}
-
+				
 				if (fetchables.size() > 0)
 					model.put("fetchables", fetchables);
 
@@ -903,7 +906,7 @@ public class CollectionRequestService
 					{
 						try
 						{
-							DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), Util.convertToDiskSafe(pid)), LoadOption.BY_MANIFESTS);
+							DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), DcBag.convertToDiskSafe(pid)), LoadOption.BY_MANIFESTS);
 							for (Entry<String, String> iFileItem : dcBag.getPayloadFileList())
 							{
 								try
