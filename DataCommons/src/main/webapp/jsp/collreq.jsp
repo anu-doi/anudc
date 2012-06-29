@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
 <anu:header id="1998" title="TITLE" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur" respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
@@ -49,7 +50,7 @@
 					</p>
 				</c:forEach>
 				<p>
-					<label>Status</label> <select name="status">
+					<label>Status</label> <select disabled="disabled">	
 						<option value=""></option>
 						<option value="SUBMITTED" <c:if test="${it.collReq.lastStatus.status == 'SUBMITTED'}"> selected="selected"</c:if> value="0">Submitted</option>
 						<option value="ACCEPTED" <c:if test="${it.collReq.lastStatus.status == 'ACCEPTED'}"> selected="selected"</c:if> value="1">Accepted</option>
@@ -57,15 +58,28 @@
 						<option value="PENDING" <c:if test="${it.collReq.lastStatus.status == 'PENDING'}"> selected="selected"</c:if> value="3">Pending</option>
 					</select>
 				</p>
-				<p>
-					<label>Reason</label>
-					<textarea name="reason" maxlength="250" rows="5" cols="50"></textarea>
-				</p>
-				<p class="instruction">Max 250 chars.</p>
-				<!-- Button to be conditionally displayed based on user permissions. -->
-				<p class="text-right">
-					<input type="submit" value="Change Status" />
-				</p>
+				<sec:accesscontrollist hasPermission="REVIEW" domainObject="${it.collReq.fedoraObject}">
+					<h2>Update Status</h2>
+					<p>
+						<label>Status</label> <select name="status">	
+							<option value=""></option>
+							<option value="SUBMITTED" <c:if test="${it.collReq.lastStatus.status == 'SUBMITTED'}"> selected="selected"</c:if> value="0">Submitted</option>
+							<option value="ACCEPTED" <c:if test="${it.collReq.lastStatus.status == 'ACCEPTED'}"> selected="selected"</c:if> value="1">Accepted</option>
+							<option value="REJECTED" <c:if test="${it.collReq.lastStatus.status == 'REJECTED'}"> selected="selected"</c:if> value="2">Rejected</option>
+							<option value="PENDING" <c:if test="${it.collReq.lastStatus.status == 'PENDING'}"> selected="selected"</c:if> value="3">Pending</option>
+						</select>
+					</p>
+					
+					<p>
+						<label>Reason</label>
+						<textarea name="reason" maxlength="250" rows="5" cols="50"></textarea>
+					</p>
+					<p class="instruction">Max 250 chars.</p>
+					<!-- Button to be conditionally displayed based on user permissions. -->
+					<p class="text-right">
+						<input type="submit" value="Change Status" />
+					</p>
+				</sec:accesscontrollist>
 			</form>
 			<table id="idStatusHistoryContainter" class="doublewide">
 				<tr>

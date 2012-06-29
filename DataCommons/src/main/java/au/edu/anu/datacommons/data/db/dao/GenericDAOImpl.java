@@ -26,6 +26,7 @@ import au.edu.anu.datacommons.data.db.PersistenceManager;
  * 0.1		03/05/2012	Genevieve Turner (GT)	Initial
  * 0.2		09/05/2012	Genevieve Turner (GT)	Added constructor class
  * 0.3		15/05/2012	Genevieve Turner (GT)	Fixed an issue with 'detached entity passed to persist'
+ * 0.4		29/06/2012	Genevieve Turner (GT)	Updated to retrieve the object prior to delete
  * </pre>
  * 
  * @param <T> The object type to implement
@@ -168,16 +169,17 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		03/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.4		29/06/2012	Genevieve Turner (GT)	Updated to retrieve the object prior to delete
 	 * </pre>
 	 * 
 	 * @param t The object to delete
 	 */
-	public void delete (T o) {
+	public void delete (PK id) {
 		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
 		EntityTransaction entityTransaction = entityManager.getTransaction();
 		try {
 			entityTransaction.begin();
-			entityManager.remove(o);
+			entityManager.remove(entityManager.getReference(type_, id));
 			entityTransaction.commit();
 		}
 		finally {

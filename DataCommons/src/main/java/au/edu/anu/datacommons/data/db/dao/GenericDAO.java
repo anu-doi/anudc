@@ -87,9 +87,10 @@ public interface GenericDAO <T, PK extends Serializable>{
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		03/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.2		29/06/2012	Genevieve Turner (GT)	Updated to intake the primary key rather than object
 	 * </pre>
 	 * 
 	 * @param t The object to delete
 	 */
-	void delete(T t);
+	void delete(PK id);
 }
