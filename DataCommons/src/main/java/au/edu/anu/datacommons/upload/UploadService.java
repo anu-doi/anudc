@@ -1,8 +1,6 @@
 package au.edu.anu.datacommons.upload;
 
-import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.Bag.Format;
-import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.transfer.BagTransferException;
 
@@ -10,18 +8,15 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import javax.print.attribute.standard.Media;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -30,28 +25,22 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.PropertyException;
-import javax.xml.ws.WebServiceException;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
@@ -59,12 +48,7 @@ import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.DcBag;
 
 import com.sun.jersey.api.NotFoundException;
-import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.api.view.Viewable;
-import com.sun.jersey.core.header.FormDataContentDisposition;
-import com.sun.jersey.core.spi.scanning.FilesScanner;
-import com.sun.jersey.multipart.FormDataParam;
-import com.sun.jersey.spi.monitoring.ResponseListener;
 
 /**
  * UploadService

@@ -22,11 +22,11 @@
 			<c:forEach items="${it.resultSet.documentList}" var="row">
 				<c:choose>
 					<c:when test="${not empty row['published.name']}">
-						<a href="<c:url value="/rest/display?layout=def:display&item=${row['id']}" />"><c:out value="${row['published.name']}" /></a> <br />
+						<a href="<c:url value="/rest/display/${row['id']}?layout=def:display" />"><c:out value="${row['published.name']}" /></a> <br />
 						${row['published.briefDesc'][0]} <br />
 					</c:when>
 					<c:when test="${not empty row['unpublished.name']}">
-						<a href="<c:url value="/rest/display?layout=def:display&item=${row['id']}" />"><c:out value="${row['unpublished.name']}" /></a> <br />
+						<a href="<c:url value="/rest/display/${row['id']}?layout=def:display" />"><c:out value="${row['unpublished.name']}" /></a> <br />
 						${row['unpublished.briefDesc'][0]} <br />
 					</c:when>
 				</c:choose>

@@ -46,6 +46,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.4		29/03/2012	Genevieve Turner (GT)	Updated to include editing
  * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
  * 0.6		28/06/2012	Rahul Khanna (RK)		Fixed failure condition
+ * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
  * </pre>
  */
 @Component
@@ -68,6 +69,7 @@ public class DisplayResource {
 	 * 0.2		19/03/2012	Genevieve Turner (GT)	Updating to return a page
 	 * 0.3		23/03/2012	Genevieve Turner (GT)	Updated to contain information about the side page
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
+	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -76,8 +78,9 @@ public class DisplayResource {
 	 * @return Returns the viewable for the jsp file to pick up
 	 */
 	@GET
+	@Path("{item}")
 	@Produces(MediaType.TEXT_HTML)
-	public Response getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item)
+	public Response getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item)
 	{
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
 		Map<String, Object> values = fedoraObjectService.getViewPage(fedoraObject, layout, tmplt);
@@ -125,6 +128,7 @@ public class DisplayResource {
 	 * 0.3		23/03/2012	Genevieve Turner (GT)	Modified to save data
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
 	 * 0.6		28/06/2012	Rahul Khanna (RK)		Fixed failure condition
+	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -148,7 +152,7 @@ public class DisplayResource {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 		else {
-			uriBuilder = UriBuilder.fromPath("/display").queryParam("layout", layout).queryParam("tmplt", tmplt).queryParam("item", fedoraObject.getObject_id());
+			uriBuilder = UriBuilder.fromPath("/display").path(fedoraObject.getObject_id()).queryParam("layout", layout).queryParam("tmplt", tmplt);
 		}
 		return Response.seeOther(uriBuilder.build()).build();
 	}
@@ -162,6 +166,7 @@ public class DisplayResource {
 	 * Version	Date		Developer				Description
 	 * 0.4		29/03/2012	Genevieve Turner (GT)	Added
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
+	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -171,11 +176,14 @@ public class DisplayResource {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@GET
-	@Path("/edit/{fieldName}")
+	@Path("/edit/{item}/{fieldName}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Produces(MediaType.TEXT_HTML)
-	public String editItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item, @PathParam("fieldName") String fieldName)
+	public String getEditItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item, @PathParam("fieldName") String fieldName)
 	{
+		LOGGER.info("PID: {}", item);
+		LOGGER.info("Template: x{}x", tmplt);
+		LOGGER.info("Layout: x{}x", layout);
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
 		String fields = fedoraObjectService.getEditItem(fedoraObject, layout, tmplt, fieldName);
 		return fields;
@@ -198,10 +206,10 @@ public class DisplayResource {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@GET
-	@Path("/edit")
+	@Path("/edit/{item}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Produces(MediaType.TEXT_HTML)
-	public Response editItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item)
+	public Response editItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item)
 	{
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
 		Map<String, Object> values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt);
@@ -219,6 +227,7 @@ public class DisplayResource {
 	 * Version	Date		Developer				Description
 	 * 0.4		29/03/2012	Genevieve Turner (GT)	Added
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
+	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -228,22 +237,27 @@ public class DisplayResource {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@POST
-	@Path("/edit")
+	@Path("/edit/{item}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.TEXT_HTML)
-	public Response editChangeItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item, @Context HttpServletRequest request)
+	public Response editChangeItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item, @Context HttpServletRequest request)
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
-
+		
+		LOGGER.info("tmplt: {}",tmplt);
+		
 		Map<String, Object> values = fedoraObjectService.saveEdit(fedoraObject, layout, tmplt, form);
 		UriBuilder uriBuilder = null;
 		if (values.containsKey("error")) {
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 		else {
-			uriBuilder = UriBuilder.fromPath("/display/edit").queryParam("layout", layout).queryParam("tmplt", tmplt).queryParam("item", item);
+			uriBuilder = UriBuilder.fromPath("/display/edit").path(item).queryParam("layout", layout);
+			if (Util.isNotEmpty(tmplt)) {
+				uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
+			}
 		}
 		return Response.seeOther(uriBuilder.build()).build();
 	}
@@ -257,6 +271,7 @@ public class DisplayResource {
 	 * Version	Date		Developer				Description
 	 * 0.4		29/03/2012	Genevieve Turner (GT)	Added
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
+	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * </pre>
 	 * 
 	 * @param item The item to retrieve data for
@@ -264,10 +279,10 @@ public class DisplayResource {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@POST
-	@Path("/addLink")
+	@Path("/addLink/{item}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Produces(MediaType.TEXT_HTML)
-	public String addLink(@QueryParam("item") String item, @Context HttpServletRequest request)
+	public String addLink(@PathParam("item") String item, @Context HttpServletRequest request)
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);

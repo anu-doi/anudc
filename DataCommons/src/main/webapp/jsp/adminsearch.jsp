@@ -40,7 +40,7 @@
 						<td><input type="checkbox" name="itemList" value="${row[0]}" /></td>
 						<td>${row[0]}</td>
 						<td>
-							<a href="<c:url value="/rest/display?layout=def:display&item=${row[0]}" />">${row[1]}</a>
+							<a href="<c:url value="/rest/display/${row[0]}?layout=def:display" />">${row[1]}</a>
 						</td>
 					</tr>
 				</c:forEach>
