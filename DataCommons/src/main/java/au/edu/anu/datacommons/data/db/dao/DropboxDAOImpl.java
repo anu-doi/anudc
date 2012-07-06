@@ -1,0 +1,136 @@
+package au.edu.anu.datacommons.data.db.dao;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.collectionrequest.CollectionDropbox;
+import au.edu.anu.datacommons.data.db.PersistenceManager;
+import au.edu.anu.datacommons.data.db.model.Groups;
+
+/**
+ * DropboxDAOImpl
+ * 
+ * Australian National University Data Commons
+ * 
+ * Implementation class for the DropboxDAO
+ *
+ * JUnit Coverage:
+ * None
+ * 
+ * <pre>
+ * Version	Date		Developer				Description
+ * 0.1		29/06/2012	Genevieve Turner (GT)	Initial
+ * </pre>
+ *
+ */
+public class DropboxDAOImpl extends GenericDAOImpl<CollectionDropbox, Long> implements DropboxDAO {
+	static final Logger LOGGER = LoggerFactory.getLogger(DropboxDAOImpl.class);
+
+	/**
+	 * Constructor
+	 * 
+	 * Constructor class that includes the type
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		29/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param type The class type to retrieve/set objects
+	 */
+	public DropboxDAOImpl(Class<CollectionDropbox> type) {
+		super(type);
+	}
+	
+	/**
+	 * getPermittedRequests
+	 *
+	 * Gets a list of collection dropbox that the user is permitted to view 
+	 * (determined by the listed groups)
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		29/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param groups A list of groups for which the user has permissions to view the dropbox
+	 * @return A list of CollectionDropboxes based on the 
+	 * @see au.edu.anu.datacommons.data.db.dao.DropboxDAO#getPermittedRequests(java.util.List)
+	 */
+	public List<CollectionDropbox> getPermittedRequests(List<Groups> groups) {
+		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		Query query = null;
+		
+		List<Long> groupIds = new ArrayList<Long>();
+		for (Groups group : groups) {
+			groupIds.add(group.getId());
+			LOGGER.info("Review group: {}", group.getId());
+		}
+
+		query = entityManager.createQuery("SELECT cd FROM CollectionDropbox cd left join cd.collectionRequest cr left join cr.fedoraObject fo WHERE fo.group_id in (:groups)",CollectionDropbox.class);
+		query.setParameter("groups", groupIds);
+		
+		List<CollectionDropbox> collectionRequests = query.getResultList();
+		
+		entityManager.close();
+		return collectionRequests;
+	}
+	
+	/**
+	 * getSingleByIdEager
+	 *
+	 * Retrieves the CollectionDropbox eagerly.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		29/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param id The id of the dropbox to retreive
+	 * @return The collection dropbox with the given id
+	 * @see au.edu.anu.datacommons.data.db.dao.DropboxDAO#getSingleByIdEager(java.lang.Long)
+	 */
+	public CollectionDropbox getSingleByIdEager(Long id) {
+		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		
+		Query query = entityManager.createQuery("SELECT cd FROM CollectionDropbox cd WHERE cd.id = :id");
+		query.setParameter("id", id);
+
+		CollectionDropbox collectionDropbox = (CollectionDropbox) query.getSingleResult();
+		entityManager.close();
+		return collectionDropbox;
+	}
+
+	/**
+	 * getSingleByAccessCode
+	 *
+	 * Retrieves the CollectionDropbox by the access code
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		29/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param accessCode The access code of the dropbox that is being retrieved
+	 * @return The collection dropbox
+	 * @see au.edu.anu.datacommons.data.db.dao.DropboxDAO#getSingleByAccessCode(java.lang.Long)
+	 */
+	public CollectionDropbox getSingleByAccessCode(Long accessCode) {
+		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		
+		Query query = entityManager.createQuery("FROM CollectionDropbox cd left join fetch cd.collectionRequest cr left join fetch cr.items ci left join fetch cd.dropboxAccessLog cl WHERE cd.accessCode=:accessCode");
+		query.setParameter("accessCode", accessCode);
+		
+		CollectionDropbox collectionDropbox = (CollectionDropbox) query.getSingleResult();
+		
+		entityManager.close();
+		
+		return collectionDropbox;
+	}
+}

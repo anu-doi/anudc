@@ -5,8 +5,10 @@
  * 
  * Javascript file that performs actions for the item link popup
  * 
- * Version	Date		Developer			Description
- * 0.1		07/05/2012	Genevieve Turner	Initial
+ * Version	Date		Developer				Description
+ * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
+ * 0.3		29/05/2012	Genevieve Turner (GT)	Added error notification
+ * 0.4		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
  */
 
 /**
@@ -96,10 +98,12 @@ jQuery(document).keypress(function(e) {
  * Version	Date		Developer				Description
  * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
  * 0.3		29/05/2012	Genevieve Turner (GT)	Added error notification
+ * 0.4		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
  */
 jQuery("#formAddLink").live('submit', function() {
-	var hash = getURLVars();
-	var urlStr = "/DataCommons/rest/display/addLink?item=" + hash['item'];
+	var pathArray = window.location.pathname.split('/');
+	var pid = pathArray[pathArray.length - 1];
+	var urlStr = "/DataCommons/rest/display/addLink?item=" + pid;
 	var typeStr = jQuery("#linkType").val();
 	var itemStr = jQuery("#itemId").val();
 	var dataString = 'linkType=' + typeStr + '&itemId=' + itemStr;

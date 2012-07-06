@@ -4,7 +4,6 @@ import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.FetchTxt.FilenameSizeUrl;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -14,11 +13,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Resource;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -48,14 +42,22 @@ import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.collectionrequest.CollectionRequestStatus.ReqStatus;
 import au.edu.anu.datacommons.collectionrequest.PageMessages.MessageType;
-import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.CollectionRequestDAO;
+import au.edu.anu.datacommons.data.db.dao.CollectionRequestDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.DropboxDAO;
+import au.edu.anu.datacommons.data.db.dao.DropboxDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.QuestionDAO;
+import au.edu.anu.datacommons.data.db.dao.QuestionDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.QuestionMapDAO;
+import au.edu.anu.datacommons.data.db.dao.QuestionMapDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
-import au.edu.anu.datacommons.persistence.HibernateUtil;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.CustomUser;
+import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Util;
@@ -81,8 +83,10 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * </ol>
  * 
  * <pre>
- * Version	Date		Developer			Description
- * 0.1		1/05/2012	Rahul Khanna (RK)	Initial
+ * Version	Date		Developer				Description
+ * 0.1		1/05/2012	Rahul Khanna (RK)		Initial
+ * 0.2		25/06/2012	Genevieve Turner (GT)	Updated to filter out requests to either the logged in user or those they have review access to
+ * 0.3		29/06/2012	Genevieve Turner (GT)	Updated to use DAO and for filtering out records with permissions
  * </pre>
  * 
  */
@@ -92,8 +96,6 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
 public class CollectionRequestService
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CollectionRequestService.class);
-	// TODO Check if the entitymanager is to be object specific or not - static or non-static?
-	private static final EntityManager entityManager = HibernateUtil.getSessionFactory().createEntityManager();
 
 	private static final String COLL_REQ_JSP = "/collreq.jsp";
 	private static final String DROPBOX_JSP = "/dropbox.jsp";
@@ -105,6 +107,9 @@ public class CollectionRequestService
 	
 	@Resource(name = "groupServiceImpl")
 	GroupService groupService;
+	
+	@Resource(name="fedoraObjectServiceImpl")
+	FedoraObjectService fedoraObjectService;
 
 	/**
 	 * doGetAsHtml
@@ -114,9 +119,10 @@ public class CollectionRequestService
 	 * Gets the Collection Request page.
 	 * 
 	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		1/05/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		1/05/2012	Rahul Khanna (RK)		Initial
 	 * 0.2		25/06/2012	Genevieve Turner (GT)	Updated to filter out requests to either the logged in user or those they have review access to
+	 * 0.3		27/06/2012	Genevieve Turner (GT)	Updated to use DAO pattern and limit those authorised
 	 * </pre>
 	 * 
 	 * @return Collection Request page as HTML.
@@ -133,27 +139,11 @@ public class CollectionRequestService
 		Long id = customUser.getId();
 		
 		List<Groups> reviewGroups = groupService.getReviewGroups();
-		List<Long> groupIds = new ArrayList<Long>();
-		for (Groups group : reviewGroups) {
-			groupIds.add(group.getId());
-			LOGGER.info("Review group: {}", group.getId());
-		}
 		
-		entityManager.getTransaction().begin();
-		Query query = null;
-		if (groupIds.size() > 0) {
-			query = entityManager.createQuery("SELECT cr FROM CollectionRequest cr join cr.fedoraObject fo WHERE (cr.requestor.id = :user_id) OR (fo.group_id IN (:groups)) ORDER BY cr.timestamp DESC",CollectionRequest.class);
-			query.setParameter("user_id", id);
-			query.setParameter("groups", groupIds);
-		}
-		else {
-			query = entityManager.createQuery("SELECT cr FROM CollectionRequest cr WHERE cr.requestor.id = :user_id ORDER BY cr.timestamp DESC",CollectionRequest.class);
-			query.setParameter("user_id", id);
-		}
+		CollectionRequestDAO collectionRequestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
 		
-		List<CollectionRequest> collReqs = query.getResultList();
-		
-		entityManager.getTransaction().commit();
+		List<CollectionRequest> collReqs = collectionRequestDAO.getPermittedRequests(id, reviewGroups);
+		LOGGER.info("Number of collection requests: {}", collReqs.size());
 		model.put("collReqs", collReqs);
 		resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
 		return resp;
@@ -169,6 +159,7 @@ public class CollectionRequestService
 	 * <pre>
 	 * Version	Date		Developer			Description
 	 * 0.1		1/05/2012	Rahul Khanna (RK)	Initial
+	 * 0.2		28/06/2012	Genevieve Turner (GT)	Updated to use DAO pattern and limit those authorised
 	 * </pre>
 	 * 
 	 * @param collReqId
@@ -177,23 +168,25 @@ public class CollectionRequestService
 	 */
 	@GET
 	@Produces(MediaType.TEXT_HTML)
+	@PreAuthorize("hasRole('ROLE_REGISTERED')")
 	@Path("{collReqId}")
 	public Response doGetReqItemAsHtml(@PathParam("collReqId") Long collReqId)
 	{
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
-
+		
 		LOGGER.trace("In method doGetReqItemAsHtml. Param collReqId={}.", collReqId);
-
+		LOGGER.debug("Retrieving Collection Request with ID: {}...", collReqId);
+		
 		try
 		{
 			LOGGER.debug("Retrieving Collection Request with ID: {}...", collReqId);
-			entityManager.getTransaction().begin();
+			
 			// Find the Collection Request with the specified ID.
-			CollectionRequest collReq = entityManager.find(CollectionRequest.class, collReqId);
-			entityManager.getTransaction().commit();
-
+			CollectionRequestDAO collectionRequestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
+			CollectionRequest collReq = collectionRequestDAO.getSingleByIdEager(collReqId);
+			
 			// Check if the Collection Request actually exists. If not, throw Exception.
 			if (collReq == null)
 				throw new Exception("Invalid Collection Request ID or no Collection Request with that ID exists.");
@@ -204,8 +197,6 @@ public class CollectionRequestService
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to find or retrieve Collection Request " + collReqId, e);
-			if (entityManager.getTransaction().isActive())
-				entityManager.getTransaction().rollback();
 			messages.clear();
 			messages.add(MessageType.ERROR, e.getMessage(), model);
 		}
@@ -225,8 +216,10 @@ public class CollectionRequestService
 	 * Receives a POST request with the details of a new Collection Request to be created and creates a new Collection Request.
 	 * 
 	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		1/05/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		1/05/2012	Rahul Khanna (RK)		Initial
+	 * 0.2		27/06/2012	Genevieve Turner (GT)	Updated to associated fedoraObject
+	 * 0.3		27/06/2012	Genevieve Turner (GT)	Updated to use DAO pattern and limit those authorised
 	 * </pre>
 	 * 
 	 * @param pid
@@ -240,6 +233,7 @@ public class CollectionRequestService
 	@POST
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostCollReqAsHtml(@Context HttpServletRequest request, @FormParam("pid") String pid, @FormParam("file") Set<String> requestedFileSet,
 			MultivaluedMap<String, String> allFormParams)
 	{
@@ -258,22 +252,23 @@ public class CollectionRequestService
 			if (requestedFileSet.size() <= 0)
 				throw new Exception("At least one datastream must be selected in the request.");
 
-			entityManager.getTransaction().begin();
+			//entityManager.getTransaction().begin();
 			Users user = new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
-			CollectionRequest newCollReq = new CollectionRequest(pid, user, request.getRemoteAddr());
-
+			FedoraObject fedoraObject = fedoraObjectService.getItemByName(pid);
+			CollectionRequest newCollReq = new CollectionRequest(pid, user, request.getRemoteAddr(), fedoraObject);
+			
 			// Add each of the items requested (datastreams) to the CR.
 			for (String iFile : requestedFileSet)
 			{
 				CollectionRequestItem collReqItem = new CollectionRequestItem(iFile);
 				newCollReq.addItem(collReqItem);
 			}
-
+			
+			QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
+			
 			// Get a list of questions assigned to the Pid.
-			List<Question> questionList = entityManager
-					.createQuery("SELECT q FROM Question q, QuestionMap qm WHERE qm.pid=:pid AND q=qm.question", Question.class).setParameter("pid", pid)
-					.getResultList();
-
+			List<Question> questionList = questionDAO.getQuestionsByPid(pid);
+			
 			// Iterate through the questions that need to be answered for the pid, get the answers for those questions and add to CR.
 			// If an answer for a question doesn't exist throw exception.
 			for (Question iQuestion : questionList)
@@ -292,8 +287,9 @@ public class CollectionRequestService
 			LOGGER.debug("All questions answered for this Pid.");
 
 			// Save the newly created CR and add success message to message set.
-			entityManager.persist(newCollReq);
-			entityManager.getTransaction().commit();
+			CollectionRequestDAO requestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
+			requestDAO.create(newCollReq);
+			
 			messages.add(MessageType.SUCCESS, "Collection Request successfully saved. ID# " + newCollReq.getId(), model);
 			model.put("collReq", newCollReq);
 			uriBuilder = UriBuilder.fromPath("/collreq/").path(newCollReq.getId().toString());
@@ -302,8 +298,6 @@ public class CollectionRequestService
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to create new Collection Request.", e);
-			if (entityManager.getTransaction().isActive())
-				entityManager.getTransaction().rollback();
 			uriBuilder = UriBuilder.fromPath("/collreq/").queryParam("pid", pid).queryParam("emsg", e.getMessage());
 		}
 		finally
@@ -322,8 +316,9 @@ public class CollectionRequestService
 	 * This method accepts changes to be made to a Collection Request.
 	 * 
 	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		2/05/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		2/05/2012	Rahul Khanna (RK)		Initial
+	 * 0.3		27/06/2012	Genevieve Turner (GT)	Updated to use DAO pattern and limit those authorised
 	 * </pre>
 	 * 
 	 * @param collReqId
@@ -337,7 +332,8 @@ public class CollectionRequestService
 	@POST
 	@Path("{collReqId}")
 	@Produces(MediaType.TEXT_HTML)
-	public Response doPostUpdateCollReqAsHtml(@PathParam("collReqId") long collReqId, @FormParam("status") ReqStatus status, @FormParam("reason") String reason)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response doPostUpdateCollReqAsHtml(@PathParam("collReqId") Long collReqId, @FormParam("status") ReqStatus status, @FormParam("reason") String reason)
 	{
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
@@ -351,14 +347,12 @@ public class CollectionRequestService
 			LOGGER.debug("Saving Collection Request ID {} with updated details...", collReqId);
 
 			// Get the CR with the provided ID.
-			entityManager.getTransaction().begin();
-			collReq = entityManager.find(CollectionRequest.class, collReqId);
-
+			CollectionRequestDAO collectionRequestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
+			collReq = collectionRequestDAO.getSingleByIdEager(collReqId);
+			
 			// Check if the CR exists.
 			if (collReq == null)
 				throw new Exception("Invalid Collection Request ID or Collection Request could not be retrieved.");
-
-			model.put("collReq", collReq);
 
 			// Check if a reason is provided. If not, add error to message set.
 			if (!Util.isNotEmpty(reason))
@@ -374,7 +368,9 @@ public class CollectionRequestService
 			Users user = new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
 			CollectionRequestStatus newStatus = new CollectionRequestStatus(collReq, status, reason, user);
 			collReq.addStatus(newStatus);
-			entityManager.getTransaction().commit();
+			collReq = collectionRequestDAO.update(collReq);
+			
+			model.put("collReq", collReq);
 
 			LOGGER.debug("Updated details of CR ID# {}.", collReq.getId());
 			messages.add(MessageType.SUCCESS, "Successfully added status to Status History", model);
@@ -412,14 +408,15 @@ public class CollectionRequestService
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to add request row.", e);
-			if (entityManager.getTransaction().isActive())
-				entityManager.getTransaction().rollback();
 			messages.clear();
 			messages.add(MessageType.ERROR, e.getMessage(), model);
 		}
 		finally
 		{
-			resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
+			//resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
+			//TODO add messsages to the get
+			UriBuilder uriBuilder = UriBuilder.fromPath("/collreq/").path(collReqId.toString());
+			resp = Response.seeOther(uriBuilder.build()).build();
 		}
 
 		return resp;
@@ -436,6 +433,7 @@ public class CollectionRequestService
 	 * <pre>
 	 * Version	Date		Developer			Description
 	 * 0.1		2/05/2012	Rahul Khanna (RK)	Initial
+	 * 0.3		27/06/2012	Genevieve Turner (GT)	Updated to use DAO pattern and limit those authorised
 	 * </pre>
 	 * 
 	 * @return Response as HTML.
@@ -443,6 +441,7 @@ public class CollectionRequestService
 	@GET
 	@Path("dropbox")
 	@Produces(MediaType.TEXT_HTML)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doGetDropboxesAsHtml()
 	{
 		PageMessages messages = new PageMessages();
@@ -453,27 +452,24 @@ public class CollectionRequestService
 
 		try
 		{
-			entityManager.getTransaction().begin();
-			// Get all relevant dropboxes.
-			// TODO Exclude any dropboxes that the user doesn't have any admin rights to.
-			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-			CriteriaQuery<CollectionDropbox> criteria = builder.createQuery(CollectionDropbox.class);
-			Root<CollectionDropbox> root = criteria.from(CollectionDropbox.class);
-			criteria.select(root);
-			List<CollectionDropbox> dropboxes = entityManager.createQuery(criteria).getResultList();
-			entityManager.getTransaction().commit();
-
-			// Add a message for the user if no dropboxes found.
-			if (dropboxes.size() == 0)
+			List<Groups> reviewGroups = groupService.getReviewGroups();
+			List<CollectionDropbox> dropboxes = null;
+			if (reviewGroups.size() > 0) {
+				DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
+				dropboxes = dropboxDAO.getPermittedRequests(reviewGroups);
+				model.put("dropboxes", dropboxes);
+				
+				if (dropboxes.size() == 0)
+					messages.add(MessageType.WARNING, "No dropboxes found.", model);
+			}
+			else {
 				messages.add(MessageType.WARNING, "No dropboxes found.", model);
-
+			}
 			model.put("dropboxes", dropboxes);
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to get list of Collection Dropboxes.", e);
-			if (entityManager.getTransaction().isActive())
-				entityManager.getTransaction().rollback();
 			messages.clear();
 			messages.add(MessageType.ERROR, e.getMessage(), model);
 		}
@@ -493,8 +489,9 @@ public class CollectionRequestService
 	 * This method Displays the details of a dropbox. It does not allow access to the files that have been requested in the dropbox.
 	 * 
 	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		2/05/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		2/05/2012	Rahul Khanna (RK)		Initial
+	 * 0.3		27/06/2012	Genevieve Turner (GT)	Updated to use DAO pattern and limit those authorised
 	 * </pre>
 	 * 
 	 * @param dropboxId
@@ -505,6 +502,7 @@ public class CollectionRequestService
 	@GET
 	@Path("dropbox/{dropboxId}")
 	@Produces(MediaType.TEXT_HTML)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doGetDropboxAsHtml(@PathParam("dropboxId") long dropboxId)
 	{
 		PageMessages messages = new PageMessages();
@@ -516,10 +514,9 @@ public class CollectionRequestService
 		try
 		{
 			// Find the dropbox with the specified ID.
-			entityManager.getTransaction().begin();
-			CollectionDropbox dropbox = entityManager.find(CollectionDropbox.class, dropboxId);
-			entityManager.getTransaction().commit();
-
+			DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
+			CollectionDropbox dropbox = dropboxDAO.getSingleById(dropboxId);
+			
 			// Check if a valid dropbox exists and was retrieved.
 			if (dropbox == null)
 				throw new Exception("Invalid Dropbox ID or a dropbox with ID " + dropboxId + "doesn't exist.");
@@ -529,8 +526,6 @@ public class CollectionRequestService
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to get list of Collection Dropboxes.", e);
-			if (entityManager.getTransaction().isActive())
-				entityManager.getTransaction().rollback();
 			messages.clear();
 			messages.add(MessageType.ERROR, e.getMessage(), model);
 		}
@@ -550,8 +545,9 @@ public class CollectionRequestService
 	 * This method accepts POST requests to update the details of a dropbox.
 	 * 
 	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		15/05/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		15/05/2012	Rahul Khanna (RK)		Initial
+	 * 0.3		29/06/2012	Genevieve Turner (GT)	Limit those authorised
 	 * </pre>
 	 * 
 	 * @param dropboxId
@@ -561,6 +557,7 @@ public class CollectionRequestService
 	@POST
 	@Path("dropbox/{dropboxId}")
 	@Produces(MediaType.TEXT_HTML)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostUpdateDropboxAsHtml(@PathParam("dropboxId") long dropboxId)
 	{
 		PageMessages messages = new PageMessages();
@@ -582,6 +579,7 @@ public class CollectionRequestService
 	 * <pre>
 	 * Version	Date		Developer			Description
 	 * 0.1		2/05/2012	Rahul Khanna (RK)	Initial
+	 * 0.3		27/06/2012	Genevieve Turner (GT)	Updated to use DAO pattern and limit those authorised
 	 * </pre>
 	 * 
 	 * @param dropboxAccessCode
@@ -593,6 +591,7 @@ public class CollectionRequestService
 	@GET
 	@Path("dropbox/access/{dropboxAccessCode}")
 	@Produces(MediaType.TEXT_HTML)
+	@PreAuthorize("hasRole('ROLE_REGISTERED')")
 	public Response doGetDropboxAccessAsHtml(@Context HttpServletRequest request, @Context UriInfo uriInfo,
 			@PathParam("dropboxAccessCode") long dropboxAccessCode, @QueryParam("p") String password)
 	{
@@ -604,20 +603,9 @@ public class CollectionRequestService
 
 		try
 		{
-			// TODO Use CriteriaBuilder.
-			/*
-			CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-			CriteriaQuery<CollectionDropbox> criteria = builder.createQuery(CollectionDropbox.class);
-			Root<CollectionDropbox> root = criteria.from(CollectionDropbox.class);
-			criteria.select(root);
-			criteria.where(builder.equal()
-			*/
-
 			LOGGER.debug("Finding dropbox with access code {}...", dropboxAccessCode);
-			entityManager.getTransaction().begin();
-			CollectionDropbox dropbox = (CollectionDropbox) entityManager.createQuery("FROM CollectionDropbox cd WHERE cd.accessCode=:dropboxAccessCode")
-					.setParameter("dropboxAccessCode", dropboxAccessCode).getSingleResult();
-			entityManager.getTransaction().commit();
+			DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
+			CollectionDropbox dropbox = dropboxDAO.getSingleByAccessCode(dropboxAccessCode);
 			LOGGER.debug("Dropbox found.");
 			model.put("dropbox", dropbox);
 
@@ -663,17 +651,14 @@ public class CollectionRequestService
 			}
 
 			// Make a log of access
-			entityManager.getTransaction().begin();
 			CollectionDropboxAccessLog log = new CollectionDropboxAccessLog(dropbox, request.getRemoteAddr());
-			entityManager.persist(log);
-			entityManager.getTransaction().commit();
+			dropbox.addAccessLogEntry(log);
+			dropboxDAO.update(dropbox);
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to get Dropbox for access.", e);
 			messages.clear();
-			if (entityManager.getTransaction().isActive())
-				entityManager.getTransaction().rollback();
 			if (e.getClass() == IllegalArgumentException.class)
 				messages.add(MessageType.INFO, e.getMessage(), model);
 			else
@@ -695,8 +680,9 @@ public class CollectionRequestService
 	 * Returns a Viewable with all questions in the question bank in its model.
 	 * 
 	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		2/05/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		2/05/2012	Rahul Khanna (RK)		Initial
+	 * 0.3		29/06/2012	Genevieve Turner (GT)	 Limit those authorised
 	 * </pre>
 	 * 
 	 * @return Response as HTML.
@@ -704,6 +690,7 @@ public class CollectionRequestService
 	@GET
 	@Path("question")
 	@Produces(MediaType.TEXT_HTML)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doGetQuestionsAsHtml()
 	{
 		PageMessages messages = new PageMessages();
@@ -727,8 +714,6 @@ public class CollectionRequestService
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to retrieve questions from question bank", e);
-			if (entityManager.getTransaction().isActive())
-				entityManager.getTransaction().rollback();
 			messages.clear();
 			messages.add(MessageType.ERROR, e.getMessage(), model);
 		}
@@ -748,8 +733,9 @@ public class CollectionRequestService
 	 * Accepts POST requests to add new questions in the question bank as well as requests to assign a question to a Pid.
 	 * 
 	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		2/05/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		2/05/2012	Rahul Khanna (RK)		Initial
+	 * 0.2		29/06/2012	Genevieve Turner (GT)	Updated to use the DAO pattern and limit those authorised
 	 * </pre>
 	 * 
 	 * @param submit
@@ -767,6 +753,7 @@ public class CollectionRequestService
 	@Path("question")
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostQuestionAsHtml(@Context UriInfo uriInfo, @FormParam("submit") String submit, @FormParam("q") String questionText,
 			@FormParam("pid") String pid, @FormParam("qid") Set<Long> qIdSet)
 	{
@@ -792,10 +779,9 @@ public class CollectionRequestService
 
 					LOGGER.debug("Saving question in question bank...", pid);
 					// Create Question object and persist it.
-					entityManager.getTransaction().begin();
 					Question question = new Question(questionText);
-					entityManager.persist(question);
-					entityManager.getTransaction().commit();
+					QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
+					questionDAO.create(question);
 					uriBuilder = uriBuilder.queryParam("smsg", "The question <em>" + question.getQuestionText() + "</em> saved in the Question Bank.");
 					LOGGER.info("Saved question in question bank: {}", question.getQuestionText());
 				}
@@ -803,8 +789,6 @@ public class CollectionRequestService
 				{
 					LOGGER.error("Unable to save question in the question bank.", e);
 					uriBuilder.queryParam("emsg", "Unable to save question in the question bank.");
-					if (entityManager.getTransaction().isActive())
-						entityManager.getTransaction().rollback();
 				}
 
 				resp = Response.seeOther(uriBuilder.build()).build();
@@ -814,13 +798,12 @@ public class CollectionRequestService
 			{
 				try
 				{
-					entityManager.getTransaction().begin();
-					// TODO Use CriteriaBuilder.
+					QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
+					QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl(QuestionMap.class);
+					
 					// Get list of questions currently assigned to the pid.
-					List<Question> curQuestionsPid = entityManager
-							.createQuery("SELECT q FROM Question q, QuestionMap qm WHERE qm.pid=:pid AND q=qm.question", Question.class)
-							.setParameter("pid", pid).getResultList();
-
+					List<Question> curQuestionsPid = questionDAO.getQuestionsByPid(pid);
+					
 					// Check if each question Id provided as query parameters already exist. If not, add them.
 					for (Long iUpdatedId : qIdSet)
 					{
@@ -836,10 +819,11 @@ public class CollectionRequestService
 
 						if (!isAlreadyMapped)
 						{
-							Question question = entityManager.find(Question.class, iUpdatedId);
+							Question question = questionDAO.getSingleById(iUpdatedId);
 							LOGGER.debug("Adding Question '{}' against Pid {}", question.getQuestionText(), pid);
 							QuestionMap qm = new QuestionMap(pid, question);
-							entityManager.persist(qm);
+							
+							questionMapDAO.create(qm);
 						}
 					}
 
@@ -849,21 +833,16 @@ public class CollectionRequestService
 						if (!qIdSet.contains(iCurQuestion.getId()))
 						{
 							LOGGER.debug("Mapping of Question ID" + iCurQuestion.getId() + "to be deleted...");
-							QuestionMap qMap = entityManager
-									.createQuery("SELECT qm FROM QuestionMap qm, Question q WHERE qm.pid=:pid AND qm.question=:q", QuestionMap.class)
-									.setParameter("pid", pid).setParameter("q", iCurQuestion).getSingleResult();
-							entityManager.remove(qMap);
+							QuestionMap questionMap = questionMapDAO.getSingleByPidAndQuestion(pid, iCurQuestion);
+							questionMapDAO.delete(questionMap.getId());
 						}
 					}
 
-					entityManager.getTransaction().commit();
 					uriBuilder = uriBuilder.queryParam("smsg", "Question List updated for this Fedora object.");
 				}
 				catch (Exception e)
 				{
 					LOGGER.error("Unable to update questions for Pid " + pid, e);
-					if (entityManager.getTransaction().isActive())
-						entityManager.getTransaction().rollback();
 					uriBuilder = uriBuilder.queryParam("emsg", "Unable to update questions for this Collection.");
 				}
 
@@ -892,8 +871,9 @@ public class CollectionRequestService
 	 * <ol>
 	 * 
 	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		8/05/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		8/05/2012	Rahul Khanna (RK)		Initial
+	 * 0.3		27/06/2012	Genevieve Turner (GT)	Updated to use DAO pattern and limit those authorised
 	 * </pre>
 	 * 
 	 * @return JSON object
@@ -901,10 +881,13 @@ public class CollectionRequestService
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("json")
+	@PreAuthorize("hasRole('ROLE_REGISTERED')")
 	public Response doGetCollReqInfoAsJson(@QueryParam("task") String task, @QueryParam("pid") String pid)
 	{
 		Response resp = null;
-
+		
+		LOGGER.info("In doGetCollReqInfoAsJson");
+		
 		LOGGER.trace("In doGetDsListAsJson. Params task={}, pid={}.", task, pid);
 
 		// Gets a list of items available for request in a Collection.
@@ -961,16 +944,14 @@ public class CollectionRequestService
 			try
 			{
 				// Get all Questions assigned to the specified Pid.
-				entityManager.getTransaction().begin();
-				List<Question> curQuestionsPid = entityManager
-						.createQuery("SELECT q FROM Question q, QuestionMap qm WHERE qm.pid=:pid AND q=qm.question", Question.class).setParameter("pid", pid)
-						.getResultList();
-				entityManager.getTransaction().commit();
-
+				QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
+				List<Question> curQuestionsPid = questionDAO.getQuestionsByPid(pid);
+				
 				// Add the Id and question (String) for each Question (Object) into a JSONObject. 
-				for (Question iQuestion : curQuestionsPid)
+				for (Question iQuestion : curQuestionsPid) {
 					questionsJson.put(iQuestion.getId().toString(), iQuestion.getQuestionText());
-
+				}
+				LOGGER.info("JSON Array: {}", questionsJson.toString());
 				// Convert the JSONObject into a JSON String and include it in the Response object.
 				resp = Response.ok(questionsJson.toString(), MediaType.APPLICATION_JSON_TYPE).build();
 			}
@@ -989,12 +970,16 @@ public class CollectionRequestService
 			{
 				LOGGER.debug("Requested Collection Requests as JSON.");
 
-				// Retrieve Collection Requests. 
-				entityManager.getTransaction().begin();
-				List<CollectionRequest> reqStatusList = entityManager.createQuery("FROM CollectionRequest cr ORDER BY cr.timestamp DESC",
-						CollectionRequest.class).getResultList();
-				entityManager.getTransaction().commit();
-
+				// Retrieve Collection Requests.
+				
+				CustomUser customUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+				Long id = customUser.getId();
+				
+				
+				List<Groups> reviewGroups = groupService.getReviewGroups();
+				CollectionRequestDAO requestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
+				List<CollectionRequest> reqStatusList = requestDAO.getPermittedRequests(id, reviewGroups);
+				
 				// Add the details of each CR into a JSONObject. Then add that JSONObject to a JSONArray.
 				for (CollectionRequest iCr : reqStatusList)
 				{
@@ -1014,8 +999,6 @@ public class CollectionRequestService
 			catch (Exception e)
 			{
 				LOGGER.error("Unable to get list of Collection Requests.");
-				if (entityManager.getTransaction().isActive())
-					entityManager.getTransaction().rollback();
 				resp = Response.serverError().build();
 			}
 		}
@@ -1040,7 +1023,7 @@ public class CollectionRequestService
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private List<Question> getAllQuestions()
 	{
-		List<Question> questions = new GenericDAOImpl(Question.class).getAll();
+		List<Question> questions = new QuestionDAOImpl(Question.class).getAll();
 		return questions;
 	}
 }

@@ -2848,6 +2848,6 @@ VALUES ('anzforSubject','220406','220406 - Studies in Eastern Religious Traditio
 INSERT INTO select_code (select_name, code, description)
 VALUES ('anzforSubject','220407','220407 - Studies in Religious Traditions (excl. Eastern, Jewish, Christian and Islamic Traditions)');
 INSERT INTO select_code (select_name, code, description)
-VALUES ('anzforSubject','220499','220499 - Religion and Religious Studies not elsewhere classified\');
+VALUES ('anzforSubject','220499','220499 - Religion and Religious Studies not elsewhere classified');
 INSERT INTO select_code (select_name, code, description)
 VALUES ('anzforSubject','229999','229999 - Philosophy and Religious Studies not elsewhere classified');

@@ -9,8 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -42,6 +42,7 @@ import com.sun.jersey.api.view.Viewable;
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
  * 0.2		08/06/2012	Genevieve Turner (GT)	Fixed issue with an exception when publish button is clicked and no optiosn have been selected
+ * 0.3		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
  * </pre>
  * 
  */
@@ -62,11 +63,13 @@ public class PublishResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		15/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.3		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * </pre>
 	 * 
 	 * @return The web page for publishers
 	 */
 	@GET
+	@Path("{item}")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response getPublishers() {
@@ -91,6 +94,7 @@ public class PublishResource {
 	 * Version	Date		Developer				Description
 	 * 0.1		15/05/2012	Genevieve Turner (GT)	Initial
 	 * 0.2		08/06/2012	Genevieve Turner (GT)	Fixed issue with an exception when publish button is clicked and no optiosn have been selected
+	 * 0.3		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * </pre>
 	 * 
 	 * @param item The item to publish
@@ -98,9 +102,10 @@ public class PublishResource {
 	 * @return The web page for publishers.
 	 */
 	@POST
+	@Path("{item}")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response savePublishers(@QueryParam("item") String item, @Context HttpServletRequest request) {
+	public Response savePublishers(@PathParam("item") String item, @Context HttpServletRequest request) {
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
 		
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());

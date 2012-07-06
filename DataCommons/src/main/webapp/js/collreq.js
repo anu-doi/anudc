@@ -23,7 +23,8 @@ function ajaxPopup()
  * 
  * <pre>
  * Version	Date		Developer				Description
- * 0.1		30/04/2012	Rahul Khanna (RK)		Initial		
+ * 0.1		30/04/2012	Rahul Khanna (RK)		Initial
+ * 0.2		27/06/2012	Genevieve Turner (GT)	Changed trim method to use jQuery.trim
  * </pre>
  * 
  * @param pid
@@ -31,7 +32,7 @@ function ajaxPopup()
  */
 function ajaxGetPidInfo(pid)
 {
-	if (pid.trim() == "")
+	if (jQuery.trim(pid) == "")
 		return;
 
 	// Empty the container element for Datastream List.
@@ -78,8 +79,9 @@ function ajaxGetPidInfo(pid)
  * This method retrieves the list of questions mapped to a pid.
  * 
  * <pre>
- * Version	Date		Developer			Description
- * 0.1		30/04/2012	Rahul Khanna (RK)	Initial
+ * Version	Date		Developer				Description
+ * 0.1		30/04/2012	Rahul Khanna (RK)		Initial
+ * 0.2		27/06/2012	Genevieve Turner (GT)	Changed trim method to use jQuery.trim
  * </pre>
  * 
  * @param pid
@@ -87,9 +89,9 @@ function ajaxGetPidInfo(pid)
  */
 function ajaxGetPidQuestions(pid)
 {
-	if (pid.trim() == "")
+	if (jQuery.trim(pid) == "")
 		return;
-
+	
 	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listPidQuestions&pid=" + pid, function(data)
 	{
 		jQuery("#idPidQ").empty();
@@ -108,8 +110,9 @@ function ajaxGetPidQuestions(pid)
  * This method updates the list of questions in the Select Box on page by adding or removing the selected items.
  * 
  * <pre>
- * Version	Date		Developer			Description
- * 0.1		30/04/2012	Rahul Khanna (RK)	Initial
+ * Version	Date		Developer				Description
+ * 0.1		30/04/2012	Rahul Khanna (RK)		Initial
+ * 0.2		27/06/2012	Genevieve Turner (GT)	Changed trim method to use jQuery.trim
  * </pre>
  * 
  * @param action
@@ -117,7 +120,7 @@ function ajaxGetPidQuestions(pid)
  */
 function addRemovePidQuestions(action)
 {
-	if (action.trim() == "Add")
+	if (jQuery.trim(action) == "Add")
 	{
 		// Get array of selected option elements in the question bank.
 		var options = jQuery("#idQuestionBank :selected");
@@ -146,6 +149,12 @@ function addRemovePidQuestions(action)
  * 
  * Validates the Add Questions Form before submission.
  * 
+ * <pre>
+ * Version	Date		Developer				Description
+ * 0.1		30/04/2012	Rahul Khanna (RK)		Initial
+ * 0.2		27/06/2012	Genevieve Turner (GT)	Changed trim method to use jQuery.trim
+ * </pre>
+ * 
  * @returns {Boolean} true if valid, false otherwise.
  * 
  */
@@ -154,7 +163,7 @@ function validateAddQuestionForm()
 	var isValid = true;
 
 	document.questionBankForm.pid.value = document.pidQuestions.pid.value;
-	if (document.questionBankForm.q.value.trim() == "")
+	if (jQuery.trim(document.questionBankForm.q.value) == "")
 	{
 		alert("Question cannot be blank. Please enter a question.");
 		isValid = false;

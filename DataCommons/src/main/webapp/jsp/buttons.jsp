@@ -22,15 +22,13 @@
 			</c:if>
 			<sec:authorize access="hasRole('ROLE_ANU_USER')">
 				<sec:accesscontrollist hasPermission="PUBLISH,ADMINISTRATION" domainObject="${it.fedoraObject}">
-					<c:url value="/rest/publish" var="publishLink">
-						<c:param name="item" value="${it.fedoraObject.object_id}" />
+					<c:url value="/rest/publish/${it.fedoraObject.object_id}" var="publishLink">
 						<c:param name="tmplt" value="${param.tmplt}" />
 						<c:param name="layout" value="${param.layout}" />
 					</c:url>
 					<p><input type="button" id="publishButton" name="publishButton" value="Publish" onclick="window.location='${publishLink}'" /></p>
 				</sec:accesscontrollist>
-				<c:url value="/rest/display/edit" var="editLink">
-					<c:param name="item" value="${it.fedoraObject.object_id}" />
+				<c:url value="/rest/display/edit/${it.fedoraObject.object_id}" var="editLink">
 					<c:param name="tmplt" value="${param.tmplt}" />
 					<c:param name="layout" value="${param.layout}" />
 				</c:url>

@@ -21,9 +21,9 @@
 			
 		</div>
 		<input id="editSubmit" type="submit" class="editSubmit" value="Submit" />
-		<jsp:include page="add_reference.jsp" />
 		<input id="deleteItem" type="button" class="deleteItem" value="Delete" />
 	</form>
+		<jsp:include page="add_reference.jsp" />
 	</anu:box>
 	<jsp:include page="listrelated.jsp" />
 </anu:content>

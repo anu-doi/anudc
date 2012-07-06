@@ -12,7 +12,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
@@ -21,14 +20,37 @@ import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import au.edu.anu.datacommons.collectionrequest.CollectionRequestStatus.ReqStatus;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Users;
 
+/**
+ * CollectionRequest
+ * 
+ * Australian National University Data Commons
+ * 
+ * Placeholder
+ *
+ * JUnit Coverage:
+ * None
+ * 
+ * <pre>
+ * Version	Date		Developer				Description
+ * 0.1		25/05/2012	Rahul Khanna (GT)		Initial
+ * 0.2		25/06/2012	Genevieve Turner (GT)	Added fedoraObject to class
+ * 0.3		28/06/2012	Genevieve Turner (GT)	Fixed a timestamp is null issue 
+ * </pre>
+ *
+ */
 @Entity
 @Table(name = "collection_requests")
 public class CollectionRequest
 {
+	static final Logger LOGGER = LoggerFactory.getLogger(CollectionRequest.class);
+	
 	private Long id;
 	private String pid;
 	private Users requestor;
@@ -44,12 +66,13 @@ public class CollectionRequest
 	{
 	}
 
-	public CollectionRequest(String pid, Users requestor, String requestorIp)
+	public CollectionRequest(String pid, Users requestor, String requestorIp, FedoraObject fedoraObject)
 	{
 		this.pid = pid;
 		this.requestor = requestor;
 		this.requestorIp = requestorIp;
 		this.statusHistory.add(new CollectionRequestStatus(this, ReqStatus.SUBMITTED, "Submitted by User", this.requestor));
+		this.fedoraObject = fedoraObject;
 	}
 
 	@Id
@@ -199,6 +222,19 @@ public class CollectionRequest
 		timestamp = new Date();
 	}
 
+	/**
+	 * getLastStatus
+	 *
+	 * Gets the last status record for the request
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		25/05/2012	Rahul Khanna (RK)		Initial
+	 * 0.3		29/06/2012	Genevieve Turner(GT)	Updated to fix a bug where the iStatus timestamp may be null
+	 * </pre>
+	 * 
+	 * @return
+	 */
 	@Transient
 	public CollectionRequestStatus getLastStatus()
 	{
@@ -207,8 +243,20 @@ public class CollectionRequest
 		{
 			if (lastStatus != null)
 			{
-				if (lastStatus.getTimestamp().before(iStatus.getTimestamp()))
-					lastStatus = iStatus;
+				if (iStatus == null) {
+					LOGGER.info("Why is iStatus null?");
+				}
+				else {
+					if (iStatus.getTimestamp() == null) {
+						LOGGER.debug("iStatus timestamp is null");
+					}
+					else if (lastStatus.getTimestamp() == null) {
+						LOGGER.debug("Timestamp is null");
+					}
+					else if (lastStatus.getTimestamp().before(iStatus.getTimestamp())) {
+						lastStatus = iStatus;
+					}
+				}
 			}
 			else
 			{

@@ -7,6 +7,7 @@
  * 
  * Version	Date		Developer			Description
  * 0.1		20/06/2012	Genevieve Turner	Added remove selected function
+ * 0.2		02/07/2012	Genevieve Turner	Updated submission function as validation was not correctly occuring
  */
 
 /**
@@ -14,6 +15,7 @@
  * 
  * Version	Date		Developer			Description
  * 0.1		26/03/2012	Genevieve Turner	Created function
+ * 0.2		02/07/2012	Genevieve Turner	Updated submission function as validation was not correctly occuring
  */
 jQuery(document).ready(function()
 {
@@ -23,7 +25,7 @@ jQuery(document).ready(function()
 	
 	jQuery("#form").submit(function() {
 		jQuery("select[multiple='multiple'] option").attr("selected", "true");
-		jQuery('#form').validate();
+		return jQuery('#form').validate().form();
 	});
 	
 	(function(jQuery) {
