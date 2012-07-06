@@ -86,19 +86,25 @@ public final class SaveBagTask extends AbstractDcBagTask implements Callable<Fil
 	@Override
 	public File call() throws Exception
 	{
-		updateProgress("Preparing bag for saving", null, null, null);
-		if (dcBag.getExternalIdentifier() == null || dcBag.getExternalIdentifier().equals(""))
-			throw new Exception("Bag doesn't have an external identifier specified.");
-		if (this.plSet != null)
-			for (ProgressListener l : plSet)
-				dcBag.addProgressListener(l);
+		try
+		{
+			updateProgress("Preparing bag for saving", null, null, null);
+			if (dcBag.getExternalIdentifier() == null || dcBag.getExternalIdentifier().equals(""))
+				throw new Exception("Bag doesn't have an external identifier specified.");
+			if (this.plSet != null)
+				for (ProgressListener l : plSet)
+					dcBag.addProgressListener(l);
 
-		File savedFile;
-		if (this.targetDir == null)
-			savedFile = dcBag.save();
-		else
-			savedFile = dcBag.saveAs(targetDir, extId, format);
-		updateProgress("done", null, null, null);
-		return savedFile;
+			File savedFile;
+			if (this.targetDir == null)
+				savedFile = dcBag.save();
+			else
+				savedFile = dcBag.saveAs(targetDir, extId, format);
+			return savedFile;
+		}
+		finally
+		{
+			updateProgress("done", null, null, null);
+		}
 	}
 }

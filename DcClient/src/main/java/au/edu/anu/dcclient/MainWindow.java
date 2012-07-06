@@ -1,9 +1,13 @@
 package au.edu.anu.dcclient;
 
+import gov.loc.repository.bagit.BagFactory.LoadOption;
+
+import java.awt.Dialog.ModalityType;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.net.Authenticator;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -11,6 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
@@ -24,7 +29,10 @@ import javax.swing.event.DocumentListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.dcbag.DcBag;
+import au.edu.anu.dcbag.DcBagProps;
 import au.edu.anu.dcclient.duvanslabbert.FileExplorer;
+import javax.swing.JSeparator;
 
 public class MainWindow
 {
@@ -49,7 +57,10 @@ public class MainWindow
 	private JMenuItem mntmRefresh;
 	private JButton btnUpload;
 	private JButton btnDebug;
-
+	private JMenuItem mntmLogin;
+	private JSeparator separator;
+	private LoginDialog loginDialog = null;
+	
 	/**
 	 * MainWindow
 	 * 
@@ -98,25 +109,17 @@ public class MainWindow
 		this.menuBar.add(this.mnFile);
 
 		this.mntmExit = new JMenuItem("Exit");
-		this.mntmExit.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e)
-			{
-				System.exit(0);
-			}
-		});
+		this.mntmLogin = new JMenuItem("Login...");
+		this.mnFile.add(this.mntmLogin);
+
+		this.separator = new JSeparator();
+		this.mnFile.add(this.separator);
 		this.mnFile.add(this.mntmExit);
 
 		this.mnEdit = new JMenu("Edit");
 		this.menuBar.add(this.mnEdit);
 
 		this.mntmRefresh = new JMenuItem("Refresh");
-		this.mntmRefresh.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e)
-			{
-				LOGGER.info("Refresh");
-				bagExplorer.refresh();
-			}
-		});
 		this.mnEdit.add(this.mntmRefresh);
 		SpringLayout springLayout = new SpringLayout();
 		this.frmAnuDataCommons.getContentPane().setLayout(springLayout);
@@ -218,7 +221,8 @@ public class MainWindow
 		this.btnRetrieve.addActionListener(new GetPidBagAction(this.frmAnuDataCommons, this.txtPid, this.bagExplorer));
 		this.btnSave.addActionListener(new SavePidBagAction(this.frmAnuDataCommons, this.txtPid, this.bagExplorer));
 		this.btnUpload.addActionListener(new UploadPidBagAction(this.frmAnuDataCommons, this.txtPid, this.bagExplorer));
-		this.txtPid.getDocument().addDocumentListener(new DocumentListener() {
+		this.txtPid.getDocument().addDocumentListener(new DocumentListener()
+		{
 
 			@Override
 			public void insertUpdate(DocumentEvent e)
@@ -247,11 +251,56 @@ public class MainWindow
 			}
 		});
 
-		this.btnDebug.addActionListener(new ActionListener() {
+		this.btnDebug.addActionListener(new ActionListener()
+		{
 			public void actionPerformed(ActionEvent e)
 			{
 				// bagExplorer.changeDir(new File("C:\\Rahul\\FileUpload\\Store\\test_5"));
-				bagExplorer.getBagDir();
+				DcBag bag = new DcBag(bagExplorer.getBagDir(), LoadOption.BY_FILES);
+				bag.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.INSTRUMENT.toString());
+				try
+				{
+					bag.save();
+				}
+				catch (Exception e1)
+				{
+					JOptionPane.showMessageDialog(frmAnuDataCommons, "Unable to change data source property to instrument.", "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+		
+		// Menu item - Edit > Refresh
+		this.mntmRefresh.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				bagExplorer.refresh();
+			}
+		});
+		
+		// Menu item - File > Login
+		this.mntmLogin.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				if (loginDialog == null)
+				{
+					loginDialog = new LoginDialog(frmAnuDataCommons);
+					loginDialog.setModalityType(ModalityType.APPLICATION_MODAL);
+				}
+				loginDialog.setVisible(true);
+				
+				LOGGER.debug("Username: {}, password: {}", loginDialog.getUsername(), "****");
+				Authenticator.setDefault(new DcAuthenticator(loginDialog.getUsername(), loginDialog.getPassword()));
+			}
+		});
+
+		// Menu item - File > Exit
+		this.mntmExit.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				System.exit(0);
 			}
 		});
 	}

@@ -17,11 +17,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.print.attribute.standard.Media;
+import javax.servlet.annotation.HttpConstraint;
+import javax.servlet.annotation.ServletSecurity;
+import javax.servlet.annotation.ServletSecurity.TransportGuarantee;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -29,6 +33,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
@@ -39,6 +44,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.PropertyException;
 import javax.xml.ws.WebServiceException;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -54,6 +60,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
+import au.edu.anu.datacommons.ldap.LdapRequest;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.DcBag;
@@ -222,8 +229,8 @@ public class UploadService
 		try
 		{
 			// Read properties file [Pid].properties.
-			uploadProps.load(new BufferedInputStream(new FileInputStream(
-					new File(GlobalProps.getUploadDirAsFile(), DcBag.convertToDiskSafe(pid) + ".properties"))));
+			uploadProps.load(new BufferedInputStream(new FileInputStream(new File(GlobalProps.getUploadDirAsFile(), DcBag.convertToDiskSafe(pid)
+					+ ".properties"))));
 
 			// Create a new Bag.
 			pid = uploadProps.getProperty("pid");
@@ -249,6 +256,7 @@ public class UploadService
 			// Save the bag.
 			dcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, Format.FILESYSTEM);
 			resp = Response.temporaryRedirect(UriBuilder.fromPath("/upload").queryParam("smsg", "Upload Successful.").build()).build();
+			// resp = Response.temporaryRedirect(UriBuilder.fromResource(UploadService.class)..queryParam("smsg", "Upload Successful.").build()).build();
 		}
 		catch (Exception e)
 		{
@@ -310,18 +318,40 @@ public class UploadService
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}/{fileInBag:.*}")
-	public Response doGetFileInBagAsOctetStream2(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag)
+	public Response doGetFileInBagAsOctetStream2(@Context HttpServletRequest request, @PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag)
 	{
 		Response resp = null;
 		DcBag dcBag = null;
 
 		LOGGER.debug("pid: {}, filename: {}", pid, fileInBag);
 
-		// TODO Do custom user checking here - if the user has a valid dropbox etc. Return 401 Unauthorised if required.
+		// TODO Code below that checks header for basic authentication should run only when a user isn't logged into CAS.
+		LOGGER.debug("Request headers:");
+		Enumeration<String> headers = request.getHeaderNames();
+		while (headers.hasMoreElements())
+		{
+			String headerName = headers.nextElement();
+			LOGGER.debug("{}: {}", headerName, request.getHeader(headerName));
+		}
+
+		try
+		{
+			if (checkAuth(request.getHeader("authorization")) == false)
+			{
+				LOGGER.warn("Authentication failed with the provided username and password. Returning HTTP 401.");
+				return Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic").build();
+			}
+		}
+		catch (NullPointerException e)
+		{
+			LOGGER.warn("Request did not contain authorization header. Returning with WWW-Authenticate header");
+			// TODO Change the realm value below if required.
+			return Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic realm=\"test\"").build();
+		}
 
 		// Check for a FileSystem bag.
 		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
-		if (bagFile != null)
+		if (bagFile == null)
 			dcBag = new DcBag(bagFile, LoadOption.BY_FILES);
 		else
 			throw new NotFoundException(MessageFormat.format("No bag found for Pid {0}.", pid));
@@ -354,9 +384,9 @@ public class UploadService
 			LOGGER.warn(MessageFormat.format("Bag for {0} doesn't exist.", pid));
 			throw new NotFoundException(MessageFormat.format("Bag for {0} doesn't exist.", pid));
 		}
-		
+
 		// Bag Info Txt
-		DcBag dcBag = new DcBag(bagFile,  LoadOption.BY_MANIFESTS);
+		DcBag dcBag = new DcBag(bagFile, LoadOption.BY_MANIFESTS);
 		JSONObject bagInfoTxtJson = new JSONObject();
 		for (Entry<String, String> entry : dcBag.getBagInfoTxt().entrySet())
 		{
@@ -716,5 +746,30 @@ public class UploadService
 				}
 			}
 		}
+	}
+
+	private boolean checkAuth(String authHeader)
+	{
+		if (authHeader == null)
+			throw new NullPointerException("No Authorization header");
+
+		String parts[] = extractBasicCreds(authHeader);
+		LdapRequest authReq = new LdapRequest();
+		// TODO Remove testuser as a valid username.
+		if (authReq.authenticate(parts[0], parts[1]) == true)
+			return true;
+		else if (parts[0].equals("testuser"))
+			return true;
+		else
+			return false;
+	}
+
+	public static String[] extractBasicCreds(String authValue)
+	{
+		// Base64 decode the value against 'authentication' header. Value format: "Basic [base64encoded username]:[base64encoded password]"
+		String decodedAuthVal = new String(Base64.decodeBase64(authValue.replaceFirst("(?i)Basic ", "")));
+		String parts[] = decodedAuthVal.split(":", 2);
+		LOGGER.debug("Username: {}, Password: ****", parts[0]);
+		return parts;
 	}
 }

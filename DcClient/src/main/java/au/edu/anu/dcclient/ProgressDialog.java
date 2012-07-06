@@ -45,7 +45,7 @@ public class ProgressDialog extends JDialog implements ProgressListener
 	public ProgressDialog(Component parentComponent)
 	{
 		this.parentComponent = parentComponent;
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 401, 213);
 		this.parentComponent = parentComponent;
 		this.setLocationRelativeTo(parentComponent);
 		// this.setModalityType(ModalityType.APPLICATION_MODAL);
@@ -61,10 +61,12 @@ public class ProgressDialog extends JDialog implements ProgressListener
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 		JButton okButton = new JButton("OK");
+		okButton.setEnabled(false);
 		okButton.setActionCommand("OK");
 		buttonPane.add(okButton);
 		getRootPane().setDefaultButton(okButton);
 		JButton cancelButton = new JButton("Cancel");
+		cancelButton.setEnabled(false);
 		cancelButton.setActionCommand("Cancel");
 		buttonPane.add(cancelButton);
 	}

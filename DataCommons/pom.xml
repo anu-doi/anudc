@@ -253,6 +253,11 @@
 			<artifactId>solr-solrj</artifactId>
 			<version>3.6.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.jasig.cas</groupId>
+			<artifactId>cas-server-integration-restlet</artifactId>
+			<version>3.5.0-RC2</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>DataCommons</finalName>
