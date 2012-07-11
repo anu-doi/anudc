@@ -125,7 +125,8 @@ public class UploadService
 	@POST
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+//	It appears jupload doesn't add information about the logged in user?
+//	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostAsHtml(@Context HttpServletRequest request)
 	{
 		Response resp = null;
