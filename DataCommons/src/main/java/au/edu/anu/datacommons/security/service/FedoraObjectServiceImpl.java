@@ -2,6 +2,7 @@ package au.edu.anu.datacommons.security.service;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,12 +14,15 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
+import org.springframework.security.acls.model.Acl;
 import org.springframework.security.acls.model.MutableAcl;
 import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.acls.model.ObjectIdentity;
+import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,6 +46,7 @@ import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.search.SparqlResultSet;
 import au.edu.anu.datacommons.security.CustomUser;
+import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.template.Template;
@@ -73,6 +78,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to amend some of the publishing processes
  * 0.8		20/06/2012	Genevieve Turner (GT)	Moved permissions and change the page retrieval from a String to a Map
  * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to add an audit row when an object is published
+ * 0.10		11/07/2012	Genevieve Turner (GT)	Updated to allow or deny access to unpublished pages
  * </pre>
  * 
  */
@@ -374,6 +380,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * 0.2		03/05/2012	Genevieve Turner (GT)	Updated to add related links to the page
 	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
+	 * 0.10		11/07/2012	Genevieve Turner (GT)	Updated to allow or deny access to unpublished pages
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -382,8 +389,12 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	private Map<String, Object> getPage(String layout, String template, FedoraObject fedoraObject) {
+		boolean hasPermission = false;
 		if (fedoraObject == null) {
+			hasPermission = true;
 			LOGGER.info("Fedora Object is null");
+		}else {
+			hasPermission = checkViewPermission(fedoraObject);
 		}
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("topage", "/page.jsp");
@@ -399,8 +410,18 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 					}
 				}
 			}
-			
-			values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false));
+			if (hasPermission) {
+				LOGGER.info("Has permission");
+				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false));
+			}
+			else if (fedoraObject.getPublished()) {
+				LOGGER.info("Is published");
+				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false));
+			}
+			else {
+				LOGGER.info("Access Denied");
+				throw new AccessDeniedException("User does not have permission to view page");
+			}
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception: ", e);
@@ -424,6 +445,55 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 		
 		return values;
+	}
+	
+	/**
+	 * checkViewPermission
+	 *
+	 * Checks if the user has a higher level of permissions (i.e. has an entry in the
+	 * ACL tables for the given fedora object).
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.10		11/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The object of the page to retrieve
+	 * @return True if the user has some form of permissions, false otherwise
+	 */
+	private boolean checkViewPermission(FedoraObject fedoraObject) {
+		boolean hasPermission = false;
+		ObjectIdentity objectIdentity = new ObjectIdentityImpl(FedoraObject.class, fedoraObject.getId());
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		
+		// Put the user into a sid list
+		Sid sid = new PrincipalSid(authentication.getName());
+		List<Sid> sidList = new ArrayList<Sid>();
+		
+		// Get a list of implemented permissions
+		List<Permission> permissions = new ArrayList<Permission>();
+		permissions.add(CustomACLPermission.READ);
+		permissions.add(CustomACLPermission.CREATE);
+		permissions.add(CustomACLPermission.WRITE);
+		permissions.add(CustomACLPermission.DELETE);
+		permissions.add(CustomACLPermission.ADMINISTRATION);
+		permissions.add(CustomACLPermission.REVIEW);
+		permissions.add(CustomACLPermission.PUBLISH);
+		
+		sidList.add(sid);
+		
+		Acl acl = null;
+		try {
+			acl = aclService.readAclById(objectIdentity, sidList);
+			
+			hasPermission = acl.isGranted(permissions, sidList, false);
+			
+			LOGGER.info("After is granted");
+		}
+		catch (NotFoundException e) {
+			LOGGER.info("User doesn't have permissions");
+		}
+		return hasPermission;
 	}
 	
 	/**
