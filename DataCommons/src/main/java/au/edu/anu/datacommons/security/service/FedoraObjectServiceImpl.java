@@ -257,7 +257,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		String fields = "";
 		ViewTransform viewTransform = new ViewTransform();
 		try {
-			fields = (String)viewTransform.getPage(layout, tmplt, fedoraObject, fieldName, true).get("page");
+			fields = (String)viewTransform.getPage(layout, tmplt, fedoraObject, fieldName, true, false).get("page");
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception: ", e);
@@ -412,11 +412,13 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			}
 			if (hasPermission) {
 				LOGGER.info("Has permission");
-				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false));
+				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false, false));
 			}
 			else if (fedoraObject.getPublished()) {
 				LOGGER.info("Is published");
-				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false));
+				//viewTransform.getPublishedPage(layout, template, fedoraObject, null);
+				//values.putAll(viewTransform.getPublishedPage(layout, template, fedoraObject, null));
+				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false, true));
 			}
 			else {
 				LOGGER.info("Access Denied");

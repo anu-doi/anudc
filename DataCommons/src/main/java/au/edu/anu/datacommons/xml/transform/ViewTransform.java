@@ -85,6 +85,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to allow the display of the object type
  * 0.10		20/06/2012	Genevieve Turner (GT)	Updated to perform additions to the audit object table
  * 0.11		21/06/2012	Genevieve Turner (GT)	Updated to add anzfor subjects to be retrieved from the database
+ * 0.12		11/07/2012	Genevieve Turner (GT)	Removed getPublishedPage function and updated getPage
  * </pre>
  * 
  */
@@ -134,10 +135,11 @@ public class ViewTransform
 	 * @param fedoraObject The item to retrieve data for
 	 * @param fieldName The field to retrieve data for
 	 * @param editMode Whether the request is in edit mode or not
+	 * @param publishedMode Indicates that the page should only display published information
 	 * @return Returns a map containing the page information and what type the object is
 	 * @throws FedoraClientException
 	 */
-	public Map<String, Object> getPage (String layout, String template, FedoraObject fedoraObject, String fieldName, boolean editMode) throws FedoraClientException
+	public Map<String, Object> getPage (String layout, String template, FedoraObject fedoraObject, String fieldName, boolean editMode, boolean publishedMode) throws FedoraClientException
 	{
 		Map<String, Object> values = new HashMap<String, Object>();
 		LOGGER.debug("In getPage");
@@ -175,7 +177,11 @@ public class ViewTransform
 			
 			if(editMode) {
 				dataStream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
-			} else {
+			}
+			else if (publishedMode) {
+				dataStream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_PUBLISHED);
+			}
+			else {
 				List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(fedoraObject.getObject_id()); //FedoraBroker.getDatastreamAsStream(pid, streamId)
 				boolean hasXMLSource = false;
 				boolean hasXMLPublished = false;
@@ -246,98 +252,6 @@ public class ViewTransform
 			else {
 				LOGGER.info("Options are null");
 			}
-			String result = transform(xmlStream, xslStream, parameters);
-			values.put("page", result);
-		}
-		catch (Exception e) {
-			LOGGER.error("Exception transforming page", e);
-		}
-		return values;
-	}
-	
-	/**
-	 * getPublishedPage
-	 * 
-	 * Transforms to a document specified by the layout and performs the transformation
-	 * on either the template or the item depending on which values are given.  This generally
-	 * transforms the given documents to either a html page or an xml document.
-	 * 
-	 * This function specifically gets published documents.
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		19/03/2012	Genevieve Turner (GT)	Initial build
-	 * 0.4		26/04/2012	Genevieve Turner (GT)	Some updates for differences between published and non-published records
-	 * 0.5		03/05/2012	Genevieve Turner (GT)	Updated so the fedora object is used to get the input stream
-	 * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to allow the display of the object type
-	 * </pre>
-	 * 
-	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
-	 * @param template The template that determines the fields on the screen
-	 * @param fedoraObject The item to retrieve data for
-	 * @param fieldName The field to retrieve data for
-	 * @return Returns a map containing the page information and what type the object is
-	 * @throws FedoraClientException
-	 */
-	public Map<String, Object> getPublishedPage(String layout, String template, FedoraObject fedoraObject, String fieldName) throws FedoraClientException
-	{
-		Map<String, Object> values = new HashMap<String, Object>();
-		
-		LOGGER.debug("In getPublishedPage");
-		Map<String, Object> parameters = new HashMap<String, Object>();
-		InputStream xmlStream = getXMLInputStream(template, fedoraObject);
-
-		if (xmlStream == null) {
-			LOGGER.warn("XML Stream is empty");
-			return values;
-		}
-		
-		InputStream xslStream = getInputStream(layout, Constants.XSL_SOURCE);
-		
-		if (xslStream == null) {
-			LOGGER.warn("XSL Stream is empty");
-			return values;
-		}
-		
-		if(Util.isNotEmpty(template)) {
-			parameters.put("tmplt", template);
-		}
-		if(fedoraObject != null) {
-			parameters.put("item", fedoraObject.getObject_id());
-		}
-		if(Util.isNotEmpty(layout)) {
-			parameters.put("layout", layout);
-		}
-		if(Util.isNotEmpty(fieldName)){
-			parameters.put("fieldName", fieldName);
-		}
-		
-		if (fedoraObject != null) {
-			InputStream dataStream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
-			if (dataStream != null) {
-				try {
-					// Xalan appears to have issues tranforming when a stream is sent to the document so making
-					// it a w3c Document 
-					Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(dataStream);
-					parameters.put("data", doc);
-				}
-				catch (SAXException e){
-					LOGGER.error("Issue with document", e);
-				}
-				catch (ParserConfigurationException e) {
-					LOGGER.error("Issue with document", e);
-				}
-				catch (IOException e) {
-					LOGGER.error("Issue with document", e);
-				}
-			}
-			else {
-				LOGGER.warn("item specified does not exist");
-				return values;
-			}
-		}
-		
-		try {
 			String result = transform(xmlStream, xslStream, parameters);
 			values.put("page", result);
 		}
@@ -927,8 +841,8 @@ public class ViewTransform
 				processedValues_.add("name");
 				for (DataItem dataItem : data.getItems()) {
 					for (String field : splitName) {
-						if (dataItem.getName_().equals(field)) {
-							nameMap.put(field, dataItem.getValue_());
+						if (dataItem.getName().equals(field)) {
+							nameMap.put(field, dataItem.getValue());
 							break;
 						}
 					}
@@ -949,8 +863,8 @@ public class ViewTransform
 		// Add the name to the saved data
 		if (Util.isNotEmpty(sb.toString())) {
 			DataItem dataItem = new DataItem();
-			dataItem.setName_("name");
-			dataItem.setValue_(sb.toString().trim());
+			dataItem.setName("name");
+			dataItem.setValue(sb.toString().trim());
 			data.getItems().add(dataItem);
 		}	
 		
@@ -992,10 +906,10 @@ public class ViewTransform
 		for (int i = 0; i < dataItems.size(); i++) {
 			DataItem dataItem = dataItems.get(i);
 			
-			String fieldName = dataItem.getName_();
+			String fieldName = dataItem.getName();
 			String dublinCoreLocalpart = DublinCoreConstants.getFieldName(fieldName);
 			if(Util.isNotEmpty(dublinCoreLocalpart)) {
-				dublinCore.getItems_().add(createJAXBElement(DublinCoreConstants.DC, dublinCoreLocalpart, dataItem.getValue_()));
+				dublinCore.getItems_().add(createJAXBElement(DublinCoreConstants.DC, dublinCoreLocalpart, dataItem.getValue()));
 			}
 		}
 		
@@ -1115,8 +1029,8 @@ public class ViewTransform
 				String strValue = (String) value;
 				if (Util.isNotEmpty(strValue)) {
 					DataItem dataItem = new DataItem();
-					dataItem.setName_(key);
-					dataItem.setValue_(strValue);
+					dataItem.setName(key);
+					dataItem.setValue(strValue);
 					data.getItems().add(dataItem);
 					addedItems_.add(dataItem);
 				}
@@ -1147,8 +1061,8 @@ public class ViewTransform
 				String strValue = (String) value;
 				if (Util.isNotEmpty(strValue)) {
 					DataItem dataItem = new DataItem();
-					dataItem.setName_(key);
-					dataItem.setValue_(strValue);
+					dataItem.setName(key);
+					dataItem.setValue(strValue);
 					data.getItems().add(dataItem);
 					addedItems_.add(dataItem);
 				}
@@ -1193,12 +1107,12 @@ public class ViewTransform
 				for (int i = 0; i < values.size(); i++) {
 					if (tableData.size() <= i) {
 						DataItem dataItem = new DataItem();
-						dataItem.setName_(itemName);
+						dataItem.setName(itemName);
 						tableData.add(dataItem);
 						addedItems_.add(dataItem);
 					}
 					if(Util.isNotEmpty(values.get(i))) {
-						tableData.get(i).getChildValues_().put(columnName, values.get(i));
+						tableData.get(i).getChildValues().put(columnName, values.get(i));
 					}
 				}
 			}
@@ -1206,7 +1120,7 @@ public class ViewTransform
 		
 		// remove all the rows without any values in them
 		for (int i = tableData.size() - 1; i >= 0; i--) {
-			if(tableData.get(i).getChildValues_().size() == 0) {
+			if(tableData.get(i).getChildValues().size() == 0) {
 				tableData.remove(i);
 			}
 		}
