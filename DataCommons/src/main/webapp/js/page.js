@@ -24,7 +24,10 @@ jQuery(document).ready(function()
 	});
 	
 	jQuery("#form").submit(function() {
-		jQuery("select[multiple='multiple'] option").attr("selected", "true");
+		//for some reason this doesn't work?
+		//jQuery("select[multiple='multiple'] option").attr("selected", "true");
+		
+		jQuery("#anzforSubject option").attr("selected", "true");
 		return jQuery('#form').validate().form();
 	});
 	
