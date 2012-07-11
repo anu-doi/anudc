@@ -111,7 +111,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 		URI pidBagUri = UriBuilder.fromUri(Global.getBagUploadUri()).path(txtPid.getText().toLowerCase().trim()).build();
 
 		// Check if a local bag already exists.
-		if (localBagFile.exists())
+		if (localBagFile != null && localBagFile.exists())
 		{
 			// Ask user to redownload or use existing bag on local drive.
 			if (JOptionPane.showConfirmDialog(parentComponent, "Pid's bag already exists on your local drive. Redownload?", "Confirm Dialog",
@@ -190,10 +190,12 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 											{
 												JOptionPane.showMessageDialog(parentComponent, "The bag download was cancelled", "Cancelled",
 														JOptionPane.WARNING_MESSAGE);
+												LOGGER.error("Bag download cancelled.", e);
 											}
 											catch (ExecutionException e)
 											{
 												JOptionPane.showMessageDialog(parentComponent, "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
+												LOGGER.error("Bag download execution failed.", e);
 											}
 										}
 									});
@@ -233,10 +235,11 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 							if (JOptionPane.showConfirmDialog(parentComponent, "Bag doesn't exist in Data Commons. Would you like to create one?",
 									"Bag not found", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
 							{
-								DcBag.deleteDir(localBagFile);
+								if (localBagFile != null)
+									DcBag.deleteDir(localBagFile);
 								DcBag dcBag = new DcBag(txtPid.getText());
-								dcBag.saveAs(Global.getLocalBagStoreAsFile(), txtPid.getText(), Format.FILESYSTEM);
-								localBagFile.mkdirs();
+								localBagFile = dcBag.saveAs(Global.getLocalBagStoreAsFile(), txtPid.getText(), Format.FILESYSTEM);
+								// localBagFile.mkdirs();
 								File dataDir = new File(localBagFile, "data/");
 								if (dataDir.mkdir())
 									bagExplorer.changeDir(dataDir);
@@ -259,31 +262,6 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 					}
 				}
 
-			});
-
-			// Local bag doesn't exist. Download.
-			DownloadBagTask dlBagTask = new DownloadBagTask(Global.getBagUploadUri(), txtPid.getText().toLowerCase().trim(), Global.getLocalBagStoreAsFile());
-			dlBagTask.addProgressListener(new ProgressDialog(parentComponent));
-			final Future<File> taskResult = execSvc.submit(dlBagTask);
-			execSvc.submit(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					try
-					{
-						File downloadedBagFile = taskResult.get();
-						bagExplorer.changeDir(new File(downloadedBagFile, "data/"));
-					}
-					catch (InterruptedException e)
-					{
-						JOptionPane.showMessageDialog(parentComponent, "The bag download was cancelled", "Cancelled", JOptionPane.WARNING_MESSAGE);
-					}
-					catch (ExecutionException e)
-					{
-						JOptionPane.showMessageDialog(parentComponent, "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
-					}
-				}
 			});
 		}
 	}

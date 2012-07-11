@@ -14,9 +14,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -25,9 +28,11 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
@@ -44,6 +49,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.ldap.LdapRequest;
@@ -72,6 +78,7 @@ public class UploadService
 	private static final Logger LOGGER = LoggerFactory.getLogger(UploadService.class);
 	private static final String PART_FILE_SUFFIX = ".part";
 	private static final String UPLOAD_JSP = "/upload.jsp";
+	private static final String BAGFILES_JSP = "/bagfiles.jsp";
 	private static final String FILE_DS_PREFIX = "FILE";
 
 	/**
@@ -297,6 +304,38 @@ public class UploadService
 	}
 
 	@GET
+	@Produces(MediaType.TEXT_HTML)
+	@Path("bag/{pid}")
+	public Response doGetBagFileListingAsHtml(@Context UriInfo uriInfo, @PathParam("pid") String pid)
+	{
+		Response resp = null;
+		HashMap<String, String> downloadables = new HashMap<String, String>();
+		Map<String, Object> model = new HashMap<String, Object>();
+		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
+		DcBag dcBag;
+		if (bagFile != null)
+			dcBag = new DcBag(GlobalProps.getBagsDirAsFile(), pid, LoadOption.BY_FILES);
+		else
+			throw new NotFoundException("Bag not found for " + pid);
+		
+
+		// TODO Add security.
+
+
+		Set<Entry<String, String>> plFileSet = dcBag.getPayloadFileList();
+		for (Entry<String, String> entry : plFileSet)
+			downloadables.put(
+					entry.getKey(),
+					UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream2")
+							.build(pid, entry.getKey()).toString());
+
+		model.put("downloadables", downloadables);
+		resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
+
+		return resp;
+	}
+
+	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}/{fileInBag:.*}")
 	public Response doGetFileInBagAsOctetStream2(@Context HttpServletRequest request, @PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag)
@@ -315,6 +354,7 @@ public class UploadService
 			LOGGER.debug("{}: {}", headerName, request.getHeader(headerName));
 		}
 
+		/*
 		try
 		{
 			if (checkAuth(request.getHeader("authorization")) == false)
@@ -329,10 +369,11 @@ public class UploadService
 			// TODO Change the realm value below if required.
 			return Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic realm=\"test\"").build();
 		}
-
+		*/
+		
 		// Check for a FileSystem bag.
 		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
-		if (bagFile == null)
+		if (bagFile != null)
 			dcBag = new DcBag(bagFile, LoadOption.BY_FILES);
 		else
 			throw new NotFoundException(MessageFormat.format("No bag found for Pid {0}.", pid));
@@ -341,7 +382,7 @@ public class UploadService
 		if (inStream != null)
 		{
 			ResponseBuilder respBuilder = Response.ok(inStream, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-			respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=\"" + fileInBag + "\"");			// Filename on client's computer.
+			respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=\"" + getFilenameFromPath(fileInBag) + "\"");			// Filename on client's computer.
 			respBuilder = respBuilder.header("Content-MD5", dcBag.getBagFileHash(fileInBag));					// Hash of file. Header not used by most web browsers.
 			respBuilder = respBuilder.header("Content-Length", dcBag.getBagFileSize(fileInBag));				// File size.
 			resp = respBuilder.build();
@@ -400,29 +441,36 @@ public class UploadService
 	public Response doPostBag(@Context HttpServletRequest request, @PathParam("pid") String pid, File uploadedFile)
 	{
 		Response resp = null;
-		DcBag dcBag = null;
+		DcBag uploadedDcBag = null;
 		File curPidBagFile = null;
-		File backupPidBagFile = null;
 
 		try
 		{
-			dcBag = new DcBag(uploadedFile, LoadOption.BY_FILES);
-			if (!dcBag.verifyValid().isSuccess())
+			uploadedDcBag = new DcBag(uploadedFile, LoadOption.BY_FILES);
+			if (!uploadedDcBag.verifyValid().isSuccess())
 				throw new BagTransferException("Bag received is incomplete or invalid.");
 
-			if (!dcBag.getBagInfoTxt().getExternalIdentifier().equals(pid))
+			if (!uploadedDcBag.getBagInfoTxt().getExternalIdentifier().equals(pid))
 				throw new BagTransferException("Bag received is not for the Pid " + pid);
 
-			// Check if a current bag exists.
+			// Check if a current bag exists. If yes, replace, else saveas.
 			curPidBagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
 			if (curPidBagFile != null)
-				DcBag.deleteDir(curPidBagFile);
+			{
+				DcBag curDcBag = new DcBag(curPidBagFile, LoadOption.BY_FILES);
+				uploadedDcBag.close();
+				curDcBag.replaceWith(uploadedFile, true);
+			}
+			else
+			{
+				uploadedDcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, Format.FILESYSTEM);
+				uploadedDcBag.close();
+			}
 
-			// Copy the uploaded bag to the bag dir.
-			File oldBagFile = dcBag.getFile();
-			dcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, Format.FILESYSTEM);
-			dcBag.close();
-			oldBagFile.delete();
+			// Create a placeholder datastream.
+			FedoraBroker.addDatastreamBySource(pid, FILE_DS_PREFIX + "0", "FILE0",
+					"<text>Files available.</text>");
+
 			resp = Response.ok().build();
 		}
 		catch (Exception e)

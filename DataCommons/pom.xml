@@ -258,6 +258,11 @@
 			<artifactId>cas-server-integration-restlet</artifactId>
 			<version>3.5.0-RC2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator-annotation-processor</artifactId>
+			<version>4.2.0.Final</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>DataCommons</finalName>

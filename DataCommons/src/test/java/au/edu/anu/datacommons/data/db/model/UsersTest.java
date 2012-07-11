@@ -103,8 +103,10 @@ public class UsersTest {
 	@After
 	public void tearDown() {
 		System.out.println("Executing tearDown");
-		entityManager.close();
-		entityManagerFactory.close();
+		if (entityManager != null)
+			entityManager.close();
+		if (entityManagerFactory != null)
+			entityManagerFactory.close();
 	}
 
 }

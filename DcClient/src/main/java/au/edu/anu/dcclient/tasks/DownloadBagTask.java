@@ -81,8 +81,14 @@ public final class DownloadBagTask extends AbstractDcBagTask implements Callable
 	public File call() throws Exception
 	{
 		BagFetcher fetcher = new BagFetcher(new BagFactory());
+		// HTTP
 		FetchProtocol http = new HttpFetchProtocol();
 		fetcher.registerProtocol("http", http);
+		// HTTPS
+		HttpFetchProtocol https = new HttpFetchProtocol();
+		// TODO Change the following in production when using trusted CA-certified cert
+		https.setRelaxedSsl(true);
+		fetcher.registerProtocol("https", https);
 
 		updateProgress("Initialising bag download", pidBagUri.toString(), null, null);
 		if (this.plSet != null)

@@ -912,7 +912,7 @@ public class CollectionRequestService
 								try
 								{
 									JSONObject dsJsonObj = new JSONObject();
-									dsJsonObj.put("filename", iFileItem.getKey().replaceFirst("data/", ""));
+									dsJsonObj.put("filename", iFileItem.getKey());
 									itemsAvail.put(dsJsonObj);
 								}
 								catch (JSONException e)
