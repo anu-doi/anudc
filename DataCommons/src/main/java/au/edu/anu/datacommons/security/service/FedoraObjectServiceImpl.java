@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.Acl;
@@ -25,6 +27,7 @@ import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -471,6 +474,12 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		// Put the user into a sid list
 		Sid sid = new PrincipalSid(authentication.getName());
 		List<Sid> sidList = new ArrayList<Sid>();
+		Iterator<GrantedAuthority> it = authentication.getAuthorities().iterator();
+		while (it.hasNext()) {
+			GrantedAuthority auth = it.next();
+			Sid authSid = new GrantedAuthoritySid(auth.getAuthority());
+			sidList.add(authSid);
+		}
 		
 		// Get a list of implemented permissions
 		List<Permission> permissions = new ArrayList<Permission>();
