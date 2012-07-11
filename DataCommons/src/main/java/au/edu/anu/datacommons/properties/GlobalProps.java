@@ -116,7 +116,11 @@ public final class GlobalProps
 
 	public static File getUploadDirAsFile()
 	{
-		return new File(getUploadDirAsString());
+		File uploadDir = new File(getUploadDirAsString());
+		if (!uploadDir.exists())
+			if (uploadDir.mkdirs())
+				LOGGER.error("The upload directory doesn't exist. Unable to create it.");
+		return uploadDir;
 	}
 
 	public static String getBagsDirAsString()
@@ -126,7 +130,11 @@ public final class GlobalProps
 
 	public static File getBagsDirAsFile()
 	{
-		return new File(getBagsDirAsString());
+		File bagsDir = new File(getBagsDirAsString());
+		if (!bagsDir.exists())
+			if (bagsDir.mkdirs())
+				LOGGER.error("The bags directory doesn't exist. Unable to create it.");
+		return bagsDir;
 	}
 
 	public static String getTempDirAsString()
@@ -136,7 +144,12 @@ public final class GlobalProps
 
 	public static File getTempDirAsFile()
 	{
-		return new File(getTempDirAsString());
+		File tempDir = new File(getTempDirAsString());
+		if (!tempDir.exists())
+			if (tempDir.mkdirs())
+				LOGGER.error("The bags directory doesn't exist. Unable to create it.");
+		
+		return tempDir;
 	}
 
 	public static boolean getEmailDebugSend()

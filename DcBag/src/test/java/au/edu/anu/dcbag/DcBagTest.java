@@ -4,20 +4,27 @@ import static org.junit.Assert.*;
 
 import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.BagFactory;
+import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.ProgressListener;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.v0_97.impl.BagImpl;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +34,10 @@ public class DcBagTest
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
 	private static List<File> payloadFiles;
-	private static File bagDir;
+	private static final String TEST_PID = "test:1";
+	
+	@Rule
+	public TemporaryFolder tempFolder = new TemporaryFolder();
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
@@ -41,18 +51,6 @@ public class DcBagTest
 		payloadFiles.add(new File(DcBagTest.class.getResource("10M.fil").toURI()));
 		assertEquals(payloadFiles.size(), 4);
 
-		bagDir = new File(payloadFiles.get(0).getParentFile(), "bag");
-		assertNotNull(bagDir);
-
-		if (!bagDir.exists())
-			bagDir.mkdirs();
-		else if (bagDir.listFiles().length > 0)
-		{
-			deleteTree(bagDir);
-			bagDir.mkdirs();
-		}
-		assertTrue(bagDir.exists());
-		assertTrue(bagDir.isDirectory());
 	}
 
 	@AfterClass
@@ -74,59 +72,198 @@ public class DcBagTest
 	public void testCreateNewBag() throws Exception
 	{
 		// Create new bag.
-		DcBag dcBag = new DcBag("test:1");
+		DcBag dcBag = new DcBag(TEST_PID);
 		assertNotNull(dcBag);
 
 		// Add files to payload.
 		dcBag.addFileToPayload(payloadFiles.get(0));
 		dcBag.addFileToPayload(payloadFiles.get(1));
 		dcBag.addFileToPayload(payloadFiles.get(2));
-		File bagFile = dcBag.saveAs(bagDir, "test:1", Format.FILESYSTEM);
-		assertEquals("Files in payload not = 3", 3, dcBag.getPayloadFileList().size());
+		File bagFile = dcBag.saveAs(tempFolder.getRoot(), TEST_PID, Format.FILESYSTEM);
+		assertEquals("Files in payload != 3", 3, dcBag.getPayloadFileList().size());
 		assertTrue("Bag file doesn't exist.", bagFile.exists());
 		assertTrue("Bag is invalid.", dcBag.verifyValid().isSuccess());
 
 		// Close the bag.
 		dcBag.close();
 		dcBag = null;
-		
+
 		// Reopen the bag, add and remove files. Save.
-		dcBag = new DcBag(bagDir, "test:1", LoadOption.BY_FILES);
+		dcBag = new DcBag(tempFolder.getRoot(), TEST_PID, LoadOption.BY_FILES);
 		dcBag.addFileToPayload(payloadFiles.get(3));
 		dcBag.removeBagFile("data/" + payloadFiles.get(2).getName());
 		dcBag.addProgressListener(getProgressListener());
 		dcBag.save();
-		
+
 		dcBag.close();
 		dcBag = null;
-		
-		dcBag = new DcBag(bagDir, "test:1", LoadOption.BY_FILES);
-		assertTrue("External identifier not test:1", dcBag.getExternalIdentifier().equals("test:1"));
+
+		dcBag = new DcBag(tempFolder.getRoot(), TEST_PID, LoadOption.BY_FILES);
+		assertTrue("External identifier not " + TEST_PID, dcBag.getExternalIdentifier().equals(TEST_PID));
 		assertEquals("Number of files in payload is not 3.", 3, dcBag.getPayloadFileList().size());
 	}
-	
 
-	private static void deleteTree(File dirToDelete) throws InterruptedException
+	/**
+	 * testUpdateBagPayload
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Tests that a bag correctly updates itself when a file is added into its payload directory without called the bag's add file to payload method.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		02/07/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testUpdateBagPayload() throws Exception
 	{
-		File[] filesInUploadDir = dirToDelete.listFiles();
-		for (int i = 0; i < filesInUploadDir.length; i++)
-		{
-			// If it's a file, delete it. Else, if dir, recurse through it.
-			if (filesInUploadDir[i].isDirectory())
-			{
-				deleteTree(filesInUploadDir[i]);
-				filesInUploadDir[i].delete();
-			}
-			else if (filesInUploadDir[i].isFile())
-				filesInUploadDir[i].delete();
-			else
-				fail("Unknown file/dir type in base upload dir.");
+		DcBag dcBag = new DcBag(TEST_PID);
 
-			while (filesInUploadDir[i].exists())
-				Thread.sleep(10);
-		}
+		// Add files to payload.
+		dcBag.addFileToPayload(payloadFiles.get(0));
+
+		File bagFile = dcBag.saveAs(tempFolder.getRoot(), TEST_PID, Format.FILESYSTEM);
+		assertTrue("Bag file is not a directory.", bagFile.isDirectory());
+
+		dcBag.close();
+		dcBag = null;
+
+		// Copy a payload file into the data dir without adding to bag.
+		File dest = new File(tempFolder.getRoot(), DcBag.convertToDiskSafe(TEST_PID) + "/data/" + payloadFiles.get(3).getName());
+		FileUtils.copyFile(payloadFiles.get(3), dest);
+		assertTrue(dest.exists());
+		assertEquals(payloadFiles.get(3).length(), dest.length());
+
+		// Reopen bag and save it.
+		dcBag = new DcBag(tempFolder.getRoot(), TEST_PID, LoadOption.BY_FILES);
+		dcBag.save();
+
+		// Ensure the added file hasn't been deleted.
+		assertTrue(dest.exists());
+		assertEquals(payloadFiles.get(3).length(), dest.length());
+
+		dcBag.close();
+	}
+
+	@Test
+	public void testUpdateSecuredBag() throws Exception
+	{
+		DcBag dcBag = new DcBag(TEST_PID);
+
+		// Add files to payload and set data source property.
+		dcBag.addFileToPayload(payloadFiles.get(0));
+		dcBag.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.INSTRUMENT.toString());
+		File bagFile = dcBag.saveAs(tempFolder.getRoot(), TEST_PID, Format.FILESYSTEM);
+
+		// Close bag.
+		dcBag.close();
+		dcBag = null;
+
+		// Copy a payload file into the data dir without adding to bag. Valid operation.
+		File dest = new File(tempFolder.getRoot(), DcBag.convertToDiskSafe(TEST_PID) + "/data/" + payloadFiles.get(3).getName());
+		FileUtils.copyFile(payloadFiles.get(3), dest);
+		assertTrue(dest.exists());
+		assertEquals(payloadFiles.get(3).length(), dest.length());
+
+		dcBag = new DcBag(bagFile, LoadOption.BY_FILES);
+		dcBag.customValidate();
+		dcBag.close();
+	}
+
+	@Test (expected = Exception.class)
+	public void testUpdateSecuredBagException() throws Exception
+	{
+		DcBag dcBag = new DcBag(TEST_PID);
+
+		// Add files to payload and set data source property.
+		dcBag.addFileToPayload(payloadFiles.get(0));
+		dcBag.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.INSTRUMENT.toString());
+		File bagFile = dcBag.saveAs(tempFolder.getRoot(), TEST_PID, Format.FILESYSTEM);
+
+		// Close bag.
+		dcBag.close();
+		dcBag = null;
+
+		// Replace an existing file in the payload directory with a new file.
+		File dest = new File(tempFolder.getRoot(), DcBag.convertToDiskSafe(TEST_PID) + "/data/" + payloadFiles.get(0).getName());
+		FileUtils.copyFile(payloadFiles.get(1), dest);
+		assertTrue(dest.exists());
+		assertEquals(payloadFiles.get(1).length(), dest.length());
+
+		dcBag = new DcBag(bagFile, LoadOption.BY_FILES);
+		
+		dcBag.save();
+		dcBag.close();
 	}
 	
+	@Test (expected = DcBagException.class)
+	public void testReplaceInstrumentBagWithException() throws IOException, DcBagException
+	{
+		// Create the original bag with data source as instrument that will then be replaced.
+		DcBag bag1 = new DcBag(TEST_PID);
+		bag1.addFileToPayload(payloadFiles.get(0));
+		bag1.addFileToPayload(payloadFiles.get(1));
+		bag1.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.INSTRUMENT.toString());
+		File bagFile1 = bag1.saveAs(tempFolder.newFolder(), TEST_PID, Format.FILESYSTEM);
+		
+		// Make a copy of the original bag. In the copy we'll modify existing payload files.
+		File bagFile2 = bag1.saveAs(tempFolder.newFolder(), TEST_PID, Format.FILESYSTEM);
+		
+		DcBag bag2 = new DcBag(bagFile2, LoadOption.BY_FILES);
+		// Temporarily change the bag property so an existing payload file can be modified.
+		bag2.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.GENERAL.toString());
+		bagFile2 = bag2.save();
+		assertTrue("Bag's property should be General", bag2.getBagProperty(DcBagProps.FIELD_DATASOURCE).equals(DcBagProps.DataSource.GENERAL.toString()));
+		
+		// Change a payload file.
+		File plFileToDelete = new File(bag2.getFile(), "data/" + payloadFiles.get(0).getName());
+		assertTrue(plFileToDelete.exists());
+		boolean deleteResult = plFileToDelete.delete();
+		assertTrue(deleteResult);
+		bag2 = new DcBag(bagFile2, LoadOption.BY_FILES);
+		bagFile2 = bag2.save();
+		
+		// Replace first bag with the new one.
+		bag1 = new DcBag(bagFile1, LoadOption.BY_FILES);
+		bag1.replaceWith(bagFile2, true);
+		
+		// Ensure bag1 didn't change.
+		 Set<Entry<String, String>> plList = bag1.getPayloadFileList();
+		 assertEquals("Bag 1's paylist file count != 2", 2, plList.size());
+	}
+	
+	@Test
+	public void testReplacementInstrumentBag() throws IOException, DcBagException
+	{
+		// Create the original bag with data source as instrument that will then be replaced.
+		DcBag bag1 = new DcBag(TEST_PID);
+		bag1.addFileToPayload(payloadFiles.get(0));
+		bag1.addFileToPayload(payloadFiles.get(1));
+		bag1.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.INSTRUMENT.toString());
+		File bagFile1 = bag1.saveAs(tempFolder.newFolder(), TEST_PID, Format.FILESYSTEM);
+		
+		// Make a copy of the original bag. In the copy we'll modify existing payload files.
+		File bagFile2 = bag1.saveAs(tempFolder.newFolder(), TEST_PID, Format.FILESYSTEM);
+		bag1 = new DcBag(bagFile1, LoadOption.BY_FILES);
+		DcBag bag2 = new DcBag(bagFile2, LoadOption.BY_FILES);
+		
+		assertTrue("Bag 1 is invalid", bag1.verifyValid().isSuccess());
+		assertTrue("Bag 2 is invalid", bag2.verifyValid().isSuccess());
+		
+		File dataDir = new File(bag2.getFile(), "data/");
+		FileUtils.copyFile(payloadFiles.get(2), new File(dataDir, payloadFiles.get(2).getName()));
+		bag2.close();
+		bag2 = new DcBag(bagFile2, LoadOption.BY_FILES);
+		bag2.save();
+		
+		bag1.replaceWith(bag2.getFile(), false);
+		
+		assertEquals(3, bag1.getPayloadFileList().size());
+	}
+
 	private ProgressListener getProgressListener()
 	{
 		return new ProgressListener()

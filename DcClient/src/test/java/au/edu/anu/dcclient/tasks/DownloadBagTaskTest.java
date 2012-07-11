@@ -4,12 +4,28 @@ import static org.junit.Assert.*;
 
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.CoreConnectionPNames;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -51,7 +67,7 @@ public class DownloadBagTaskTest extends AbstractDcBagTaskTest
 	@Test
 	public void testCall() throws InterruptedException, ExecutionException
 	{
-		DownloadBagTask task = new DownloadBagTask(Global.getBagUploadUri(), "test:4", tempFolder.getRoot());
+		DownloadBagTask task = new DownloadBagTask(Global.getBagUploadUri(), "test:1", tempFolder.getRoot());
 		ExecutorService execSvc = Executors.newFixedThreadPool(1);
 		Future<File> result = execSvc.submit(task);
 		File bagFile= result.get();

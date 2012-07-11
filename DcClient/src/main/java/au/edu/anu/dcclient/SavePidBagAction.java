@@ -107,8 +107,10 @@ public class SavePidBagAction extends AbstractAction implements ActionListener
 				}
 				catch (ExecutionException e)
 				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					if (e.getCause() != null)
+						JOptionPane.showMessageDialog(parentComponent, e.getCause().getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+					else
+						JOptionPane.showMessageDialog(parentComponent, e.getMessage(),  "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});

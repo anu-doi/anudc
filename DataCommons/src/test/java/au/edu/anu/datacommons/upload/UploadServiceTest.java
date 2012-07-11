@@ -12,6 +12,8 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 
 import javax.ws.rs.core.MediaType;
@@ -97,6 +99,14 @@ public class UploadServiceTest extends JerseyTest
 	{
 		System.in.read();
 	}
+	
+	@Test
+	public void testExtractBasicCreds()
+	{
+		String parts[] = UploadService.extractBasicCreds("Basic dXNlcm5hbWU6cGFzczp3b3Jk");
+		assertTrue("parts[0] is " + parts[0], parts[0].equals("username"));
+		assertTrue("parts[1] is " + parts[1], parts[1].equals("pass:word"));
+	}
 
 	private Bag createDummyBag() throws IOException
 	{
@@ -131,7 +141,7 @@ public class UploadServiceTest extends JerseyTest
 
 		return bag;
 	}
-
+	
 	private void writeFile(File file, long size) throws IOException
 	{
 		byte[] buffer = new byte[8192];

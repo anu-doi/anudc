@@ -1,19 +1,3 @@
-function ajaxPopup()
-{
-	jQuery.setupJMPopups(
-	{
-		screenLockerBackground : "#000000",
-		screenLockerOpacity : "0.5"
-	});
-
-	jQuery.openPopupLayer(
-	{
-		name : "myPopup",
-		width : 400,
-		url : "/DataCommons/jsp/searchbox.jsp"
-	});
-}
-
 /**
  * ajaxGetPidInfo
  * 
@@ -91,7 +75,7 @@ function ajaxGetPidQuestions(pid)
 {
 	if (jQuery.trim(pid) == "")
 		return;
-	
+
 	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listPidQuestions&pid=" + pid, function(data)
 	{
 		jQuery("#idPidQ").empty();
