@@ -254,14 +254,14 @@
 			<version>3.6.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.jasig.cas</groupId>
-			<artifactId>cas-server-integration-restlet</artifactId>
-			<version>3.5.0-RC2</version>
-		</dependency>
-		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator-annotation-processor</artifactId>
 			<version>4.2.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-ldap</artifactId>
+			<version>3.0.5.RELEASE</version>
 		</dependency>
 	</dependencies>
 	<build>
