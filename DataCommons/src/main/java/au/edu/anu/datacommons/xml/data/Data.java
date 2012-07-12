@@ -90,7 +90,7 @@ public class Data {
 		List<DataItem> removedItems = new ArrayList<DataItem>();
 		for (int i = items_.size() - 1; i >= 0; i--) {
 			DataItem item = items_.get(i);
-			if(item.getName_().equals(localpart)) {
+			if(item.getName().equals(localpart)) {
 				removedItems.add(items_.remove(i));
 			}
 		}

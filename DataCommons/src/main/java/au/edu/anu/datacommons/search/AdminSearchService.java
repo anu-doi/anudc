@@ -20,6 +20,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -43,6 +44,7 @@ import com.sun.jersey.api.view.Viewable;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		13/06/2012	Genevieve Turner (GT)	Initial
+ * 0.2		11/07/2012	Genevieve Turner (GT)	Added restriction to administrators
  * </pre>
  *
  */
@@ -57,7 +59,22 @@ public class AdminSearchService {
 	@Resource(name = "gsearchUpdateService")
 	ExternalPoster gsearchUpdateService;
 
+	/**
+	 * doGetAsHTML
+	 *
+	 * Gets the admin search page
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		13/06/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		11/07/2012	Genevieve Turner (GT)	Added restriction to administrators
+	 * </pre>
+	 * 
+	 * @param q The term to query
+	 * @return The response to the query
+	 */
 	@GET
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@Produces(MediaType.TEXT_HTML)
 	public Response doGetAsHTML(@QueryParam("q") String q) {
 		Response response = null;
@@ -68,7 +85,23 @@ public class AdminSearchService {
 		return response;
 	}
 	
+	/**
+	 * goPostAsHTML
+	 *
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		13/06/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		11/07/2012	Genevieve Turner (GT)	Added restriction to administrators
+	 * </pre>
+	 * 
+	 * @param q
+	 * @param request
+	 * @return
+	 */
 	@POST
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@Produces(MediaType.TEXT_HTML)
 	public Response goPostAsHTML(@QueryParam("q") String q, @Context HttpServletRequest request) {
 		StringBuffer message = new StringBuffer();
@@ -83,6 +116,19 @@ public class AdminSearchService {
 		return response;
 	}
 	
+	/**
+	 * updateIndex
+	 *
+	 * Updates the indexes for the given items
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		11/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param itemList A list of items to perform the update index function on
+	 * @return A return message
+	 */
 	private String updateIndex(String[] itemList) {
 		StringBuffer message = new StringBuffer();
 		if (gsearchUpdateService != null) {
@@ -100,6 +146,19 @@ public class AdminSearchService {
 		return message.toString();
 	}
 	
+	/**
+	 * getResultSet
+	 *
+	 * Gets a result set
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		13/06/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param q The term to query
+	 * @return The result set from the query
+	 */
 	private Map<String, Object> getResultSet(String q) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		if (Util.isNotEmpty(q)) {

@@ -28,14 +28,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.PropertyException;
 
 import org.apache.commons.codec.binary.Base64;
@@ -48,6 +46,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
@@ -74,6 +73,7 @@ import com.sun.jersey.api.view.Viewable;
  */
 @Path("/upload")
 @Component
+@Scope("request")
 public class UploadService
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UploadService.class);
@@ -125,6 +125,8 @@ public class UploadService
 	@POST
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
+//	It appears jupload doesn't add information about the logged in user?
+//	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostAsHtml(@Context HttpServletRequest request)
 	{
 		Response resp = null;

@@ -68,11 +68,11 @@ public class DataItemAdapter extends XmlAdapter<Element, DataItem> {
 		}
 		
 		Document document = getDocumentBuilder().newDocument();
-		Element element = document.createElement(dataItem.getName_());
-		element.setTextContent(dataItem.getValue_());
+		Element element = document.createElement(dataItem.getName());
+		element.setTextContent(dataItem.getValue());
 		
 		// Populate the child nodes
-		for (Entry<String, String> entry : dataItem.getChildValues_().entrySet()) {
+		for (Entry<String, String> entry : dataItem.getChildValues().entrySet()) {
 			Element childElement = document.createElement(entry.getKey());
 			childElement.setTextContent(entry.getValue());
 			element.appendChild(childElement);
@@ -98,7 +98,7 @@ public class DataItemAdapter extends XmlAdapter<Element, DataItem> {
 		}
 		DataItem dataItem = new DataItem();
 		
-		dataItem.setName_(element.getLocalName());
+		dataItem.setName(element.getLocalName());
 		NodeList childNodes = element.getChildNodes();
 		
 		// Essentially check if it contains just a text node or not
@@ -118,10 +118,10 @@ public class DataItemAdapter extends XmlAdapter<Element, DataItem> {
 					childValues.put(key, value);
 				}
 			}
-			dataItem.setChildValues_(childValues);
+			dataItem.setChildValues(childValues);
 		}
 		else {
-			dataItem.setValue_(element.getTextContent());
+			dataItem.setValue(element.getTextContent());
 		}
 		
 		return dataItem;

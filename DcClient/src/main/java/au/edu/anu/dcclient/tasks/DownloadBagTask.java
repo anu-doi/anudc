@@ -3,29 +3,25 @@ package au.edu.anu.dcclient.tasks;
 import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.ProgressListener;
-import gov.loc.repository.bagit.transfer.BagFetchResult;
 import gov.loc.repository.bagit.transfer.BagFetcher;
 import gov.loc.repository.bagit.transfer.BagTransferException;
-import gov.loc.repository.bagit.transfer.FetchFailStrategy;
-import gov.loc.repository.bagit.transfer.FetchFailureAction;
 import gov.loc.repository.bagit.transfer.FetchProtocol;
-import gov.loc.repository.bagit.transfer.FetchTarget;
 import gov.loc.repository.bagit.transfer.fetch.HttpFetchProtocol;
 import gov.loc.repository.bagit.utilities.SimpleResult;
 
 import java.io.File;
-import java.net.Authenticator;
+import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.DcBag;
-import au.edu.anu.dcclient.DcAuthenticator;
-import au.edu.anu.dcclient.Global;
+import au.edu.anu.dcbag.DcBagException;
 
 public final class DownloadBagTask extends AbstractDcBagTask implements Callable<File>
 {
@@ -75,48 +71,67 @@ public final class DownloadBagTask extends AbstractDcBagTask implements Callable
 	 * </pre>
 	 * 
 	 * @return Bag downloaded as File.
-	 * @throws Exception
 	 */
 	@Override
-	public File call() throws Exception
+	public File call() throws BagTransferException, IOException, DcBagException
 	{
 		BagFetcher fetcher = new BagFetcher(new BagFactory());
-		// HTTP
-		FetchProtocol http = new HttpFetchProtocol();
+		HttpFetchProtocol http = new HttpFetchProtocol();						// HTTP
 		fetcher.registerProtocol("http", http);
-		// HTTPS
-		HttpFetchProtocol https = new HttpFetchProtocol();
+
+		HttpFetchProtocol https = new HttpFetchProtocol();					// HTTPS
 		// TODO Change the following in production when using trusted CA-certified cert
 		https.setRelaxedSsl(true);
 		fetcher.registerProtocol("https", https);
 
 		updateProgress("Initialising bag download", pidBagUri.toString(), null, null);
 		if (this.plSet != null)
-			for (ProgressListener l : plSet)
-				fetcher.addProgressListener(l);
+			for (ProgressListener pl : plSet)
+				fetcher.addProgressListener(pl);
 		LOGGER.info("Beginning download of bag...");
 		SimpleResult result;
+		File tempBagFile = new File(System.getProperty("java.io.tmpdir"), localBagFile.getName());
+		DcBag dcBag = null;
 		try
 		{
-			result = fetcher.fetchRemoteBag(localBagFile, pidBagUri.toString(), false);
+			if (tempBagFile.exists())
+			{
+				FileUtils.deleteDirectory(tempBagFile);
+			}
+			LOGGER.info("Temp location of downloaded bag: " + tempBagFile.getCanonicalPath());
+			result = fetcher.fetchRemoteBag(tempBagFile, pidBagUri.toString(), false);
+			if (result.isSuccess())
+			{
+				dcBag = new DcBag(localBagFile, LoadOption.BY_FILES);
+				dcBag.replaceWith(tempBagFile, true);
+				// Following code is added due to a possible bug in BagIt lib - the fetch.txt should be deleted after all payload files are downloaded.
+				dcBag.removeBagFile(dcBag.getBag().getFetchTxt().getFilepath());
+				//				dcBag.save();
+				dcBag.close();
+			}
+			else
+			{
+				LOGGER.error("Download result is false.");
+				throw new BagTransferException("Download result is false");
+			}
 		}
-		catch (BagTransferException e)
+		finally
 		{
-			throw e;
+			LOGGER.debug("Deleting the temp bag file.");
+			if (dcBag != null)
+				dcBag.close();
+			try
+			{
+				FileUtils.deleteDirectory(tempBagFile);
+			}
+			finally
+			{
+				// Do nothing.
+			}
+			updateProgress("done", null, null, null);
 		}
 
-		// Following code is added due to a possible bug in BagIt lib - the fetch.txt should be deleted after all payload files are downloaded.
-		if (result.isSuccess())
-		{
-			DcBag dcBag = new DcBag(localBagFile, LoadOption.BY_FILES);
-			dcBag.removeBagFile(dcBag.getBag().getFetchTxt().getFilepath());
-			dcBag.save();
-			dcBag.close();
-		}
-		updateProgress("done", null, null, null);
 		LOGGER.debug("Result from Bag Fetch: {}.", result.toString());
-		if (!result.isSuccess())
-			throw new BagTransferException("Unable to download bag from ANU Data Commons");
 		return localBagFile;
 	}
 }

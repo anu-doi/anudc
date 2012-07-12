@@ -45,11 +45,13 @@ public class DownloadBagTaskTest extends AbstractDcBagTaskTest
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
 	{
+		AbstractDcBagTaskTest.setUpBeforeClass();
 	}
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception
 	{
+		
 	}
 
 	@Before
@@ -70,7 +72,7 @@ public class DownloadBagTaskTest extends AbstractDcBagTaskTest
 		DownloadBagTask task = new DownloadBagTask(Global.getBagUploadUri(), "test:1", tempFolder.getRoot());
 		ExecutorService execSvc = Executors.newFixedThreadPool(1);
 		Future<File> result = execSvc.submit(task);
-		File bagFile= result.get();
+		File bagFile = result.get();
 		assertTrue("Bag file wasn't saved locally.", bagFile.exists());
 		DcBag dcBag = new DcBag(bagFile, LoadOption.BY_FILES);
 		assertTrue("Bag is invalid.", dcBag.verifyValid().isSuccess());

@@ -42,7 +42,7 @@ public class DataItem {
 	 * 
 	 * @return The name of the object
 	 */
-	public String getName_() {
+	public String getName() {
 		return name_;
 	}
 	
@@ -56,7 +56,7 @@ public class DataItem {
 	 * 
 	 * @param name_ The name of the object
 	 */
-	public void setName_(String name_) {
+	public void setName(String name_) {
 		this.name_ = name_;
 	}
 	
@@ -70,7 +70,7 @@ public class DataItem {
 	 * 
 	 * @return The text node value of the object
 	 */
-	public String getValue_() {
+	public String getValue() {
 		return value_;
 	}
 	
@@ -84,7 +84,7 @@ public class DataItem {
 	 * 
 	 * @param value_ The text node value of the object
 	 */
-	public void setValue_(String value_) {
+	public void setValue(String value_) {
 		this.value_ = value_;
 	}
 
@@ -98,7 +98,7 @@ public class DataItem {
 	 * 
 	 * @return A map containing the name and values of the child nodes
 	 */
-	public Map<String, String> getChildValues_() {
+	public Map<String, String> getChildValues() {
 		return childValues_;
 	}
 
@@ -112,7 +112,7 @@ public class DataItem {
 	 * 
 	 * @param childValues_ A map containing the name and values of the child nodes
 	 */
-	public void setChildValues_(Map<String, String> childValues_) {
+	public void setChildValues(Map<String, String> childValues_) {
 		this.childValues_ = childValues_;
 	}
 }
