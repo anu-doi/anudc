@@ -73,6 +73,7 @@ import com.sun.jersey.api.view.Viewable;
  * </pre>
  */
 @Path("/upload")
+@Component
 public class UploadService
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UploadService.class);
@@ -338,6 +339,7 @@ public class UploadService
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}/{fileInBag:.*}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doGetFileInBagAsOctetStream2(@Context HttpServletRequest request, @PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag)
 	{
 		Response resp = null;
@@ -345,7 +347,6 @@ public class UploadService
 
 		LOGGER.debug("pid: {}, filename: {}", pid, fileInBag);
 
-		// TODO Code below that checks header for basic authentication should run only when a user isn't logged into CAS.
 		LOGGER.debug("Request headers:");
 		Enumeration<String> headers = request.getHeaderNames();
 		while (headers.hasMoreElements())
@@ -354,23 +355,6 @@ public class UploadService
 			LOGGER.debug("{}: {}", headerName, request.getHeader(headerName));
 		}
 
-		/*
-		try
-		{
-			if (checkAuth(request.getHeader("authorization")) == false)
-			{
-				LOGGER.warn("Authentication failed with the provided username and password. Returning HTTP 401.");
-				return Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic").build();
-			}
-		}
-		catch (NullPointerException e)
-		{
-			LOGGER.warn("Request did not contain authorization header. Returning with WWW-Authenticate header");
-			// TODO Change the realm value below if required.
-			return Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic realm=\"test\"").build();
-		}
-		*/
-		
 		// Check for a FileSystem bag.
 		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
 		if (bagFile != null)
