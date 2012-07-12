@@ -108,7 +108,6 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 	{
 		localBagFile = DcBag.getBagFile(Global.getLocalBagStoreAsFile(), txtPid.getText());
 		final ExecutorService execSvc = Executors.newSingleThreadExecutor();
-		URI pidBagUri = UriBuilder.fromUri(Global.getBagUploadUri()).path(txtPid.getText().toLowerCase().trim()).build();
 
 		// Check if a local bag already exists.
 		if (localBagFile != null && localBagFile.exists())
@@ -218,7 +217,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 		else
 		{
 			// Local bag doesn't exist, check if there's one to download.
-			GetInfoTask getInfoTask = new GetInfoTask(pidBagUri);
+			GetInfoTask getInfoTask = new GetInfoTask(Global.getBagUploadUri(), txtPid.getText().toLowerCase().trim());
 			getInfoTask.addProgressListener(new ProgressDialog(parentComponent));
 			final Future<ClientResponse> getInfoTaskResult = execSvc.submit(getInfoTask);
 			execSvc.submit(new Runnable()

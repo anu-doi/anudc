@@ -6,6 +6,7 @@ import gov.loc.repository.bagit.ProgressListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.net.Authenticator;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.concurrent.Callable;
@@ -24,6 +25,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 public class UploadBagTask extends AbstractDcBagTask implements Callable<ClientResponse>
 {
@@ -121,9 +123,11 @@ public class UploadBagTask extends AbstractDcBagTask implements Callable<ClientR
 	 */
 	private ClientResponse uploadFile(File serializedBagFile) throws UniformInterfaceException, ClientHandlerException, FileNotFoundException
 	{
+		URI pidUri = UriBuilder.fromUri(bagBaseUri).path(dcBag.getExternalIdentifier()).build();
 		Client client = Client.create(new DefaultClientConfig());
+		// client.addFilter(new HTTPBasicAuthFilter(Authenticator.requestPasswordAuthentication(pidUri.getHost(), )));
 		client.setChunkedEncodingSize(1024 * 1024);
-		WebResource webResource = client.resource(UriBuilder.fromUri(bagBaseUri).path(dcBag.getExternalIdentifier()).build());
+		WebResource webResource = client.resource(pidUri);
 		// TODO Replace content disposition using an object.
 		// ContentDisposition contDisp2 = new ContentDispositionBuilder("attachment").fileName(serializedBagFile.getName()).size(serializedBagFile.length()).build();
 		String contDisp = MessageFormat.format("attachment; filename=\"{0}\"", serializedBagFile.getName());

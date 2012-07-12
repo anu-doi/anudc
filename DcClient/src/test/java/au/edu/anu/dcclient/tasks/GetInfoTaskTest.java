@@ -53,9 +53,8 @@ public class GetInfoTaskTest extends AbstractDcBagTaskTest
 	@Test
 	public void testCall() throws InterruptedException, ExecutionException
 	{
-		URI pidBagUri = UriBuilder.fromUri(Global.getBagUploadUri()).path(PID).build();
 		ExecutorService execSvc = Executors.newFixedThreadPool(1);
-		GetInfoTask task = new GetInfoTask(pidBagUri);
+		GetInfoTask task = new GetInfoTask(Global.getBagUploadUri(), PID);
 		task.addProgressListener(getProgressListener());
 		Future<ClientResponse> pidInfoResp = execSvc.submit(task);
 		assertNotNull(pidInfoResp);

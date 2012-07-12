@@ -162,7 +162,7 @@ public class DcClient
 			String pid = args[1];
 
 			System.out.println("Getting bag information...");
-			GetInfoTask getInfoTask = new GetInfoTask(UriBuilder.fromUri(Global.getBagUploadUri()).path(pid).build());
+			GetInfoTask getInfoTask = new GetInfoTask(Global.getBagUploadUri(), pid);
 			getInfoTask.addProgressListener(new ConsoleProgressListener());
 			try
 			{

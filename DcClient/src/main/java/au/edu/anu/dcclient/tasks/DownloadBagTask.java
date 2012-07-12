@@ -95,9 +95,7 @@ public final class DownloadBagTask extends AbstractDcBagTask implements Callable
 		try
 		{
 			if (tempBagFile.exists())
-			{
 				FileUtils.deleteDirectory(tempBagFile);
-			}
 			LOGGER.info("Temp location of downloaded bag: " + tempBagFile.getCanonicalPath());
 			result = fetcher.fetchRemoteBag(tempBagFile, pidBagUri.toString(), false);
 			if (result.isSuccess())

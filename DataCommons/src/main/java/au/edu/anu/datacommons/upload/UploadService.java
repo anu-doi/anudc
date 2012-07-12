@@ -424,7 +424,8 @@ public class UploadService
 	@POST
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}")
-	public Response doPostBag(@Context HttpServletRequest request, @PathParam("pid") String pid, File uploadedFile)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response doPostBag(@PathParam("pid") String pid, File uploadedFile)
 	{
 		Response resp = null;
 		DcBag uploadedDcBag = null;
@@ -761,30 +762,5 @@ public class UploadService
 				}
 			}
 		}
-	}
-
-	private boolean checkAuth(String authHeader)
-	{
-		if (authHeader == null)
-			throw new NullPointerException("No Authorization header");
-
-		String parts[] = extractBasicCreds(authHeader);
-		LdapRequest authReq = new LdapRequest();
-		// TODO Remove testuser as a valid username.
-		if (authReq.authenticate(parts[0], parts[1]) == true)
-			return true;
-		else if (parts[0].equals("testuser"))
-			return true;
-		else
-			return false;
-	}
-
-	public static String[] extractBasicCreds(String authValue)
-	{
-		// Base64 decode the value against 'authentication' header. Value format: "Basic [base64encoded username]:[base64encoded password]"
-		String decodedAuthVal = new String(Base64.decodeBase64(authValue.replaceFirst("(?i)Basic ", "")));
-		String parts[] = decodedAuthVal.split(":", 2);
-		LOGGER.debug("Username: {}, Password: ****", parts[0]);
-		return parts;
 	}
 }

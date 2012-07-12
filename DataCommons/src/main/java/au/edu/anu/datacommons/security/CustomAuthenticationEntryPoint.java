@@ -27,6 +27,7 @@ import au.edu.anu.datacommons.security.cas.ANUUserDetailsService;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		11/07/2012	Genevieve Turner (GT)	Initial
+ * 0.2		12/07/2012	Rahul Khanna (RK)		Added auth header if request from Bagit.
  * </pre>
  *
  */
@@ -41,6 +42,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		11/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		12/07/2012	Rahul Khanna (RK)		Added auth header if request from Bagit.
 	 * </pre>
 	 * 
 	 * @param request HTTP request information
@@ -53,6 +55,10 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException authenticationException) throws IOException, ServletException {
+		// Add auth header if the request is from bagit.
+		if (request.getHeader("User-Agent").equals("BagIt Library Parallel Fetcher"))
+			response.addHeader("WWW-Authenticate", "Basic realm=\"Spring Security Application\"");
+
 		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
 	}
 

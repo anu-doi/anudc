@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -30,10 +31,10 @@ public final class GetInfoTask extends AbstractDcBagTask implements Callable<Cli
 	 * 
 	 * @param pidBagUri
 	 */
-	public GetInfoTask(URI pidBagUri)
+	public GetInfoTask(URI bagBaseUri, String pid)
 	{
 		super();
-		this.pidBagUri = pidBagUri;
+		this.pidBagUri = UriBuilder.fromUri(bagBaseUri).path(pid).build();
 	}
 
 	/**
