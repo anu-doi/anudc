@@ -27,11 +27,11 @@
 														<xsl:with-param name="tableVal" select="$mData" />
 													</xsl:call-template>
 												</xsl:when>
-													<xsl:when test="@fieldType='Combobox' or @fieldType='ComboBoxMulti'">
-														<xsl:call-template name="Combobox">
-															<xsl:with-param name="comboVal" select="$mData" />
-														</xsl:call-template>
-													</xsl:when>
+												<xsl:when test="@fieldType='Combobox' or @fieldType='ComboBoxMulti'">
+													<xsl:call-template name="Combobox">
+														<xsl:with-param name="comboVal" select="$mData" />
+													</xsl:call-template>
+												</xsl:when>
 												<xsl:otherwise>
 													<xsl:for-each select="$mData/data/*[name() = $name]">
 														<xsl:value-of disable-output-escaping="yes" select="text()" /><br />
@@ -50,6 +50,11 @@
 													<xsl:when test="@saveType='table'">
 														<xsl:call-template name="Table">
 															<xsl:with-param name="tableVal" select="$mModifiedData" />
+														</xsl:call-template>
+													</xsl:when>
+													<xsl:when test="@fieldType='Combobox' or @fieldType='ComboBoxMulti'">
+														<xsl:call-template name="Combobox">
+															<xsl:with-param name="comboVal" select="$mModifiedData" />
 														</xsl:call-template>
 													</xsl:when>
 													<xsl:otherwise>
