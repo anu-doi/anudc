@@ -114,8 +114,9 @@ public class UploadService
 	 * object preventing reuploading to the same datastream.
 	 * 
 	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		14/05/2012	Rahul Khanna (RK)	Initial
+	 * Version	Date		Developer				Description
+	 * 0.1		14/05/2012	Rahul Khanna (RK)		Initial
+	 * 0.2		13/07/2012	Genevieve Turner (GT)	Added pre-authorization
 	 * </pre>
 	 * 
 	 * @param request
@@ -125,8 +126,7 @@ public class UploadService
 	@POST
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-//	It appears jupload doesn't add information about the logged in user?
-//	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostAsHtml(@Context HttpServletRequest request)
 	{
 		Response resp = null;
@@ -341,7 +341,6 @@ public class UploadService
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}/{fileInBag:.*}")
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doGetFileInBagAsOctetStream2(@Context HttpServletRequest request, @PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag)
 	{
 		Response resp = null;
@@ -349,6 +348,7 @@ public class UploadService
 
 		LOGGER.debug("pid: {}, filename: {}", pid, fileInBag);
 
+		// TODO Code below that checks header for basic authentication should run only when a user isn't logged into CAS.
 		LOGGER.debug("Request headers:");
 		Enumeration<String> headers = request.getHeaderNames();
 		while (headers.hasMoreElements())
@@ -357,6 +357,23 @@ public class UploadService
 			LOGGER.debug("{}: {}", headerName, request.getHeader(headerName));
 		}
 
+		/*
+		try
+		{
+			if (checkAuth(request.getHeader("authorization")) == false)
+			{
+				LOGGER.warn("Authentication failed with the provided username and password. Returning HTTP 401.");
+				return Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic").build();
+			}
+		}
+		catch (NullPointerException e)
+		{
+			LOGGER.warn("Request did not contain authorization header. Returning with WWW-Authenticate header");
+			// TODO Change the realm value below if required.
+			return Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic realm=\"test\"").build();
+		}
+		*/
+		
 		// Check for a FileSystem bag.
 		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
 		if (bagFile != null)

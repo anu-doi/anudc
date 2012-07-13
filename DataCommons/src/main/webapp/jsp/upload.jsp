@@ -47,22 +47,23 @@
 		<sec:authorize access="isAuthenticated()">
 			<input type="hidden" name="username" value="<sec:authentication property='principal.username' />" />
 		</sec:authorize>
-
+		
 		<!-- JUpload applet. Using <applet> tag instead of <object> as per http://docs.oracle.com/javase/7/docs/technotes/guides/plugin/developer_guide/using_tags.html .
 		Warnings expected. -->
 		<applet code="wjhk.jupload2.JUploadApplet.class" name="JUpload" archive="/DataCommons/plugins/wjhk.jupload.jar" width="680" height="500" mayscript
 			alt="The java plugin must be installed.">
-			<param name="postURL" value="<c:url value='/rest/upload' />" />
+			<param name="postURL" value="<c:url value='/rest/upload;jsessionid=${cookie.JSESSIONID.value}' />" />
 			<param name="stringUploadSuccess" value="^SUCCESS$" />
 			<param name="stringUploadError" value="^ERROR: (.*)$" />
 			<param name="stringUploadWarning" value="^WARNING: (.*)$" />
 			<param name="debugLevel" value="1" />
 			<param name="maxChunkSize" value="10485760" />
-			<param name="afterUploadURL" value="javascript:window.location='<c:url value="/rest/upload/bagit/" />' + document.uploadForm.pid.value;" />
 			<param name="formdata" value="uploadForm" />
 			<param name="showLogWindow" value="false" />
 			<param name="showStatusBar" value="true" />
 			<param name="sendMD5Sum" value="true" />
+			<param name="readCookieFromNavigator" value="false" />
+			<param name="afterUploadURL" value="javascript:window.location='<c:url value="/rest/upload/bagit/" />' + document.uploadForm.pid.value;" />
 			This Java Applet requires Java 1.5 or higher.
 		</applet>
 	</form>
