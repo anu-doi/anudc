@@ -35,6 +35,7 @@ import au.edu.anu.datacommons.properties.GlobalProps;
  * Version	Date		Developer				Description
  * 0.1		14/03/2012	Rahul Khanna (RK)		Initial
  * 0.2		13/06/2012	Genevieve Turner (GT)	Changed query string output to debug
+ * 0.1		17/07/2012	Genevieve Turner(GT)	Added the ability to add a set of triples
  * </pre>
  */
 public final class SparqlQuery
@@ -313,6 +314,24 @@ public final class SparqlQuery
 			tripleLine.append("}");
 
 		triples.add(tripleLine.toString());
+	}
+	
+	/**
+	 * addTripleSet
+	 *
+	 * Provides a more flexible way of adding triples.  Useful for performing actions
+	 * such as UNION.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		17/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param triple The set of triples to add
+	 */
+	public void addTripleSet(String triple)
+	{
+		triples.add(triple);
 	}
 
 	/**

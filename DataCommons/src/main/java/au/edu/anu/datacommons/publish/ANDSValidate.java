@@ -19,6 +19,7 @@ import org.xml.sax.SAXException;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
+import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.util.Constants;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -297,49 +298,37 @@ public class ANDSValidate implements Validate{
 	 */
 	private boolean hasAssociatedType(String pid, String type) {
 		boolean isValid = false;
-		//TODO adjust sparql query class such that it can do union
-		/*SparqlQuery sparqlQuery = new SparqlQuery();
+		SparqlQuery sparqlQuery = new SparqlQuery();
 		sparqlQuery.addVar("?item");
 		sparqlQuery.addVar("?type");
 		sparqlQuery.addVar("?predicate");
-		sparqlQuery.addTriple("<info:fedora/" + pid + ">", "?predicate", "?item", false);
+		
+		StringBuffer tripleString = new StringBuffer();
+		
+		tripleString.append("{ <info:fedora/");
+		tripleString.append(pid);
+		tripleString.append("> ?predicate ?item . } ");
+		tripleString.append("UNION ");
+		tripleString.append("{ ?item ?predicate <info:fedora/");
+		tripleString.append(pid);
+		tripleString.append("> } ");
+		
+		sparqlQuery.addTripleSet(tripleString.toString());
 		sparqlQuery.addTriple("?item", "<dc:type>", "?type", false);
 		StringBuffer filterString = new StringBuffer();
 		
 		// Add the predicate filter
 		filterString.append("regex(str(?predicate), '");
 		filterString.append(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI));
-		filterString.append("', 'i')");
-		
+		filterString.append("', 'i') ");
+		filterString.append("&& ");
 		// Add the type filter
 		filterString.append("regex(?type , '");
 		filterString.append(type);
-		filterString.append("', 'i')");
+		filterString.append("', 'i') ");
 		
 		sparqlQuery.addFilter(filterString.toString(), "");
-		sparqlQuery.generateQuery();
-		*/
-		StringBuffer queryString = new StringBuffer();
-		queryString.append("SELECT ?item ?type ?predicate ");
-		queryString.append("where { ");
-		queryString.append("{ <info:fedora/");
-		queryString.append(pid);
-		queryString.append("> ?predicate ?item . } ");
-		queryString.append("UNION ");
-		queryString.append("{ ?item ?predicate <info:fedora/");
-		queryString.append(pid);
-		queryString.append("> } . ");
-		queryString.append("?item <dc:type> ?type . ");
-		queryString.append("FILTER ( ( ");
-		queryString.append("regex(str(?predicate), '");
-		queryString.append(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI));
-		queryString.append("', 'i') ");
-		queryString.append("&& ");
-		queryString.append("regex(?type, '");
-		queryString.append(type);
-		queryString.append("', 'i') ");
-		queryString.append(") ) ");
-		queryString.append("} ");
+		String queryString = sparqlQuery.generateQuery();
 		
 		//TODO see if there is an easier way to get this information
 		ExternalPoster poster = new ExternalPoster();
