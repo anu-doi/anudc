@@ -43,8 +43,11 @@ import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
+import au.edu.anu.datacommons.exception.ValidationException;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.publish.FieldValidate;
 import au.edu.anu.datacommons.publish.Publish;
+import au.edu.anu.datacommons.publish.Validate;
 import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.search.SparqlResultSet;
@@ -82,6 +85,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.8		20/06/2012	Genevieve Turner (GT)	Moved permissions and change the page retrieval from a String to a Map
  * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to add an audit row when an object is published
  * 0.10		11/07/2012	Genevieve Turner (GT)	Updated to allow or deny access to unpublished pages
+ * 0.11		17/07/2012	Genevieve Turner (GT)	Added validation prior to publishing
  * </pre>
  * 
  */
@@ -653,10 +657,21 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.7		08/06/2012	Genevieve Turner(GT)	Initial
+	 * 0.11		17/07/2012	Genevieve Turner (GT)	Added validation prior to publishing
 	 * </pre>
 	 * @param pid The pid to set the publishing information for
 	 */
 	private void generalPublish(String pid) {
+		Validate validate = new FieldValidate();
+		if (!validate.isValid(pid)) {
+			StringBuffer errorMessages = new StringBuffer();
+			errorMessages.append("Not all required fields have been filled out correctly\n");
+			for (String message : validate.getErrorMessages()) {
+				errorMessages.append(message);
+				errorMessages.append("\n");
+			}
+			throw new ValidationException(errorMessages.toString());
+		}
 		FedoraReference fedoraReference = new FedoraReference();
 		fedoraReference.setPredicate_(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_OAIPROVIDER_URL));
 		fedoraReference.setObject_("oai:" + pid);
