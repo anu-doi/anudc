@@ -103,7 +103,7 @@ jQuery(document).keypress(function(e) {
 jQuery("#formAddLink").live('submit', function() {
 	var pathArray = window.location.pathname.split('/');
 	var pid = pathArray[pathArray.length - 1];
-	var urlStr = "/DataCommons/rest/display/addLink?item=" + pid;
+	var urlStr = "/DataCommons/rest/display/addLink/" + pid;
 	var typeStr = jQuery("#linkType").val();
 	var itemStr = jQuery("#itemId").val();
 	var dataString = 'linkType=' + typeStr + '&itemId=' + itemStr;
