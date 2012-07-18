@@ -39,15 +39,11 @@ public class ProgressDialog extends JDialog implements ProgressListener
 	 * Version	Date		Developer			Description
 	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
 	 * </pre>
-	 * 
-	 * @param parentComponent
 	 */
-	public ProgressDialog(Component parentComponent)
+	public ProgressDialog()
 	{
-		this.parentComponent = parentComponent;
 		setBounds(100, 100, 401, 213);
-		this.parentComponent = parentComponent;
-		this.setLocationRelativeTo(parentComponent);
+		this.setLocationRelativeTo(MainWindow.getMainParent());
 		// this.setModalityType(ModalityType.APPLICATION_MODAL);
 		getContentPane().setLayout(new BorderLayout());
 		this.contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -108,5 +104,11 @@ public class ProgressDialog extends JDialog implements ProgressListener
 				}
 			}
 		});
+	}
+	
+	public void setVisible(boolean b)
+	{
+		this.setLocationRelativeTo(MainWindow.getMainParent());
+		super.setVisible(b);
 	}
 }

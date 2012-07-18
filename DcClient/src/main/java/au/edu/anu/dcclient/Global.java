@@ -50,7 +50,7 @@ public abstract class Global
 	 */
 	public static String getBagUploadUrl()
 	{
-		return globalProperties.getProperty("app.server.uploadUri");
+		return getBagUploadUri().toString();
 	}
 
 	/**
@@ -69,7 +69,10 @@ public abstract class Global
 	 */
 	public static URI getBagUploadUri()
 	{
-		return UriBuilder.fromPath(getBagUploadUrl()).build();
+		String appUri = globalProperties.getProperty("app.server");
+		String appBagUri = globalProperties.getProperty("app.server.uploadUri");
+		URI uri = UriBuilder.fromPath(appUri).path(appBagUri).build();
+		return uri;
 	}
 
 	/**

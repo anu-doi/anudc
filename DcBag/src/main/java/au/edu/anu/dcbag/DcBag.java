@@ -318,7 +318,7 @@ public class DcBag implements ProgressListenable
 		bag.putBagFile(dcBagProps);
 		bag.getTagManifest(BAGS_ALGORITHM).put(DcBagProps.DCPROPS_FILEPATH, checksum);
 	}
-	
+
 	public void makeDcComplete()
 	{
 		DefaultCompleter dcBagCompleter = new DefaultCompleter(BAG_FACTORY);
@@ -413,9 +413,9 @@ public class DcBag implements ProgressListenable
 				for (Entry<String, String> iEntry : plManifestFiles)
 				{
 					BagFile iFile = bag.getBagFile(iEntry.getKey());
-					
+
 					// Check if file exists. Then check its hash value matches the one in the manifest.
-					if (!iFile.exists())
+					if (iFile == null || !iFile.exists())
 						throw new DcBagException("Bag doesn't contain file " + iFile.getFilepath());
 					if (!MessageDigestHelper.fixityMatches(iFile.newInputStream(), BAGS_ALGORITHM, iEntry.getValue()))
 						throw new DcBagException("Bag contains modified existing files.");
@@ -479,16 +479,7 @@ public class DcBag implements ProgressListenable
 		saveAs(curBagFile.getParentFile(), getExternalIdentifier(), Format.FILESYSTEM);
 
 		if (deleteOrig)
-		{
-			try
-			{
-				FileUtils.deleteDirectory(newBagFile);
-			}
-			catch (IOException e)
-			{
-				LOGGER.debug("Unable to delete original bag.");
-			}
-		}
+			FileUtils.deleteQuietly(newBagFile);
 	}
 
 	private void archiveBag(File file) throws IOException

@@ -100,14 +100,6 @@ public class UploadServiceTest extends JerseyTest
 		System.in.read();
 	}
 	
-	@Test
-	public void testExtractBasicCreds()
-	{
-		String parts[] = UploadService.extractBasicCreds("Basic dXNlcm5hbWU6cGFzczp3b3Jk");
-		assertTrue("parts[0] is " + parts[0], parts[0].equals("username"));
-		assertTrue("parts[1] is " + parts[1], parts[1].equals("pass:word"));
-	}
-
 	private Bag createDummyBag() throws IOException
 	{
 		File payloadFile1 = File.createTempFile("DcTest", "");

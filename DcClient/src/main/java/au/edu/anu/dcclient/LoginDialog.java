@@ -17,7 +17,8 @@ import java.awt.event.ActionEvent;
 
 public class LoginDialog extends JDialog
 {
-
+	private static final long serialVersionUID = 1L;
+	
 	private final JPanel contentPanel = new JPanel();
 	private JLabel lblUser;
 	private JLabel lblPassword;
@@ -34,7 +35,7 @@ public class LoginDialog extends JDialog
 	{
 		setTitle("Login");
 		setSize(263, 151);
-		this.setLocationRelativeTo(parentComponent);
+		this.setLocationRelativeTo(MainWindow.getMainParent());
 		getContentPane().setLayout(new BorderLayout());
 		this.contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(this.contentPanel, BorderLayout.CENTER);
@@ -106,5 +107,12 @@ public class LoginDialog extends JDialog
 	public String getPassword()
 	{
 		return password;
+	}
+	
+	@Override
+	public void setVisible(boolean b)
+	{
+		this.setLocationRelativeTo(MainWindow.getMainParent());
+		super.setVisible(b);
 	}
 }

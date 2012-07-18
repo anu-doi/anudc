@@ -19,6 +19,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.properties.GlobalProps;
@@ -184,5 +185,23 @@ public class CollectionDropbox
 	{
 		accessLogEntry.setDropbox(this);
 		this.accessLog.add(accessLogEntry);
+	}
+	
+	@Transient
+	public boolean isValid(String password)
+	{
+		// Check if active.
+		if (!this.isActive)
+			return false;
+		
+		// Check if expired.
+		if (new Date().after(this.getExpiry()))
+			return false;
+
+		// Check if password matches.
+		if (!password.equals(this.getAccessPassword()))
+			return false;
+		
+		return true;
 	}
 }

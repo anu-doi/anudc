@@ -5,7 +5,6 @@ import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.writer.impl.ZipWriter;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -49,7 +48,6 @@ public class UploadPidBagAction extends AbstractAction implements ActionListener
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
 
-	private Component parentComponent;
 	private JTextComponent txtPid;
 	private FileExplorer bagExplorer;
 
@@ -64,17 +62,13 @@ public class UploadPidBagAction extends AbstractAction implements ActionListener
 	 * Version	Date		Developer			Description
 	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
 	 * </pre>
-	 * 
-	 * @param parentComponent
-	 *            Parent component for dialogs etc.
 	 * @param txtPid
 	 *            Component containing the pid whose bag will be uploaded.
 	 * @param bagExplorer
 	 *            The bag explorer component.
 	 */
-	public UploadPidBagAction(Component parentComponent, JTextComponent txtPid, FileExplorer bagExplorer)
+	public UploadPidBagAction(JTextComponent txtPid, FileExplorer bagExplorer)
 	{
-		this.parentComponent = parentComponent;
 		this.txtPid = txtPid;
 		this.bagExplorer = bagExplorer;
 	}
@@ -98,16 +92,17 @@ public class UploadPidBagAction extends AbstractAction implements ActionListener
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
+		ProgressDialog progDialog = new ProgressDialog();
 		File bagFile = bagExplorer.getBagDir();
 		final DcBag dcBag = new DcBag(bagFile, LoadOption.BY_FILES);
 		ExecutorService execSvc = Executors.newSingleThreadExecutor();
 		SaveBagTask saveTask = new SaveBagTask(dcBag, Global.getLocalBagStoreAsFile(), dcBag.getExternalIdentifier(), Format.FILESYSTEM);
-		saveTask.addProgressListener(new ProgressDialog(this.parentComponent));
+		saveTask.addProgressListener(progDialog);
 		final Future<File> saveTaskResult = execSvc.submit(saveTask);
 
 		// Upload ZIP.
 		UploadBagTask uploadTask = new UploadBagTask(dcBag, Global.getBagUploadUri());
-		uploadTask.addProgressListener(new ProgressDialog(this.parentComponent));
+		uploadTask.addProgressListener(progDialog);
 		final Future<ClientResponse> uploadTaskResult = execSvc.submit(uploadTask);
 
 		// Check if upload was successful.
@@ -121,9 +116,9 @@ public class UploadPidBagAction extends AbstractAction implements ActionListener
 				{
 					resp = uploadTaskResult.get();
 					if (resp.getStatus() == HttpStatus.SC_OK)
-						JOptionPane.showMessageDialog(parentComponent, "Bag successfully uploaded.", "Bag Upload", JOptionPane.INFORMATION_MESSAGE);
+						JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Bag successfully uploaded.", "Bag Upload", JOptionPane.INFORMATION_MESSAGE);
 					else
-						JOptionPane.showMessageDialog(parentComponent, "Error uploading bag.", "Bag Upload", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Error uploading bag.", "Bag Upload", JOptionPane.ERROR_MESSAGE);
 				}
 				catch (InterruptedException e)
 				{
@@ -134,18 +129,6 @@ public class UploadPidBagAction extends AbstractAction implements ActionListener
 				{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
-				finally
-				{
-					try
-					{
-						saveTaskResult.get().delete();
-						dcBag.close();
-					}
-					catch (Exception e)
-					{
-						LOGGER.warn("Unable to delete the Zip file created.");
-					}
 				}
 			}
 		});

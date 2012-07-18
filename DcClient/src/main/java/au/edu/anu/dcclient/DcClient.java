@@ -9,6 +9,7 @@ import gov.loc.repository.bagit.utilities.SimpleResult;
 
 import java.awt.EventQueue;
 import java.io.File;
+import java.io.IOException;
 import java.net.Authenticator;
 import java.text.MessageFormat;
 import java.util.concurrent.ExecutorService;
@@ -25,6 +26,8 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
 
 import au.edu.anu.dcbag.DcBag;
+import au.edu.anu.dcbag.DcBagException;
+import au.edu.anu.dcbag.DcBagProps;
 import au.edu.anu.dcclient.tasks.DownloadBagTask;
 import au.edu.anu.dcclient.tasks.GetInfoTask;
 import au.edu.anu.dcclient.tasks.SaveBagTask;
@@ -126,36 +129,48 @@ public class DcClient
 	private static int cmdMgr(String[] args)
 	{
 		int exitCode = 0;
+		DcBag bag = null;
 
 		if (args.length < 4)
 		{
-			System.out.println("Performs an action on a bag.");
-			System.out.println();
-			System.out.println("DcClient -D|-S|-U collectionId -N username -P password");
-			System.out.println(" -D\tDownloads a bag from ANU Data Commons onto the local bag store directory.");
-			System.out.println(" -S\tSaves a bag. Any files added/removed/edited are acknowledged and included in their respective manifests.");
-			System.out.println(" -U\t Uploads a bag to ANU Data Commons.");
+			displayHelp();
+			return 0;
 		}
 
 		// Extract credentials from command line.
-		String username = "";
-		String password = "";
-		for (int i = 0; i < args.length; i++)
+		try
 		{
-			// Username
-			if (args[i].equalsIgnoreCase("-n"))
-				username = args[i + 1];
+			String username = "";
+			String password = "";
+			for (int i = 0; i < args.length; i++)
+			{
+				// Username
+				if (args[i].equalsIgnoreCase("-n"))
+					username = args[i + 1];
+			}
+
+			for (int i = 0; i < args.length; i++)
+			{
+				// Password
+				if (args[i].equalsIgnoreCase("-p"))
+					password = args[i + 1];
+			}
+
+			if (!username.equals("") && !password.equals(""))
+				Authenticator.setDefault(new DcAuthenticator(username, password));
+		}
+		catch (IndexOutOfBoundsException e)
+		{
+			displayHelp();
+			return 1;
 		}
 
+		boolean isDsInstrument = false;
 		for (int i = 0; i < args.length; i++)
 		{
-			// Password
-			if (args[i].equalsIgnoreCase("-p"))
-				password = args[i + 1];
+			if (args[i].equalsIgnoreCase("-i"))
+				isDsInstrument = true;
 		}
-
-		if (!username.equals("") && !password.equals(""))
-			Authenticator.setDefault(new DcAuthenticator(username, password));
 
 		if (args[0].toLowerCase().trim().equals("-d"))
 		{
@@ -172,8 +187,10 @@ public class DcClient
 				{
 					// Bag for this pid not on server, create an empty local bag.
 					System.out.println("No bag for this collection found on server. Creating blank bag.");
-					DcBag blankBag = new DcBag(pid);
-					File bagFile = blankBag.saveAs(Global.getLocalBagStoreAsFile(), pid, Format.FILESYSTEM);
+					bag = new DcBag(pid);
+					if (isDsInstrument)
+						setDataSource(bag);
+					File bagFile = bag.saveAs(Global.getLocalBagStoreAsFile(), pid, Format.FILESYSTEM);
 					File plDir = new File(bagFile, "data/");
 					plDir.mkdirs();
 					System.out.println("Completed");
@@ -182,7 +199,7 @@ public class DcClient
 				{
 					throw new Exception("Unauthorized to download this collection or incorrect username and/or password.");
 				}
-				else if (resp.getStatus() == 500)
+				else if (resp.getStatus() == HttpStatus.SC_INTERNAL_SERVER_ERROR)
 				{
 					throw new Exception("Server error");
 				}
@@ -192,7 +209,12 @@ public class DcClient
 					DownloadBagTask dlTask = new DownloadBagTask(Global.getBagUploadUri(), pid, Global.getLocalBagStoreAsFile());
 					dlTask.addProgressListener(new ConsoleProgressListener());
 					System.out.println("Downloading bag...");
-					dlTask.call();
+					bag = new DcBag(dlTask.call(), LoadOption.BY_MANIFESTS);
+					if (isDsInstrument)
+					{
+						setDataSource(bag);
+						bag.save();
+					}
 					System.out.println("Bag downloaded.");
 				}
 			}
@@ -208,15 +230,17 @@ public class DcClient
 		{
 			// Save the bag.
 			String pid = args[1];
-			DcBag dcBag = new DcBag(Global.getLocalBagStoreAsFile(), pid, LoadOption.BY_FILES);
+			bag = new DcBag(Global.getLocalBagStoreAsFile(), pid, LoadOption.BY_FILES);
 			System.out.println("Saving bag...");
-			SaveBagTask saveTask = new SaveBagTask(dcBag);
+			if (isDsInstrument)
+				setDataSource(bag);
+			SaveBagTask saveTask = new SaveBagTask(bag);
 			try
 			{
 				saveTask.call();
 				System.out.println("Bag saved. Verifying its integrity...");
 
-				VerifyBagTask verifyTask = new VerifyBagTask(dcBag);
+				VerifyBagTask verifyTask = new VerifyBagTask(bag);
 				SimpleResult result = verifyTask.call();
 				if (result.isSuccess())
 				{
@@ -237,12 +261,17 @@ public class DcClient
 		else if (args[0].toLowerCase().trim().equals(("-u")))
 		{
 			String pid = args[1];
-			DcBag dcBag = new DcBag(Global.getLocalBagStoreAsFile(), pid, LoadOption.BY_FILES);
-			VerifyBagTask verifyTask = new VerifyBagTask(dcBag);
-			verifyTask.addProgressListener(new ConsoleProgressListener());
-			SimpleResult result;
+			bag = new DcBag(Global.getLocalBagStoreAsFile(), pid, LoadOption.BY_FILES);
 			try
 			{
+				if (isDsInstrument)
+				{
+					setDataSource(bag);
+					bag.save();
+				}
+				VerifyBagTask verifyTask = new VerifyBagTask(bag);
+				verifyTask.addProgressListener(new ConsoleProgressListener());
+				SimpleResult result;
 				// Verify current bag.
 				result = verifyTask.call();
 				if (result.isSuccess())
@@ -250,7 +279,7 @@ public class DcClient
 					System.out.println("Verification complete. Bag is valid. Uploading bag...");
 
 					// Upload the bag.
-					UploadBagTask uploadTask = new UploadBagTask(dcBag, Global.getBagUploadUri());
+					UploadBagTask uploadTask = new UploadBagTask(bag, Global.getBagUploadUri());
 					uploadTask.addProgressListener(new ConsoleProgressListener());
 					ClientResponse resp = uploadTask.call();
 					if (resp.getStatus() == HttpStatus.SC_OK)
@@ -279,5 +308,23 @@ public class DcClient
 		}
 
 		return exitCode;
+	}
+
+	private static void displayHelp()
+	{
+		System.out.println("Performs an action on a bag.");
+		System.out.println();
+		System.out.println("DcClient -D|-S|-U collectionId -N username -P password [-I]");
+		System.out.println(" -D\tDownloads a bag from ANU Data Commons onto the local bag store directory.");
+		System.out.println(" -S\tSaves a bag. Any files added/removed/edited are acknowledged and included in their respective manifests.");
+		System.out.println(" -U\tUploads a bag to ANU Data Commons.");
+		System.out.println(" -N\tUsername.");
+		System.out.println(" -P\tPassword.");
+		System.out.println(" -I\tTreat the bag as one with an instrument as datasource.");
+	}
+
+	private static void setDataSource(DcBag dcBag)
+	{
+		dcBag.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.INSTRUMENT.toString());
 	}
 }

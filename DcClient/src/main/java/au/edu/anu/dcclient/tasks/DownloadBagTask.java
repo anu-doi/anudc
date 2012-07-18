@@ -1,5 +1,6 @@
 package au.edu.anu.dcclient.tasks;
 
+import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.ProgressListener;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.DcBag;
 import au.edu.anu.dcbag.DcBagException;
+import au.edu.anu.dcclient.Global;
 
 public final class DownloadBagTask extends AbstractDcBagTask implements Callable<File>
 {
@@ -95,16 +97,24 @@ public final class DownloadBagTask extends AbstractDcBagTask implements Callable
 		try
 		{
 			if (tempBagFile.exists())
-				FileUtils.deleteDirectory(tempBagFile);
+				FileUtils.deleteQuietly(tempBagFile);
 			LOGGER.info("Temp location of downloaded bag: " + tempBagFile.getCanonicalPath());
 			result = fetcher.fetchRemoteBag(tempBagFile, pidBagUri.toString(), false);
 			if (result.isSuccess())
 			{
-				dcBag = new DcBag(localBagFile, LoadOption.BY_FILES);
-				dcBag.replaceWith(tempBagFile, true);
+				if (localBagFile.exists())
+				{
+					dcBag = new DcBag(localBagFile, LoadOption.BY_FILES);
+					dcBag.replaceWith(tempBagFile, true);
+				}
+				else
+				{
+					dcBag = new DcBag(tempBagFile, LoadOption.BY_FILES);
+					dcBag.saveAs(Global.getLocalBagStoreAsFile(), dcBag.getExternalIdentifier(), Format.FILESYSTEM);
+				}
 				// Following code is added due to a possible bug in BagIt lib - the fetch.txt should be deleted after all payload files are downloaded.
 				dcBag.removeBagFile(dcBag.getBag().getFetchTxt().getFilepath());
-				//				dcBag.save();
+				dcBag.save();
 				dcBag.close();
 			}
 			else
@@ -118,14 +128,7 @@ public final class DownloadBagTask extends AbstractDcBagTask implements Callable
 			LOGGER.debug("Deleting the temp bag file.");
 			if (dcBag != null)
 				dcBag.close();
-			try
-			{
-				FileUtils.deleteDirectory(tempBagFile);
-			}
-			finally
-			{
-				// Do nothing.
-			}
+			FileUtils.deleteQuietly(tempBagFile);
 			updateProgress("done", null, null, null);
 		}
 

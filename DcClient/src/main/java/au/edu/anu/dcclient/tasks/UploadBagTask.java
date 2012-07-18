@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.concurrent.Callable;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.DcBag;
+import au.edu.anu.dcclient.Global;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -89,13 +91,14 @@ public class UploadBagTask extends AbstractDcBagTask implements Callable<ClientR
 
 			updateProgress("Uploading ZIP file to Data Commons", zipFile, null, null);
 			ClientResponse resp = uploadFile(zipFile);
-			updateProgress("done", null, null, null);
 			dcBag.close();
 			zipFile.delete();
 			return resp;
 		}
 		finally
 		{
+			dcBag.close();
+			updateProgress("done", null, null, null);
 			if (zipFile != null)
 				zipFile.delete();
 		}
@@ -125,7 +128,10 @@ public class UploadBagTask extends AbstractDcBagTask implements Callable<ClientR
 	{
 		URI pidUri = UriBuilder.fromUri(bagBaseUri).path(dcBag.getExternalIdentifier()).build();
 		Client client = Client.create(new DefaultClientConfig());
-		// client.addFilter(new HTTPBasicAuthFilter(Authenticator.requestPasswordAuthentication(pidUri.getHost(), )));
+		PasswordAuthentication auth = Authenticator.requestPasswordAuthentication(pidUri.getHost(), null, pidUri.getPort(), pidUri.getScheme(),
+				"Please provide password for: " + Global.getBagUploadUrl(), "scheme");
+		if (auth != null)
+			client.addFilter(new HTTPBasicAuthFilter(auth.getUserName(), new String(auth.getPassword())));
 		client.setChunkedEncodingSize(1024 * 1024);
 		WebResource webResource = client.resource(pidUri);
 		// TODO Replace content disposition using an object.
