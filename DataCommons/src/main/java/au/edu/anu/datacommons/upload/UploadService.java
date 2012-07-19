@@ -321,7 +321,7 @@ public class UploadService
 		// Get dropbox requesting file.
 		DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
 		CollectionDropbox dropbox = dropboxDAO.getSingleByAccessCode(dropboxAccessCode);
-		Users requestor = dropbox.getCreator();
+		Users requestor = dropbox.getCollectionRequest().getRequestor();
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
 		if (dropbox.isValid(password) && requestor.getUsername().equals(username))
