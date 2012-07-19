@@ -24,14 +24,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.core.Response.Status;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -54,6 +52,7 @@ import au.edu.anu.datacommons.data.db.dao.QuestionDAO;
 import au.edu.anu.datacommons.data.db.dao.QuestionDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.QuestionMapDAO;
 import au.edu.anu.datacommons.data.db.dao.QuestionMapDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.UsersDAO;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
@@ -457,21 +456,17 @@ public class CollectionRequestService
 
 		try
 		{
-			List<Groups> reviewGroups = groupService.getReviewGroups();
 			List<CollectionDropbox> dropboxes = null;
-			if (reviewGroups.size() > 0)
-			{
-				DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
-				dropboxes = dropboxDAO.getPermittedRequests(reviewGroups);
-				model.put("dropboxes", dropboxes);
-
-				if (dropboxes.size() == 0)
-					messages.add(MessageType.WARNING, "No dropboxes found.", model);
-			}
-			else
-			{
+			String username = SecurityContextHolder.getContext().getAuthentication().getName();
+			UsersDAO userDAO = new UsersDAOImpl(Users.class);
+			Users user = userDAO.getUserByName(username);
+			
+			DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
+			dropboxes = dropboxDAO.getUserDropboxes(user);
+			model.put("dropboxes", dropboxes);
+			
+			if (dropboxes.size() == 0)
 				messages.add(MessageType.WARNING, "No dropboxes found.", model);
-			}
 			model.put("dropboxes", dropboxes);
 		}
 		catch (Exception e)

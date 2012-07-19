@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import au.edu.anu.datacommons.collectionrequest.CollectionDropbox;
 import au.edu.anu.datacommons.data.db.PersistenceManager;
 import au.edu.anu.datacommons.data.db.model.Groups;
+import au.edu.anu.datacommons.data.db.model.Users;
 
 /**
  * DropboxDAOImpl
@@ -26,6 +27,7 @@ import au.edu.anu.datacommons.data.db.model.Groups;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		29/06/2012	Genevieve Turner (GT)	Initial
+ * 0.2		19/07/2012	Genevieve Turner (GT)	Added a function to get dropboxes for the specified user
  * </pre>
  *
  */
@@ -132,5 +134,33 @@ public class DropboxDAOImpl extends GenericDAOImpl<CollectionDropbox, Long> impl
 		entityManager.close();
 		
 		return collectionDropbox;
+	}
+	
+	/**
+	 * getUserDropboxes
+	 * 
+	 * Gets a list of dropboxes for the given user
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		19/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param user The user to retrieve dropboxes for
+	 * @return A list of dropboxes for the given user
+	 * @see au.edu.anu.datacommons.data.db.dao.DropboxDAO#getUserDropboxes(au.edu.anu.datacommons.data.db.model.Users)
+	 */
+	public List<CollectionDropbox> getUserDropboxes(Users user) {
+		
+		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		Query query = null;
+		
+		query = entityManager.createQuery("SELECT cd FROM CollectionDropbox cd join cd.collectionRequest cr WHERE cr.requestor = :user",CollectionDropbox.class);
+		query.setParameter("user", user);
+		
+		List<CollectionDropbox> collectionDropboxes = query.getResultList();
+		
+		entityManager.close();
+		return collectionDropboxes;
 	}
 }

@@ -26,6 +26,7 @@ import au.edu.anu.datacommons.data.db.model.Groups;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		29/06/2012	Genevieve Turner (GT)	Initial
+ * 0.2		19/07/2012	Genevieve Turner (GT)	Fixed an issue where if the user doesn't belong to any groups multiple rows are shown for each status
  * </pre>
  *
  */
@@ -59,6 +60,7 @@ public class CollectionRequestDAOImpl extends GenericDAOImpl<CollectionRequest, 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		29/06/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		19/07/2012	Genevieve Turner (GT)	Fixed an issue where if the user doesn't belong to any groups multiple rows are shown for each status
 	 * </pre>
 	 * 
 	 * @param userId
@@ -74,7 +76,6 @@ public class CollectionRequestDAOImpl extends GenericDAOImpl<CollectionRequest, 
 			List<Long> groupIds = new ArrayList<Long>();
 			for (Groups group : groups) {
 				groupIds.add(group.getId());
-				LOGGER.info("Review group: {}", group.getId());
 			}
 
 			query = entityManager.createQuery("SELECT DISTINCT cr FROM CollectionRequest cr join cr.fedoraObject fo left join fetch cr.status WHERE (cr.requestor.id = :user_id) OR (fo.group_id IN (:groups)) ORDER BY cr.timestamp DESC",CollectionRequest.class);
@@ -82,7 +83,7 @@ public class CollectionRequestDAOImpl extends GenericDAOImpl<CollectionRequest, 
 			query.setParameter("groups", groupIds);
 		}
 		else {
-			query = entityManager.createQuery("SELECT cr FROM CollectionRequest cr left join fetch cr.status WHERE cr.requestor.id = :user_id ORDER BY cr.timestamp DESC",CollectionRequest.class);
+			query = entityManager.createQuery("SELECT DISTINCT cr FROM CollectionRequest cr left join fetch cr.status WHERE cr.requestor.id = :user_id ORDER BY cr.timestamp DESC",CollectionRequest.class);
 			query.setParameter("user_id", userId);
 		}
 		

@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
 <anu:header id="1998" title="TITLE" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur" respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
@@ -32,10 +33,10 @@
 				</tr>
 				<c:forEach var="iDropbox" items="${it.dropboxes}">
 					<tr>
-						<td><a href="<c:url value='/rest/collreq/dropbox' />/${iDropbox.id}"><c:out value="${iDropbox.id}" /></a></td>
-						<td><a href="<c:url value='/rest/collreq/dropbox' />/${iDropbox.id}"><c:out value="${iDropbox.accessCode}" /></a></td>
+						<td><c:out value="${iDropbox.id}" /></td>
+						<td><c:out value="${iDropbox.accessCode}" /></td>
 						<td><c:out value="${iDropbox.creator.username}" /></td>
-						<td><c:out value="${iDropbox.timestamp}" /></td>
+						<td><fmt:formatDate value="${iDropbox.timestamp}" pattern="dd MMM yyyy"/></td>
 						<td><c:out value="${iDropbox.expiry}" /></td>
 						<td><input type="checkbox" <c:if test="${iDropbox.notifyOnPickup == true}">checked="checked"</c:if> /></td>
 						<td><input type="checkbox" <c:if test="${iDropbox.active == true}">checked="checked"</c:if> /></td>
@@ -66,16 +67,16 @@
 				</p>
 				<p>
 					<label>Creator</label>
-					<c:out value="${it.dropbox.creator.username}" />
+					<c:out value="${it.dropbox.creator.displayName}" />
 				</p>
-				<p class="instruction"><c:out value="${it.dropbox.creator.displayName}" /></p>
+				<p class="instruction"><c:out value="${it.dropbox.creator.username}" /></p>
 				<p>
 					<label>Created</label>
-					<c:out value="${it.dropbox.timestamp}" />
+					<fmt:formatDate value="${it.dropbox.timestamp}" pattern="dd MMM yyyy"/>
 				</p>
 				<p>
 					<label>Expiry</label>
-					<c:out value="${it.dropbox.expiry}" />
+					<fmt:formatDate value="${it.dropbox.expiry}" pattern="dd MMM yyyy"/>
 				</p>
 				<p>
 					<label>Notify Creator</label>
