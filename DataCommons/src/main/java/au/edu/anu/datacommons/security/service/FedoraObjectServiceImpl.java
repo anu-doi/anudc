@@ -1,5 +1,7 @@
 package au.edu.anu.datacommons.security.service;
 
+import gov.loc.repository.bagit.BagFactory.LoadOption;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -57,6 +59,7 @@ import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
+import au.edu.anu.dcbag.DcBag;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.client.FedoraClientException;
@@ -85,7 +88,8 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.8		20/06/2012	Genevieve Turner (GT)	Moved permissions and change the page retrieval from a String to a Map
  * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to add an audit row when an object is published
  * 0.10		11/07/2012	Genevieve Turner (GT)	Updated to allow or deny access to unpublished pages
- * 0.11		17/07/2012	Genevieve Turner (GT)	Added validation prior to publishing
+ * 0.11		13/07/2012	Rahul Khanna (RK)		Updated filelist displayed on collection page
+ * 0.12		17/07/2012	Genevieve Turner (GT)	Added validation prior to publishing
  * </pre>
  * 
  */
@@ -388,6 +392,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.2		03/05/2012	Genevieve Turner (GT)	Updated to add related links to the page
 	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * 0.10		11/07/2012	Genevieve Turner (GT)	Updated to allow or deny access to unpublished pages
+	 * 0.11		13/07/2012	Rahul Khanna (RK)		Updated filelist displayed on collection page
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -411,8 +416,10 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 				// Update this section if we want to have a full list of files
 				List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(fedoraObject.getObject_id());
 				for (DatastreamType dsType : datastreamList) {
-					if (dsType.getDsid().contains("FILE0") ){
-						values.put("filelist", "Files Pending Availability");
+					if (dsType.getDsid().contains("FILE0") )
+					{
+						DcBag dcBag = new DcBag(GlobalProps.getBagsDirAsFile(), fedoraObject.getObject_id(), LoadOption.BY_MANIFESTS);
+						values.put("filelist", dcBag.getPayloadFileList());
 						break;
 					}
 				}

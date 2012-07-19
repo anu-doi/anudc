@@ -2,6 +2,7 @@ package au.edu.anu.dcclient;
 
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 
+import java.awt.Component;
 import java.awt.Dialog.ModalityType;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -37,6 +38,7 @@ import javax.swing.JSeparator;
 public class MainWindow
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MainWindow.class);
+	private static Component mainWindow = null;
 
 	private JFrame frmAnuDataCommons;
 	private JMenuBar menuBar;
@@ -60,6 +62,7 @@ public class MainWindow
 	private JMenuItem mntmLogin;
 	private JSeparator separator;
 	private LoginDialog loginDialog = null;
+	private JLabel lblDcUri;
 	
 	/**
 	 * MainWindow
@@ -78,6 +81,8 @@ public class MainWindow
 	{
 		initialize();
 		initActions();
+		if (mainWindow == null)
+			mainWindow = frmAnuDataCommons;
 	}
 
 	/**
@@ -158,6 +163,11 @@ public class MainWindow
 
 		this.tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		springLayout.putConstraint(SpringLayout.NORTH, this.tabbedPane, 10, SpringLayout.SOUTH, this.panelPid);
+		
+		this.lblDcUri = new JLabel(Global.getBagUploadUrl());
+		sl_panelPid.putConstraint(SpringLayout.NORTH, this.lblDcUri, 0, SpringLayout.NORTH, this.lblPid);
+		sl_panelPid.putConstraint(SpringLayout.WEST, this.lblDcUri, 6, SpringLayout.EAST, this.btnRetrieve);
+		this.panelPid.add(this.lblDcUri);
 		springLayout.putConstraint(SpringLayout.WEST, this.tabbedPane, 10, SpringLayout.WEST, this.frmAnuDataCommons.getContentPane());
 		springLayout.putConstraint(SpringLayout.SOUTH, this.tabbedPane, -10, SpringLayout.SOUTH, this.frmAnuDataCommons.getContentPane());
 		springLayout.putConstraint(SpringLayout.EAST, this.tabbedPane, -10, SpringLayout.EAST, this.frmAnuDataCommons.getContentPane());
@@ -218,9 +228,9 @@ public class MainWindow
 	 */
 	private void initActions()
 	{
-		this.btnRetrieve.addActionListener(new GetPidBagAction(this.frmAnuDataCommons, this.txtPid, this.bagExplorer));
-		this.btnSave.addActionListener(new SavePidBagAction(this.frmAnuDataCommons, this.txtPid, this.bagExplorer));
-		this.btnUpload.addActionListener(new UploadPidBagAction(this.frmAnuDataCommons, this.txtPid, this.bagExplorer));
+		this.btnRetrieve.addActionListener(new GetPidBagAction(this.txtPid, this.bagExplorer));
+		this.btnSave.addActionListener(new SavePidBagAction(this.txtPid, this.bagExplorer));
+		this.btnUpload.addActionListener(new UploadPidBagAction(this.txtPid, this.bagExplorer));
 		this.txtPid.getDocument().addDocumentListener(new DocumentListener()
 		{
 
@@ -264,7 +274,7 @@ public class MainWindow
 				}
 				catch (Exception e1)
 				{
-					JOptionPane.showMessageDialog(frmAnuDataCommons, "Unable to change data source property to instrument.", "Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Unable to change data source property to instrument.", "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});
@@ -323,5 +333,10 @@ public class MainWindow
 	public void setVisible(boolean isVisible)
 	{
 		this.frmAnuDataCommons.setVisible(isVisible);
+	}
+	
+	public static Component getMainParent()
+	{
+		return mainWindow;
 	}
 }

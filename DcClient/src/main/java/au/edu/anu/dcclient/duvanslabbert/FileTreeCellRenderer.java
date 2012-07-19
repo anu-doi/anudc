@@ -6,15 +6,17 @@ package au.edu.anu.dcclient.duvanslabbert;
 import java.awt.Color;
 import java.awt.Component;
 import java.io.File;
-import javax.swing.*;
+
+import javax.swing.Icon;
+import javax.swing.JTree;
+import javax.swing.LookAndFeel;
+import javax.swing.UIManager;
 import javax.swing.filechooser.FileSystemView;
-import javax.swing.text.StyledEditorKit.ForegroundAction;
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import sun.swing.DefaultLookup;
 
 @SuppressWarnings("serial")
 class FileTreeCellRenderer extends DefaultTreeCellRenderer

@@ -52,7 +52,7 @@ public final class VerifyBagTask extends AbstractDcBagTask implements Callable<S
 	@Override
 	public SimpleResult call() throws Exception
 	{
-		updateProgress("Verifying integrity of bag", dcBag, 1L, 1L);
+		updateProgress("Verifying integrity of bag for pid", dcBag.getExternalIdentifier(), 1L, 1L);
 		SimpleResult result = dcBag.verifyValid();
 		updateProgress("done", null, null, null);
 		return result;

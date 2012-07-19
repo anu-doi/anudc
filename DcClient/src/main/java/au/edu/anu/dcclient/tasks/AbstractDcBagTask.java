@@ -6,8 +6,6 @@ import gov.loc.repository.bagit.ProgressListener;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.BeforeClass;
-
 public abstract class AbstractDcBagTask implements ProgressListenable
 {
 	protected Set<ProgressListener> plSet = null;

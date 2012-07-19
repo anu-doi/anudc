@@ -13,7 +13,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.MessageFormat;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,15 +27,16 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.PropertyException;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -47,12 +47,24 @@ import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
+import au.edu.anu.datacommons.collectionrequest.CollectionDropbox;
+import au.edu.anu.datacommons.data.db.dao.AccessLogRecordDAO;
+import au.edu.anu.datacommons.data.db.dao.AccessLogRecordDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.DropboxDAO;
+import au.edu.anu.datacommons.data.db.dao.DropboxDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
-import au.edu.anu.datacommons.ldap.LdapRequest;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.security.AccessLogRecord;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.DcBag;
 
@@ -213,10 +225,11 @@ public class UploadService
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Path("bagit/{pid}")
-	public Response doGetCreateBag(@PathParam("pid") String pid)
+	public Response doGetCreateBag(@Context HttpServletRequest request, @Context UriInfo uriInfo, @PathParam("pid") String pid)
 	{
 		Properties uploadProps = new Properties();
 		Response resp = null;
+		AccessLogRecord accessRec = null;
 		try
 		{
 			// Read properties file [Pid].properties.
@@ -227,7 +240,13 @@ public class UploadService
 			pid = uploadProps.getProperty("pid");
 			if (!Util.isNotEmpty(pid))
 				throw new Exception("Missing Pid value.");
-			DcBag dcBag = new DcBag(DcBag.convertToDiskSafe(pid));
+			File curBagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
+			if (curBagFile == null)
+				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.CREATE);
+			else
+				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.UPDATE);
+
+			DcBag dcBag = new DcBag(pid);
 
 			// Add the files to the bag.
 			String filename;
@@ -246,6 +265,8 @@ public class UploadService
 
 			// Save the bag.
 			dcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, Format.FILESYSTEM);
+			// Create a log record for the activity performed.
+			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessRec);
 			resp = Response.temporaryRedirect(UriBuilder.fromPath("/upload").queryParam("smsg", "Upload Successful.").build()).build();
 			// resp = Response.temporaryRedirect(UriBuilder.fromResource(UploadService.class)..queryParam("smsg", "Upload Successful.").build()).build();
 		}
@@ -287,28 +308,42 @@ public class UploadService
 
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	@Path("files/{pid}/{fileInBag}")
-	public Response doGetFileInBagAsOctetStream(@PathParam("pid") String pid, @PathParam("fileInBag") String filename)
+	@Path("files/{pid}/{fileInBag:.*}")
+	public Response doGetFileInBagAsOctetStream(@Context HttpServletRequest request, @Context UriInfo uriInfo, @PathParam("pid") String pid,
+			@PathParam("fileInBag") String filename, @QueryParam("dropboxAccessCode") Long dropboxAccessCode, @QueryParam("p") String password)
 	{
 		Response resp = null;
-		DcBag dcBag = null;
 
-		LOGGER.debug("pid: {}, filename: {}", pid, filename);
+		LOGGER.trace("pid: {}, filename: {}", pid, filename);
 
-		// TODO Do custom user checking here - if the user has a valid dropbox etc.
+		// Get dropbox requesting file.
+		DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
+		CollectionDropbox dropbox = dropboxDAO.getSingleByAccessCode(dropboxAccessCode);
+		Users requestor = dropbox.getCreator();
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-		dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), DcBag.convertToDiskSafe(pid)), LoadOption.BY_FILES);
-		ResponseBuilder respBuilder = Response.ok(dcBag.getBagFileStream("data/" + filename), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-		respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=" + filename);			// Filename on client's computer.
-		respBuilder = respBuilder.header("Content-MD5", dcBag.getBagFileHash("data/" + filename));			// Hash of file. Header not used by most web browsers.
-		respBuilder = respBuilder.header("Content-Length", dcBag.getBagFileSize("data/" + filename));		// File size.
-		resp = respBuilder.build();
+		if (dropbox.isValid(password) && requestor.getUsername().equals(username))
+		{
+			LOGGER.info("Dropbox details valid. ID: {}, Access Code: {}. Returning file requested.", dropbox.getId().toString(), dropbox.getAccessCode()
+					.toString());
+			resp = getBagFileOctetStreamResp(pid, filename);
+			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
+					AccessLogRecord.Operation.READ));
+		}
+		else
+		{
+			LOGGER.warn("Unauthorised access to Dropbox ID: {}, Access Code: {}. Returning HTTP 403 Forbidden.", dropbox.getId().toString(), dropbox
+					.getAccessCode().toString());
+			resp = Response.status(Status.FORBIDDEN).build();
+		}
+
 		return resp;
 	}
 
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@Path("bag/{pid}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doGetBagFileListingAsHtml(@Context UriInfo uriInfo, @PathParam("pid") String pid)
 	{
 		Response resp = null;
@@ -320,10 +355,6 @@ public class UploadService
 			dcBag = new DcBag(GlobalProps.getBagsDirAsFile(), pid, LoadOption.BY_FILES);
 		else
 			throw new NotFoundException("Bag not found for " + pid);
-		
-
-		// TODO Add security.
-
 
 		Set<Entry<String, String>> plFileSet = dcBag.getPayloadFileList();
 		for (Entry<String, String> entry : plFileSet)
@@ -341,59 +372,17 @@ public class UploadService
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}/{fileInBag:.*}")
-	public Response doGetFileInBagAsOctetStream2(@Context HttpServletRequest request, @PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response doGetFileInBagAsOctetStream2(@Context HttpServletRequest request, @Context UriInfo uriInfo, @PathParam("pid") String pid,
+			@PathParam("fileInBag") String fileInBag)
 	{
-		Response resp = null;
-		DcBag dcBag = null;
-
-		LOGGER.debug("pid: {}, filename: {}", pid, fileInBag);
-
-		// TODO Code below that checks header for basic authentication should run only when a user isn't logged into CAS.
-		LOGGER.debug("Request headers:");
-		Enumeration<String> headers = request.getHeaderNames();
-		while (headers.hasMoreElements())
-		{
-			String headerName = headers.nextElement();
-			LOGGER.debug("{}: {}", headerName, request.getHeader(headerName));
-		}
-
-		/*
-		try
-		{
-			if (checkAuth(request.getHeader("authorization")) == false)
-			{
-				LOGGER.warn("Authentication failed with the provided username and password. Returning HTTP 401.");
-				return Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic").build();
-			}
-		}
-		catch (NullPointerException e)
-		{
-			LOGGER.warn("Request did not contain authorization header. Returning with WWW-Authenticate header");
-			// TODO Change the realm value below if required.
-			return Response.status(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic realm=\"test\"").build();
-		}
-		*/
-		
-		// Check for a FileSystem bag.
-		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
-		if (bagFile != null)
-			dcBag = new DcBag(bagFile, LoadOption.BY_FILES);
-		else
-			throw new NotFoundException(MessageFormat.format("No bag found for Pid {0}.", pid));
-
-		InputStream inStream = dcBag.getBagFileStream(fileInBag);
-		if (inStream != null)
-		{
-			ResponseBuilder respBuilder = Response.ok(inStream, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-			respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=\"" + getFilenameFromPath(fileInBag) + "\"");			// Filename on client's computer.
-			respBuilder = respBuilder.header("Content-MD5", dcBag.getBagFileHash(fileInBag));					// Hash of file. Header not used by most web browsers.
-			respBuilder = respBuilder.header("Content-Length", dcBag.getBagFileSize(fileInBag));				// File size.
-			resp = respBuilder.build();
-		}
-		else
-			throw new NotFoundException(MessageFormat.format("File {0} not found in bag.", fileInBag));
-
-		return resp;
+		LOGGER.trace("pid: {}, filename: {}", pid, fileInBag);
+		// Check for read access.
+		getFedoraObjectReadAccess(pid);
+		// Create a log record.
+		new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
+				AccessLogRecord.Operation.READ));
+		return getBagFileOctetStreamResp(pid, fileInBag);
 	}
 
 	@GET
@@ -442,11 +431,15 @@ public class UploadService
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doPostBag(@PathParam("pid") String pid, File uploadedFile)
+	public Response doPostBag(@Context HttpServletRequest request, @Context UriInfo uriInfo, @PathParam("pid") String pid, File uploadedFile)
 	{
 		Response resp = null;
 		DcBag uploadedDcBag = null;
 		File curPidBagFile = null;
+		AccessLogRecord accessRec = null;
+
+		// Check for write access to the fedora object.
+		getFedoraObjectWriteAccess(pid);
 
 		try
 		{
@@ -463,17 +456,21 @@ public class UploadService
 			{
 				DcBag curDcBag = new DcBag(curPidBagFile, LoadOption.BY_FILES);
 				uploadedDcBag.close();
+				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.UPDATE);
 				curDcBag.replaceWith(uploadedFile, true);
 			}
 			else
 			{
+				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.CREATE);
 				uploadedDcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, Format.FILESYSTEM);
 				uploadedDcBag.close();
 			}
 
+			// Add access log.
+			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessRec);
+			
 			// Create a placeholder datastream.
-			FedoraBroker.addDatastreamBySource(pid, FILE_DS_PREFIX + "0", "FILE0",
-					"<text>Files available.</text>");
+			FedoraBroker.addDatastreamBySource(pid, FILE_DS_PREFIX + "0", "FILE0", "<text>Files available.</text>");
 
 			resp = Response.ok().build();
 		}
@@ -484,6 +481,68 @@ public class UploadService
 		}
 
 		return resp;
+	}
+
+	private Users getCurUser()
+	{
+		return new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
+	}
+
+	private Response getBagFileOctetStreamResp(String pid, String fileInBag)
+	{
+		Response resp = null;
+		InputStream is = null;
+		DcBag dcBag = null;
+
+		// Check if a bag exists for the pid.
+		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
+		if (bagFile == null)
+		{
+			LOGGER.error(MessageFormat.format("No bag found for Pid {0}. Throwing NotFoundException.", pid));
+			throw new NotFoundException(MessageFormat.format("No bag found for Pid {0}.", pid));
+		}
+
+		dcBag = new DcBag(bagFile, LoadOption.BY_FILES);
+		is = dcBag.getBagFileStream(fileInBag);
+		if (is == null)
+		{
+			LOGGER.error(MessageFormat.format("File not found for Pid {0}. Throwing NotFoundException", pid));
+			throw new NotFoundException(MessageFormat.format("File not found for Pid {0}.", pid));
+		}
+
+		ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+		respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=\"" + getFilenameFromPath(fileInBag) + "\"");			// Filename on client's computer.
+		respBuilder = respBuilder.header("Content-MD5", dcBag.getBagFileHash(fileInBag));					// Hash of file. Header not used by most web browsers.
+		respBuilder = respBuilder.header("Content-Length", dcBag.getBagFileSize(fileInBag));				// File size.
+		resp = respBuilder.build();
+		return resp;
+	}
+
+	@PostAuthorize("hasPermission(returnObject, 'READ')")
+	private FedoraObject getFedoraObjectReadAccess(String pid)
+	{
+		return getFedoraObject(pid);
+	}
+
+	@PostAuthorize("hasPermission(returnObject, 'WRITE')")
+	private FedoraObject getFedoraObjectWriteAccess(String pid)
+	{
+		return getFedoraObject(pid);
+	}
+
+	private FedoraObject getFedoraObject(String pid)
+	{
+		LOGGER.debug("Retrieving object for: {}", pid);
+		String decodedpid = null;
+		decodedpid = Util.decodeUrlEncoded(pid);
+		if (decodedpid == null)
+		{
+			return null;
+		}
+		LOGGER.debug("Decoded pid: {}", decodedpid);
+		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
+		FedoraObject fo = (FedoraObject) object.getSingleByName(decodedpid);
+		return fo;
 	}
 
 	private File saveFileOnServer(FileItem fileItem, File uploadDir, String subDir) throws Exception

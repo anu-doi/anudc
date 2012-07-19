@@ -31,7 +31,6 @@ public class SavePidBagAction extends AbstractAction implements ActionListener
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
 
-	private Component parentComponent;
 	private FileExplorer bagExplorer;
 	private JTextComponent txtPid;
 
@@ -46,17 +45,13 @@ public class SavePidBagAction extends AbstractAction implements ActionListener
 	 * Version	Date		Developer			Description
 	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
 	 * </pre>
-	 * 
-	 * @param parentComponent
-	 *            Parent component for Dialogs etc.
 	 * @param txtPid
 	 *            Component containing the pid whose bag will be saved.
 	 * @param bagExplorer
 	 *            The bag explorer component.
 	 */
-	public SavePidBagAction(Component parentComponent, JTextComponent txtPid, FileExplorer bagExplorer)
+	public SavePidBagAction(JTextComponent txtPid, FileExplorer bagExplorer)
 	{
-		this.parentComponent = parentComponent;
 		this.txtPid = txtPid;
 		this.bagExplorer = bagExplorer;
 	}
@@ -85,7 +80,7 @@ public class SavePidBagAction extends AbstractAction implements ActionListener
 		ExecutorService execSvc = Executors.newSingleThreadExecutor();
 
 		SaveBagTask saveTask = new SaveBagTask(bag, Global.getLocalBagStoreAsFile(), txtPid.getText(), Format.FILESYSTEM);
-		saveTask.addProgressListener(new ProgressDialog(parentComponent));
+		saveTask.addProgressListener(new ProgressDialog());
 		final Future<File> saveTaskResult = execSvc.submit(saveTask);
 		execSvc.submit(new Runnable() {
 			@Override
@@ -96,9 +91,9 @@ public class SavePidBagAction extends AbstractAction implements ActionListener
 				{
 					savedBagFile = saveTaskResult.get();
 					if (savedBagFile != null)
-						JOptionPane.showMessageDialog(parentComponent, "Bag saved.", "Bag", JOptionPane.INFORMATION_MESSAGE);
+						JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Bag saved.", "Bag", JOptionPane.INFORMATION_MESSAGE);
 					else
-						JOptionPane.showMessageDialog(parentComponent, "Unable to save Bag", "Bag", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Unable to save Bag", "Bag", JOptionPane.ERROR_MESSAGE);
 				}
 				catch (InterruptedException e)
 				{
@@ -108,9 +103,9 @@ public class SavePidBagAction extends AbstractAction implements ActionListener
 				catch (ExecutionException e)
 				{
 					if (e.getCause() != null)
-						JOptionPane.showMessageDialog(parentComponent, e.getCause().getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(MainWindow.getMainParent(), e.getCause().getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 					else
-						JOptionPane.showMessageDialog(parentComponent, e.getMessage(),  "Error", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(MainWindow.getMainParent(), e.getMessage(),  "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});

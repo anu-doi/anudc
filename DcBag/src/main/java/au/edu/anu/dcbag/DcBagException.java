@@ -11,11 +11,6 @@ public class DcBagException extends Exception
 		super();
 	}
 
-	public DcBagException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace)
-	{
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
 	public DcBagException(String message, Throwable cause)
 	{
 		super(message, cause);

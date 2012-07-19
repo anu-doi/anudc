@@ -4,6 +4,8 @@ import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.FetchTxt.FilenameSizeUrl;
 
 import java.io.File;
+import java.net.URI;
+import java.text.MessageFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -64,6 +66,7 @@ import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.DcBag;
 
+import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
@@ -105,11 +108,11 @@ public class CollectionRequestService
 
 	@Resource(name = "mailSender")
 	JavaMailSenderImpl mailSender;
-	
+
 	@Resource(name = "groupServiceImpl")
 	GroupService groupService;
-	
-	@Resource(name="fedoraObjectServiceImpl")
+
+	@Resource(name = "fedoraObjectServiceImpl")
 	FedoraObjectService fedoraObjectService;
 
 	/**
@@ -135,14 +138,14 @@ public class CollectionRequestService
 	{
 		Response resp = null;
 		Map<String, Object> model = new HashMap<String, Object>();
-		
+
 		CustomUser customUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		Long id = customUser.getId();
-		
+
 		List<Groups> reviewGroups = groupService.getReviewGroups();
-		
+
 		CollectionRequestDAO collectionRequestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
-		
+
 		List<CollectionRequest> collReqs = collectionRequestDAO.getPermittedRequests(id, reviewGroups);
 		LOGGER.info("Number of collection requests: {}", collReqs.size());
 		model.put("collReqs", collReqs);
@@ -176,18 +179,18 @@ public class CollectionRequestService
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
-		
+
 		LOGGER.trace("In method doGetReqItemAsHtml. Param collReqId={}.", collReqId);
 		LOGGER.debug("Retrieving Collection Request with ID: {}...", collReqId);
-		
+
 		try
 		{
 			LOGGER.debug("Retrieving Collection Request with ID: {}...", collReqId);
-			
+
 			// Find the Collection Request with the specified ID.
 			CollectionRequestDAO collectionRequestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
 			CollectionRequest collReq = collectionRequestDAO.getSingleByIdEager(collReqId);
-			
+
 			// Check if the Collection Request actually exists. If not, throw Exception.
 			if (collReq == null)
 				throw new Exception("Invalid Collection Request ID or no Collection Request with that ID exists.");
@@ -257,19 +260,19 @@ public class CollectionRequestService
 			Users user = new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
 			FedoraObject fedoraObject = fedoraObjectService.getItemByName(pid);
 			CollectionRequest newCollReq = new CollectionRequest(pid, user, request.getRemoteAddr(), fedoraObject);
-			
+
 			// Add each of the items requested (datastreams) to the CR.
 			for (String iFile : requestedFileSet)
 			{
 				CollectionRequestItem collReqItem = new CollectionRequestItem(iFile);
 				newCollReq.addItem(collReqItem);
 			}
-			
+
 			QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
-			
+
 			// Get a list of questions assigned to the Pid.
 			List<Question> questionList = questionDAO.getQuestionsByPid(pid);
-			
+
 			// Iterate through the questions that need to be answered for the pid, get the answers for those questions and add to CR.
 			// If an answer for a question doesn't exist throw exception.
 			for (Question iQuestion : questionList)
@@ -290,7 +293,7 @@ public class CollectionRequestService
 			// Save the newly created CR and add success message to message set.
 			CollectionRequestDAO requestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
 			requestDAO.create(newCollReq);
-			
+
 			messages.add(MessageType.SUCCESS, "Collection Request successfully saved. ID# " + newCollReq.getId(), model);
 			model.put("collReq", newCollReq);
 			uriBuilder = UriBuilder.fromPath("/collreq/").path(newCollReq.getId().toString());
@@ -350,7 +353,7 @@ public class CollectionRequestService
 			// Get the CR with the provided ID.
 			CollectionRequestDAO collectionRequestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
 			collReq = collectionRequestDAO.getSingleByIdEager(collReqId);
-			
+
 			// Check if the CR exists.
 			if (collReq == null)
 				throw new Exception("Invalid Collection Request ID or Collection Request could not be retrieved.");
@@ -370,7 +373,7 @@ public class CollectionRequestService
 			CollectionRequestStatus newStatus = new CollectionRequestStatus(collReq, status, reason, user);
 			collReq.addStatus(newStatus);
 			collReq = collectionRequestDAO.update(collReq);
-			
+
 			model.put("collReq", collReq);
 
 			LOGGER.debug("Updated details of CR ID# {}.", collReq.getId());
@@ -442,7 +445,7 @@ public class CollectionRequestService
 	@GET
 	@Path("dropbox")
 	@Produces(MediaType.TEXT_HTML)
-	@PreAuthorize("hasRole('ROLE_REGISTERED')")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doGetDropboxesAsHtml()
 	{
 		PageMessages messages = new PageMessages();
@@ -515,7 +518,7 @@ public class CollectionRequestService
 			// Find the dropbox with the specified ID.
 			DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
 			CollectionDropbox dropbox = dropboxDAO.getSingleById(dropboxId);
-			
+
 			// Check if a valid dropbox exists and was retrieved.
 			if (dropbox == null)
 				throw new Exception("Invalid Dropbox ID or a dropbox with ID " + dropboxId + "doesn't exist.");
@@ -592,7 +595,7 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_REGISTERED')")
 	public Response doGetDropboxAccessAsHtml(@Context HttpServletRequest request, @Context UriInfo uriInfo,
-			@PathParam("dropboxAccessCode") long dropboxAccessCode, @QueryParam("p") String password)
+			@PathParam("dropboxAccessCode") Long dropboxAccessCode, @QueryParam("p") String password)
 	{
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
@@ -605,8 +608,17 @@ public class CollectionRequestService
 			LOGGER.debug("Finding dropbox with access code {}...", dropboxAccessCode);
 			DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
 			CollectionDropbox dropbox = dropboxDAO.getSingleByAccessCode(dropboxAccessCode);
+
+			if (dropbox == null)
+				throw new NotFoundException(MessageFormat.format("Dropbox with Access Code {0} doesn't exist.", dropbox.getAccessCode().toString()));
+
 			LOGGER.debug("Dropbox found.");
 			model.put("dropbox", dropbox);
+			
+			Users requestor = dropbox.getCreator();
+			String username = SecurityContextHolder.getContext().getAuthentication().getName();
+			if (!requestor.getUsername().equals(username))
+				throw new Exception("You are not authorised to view this dropbox.");
 
 			if (new Date().after(dropbox.getExpiry()))				// Check if today's date and time is after dropbox expiry.
 				throw new Exception("This Dropbox has expired. Please submit a new Collection Request.");
@@ -624,9 +636,11 @@ public class CollectionRequestService
 			HashMap<String, String> downloadables = new HashMap<String, String>();
 			for (CollectionRequestItem reqItem : dropbox.getCollectionRequest().getItems())
 			{
-				UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream");
-				LOGGER.debug("Adding URI {} to downloadables", uriBuilder.build(dropbox.getCollectionRequest().getPid(), reqItem.getItem()).toString());
-				downloadables.put(reqItem.getItem(), uriBuilder.build(dropbox.getCollectionRequest().getPid(), reqItem.getItem()).toString());
+				UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream")
+						.queryParam("dropboxAccessCode", dropboxAccessCode).queryParam("p", password);
+				URI fileDlUri = uriBuilder.build(dropbox.getCollectionRequest().getPid(), reqItem.getItem());
+				LOGGER.debug("Adding URI {} to downloadables", fileDlUri.toString());
+				downloadables.put(reqItem.getItem(), fileDlUri.toString());
 			}
 			model.put("downloadables", downloadables);
 
@@ -636,14 +650,14 @@ public class CollectionRequestService
 			if (dcBag != null && dcBag.getBag().getFetchTxt() != null)
 			{
 				Map<String, String> fetchables = new HashMap<String, String>();
-				
-				for (Iterator<FilenameSizeUrl> iter = dcBag.getBag().getFetchTxt().iterator(); iter.hasNext(); )
+
+				for (Iterator<FilenameSizeUrl> iter = dcBag.getBag().getFetchTxt().iterator(); iter.hasNext();)
 				{
 					FilenameSizeUrl iFetchItem = iter.next();
 					LOGGER.debug("Added fetch item {}", iFetchItem.toString());
 					fetchables.put(iFetchItem.getFilename(), iFetchItem.getUrl());
 				}
-				
+
 				if (fetchables.size() > 0)
 					model.put("fetchables", fetchables);
 
@@ -799,10 +813,10 @@ public class CollectionRequestService
 				{
 					QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
 					QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl(QuestionMap.class);
-					
+
 					// Get list of questions currently assigned to the pid.
 					List<Question> curQuestionsPid = questionDAO.getQuestionsByPid(pid);
-					
+
 					// Check if each question Id provided as query parameters already exist. If not, add them.
 					for (Long iUpdatedId : qIdSet)
 					{
@@ -821,7 +835,7 @@ public class CollectionRequestService
 							Question question = questionDAO.getSingleById(iUpdatedId);
 							LOGGER.debug("Adding Question '{}' against Pid {}", question.getQuestionText(), pid);
 							QuestionMap qm = new QuestionMap(pid, question);
-							
+
 							questionMapDAO.create(qm);
 						}
 					}
@@ -884,9 +898,9 @@ public class CollectionRequestService
 	public Response doGetCollReqInfoAsJson(@QueryParam("task") String task, @QueryParam("pid") String pid)
 	{
 		Response resp = null;
-		
+
 		LOGGER.info("In doGetCollReqInfoAsJson");
-		
+
 		LOGGER.trace("In doGetDsListAsJson. Params task={}, pid={}.", task, pid);
 
 		// Gets a list of items available for request in a Collection.
@@ -945,9 +959,10 @@ public class CollectionRequestService
 				// Get all Questions assigned to the specified Pid.
 				QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
 				List<Question> curQuestionsPid = questionDAO.getQuestionsByPid(pid);
-				
+
 				// Add the Id and question (String) for each Question (Object) into a JSONObject. 
-				for (Question iQuestion : curQuestionsPid) {
+				for (Question iQuestion : curQuestionsPid)
+				{
 					questionsJson.put(iQuestion.getId().toString(), iQuestion.getQuestionText());
 				}
 				LOGGER.info("JSON Array: {}", questionsJson.toString());
@@ -970,15 +985,14 @@ public class CollectionRequestService
 				LOGGER.debug("Requested Collection Requests as JSON.");
 
 				// Retrieve Collection Requests.
-				
+
 				CustomUser customUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 				Long id = customUser.getId();
-				
-				
+
 				List<Groups> reviewGroups = groupService.getReviewGroups();
 				CollectionRequestDAO requestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
 				List<CollectionRequest> reqStatusList = requestDAO.getPermittedRequests(id, reviewGroups);
-				
+
 				// Add the details of each CR into a JSONObject. Then add that JSONObject to a JSONArray.
 				for (CollectionRequest iCr : reqStatusList)
 				{
@@ -1019,7 +1033,6 @@ public class CollectionRequestService
 	 * 
 	 * @return Questions as List<Questions>
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private List<Question> getAllQuestions()
 	{
 		List<Question> questions = new QuestionDAOImpl(Question.class).getAll();
