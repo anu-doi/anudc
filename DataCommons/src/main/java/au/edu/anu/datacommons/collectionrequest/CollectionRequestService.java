@@ -50,6 +50,7 @@ import au.edu.anu.datacommons.data.db.dao.QuestionDAO;
 import au.edu.anu.datacommons.data.db.dao.QuestionDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.QuestionMapDAO;
 import au.edu.anu.datacommons.data.db.dao.QuestionMapDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.UsersDAO;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
@@ -441,7 +442,7 @@ public class CollectionRequestService
 	@GET
 	@Path("dropbox")
 	@Produces(MediaType.TEXT_HTML)
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@PreAuthorize("hasRole('ROLE_REGISTERED')")
 	public Response doGetDropboxesAsHtml()
 	{
 		PageMessages messages = new PageMessages();
@@ -452,19 +453,17 @@ public class CollectionRequestService
 
 		try
 		{
-			List<Groups> reviewGroups = groupService.getReviewGroups();
 			List<CollectionDropbox> dropboxes = null;
-			if (reviewGroups.size() > 0) {
-				DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
-				dropboxes = dropboxDAO.getPermittedRequests(reviewGroups);
-				model.put("dropboxes", dropboxes);
-				
-				if (dropboxes.size() == 0)
-					messages.add(MessageType.WARNING, "No dropboxes found.", model);
-			}
-			else {
+			String username = SecurityContextHolder.getContext().getAuthentication().getName();
+			UsersDAO userDAO = new UsersDAOImpl(Users.class);
+			Users user = userDAO.getUserByName(username);
+			
+			DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
+			dropboxes = dropboxDAO.getUserDropboxes(user);
+			model.put("dropboxes", dropboxes);
+			
+			if (dropboxes.size() == 0)
 				messages.add(MessageType.WARNING, "No dropboxes found.", model);
-			}
 			model.put("dropboxes", dropboxes);
 		}
 		catch (Exception e)

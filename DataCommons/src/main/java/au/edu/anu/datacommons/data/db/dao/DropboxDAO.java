@@ -4,6 +4,7 @@ import java.util.List;
 
 import au.edu.anu.datacommons.collectionrequest.CollectionDropbox;
 import au.edu.anu.datacommons.data.db.model.Groups;
+import au.edu.anu.datacommons.data.db.model.Users;
 
 /**
  * DropboxDAO
@@ -18,6 +19,7 @@ import au.edu.anu.datacommons.data.db.model.Groups;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		29/06/2012	Genevieve Turner (GT)	Initial
+ * 0.2		19/07/2012	Genevieve Turner (GT)	Added a function to get dropboxes for the specified user
  * </pre>
  *
  */
@@ -67,4 +69,19 @@ public interface DropboxDAO extends GenericDAO<CollectionDropbox, Long> {
 	 * @return The collection dropbox
 	 */
 	public CollectionDropbox getSingleByAccessCode(Long accessCode);
+	
+	/**
+	 * getUserDropboxes
+	 *
+	 * Retrieves a list of collection dropboxes for the user
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		19/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param user The user to retrieve a list of dropboxes for
+	 * @return Returns a list of dropboxes for the given user
+	 */
+	public List<CollectionDropbox> getUserDropboxes(Users user);
 }

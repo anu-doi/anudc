@@ -3,6 +3,7 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
 <anu:header id="1998" title="TITLE" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur" respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
@@ -32,14 +33,14 @@
 				</p>
 				<p>
 					<label>Requestor</label>
-					<c:out value="${it.collReq.requestor.username}" />
+					<c:out value="${it.collReq.requestor.displayName}" />
 				</p>
 				<p class="instruction">
-					<c:out value="${it.collReq.requestor.displayName}" />
+					<c:out value="${it.collReq.requestor.username}" />
 				</p>
 				<p>
 					<label>Created</label>
-					<c:out value="${it.collReq.timestamp}" />
+					<fmt:formatDate value="${it.collReq.timestamp}" pattern="dd MMM yyyy"/>
 				</p>
 				<c:forEach var="answer" items="${it.collReq.answers}">
 					<p>
@@ -90,7 +91,7 @@
 				</tr>
 				<c:forEach var="iStatus" items="${it.collReq.status}">
 					<tr>
-						<td><c:out value="${iStatus.timestamp}" /></td>
+						<td><fmt:formatDate value="${iStatus.timestamp}" pattern="dd MMM yyyy HH:mm"/></td>
 						<td><c:out value="${iStatus.status}" /></td>
 						<td><c:out value="${iStatus.reason}" /></td>
 						<td><c:out value="${iStatus.user.username}" /></td>
@@ -137,9 +138,21 @@
 						<tr>
 							<td><a href="<c:url value='/rest/collreq' />/${iCollReq.id}"><c:out value="${iCollReq.id}" /></a></td>
 							<td><a href="<c:url value='/rest/collreq' />/${iCollReq.id}"><c:out value="${iCollReq.pid}" /></a></td>
-							<td><c:out value="${iCollReq.timestamp}" /></td>
+							<td><fmt:formatDate value="${iCollReq.timestamp}" pattern="dd MMM yyyy"/></td>
 							<td><c:out value="${iCollReq.requestor.username}" /></td>
-							<td><c:out value="${iCollReq.lastStatus.status}" /></td>
+							<td>
+							<c:if test="${iCollReq.lastStatus.status eq 'ACCEPTED'}">
+								<sec:accesscontrollist hasPermission="REVIEW" domainObject="${iCollReq.fedoraObject}">
+									<a href="<c:url value='/rest/collreq/dropbox/${iCollReq.dropbox.id}' />">
+								</sec:accesscontrollist>
+							</c:if>
+								<c:out value="${iCollReq.lastStatus.status}" />
+							<c:if test="iCollReq.lastStatus.status">
+								<sec:accesscontrollist hasPermission="REVIEW" domainObject="${iCollReq.fedoraObject}">
+									</a>
+								</sec:accesscontrollist>
+							</c:if>
+							</td>
 						</tr>
 					</c:forEach>
 				</table>
