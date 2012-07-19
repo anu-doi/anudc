@@ -615,7 +615,7 @@ public class CollectionRequestService
 			LOGGER.debug("Dropbox found.");
 			model.put("dropbox", dropbox);
 			
-			Users requestor = dropbox.getCreator();
+			Users requestor = dropbox.getCollectionRequest().getRequestor();
 			String username = SecurityContextHolder.getContext().getAuthentication().getName();
 			if (!requestor.getUsername().equals(username))
 				throw new Exception("You are not authorised to view this dropbox.");
