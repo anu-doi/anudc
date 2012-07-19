@@ -5,12 +5,14 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
+import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.cas.ANUUserDetailsService;
 
 /**
@@ -57,9 +59,14 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 			AuthenticationException authenticationException) throws IOException, ServletException {
 		// Add auth header if the request is from bagit.
 		if (request.getHeader("User-Agent").equals("BagIt Library Parallel Fetcher"))
+		{
 			response.addHeader("WWW-Authenticate", "Basic realm=\"Spring Security Application\"");
-
-		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+		}
+		else
+		{
+			response.sendRedirect(GlobalProps.getCasServerUri().toString());
+		}
 	}
 
 }

@@ -2,7 +2,10 @@ package au.edu.anu.datacommons.properties;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Properties;
+
+import javax.ws.rs.core.UriBuilder;
 
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.slf4j.Logger;
@@ -73,6 +76,8 @@ public final class GlobalProps
 	public static final String PROP_PASSWORDGENERATOR_CHARS = "passwordGenerator.chars";
 	public static final String PROP_DROPBOX_PASSWORDLENGTH = "dropbox.passwordLength";
 	public static final String PROP_EMAIL_DEBUG_SEND = "email.debug.sendmail";
+	public static final String PROP_CAS_SERVER = "cas.server";
+	public static final String PROP_APP_SERVER = "app.server";
 
 	static
 	{
@@ -176,5 +181,12 @@ public final class GlobalProps
 			LOGGER.warn("Property " + PROP_UPLOAD_MAXSIZEINMEM + " not specified in Global Properties.");
 			return DiskFileItemFactory.DEFAULT_SIZE_THRESHOLD;
 		}
+	}
+	
+	public static URI getCasServerUri()
+	{
+		URI returnUri = UriBuilder.fromPath(getProperty(PROP_APP_SERVER)).path("DataCommons").path("j_spring_cas_security_check").build();
+		URI loginUri = UriBuilder.fromUri(getProperty(PROP_CAS_SERVER)).path("login").queryParam("service", returnUri.toString()).build();
+		return loginUri;
 	}
 }

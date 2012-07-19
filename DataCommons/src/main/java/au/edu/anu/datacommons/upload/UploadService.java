@@ -241,6 +241,8 @@ public class UploadService
 			if (!Util.isNotEmpty(pid))
 				throw new Exception("Missing Pid value.");
 			File curBagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
+			
+			// Create access log.
 			if (curBagFile == null)
 				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.CREATE);
 			else

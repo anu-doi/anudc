@@ -1,0 +1,67 @@
+1) Requires the following server configuration in settings.xml:
+
+	<servers>
+		<server>
+			<id>tomcat-localhost</id>
+			<username>USERNAME</username>
+			<password>PASSWORD</password>
+		</server>
+		<server>
+			<id>tomcat-dc7-dev1</id>
+			<username>USERNAME</username>
+			<password>PASSWORD</password>
+		</server>
+		<server>
+			<id>tomcat-dc7-dev2</id>
+			<username>USERNAME</username>
+			<password>PASSWORD</password>
+		</server>
+	</servers>
+
+Note: The PASSWORD can be in plain text or encrypted using Maven's password encryption. Ref: http://maven.apache.org/guides/mini/guide-encryption.html
+
+2) Add the following profile configuration in settings.xml:
+
+	<profiles>
+		<profile>
+			<id>localhost</id>
+			<properties>
+				<maven.tomcat.url>http://localhost:8081/manager/text</maven.tomcat.url>
+				<maven.tomcat.server>tomcat-localhost</maven.tomcat.server>
+			</properties>
+		</profile>
+		<profile>
+			<id>dc7-dev1</id>
+			<properties>
+				<maven.tomcat.url>https://dc7-dev1.anu.edu.au:8443/manager/text</maven.tomcat.url>
+				<maven.tomcat.server>tomcat-dc7-dev1</maven.tomcat.server>
+			</properties>
+		</profile>
+		<profile>
+			<id>dc7-dev2</id>
+			<properties>
+				<maven.tomcat.url>http://dc7-dev2.anu.edu.au:8443/manager/text</maven.tomcat.url>
+				<maven.tomcat.server>tomcat-dc7-dev2</maven.tomcat.server>
+			</properties>
+		</profile>
+	</profiles>
+	
+2) Requires the following configuration in the project's POM (should be done already):
+	
+	<plugins>
+		<plugin>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>tomcat-maven-plugin</artifactId>
+			<version>1.1</version>
+			<configuration>
+				<server>${maven.tomcat.server}</server>
+				<url>${maven.tomcat.url}</url>
+			</configuration>
+		</plugin>
+	</plugins>
+
+3) Deploy to the tomcat server using the following command line:
+	
+	mvn clean package tomcat:redeploy -P PROFILE
+	
+Replace "tomcat:redeploy" with "tomcat:deploy" when deploying for the first time. Replace PROFILE with the ID of the profile you want to use. E.g. "dc7-dev1".
