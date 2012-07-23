@@ -66,7 +66,7 @@
 	</anu:box>
 	<jsp:include page="listrelated.jsp" />
 	<c:if test="${not empty it.filelist}">
-		<anu:boxheader text="Files" />
+		<anu:boxheader text="<a href='/DataCommons/rest/upload/bag/${it.fedoraObject.object_id}'>Files</a>" />
 		<c:if test="${it.itemType == 'Collection'}">
 			<anu:box style="solid">
 				<ul>
