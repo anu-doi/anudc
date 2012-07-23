@@ -138,12 +138,14 @@
 					<xsl:for-each select="foxml:datastream[@ID='XML_SOURCE']/foxml:datastreamVersion[last()]/foxml:xmlContent//text()">
 						<xsl:value-of select="."/>
 						<xsl:text> </xsl:text>
+						<xsl:value-of select="$PID"/>
 					</xsl:for-each>
 				</field>
 				<field name="published.all">
 					<xsl:for-each select="foxml:datastream[@CONTROL_GROUP='M' and @ID='XML_PUBLISHED']">
 						<xsl:value-of select="exts:getDatastreamText($PID, $REPOSITORYNAME, @ID, $FEDORASOAP, $FEDORAUSER, $FEDORAPASS, $TRUSTSTOREPATH, $TRUSTSTOREPASS)"/>
 						<xsl:text> </xsl:text>
+						<xsl:value-of select="$PID"/>
 					</xsl:for-each> 
 				</field>
 			</doc>
