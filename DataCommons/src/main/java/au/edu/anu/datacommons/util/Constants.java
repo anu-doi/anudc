@@ -13,6 +13,7 @@ package au.edu.anu.datacommons.util;
  * Version	Date		Developer				Description
  * 0.1		19/03/2012	Genevieve Turner (GT)	Added isNotEmpty function.
  * 0.2		23/03/2012	Genevieve Turner (GT)	Added DC constant
+ * 0.3		25/07/2012	Genevieve Turner (GT)	Added XML Review
  * 
  */
 public class Constants {
@@ -20,5 +21,6 @@ public class Constants {
 	public static final String XSL_SOURCE = "XSL_SOURCE";
 	public static final String XML_SOURCE = "XML_SOURCE";
 	public static final String XML_PUBLISHED = "XML_PUBLISHED";
+	public static final String XML_REVIEW = "XML_REVIEW";
 	public static final String DC = "DC";
 }

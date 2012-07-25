@@ -25,9 +25,9 @@
 	</anu:tabmeta>
 </anu:tabnav>
 
-<anu:menu showSearch="true" id="1108" shortTitle="Data Commons" ssl="true">
+<anu:menu showSearch="true" id="1108" shortTitle="Public Data" ssl="true">
 	<anu:submenu title="Data Commons">
-		<li><a href="<c:url value='/jsp/welcome.jsp' />">Home</a></li>
+		<li><a href="<c:url value='/jsp/welcome.jsp' />">Home (Search)</a></li>
 		<sec:authorize access="hasRole('ROLE_REGISTERED')">
 			<li><a href="<c:url value='/rest/collreq' />">Collection Request</a>
 				<ul>
@@ -37,6 +37,13 @@
 		<sec:authorize access="hasRole('ROLE_ANU_USER')">
 			<li><a href="<c:url value='/rest/list/template' />">New</a></li>
 			<li><a href="<c:url value='/rest/upload' />">Upload</a></li>
+			<li><a href="<c:url value='/jsp/review_lists.jsp' />">Review</a>
+				<ul>
+					<li><a href="<c:url value='/rest/ready/list/rejected' />">Rejected</a></li>
+					<li><a href="<c:url value='/rest/ready/list/review' />">Ready for Review</a></li>
+					<li><a href="<c:url value='/rest/ready/list/publish' />">Ready for Publish</a></li>
+				</ul>
+			</li>
 		</sec:authorize>
 	</anu:submenu>
 	<sec:authorize access="hasRole('ROLE_ADMIN')">

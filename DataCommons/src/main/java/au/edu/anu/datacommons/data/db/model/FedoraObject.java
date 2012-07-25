@@ -3,6 +3,7 @@ package au.edu.anu.datacommons.data.db.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -12,7 +13,10 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
+
 
 
 /**
@@ -28,6 +32,7 @@ import javax.persistence.Table;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+ * 0.2		25/07/2012	Genevieve Turner (GT)	Added functions for review processing
  * </pre>
  * 
  */
@@ -39,6 +44,9 @@ public class FedoraObject {
 	private Long group_id;
 	private Boolean published;
 	private List<PublishLocation> publishedLocations;
+	private ReviewReady reviewReady;
+	private PublishReady publishReady;
+	private ReviewReject reviewReject;
 	
 	public FedoraObject() {
 		publishedLocations = new ArrayList<PublishLocation>();
@@ -187,5 +195,107 @@ public class FedoraObject {
 
 	public void setPublishedLocations(List<PublishLocation> publishedLocations) {
 		this.publishedLocations = publishedLocations;
+	}
+
+	/**
+	 * getReviewReady
+	 *
+	 * Get the associated ready for review information
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		24/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return the reviewReady
+	 */
+	@OneToOne(cascade=CascadeType.ALL)
+	@PrimaryKeyJoinColumn
+	public ReviewReady getReviewReady() {
+		return reviewReady;
+	}
+
+	/**
+	 * setReviewReady
+	 *
+	 * Set the associated ready for review information
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		24/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param reviewReady the reviewReady to set
+	 */
+	public void setReviewReady(ReviewReady reviewReady) {
+		this.reviewReady = reviewReady;
+	}
+
+	/**
+	 * getPublishReady
+	 *
+	 * Get the associated ready for publish information
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		24/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return the publishReady
+	 */
+	@OneToOne(cascade=CascadeType.ALL)
+	@PrimaryKeyJoinColumn
+	public PublishReady getPublishReady() {
+		return publishReady;
+	}
+
+	/**
+	 * setPublishReady
+	 *
+	 * Set the associated ready for publish information
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		24/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param publishReady the publishReady to set
+	 */
+	public void setPublishReady(PublishReady publishReady) {
+		this.publishReady = publishReady;
+	}
+
+	/**
+	 * getReviewReject
+	 *
+	 * Get the associated rejection information
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		24/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return the reviewReject
+	 */
+	@OneToOne(cascade=CascadeType.ALL)
+	@PrimaryKeyJoinColumn
+	public ReviewReject getReviewReject() {
+		return reviewReject;
+	}
+
+	/**
+	 * setReviewReject
+	 *
+	 * Set the associated rejection information
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		24/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param reviewReject the reviewReject to set
+	 */
+	public void setReviewReject(ReviewReject reviewReject) {
+		this.reviewReject = reviewReject;
 	}
 }

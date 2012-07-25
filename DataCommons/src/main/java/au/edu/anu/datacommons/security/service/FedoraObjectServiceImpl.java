@@ -5,12 +5,14 @@ import gov.loc.repository.bagit.BagFactory.LoadOption;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.ws.rs.WebApplicationException;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -36,6 +38,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
@@ -43,6 +46,9 @@ import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import au.edu.anu.datacommons.data.db.model.PublishReady;
+import au.edu.anu.datacommons.data.db.model.ReviewReady;
+import au.edu.anu.datacommons.data.db.model.ReviewReject;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.exception.ValidationException;
@@ -90,6 +96,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.10		11/07/2012	Genevieve Turner (GT)	Updated to allow or deny access to unpublished pages
  * 0.11		13/07/2012	Rahul Khanna (RK)		Updated filelist displayed on collection page
  * 0.12		17/07/2012	Genevieve Turner (GT)	Added validation prior to publishing
+ * 0.13		24/07/2012	Genevieve Turner (GT)	Moved the generating of a list of messages to a util function
  * </pre>
  * 
  */
@@ -210,7 +217,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		20/06/2012	Genevieve Turner(GT)	Initial
+	 * 0.9		20/06/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param fedoraObject
@@ -321,6 +328,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * 0.7		04/06/2012	Genevieve Turner (GT)	Fixed an issue where the fedora object was not returned in the values map
 	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
+	 * 0.13		25/07/2012	Genevieve Turner (GT)	Added removing of ready for review/publish
 	 * </pre>
 	 * 
 	 * @param fedoraObject The  fedora object to get the page for
@@ -333,6 +341,8 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		ViewTransform viewTransform = new ViewTransform();
 		try {
 			fedoraObject = viewTransform.saveData(tmplt, fedoraObject, form);
+			removeReviewReady(fedoraObject);
+			removePublishReady(fedoraObject);
 		}
 		catch (JAXBException e) {
 			LOGGER.error("Exception transforming jaxb", e);
@@ -599,6 +609,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.6		21/05/2012	Genevieve Turner (GT)	Added saving publication locations to database
 	 * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to use generic publishing options
 	 * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to add an audit row when an object is published
+	 * 0.13		25/07/2012	Genevieve Turner (GT)	Added removing of ready for review/publish, and rejections
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to publish
@@ -653,6 +664,10 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		GenericDAO<AuditObject,Long> auditObjectDAO = new GenericDAOImpl<AuditObject,Long>(AuditObject.class);
 		auditObjectDAO.create(auditObject);
 		
+		removePublishReady(fedoraObject);
+		removeReviewReady(fedoraObject);
+		removeReviewReject(fedoraObject);
+		
 		return message.toString();
 	}
 	
@@ -665,6 +680,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * Version	Date		Developer				Description
 	 * 0.7		08/06/2012	Genevieve Turner(GT)	Initial
 	 * 0.11		17/07/2012	Genevieve Turner (GT)	Added validation prior to publishing
+	 * 0.13		24/07/2012	Genevieve Turner (GT)	Moved the generating of a list of messages to a util function
 	 * </pre>
 	 * @param pid The pid to set the publishing information for
 	 */
@@ -673,10 +689,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		if (!validate.isValid(pid)) {
 			StringBuffer errorMessages = new StringBuffer();
 			errorMessages.append("Not all required fields have been filled out correctly\n");
-			for (String message : validate.getErrorMessages()) {
-				errorMessages.append(message);
-				errorMessages.append("\n");
-			}
+			errorMessages.append(Util.listToStringWithNewline(validate.getErrorMessages()));
 			throw new ValidationException(errorMessages.toString());
 		}
 		FedoraReference fedoraReference = new FedoraReference();
@@ -720,6 +733,256 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 		if (addPublisher) {
 			fedoraObject.getPublishedLocations().add(publishLocation);
+		}
+	}
+	
+	/**
+	 * getReadyForReview
+	 * 
+	 * Returns a list of items that are ready for a review
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return A list of objects that are ready for review
+	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#getReadyForReview()
+	 */
+	public List<FedoraObject> getReadyForReview() {
+		FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
+		List<FedoraObject> reviewReadyList = fedoraObjectDAO.getAllReadyForReview();
+		LOGGER.info("List Size: {}", reviewReadyList.size());
+		return reviewReadyList;
+	}
+	
+	/**
+	 * getRejected
+	 * 
+	 * Returns a list of items that have been rejected.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return A list of objects that have been rejected in the review page
+	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#getRejected()
+	 */
+	public List<FedoraObject> getRejected() {
+		FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
+		List<FedoraObject> rejectedList = fedoraObjectDAO.getAllRejected();
+		LOGGER.info("List Size: {}", rejectedList.size());
+		return rejectedList;
+	}
+	
+	/**
+	 * getReadyForPublish
+	 * 
+	 * Returns a list of items that are ready for publish
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return A list of objects that are ready for publishing
+	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#getReadyForPublish()
+	 */
+	public List<FedoraObject> getReadyForPublish() {
+		FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
+		List<FedoraObject> publishReadyList = fedoraObjectDAO.getAllReadyForPublish();
+		LOGGER.info("List Size: {}", publishReadyList.size());
+		return publishReadyList;
+	}
+	
+	/**
+	 * setReadyForReview
+	 * 
+	 * Sets the item as ready for review
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The item to set as ready for review
+	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#setReadyForReview(au.edu.anu.datacommons.data.db.model.FedoraObject)
+	 */
+	public void setReadyForReview(FedoraObject fedoraObject) {
+		if (fedoraObject.getReviewReady() != null || fedoraObject.getPublishReady() != null) {
+			LOGGER.info("Record is already in the review queue");
+			throw new WebApplicationException(412);
+		}
+		
+		Validate validate = new FieldValidate();
+		if (!validate.isValid(fedoraObject.getObject_id())) {
+			StringBuffer errorMessages = new StringBuffer();
+			errorMessages.append("Not all required fields have been filled out correctly\n");
+			errorMessages.append(Util.listToStringWithNewline(validate.getErrorMessages()));
+			throw new ValidationException(errorMessages.toString());
+		}
+		
+		ReviewReady reviewReady = new ReviewReady();
+		reviewReady.setId(fedoraObject.getId());
+		reviewReady.setDate_submitted(new Date());
+		
+		GenericDAO<ReviewReady, Long> reviewReadyDAO = new GenericDAOImpl<ReviewReady, Long>(ReviewReady.class);
+		reviewReadyDAO.create(reviewReady);
+		
+		removeReviewReject(fedoraObject);
+		
+	}
+	
+	/**
+	 * setReadyForPublish
+	 * 
+	 * Sets the item as ready for publish
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The item to set as ready for publish
+	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#setReadyForPublish(au.edu.anu.datacommons.data.db.model.FedoraObject)
+	 */
+	public void setReadyForPublish(FedoraObject fedoraObject) {
+		if (fedoraObject.getReviewReady() == null) {
+			LOGGER.info("Ready for review is null in publish");
+			throw new WebApplicationException(412);
+		}
+		else if (fedoraObject.getPublishReady() != null) {
+			LOGGER.info("Record is already in the publish queue");
+			throw new WebApplicationException(412);
+		}
+		
+		PublishReady publishReady = new PublishReady();
+		publishReady.setId(fedoraObject.getId());
+		publishReady.setDate_submitted(new Date());
+		
+		GenericDAO<PublishReady, Long> publishReadyDAO = new GenericDAOImpl<PublishReady, Long>(PublishReady.class);
+		publishReadyDAO.create(publishReady);
+		
+		removeReviewReady(fedoraObject);
+		removeReviewReject(fedoraObject);
+		setReviewXML(fedoraObject.getObject_id());
+		
+	}
+	
+	/**
+	 * setRejected
+	 * 
+	 * Rejects the item for publishing
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The item to set to rejected
+	 * @param reasons The reason for the rejection
+	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#setRejected(au.edu.anu.datacommons.data.db.model.FedoraObject, java.util.List)
+	 */
+	public void setRejected(FedoraObject fedoraObject, List<String> reasons) {
+		if (fedoraObject.getReviewReady() == null && fedoraObject.getPublishReady() == null) {
+			throw new WebApplicationException(412);
+		}
+		if (reasons == null || reasons.size() == 0) {
+			throw new ValidationException("No reasons given");
+		}
+		ReviewReject reviewReject = new ReviewReject();
+		reviewReject.setId(fedoraObject.getId());
+		reviewReject.setDate_submitted(new Date());
+		reviewReject.setReason(reasons.get(0));
+		
+		// Add the rejection reason
+		GenericDAO<ReviewReject, Long> rejectDAO = new GenericDAOImpl<ReviewReject, Long>(ReviewReject.class);
+		rejectDAO.create(reviewReject);
+		
+		// Remove it from the ready or publish queues
+		removeReviewReady(fedoraObject);
+		removePublishReady(fedoraObject);
+		
+		setReviewXML(fedoraObject.getObject_id());
+	}
+	
+	/**
+	 * removeReviewReady
+	 *
+	 * Remove the ready for the review status from the database
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedora object
+	 */
+	private void removeReviewReady(FedoraObject fedoraObject) {
+		if (fedoraObject.getReviewReady() != null) {
+			GenericDAO<ReviewReady, Long> reviewReadyDAO = new GenericDAOImpl<ReviewReady, Long>(ReviewReady.class);
+			reviewReadyDAO.delete(fedoraObject.getId());
+		}
+	}
+	
+	/**
+	 * removePublishReady
+	 *
+	 * Remove the ready for the publish status from the database
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedora object
+	 */
+	private void removePublishReady(FedoraObject fedoraObject) {
+		if (fedoraObject.getPublishReady() != null) {
+			GenericDAO<PublishReady, Long> publishReadyDAO = new GenericDAOImpl<PublishReady, Long>(PublishReady.class);
+			publishReadyDAO.delete(fedoraObject.getId());
+		}
+	}
+	
+	/**
+	 * removeReviewReject
+	 *
+	 * Remove the reject status from the database
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedora object
+	 */
+	private void removeReviewReject(FedoraObject fedoraObject) {
+		if (fedoraObject.getReviewReject() != null) {
+			GenericDAO<ReviewReject, Long> rejectDAO = new GenericDAOImpl<ReviewReject, Long>(ReviewReject.class);
+			rejectDAO.delete(fedoraObject.getId());
+		}
+	}
+	
+	/**
+	 * setReviewXML
+	 *
+	 * Set the review XML
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param pid The pid to set the review xml for
+	 */
+	private void setReviewXML(String pid) {
+		String location = String.format("%s/objects/%s/datastreams/XML_SOURCE/content", GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI), pid);
+		try {
+			FedoraBroker.addDatastreamByReference(pid, Constants.XML_REVIEW, "M", "XML Review", location);
+		}
+		catch (FedoraClientException e) {
+			LOGGER.info("Exception setting review xml: ", e);
 		}
 	}
 }

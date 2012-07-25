@@ -46,6 +46,7 @@ import au.edu.anu.datacommons.properties.GlobalProps;
  * 0.2		19/03/2012	Genevieve Turner (GT)	Added isNotEmpty function.
  * 0.3		26/04/2012	Genevieve Turner (GT)	Added convertArrayValueToList
  * 0.4		4/05/2012	Rahul Khanna (RK)		Added generatePassword.
+ * 0.5		24/07/2012	Genevieve Turner (GT)	Added listToStringWithNewline
  * </pre>
  */
 public final class Util
@@ -240,5 +241,27 @@ public final class Util
 		
 		// Convert hash value to a hex string and return it. 
 		return new BigInteger(1, hashValue).toString(16);
+	}
+	
+	/**
+	 * listToStringWithNewline
+	 *
+	 * Converts a list of strings to a single string with a newline as a seperator
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		24/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param messages
+	 * @return
+	 */
+	public static String listToStringWithNewline(List<String> messages) {
+		StringBuffer stringBuffer = new StringBuffer();
+		for (String message : messages) {
+			stringBuffer.append(message);
+			stringBuffer.append("\n");
+		}
+		return stringBuffer.toString();
 	}
 }

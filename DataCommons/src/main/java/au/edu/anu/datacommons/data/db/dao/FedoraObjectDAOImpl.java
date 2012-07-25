@@ -1,5 +1,7 @@
 package au.edu.anu.datacommons.data.db.dao;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
@@ -24,6 +26,7 @@ import au.edu.anu.datacommons.data.db.model.FedoraObject;
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
  * 0.2		03/05/2012	Genevieve Turner (GT)	Updated to include constructor class that sets the type in GenericDAOImpl
+ * 0.3		25/07/2012	Genevieve Turner (GT)	Updated for review processing
  * </pre>
  * 
  */
@@ -70,5 +73,86 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 			entityManager.close();
 		}
 		return fedoraObject;
+	}
+	
+	/**
+	 * getAllReadyForReview
+	 * 
+	 * Gets all objects that are ready for review
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return A list of objects ready for review
+	 * @see au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO#getAllReadyForReview()
+	 */
+	public List<FedoraObject> getAllReadyForReview() {
+		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		List<FedoraObject> fedoraObjects = null;
+		
+		try {
+			fedoraObjects = entityManager.createQuery("SELECT fo FROM FedoraObject fo join fo.reviewReady rr").getResultList();
+		}
+		finally {
+			entityManager.close();
+		}
+		
+		return fedoraObjects;
+	}
+	
+	/**
+	 * getAllReadyForPublish
+	 * 
+	 * Gets all objects that are ready for publish
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return A list of objects ready for publish
+	 * @see au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO#getAllReadyForPublish()
+	 */
+	public List<FedoraObject> getAllReadyForPublish() {
+		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		List<FedoraObject> fedoraObjects = null;
+		
+		try {
+			fedoraObjects = entityManager.createQuery("SELECT fo FROM FedoraObject fo join fo.publishReady pr").getResultList();
+		}
+		finally {
+			entityManager.close();
+		}
+		
+		return fedoraObjects;
+	}
+	
+	/**
+	 * getAllRejected
+	 * 
+	 * Gets all objects that have been rejected
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return A list of rejected objects
+	 * @see au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO#getAllRejected()
+	 */
+	public List<FedoraObject> getAllRejected() {
+		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		List<FedoraObject> fedoraObjects = null;
+		
+		try {
+			fedoraObjects = entityManager.createQuery("SELECT fo FROM FedoraObject fo join fo.reviewReject rr").getResultList();
+		}
+		finally {
+			entityManager.close();
+		}
+		
+		return fedoraObjects;
 	}
 }
