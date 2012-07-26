@@ -1,0 +1,44 @@
+#backgroundPopup {
+	display:none;
+	position:fixed;
+	height:100%;
+	width:100%;
+	top:0;
+	left:0;
+	background:#000000;
+	border:1px solid #cecece;
+	z-index:1;
+}
+
+#rejectPopup {
+	display: none;
+	position:fixed;
+	height:350px;
+	width:400px;
+	background:#FFFFFF;
+	border: 2px solid #cecece;
+	z-index:2;
+	padding:12px;
+	font-size:13px;
+}
+
+#rejectPopup h1 {
+	text-align: left;
+}
+
+#rejectPopupClose {
+	float: right;
+	font-size: 14px;
+	line-height: 14px;
+	right:6px;
+	top:4px;
+	position:abolute;
+	color:#6fa5fd;
+	font-weight:700;
+	display:block;
+}
+
+#rejectPopup textarea {
+	width:390px;
+	height:250px;
+}
