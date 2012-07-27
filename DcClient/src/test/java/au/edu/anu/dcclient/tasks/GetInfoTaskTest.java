@@ -1,16 +1,11 @@
 package au.edu.anu.dcclient.tasks;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 
-import gov.loc.repository.bagit.ProgressListener;
-
-import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import javax.ws.rs.core.UriBuilder;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -21,13 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcclient.Global;
-import au.edu.anu.dcclient.tasks.GetInfoTask;
 
 import com.sun.jersey.api.client.ClientResponse;
 
 public class GetInfoTaskTest extends AbstractDcBagTaskTest
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
+	private static final Logger LOGGER = LoggerFactory.getLogger(GetInfoTaskTest.class);
 	private static final String PID = "test:4";
 
 	@BeforeClass

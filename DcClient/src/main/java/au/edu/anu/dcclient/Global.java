@@ -10,8 +10,6 @@ import javax.ws.rs.core.UriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.loc.repository.bagit.BagFactory;
-
 public abstract class Global
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
@@ -69,7 +67,7 @@ public abstract class Global
 	 */
 	public static URI getBagUploadUri()
 	{
-		String appUri = globalProperties.getProperty("app.server");
+		String appUri = System.getProperty("app.server", globalProperties.getProperty("app.server"));
 		String appBagUri = globalProperties.getProperty("app.server.uploadUri");
 		URI uri = UriBuilder.fromPath(appUri).path(appBagUri).build();
 		return uri;
@@ -91,7 +89,7 @@ public abstract class Global
 	 */
 	public static String getLocalBagStoreAsString()
 	{
-		return globalProperties.getProperty("local.bagStore");
+		return System.getProperty("local.bagsDir", globalProperties.getProperty("local.bagsDir"));
 	}
 
 	/**

@@ -16,6 +16,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 import javax.swing.text.JTextComponent;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +90,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 					JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
 			{
 				// Delete local bag, redownload.
-				DcBag.deleteDir(localBagFile);
+				FileUtils.deleteQuietly(localBagFile);
 				localBagFile.mkdirs();
 				DownloadBagTask dlBagTask = new DownloadBagTask(Global.getBagUploadUri(), txtPid.getText().toLowerCase().trim(),
 						Global.getLocalBagStoreAsFile());
@@ -141,7 +142,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 										"Confirm Dialog", JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE) == JOptionPane.OK_OPTION)
 								{
 									// Delete local drive, redownload.
-									DcBag.deleteDir(localBagFile);
+									FileUtils.deleteQuietly(localBagFile);
 									localBagFile.mkdirs();
 									DownloadBagTask dlBagTask = new DownloadBagTask(Global.getBagUploadUri(), txtPid.getText().toLowerCase().trim(), Global
 											.getLocalBagStoreAsFile());
@@ -207,7 +208,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 									"Bag not found", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
 							{
 								if (localBagFile != null)
-									DcBag.deleteDir(localBagFile);
+									FileUtils.deleteQuietly(localBagFile);
 								DcBag dcBag = new DcBag(txtPid.getText());
 								localBagFile = dcBag.saveAs(Global.getLocalBagStoreAsFile(), txtPid.getText(), Format.FILESYSTEM);
 								// localBagFile.mkdirs();
