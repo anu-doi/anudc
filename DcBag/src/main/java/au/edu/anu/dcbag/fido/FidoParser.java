@@ -19,11 +19,11 @@ public class FidoParser
 	public FidoParser(File fileToId) throws IOException, URISyntaxException
 	{
 		File fidoScript = getFidoScriptFile();
-		pyExec = new PythonExecutor(new File(System.getProperty("user.home"), "fido/fido.py"));
+		pyExec = new PythonExecutor(fidoScript);
 		pyExec.execute("\"" + fileToId.getCanonicalPath() + "\"");
 		output = pyExec.getOutputAsString();
 		fileFormat = new PronomFormat(this.output);
-		LOGGER.debug("Fido returned {}", output);
+		LOGGER.info("Fido returned {}", output);
 	}
 	
 	public String getOutput()
