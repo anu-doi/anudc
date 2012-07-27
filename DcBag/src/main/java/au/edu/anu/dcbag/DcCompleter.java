@@ -3,6 +3,7 @@ package au.edu.anu.dcbag;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -64,6 +65,11 @@ public class DcCompleter extends DefaultCompleter
 			catch (IOException e)
 			{
 				LOGGER.warn("Unable to get Fido output for file {}", iBagFile.getFilepath());
+			}
+			catch (URISyntaxException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 

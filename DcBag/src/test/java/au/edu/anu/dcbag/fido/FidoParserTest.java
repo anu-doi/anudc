@@ -53,7 +53,7 @@ public class FidoParserTest
 	}
 
 	@Test
-	public void testGetFileFormat() throws IOException
+	public void testGetFileFormat() throws IOException, URISyntaxException
 	{
 		FidoParser fidoParser = new FidoParser(sampleFile);
 		PronomFormat fileFormat = fidoParser.getFileFormat();

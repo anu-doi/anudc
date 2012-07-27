@@ -2,6 +2,7 @@ package au.edu.anu.dcbag.fido;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -10,13 +11,14 @@ import org.slf4j.LoggerFactory;
 public class FidoParser
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
-	private static final PythonExecutor pyExec = new PythonExecutor(new File("C:\\Rahul\\Programs\\Fido\\fido.py"));
+	private static PythonExecutor pyExec;
 	
 	private final String output;
 	private final PronomFormat fileFormat;
 	
-	public FidoParser(File fileToId) throws IOException
+	public FidoParser(File fileToId) throws IOException, URISyntaxException
 	{
+		pyExec = new PythonExecutor(new File(FidoParser.class.getResource("fido.py").toURI()));
 		pyExec.execute("\"" + fileToId.getCanonicalPath() + "\"");
 		output = pyExec.getOutputAsString();
 		fileFormat = new PronomFormat(this.output);

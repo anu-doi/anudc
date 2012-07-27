@@ -15,7 +15,7 @@ public class PythonExecutor
 
 	private File pyFile;
 	private Process pythonProcess;
-	private String pythonExe = "python2.7";
+	private String pythonExe = "python2.7.exe";
 
 	public PythonExecutor(File pyFile)
 	{
