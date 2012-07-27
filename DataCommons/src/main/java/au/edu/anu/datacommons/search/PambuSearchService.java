@@ -242,7 +242,7 @@ public class PambuSearchService {
 	private void setPAMBUReturnFields(String value, SolrQuery solrQuery) {
 		solrQuery.addField("published.combinedAuthors");
 		solrQuery.addField("published.name");
-		solrQuery.addField("published.combinedDates");
+		solrQuery.addField("published.combinedDates.formatted");
 		solrQuery.addField("published.holdingLocation");
 		solrQuery.addField("published.numReels");
 		solrQuery.addField("published.serialNum");

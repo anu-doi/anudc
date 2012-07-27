@@ -601,6 +601,7 @@
    <field name="location.published" type="text_general" index="true" stored="true" multiValued="true" />
    <field name="published.name" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="published.combinedDates" type="text_general" indexed="true" stored="true" multiValued="false" />
+   <field name="published.combinedDates.formatted" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="published.sortVal" type="int" indexed="true" stored="true" multiValued="false" />
    <field name="published.combinedAuthors" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="unpublished.name" type="text_general" indexed="true" stored="true" multiValued="false" />

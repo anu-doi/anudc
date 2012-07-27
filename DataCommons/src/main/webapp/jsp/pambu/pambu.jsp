@@ -24,8 +24,8 @@
 				<td style='width: 450px;'>
 					<strong>${row['published.combinedAuthors']}<br /></strong>
 					<span class="text-blue"><strong>Title:</strong></span> ${row['published.name']}<br />
-					<c:if test="${not empty row['published.combinedDates']}">
-						<span class="text-blue"><strong>Dates:</strong></span> ${row['published.combinedDates']}<br />
+					<c:if test="${not empty row['published.combinedDates.formatted']}">
+						<span class="text-blue"><strong>Dates:</strong></span> ${row['published.combinedDates.formatted']}<br />
 					</c:if>
 					<c:if test="${not empty row['published.numReels'] or not empty row['published.format']}">
 						<span class="text-blue"><strong>Reels &amp; Format:</strong></span> ${row['published.numReels'][0]}, ${row['published.format'][0]}<br />
