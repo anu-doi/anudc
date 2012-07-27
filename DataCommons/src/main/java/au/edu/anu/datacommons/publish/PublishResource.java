@@ -1,4 +1,4 @@
-package au.edu.anu.datacommons.services;
+package au.edu.anu.datacommons.publish;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
+import au.edu.anu.datacommons.services.ListResource;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.view.Viewable;

@@ -3,6 +3,7 @@ package au.edu.anu.datacommons.security.service;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
@@ -26,6 +27,7 @@ import au.edu.anu.datacommons.data.db.model.PublishLocation;
  * 0.3		15/05/2012	Genevieve Turner (GT)	Publishing to publishers
  * 0.4		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
  * 0.5		22/06/2012	Genevieve Turner (GT)	Updated to only allow people with ADMIN or Publish permissions the ability to publish
+ * 0.6		25/07/2012	Genevieve Turner (GT)	Added information for review processing
  * </pre>
  * 
  */
@@ -197,4 +199,95 @@ public interface FedoraObjectService {
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'PUBLISH')")
 	public String publish(FedoraObject fedoraObject, List<String> publishers);
+	
+	/**
+	 * getReadyForReview
+	 *
+	 * Returns a list of items that are ready for a review
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 */
+	@PostFilter("hasPermission(filterObject,'REVIEW') or hasPermission(filterObject,'ADMINISTRATION')")
+	public List<FedoraObject> getReadyForReview();
+	
+	/**
+	 * getRejected
+	 *
+	 * Returns a list of items that have been rejected.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 */
+	@PostFilter("hasPermission(filterObject,'WRITE') or hasPermission(filterObject,'ADMINISTRATION')")
+	public List<FedoraObject> getRejected();
+	
+	/**
+	 * getReadyForPublish
+	 *
+	 * Returns a list of items that are ready for publish
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 */
+	@PostFilter("hasPermission(filterObject,'PUBLISH') or hasPermission(filterObject,'ADMINISTRATION')")
+	public List<FedoraObject> getReadyForPublish();
+	
+	/**
+	 * setReadyForReview
+	 *
+	 * Sets the item as ready for review
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject
+	 */
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE,ADMINISTRATION')")
+	public void setReadyForReview(FedoraObject fedoraObject);
+	
+	/**
+	 * setReadyForPublish
+	 *
+	 * Sets the item as ready for publish
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject
+	 */
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'REVIEW,ADMINISTRATION')")
+	public void setReadyForPublish(FedoraObject fedoraObject);
+	
+	/**
+	 * setRejected
+	 *
+	 * Rejects the item for publishing
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject
+	 * @param reasons
+	 */
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'REVIEW,PUBLISH,ADMINISTRATION')")
+	public void setRejected(FedoraObject fedoraObject, List<String> reasons);
 }

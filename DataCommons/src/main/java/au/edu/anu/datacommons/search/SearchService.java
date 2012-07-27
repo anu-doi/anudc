@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.solr.SolrManager;
+import au.edu.anu.datacommons.data.solr.SolrUtils;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.util.Util;
@@ -44,6 +45,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.4		13/06/2012	Genevieve Turner (GT)	Updated for changes to use solr as the search engine
  * 0.5		13/06/2012	Genevieve Turner (GT)	Updated for varying search filters
  * 0.6		18/06/2012	Genevieve Turner (GT)	Fixed an issue where there is an error in the query if the user has no associated groups
+ * 0.7		23/07/2012	Genevieve Turner (GT)	Added Solr query character escaping
  * </pre>
  * 
  */
@@ -187,6 +189,7 @@ public class SearchService
 	 * Version	Date		Developer				Description
 	 * 0.4		13/06/2012	Genevieve Turner(GT)	Initial
 	 * 0.5		13/06/2012	Genevieve Turner (GT)	Updated for varying search filters
+	 * 0.7		23/07/2012	Genevieve Turner (GT)	Added Solr query character escaping
 	 * </pre>
 	 * 
 	 * @param q	Search terms
@@ -197,10 +200,12 @@ public class SearchService
 	 * @throws SolrServerException
 	 */
 	private QueryResponse executeQuery (String q, int offset, int limit, String filter) throws SolrServerException {
+		// Remove some of Solr/Lucene's special characters
+		q = SolrUtils.escapeSpecialCharacters(q);
+		
 		Object[] list = {q, offset, limit};
-		LOGGER.info("Query Term: {}, Offset: {}, Limit: {}", list);
+		LOGGER.debug("Query Term: {}, Offset: {}, Limit: {}", list);
 
-		LOGGER.info("Filter is: {}", filter);
 		SolrQuery solrQuery = new SolrQuery();
 		
 		if ("team".equals(filter)) {

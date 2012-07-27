@@ -23,15 +23,6 @@
 				</sec:authorize>
 			</c:if>
 			<sec:authorize access="hasRole('ROLE_ANU_USER')">
-				<sec:accesscontrollist hasPermission="PUBLISH,ADMINISTRATION" domainObject="${it.fedoraObject}">
-					<c:url value="/rest/publish/${it.fedoraObject.object_id}" var="publishLink">
-						<c:param name="tmplt" value="${param.tmplt}" />
-						<c:param name="layout" value="${param.layout}" />
-					</c:url>
-					<p>
-						<input type="button" id="publishButton" name="publishButton" value="Publish" onclick="window.location='${publishLink}'" />
-					</p>
-				</sec:accesscontrollist>
 				<c:url value="/rest/display/edit/${it.fedoraObject.object_id}" var="editLink">
 					<c:param name="tmplt" value="${param.tmplt}" />
 					<c:param name="layout" value="${param.layout}" />
@@ -43,12 +34,12 @@
 				</c:if>
 				<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">
 					<p>
-						<input type="button" id="editButton" name="editButton" value="Edit" onclick="window.location='${editLink}'" />
+						<input type="button" id="editButton" name="editButton" value="Edit Metadata" onclick="window.location='${editLink}'" />
 					</p>
 				</sec:accesscontrollist>
 				<c:if test="${it.itemType == 'Collection'}">
 					<p>
-						<input type="button" id="uploadButton" name="uploadButton" value="Upload" onclick="window.location='${uploadLink}'" />
+						<input type="button" id="uploadButton" name="uploadButton" value="Upload Files" onclick="window.location='${uploadLink}'" />
 					</p>
 
 					<sec:accesscontrollist hasPermission="REVIEW,PUBLISH" domainObject="${it.fedoraObject}">
@@ -60,6 +51,8 @@
 						</p>
 					</sec:accesscontrollist>
 				</c:if>
+					
+				<jsp:include page="review_status.jsp" />
 				<jsp:include page="add_reference.jsp" />
 			</sec:authorize>
 		</sec:authorize>

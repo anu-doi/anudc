@@ -9,6 +9,7 @@
  * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
  * 0.3		29/05/2012	Genevieve Turner (GT)	Added error notification
  * 0.4		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
+ * 0.5		24/07/2012	Genevieve Turner (GT)	Moved loadPopup,centrePopup and disablePopup functions to popup.js
  */
 
 /**
@@ -49,15 +50,18 @@ jQuery(document).ready(function() {
 	});
 });
 
+var linkPopupStatus = 0;
+
 /**
  * Centre and open the popup
  * 
  * Version	Date		Developer				Description
  * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
+ * 0.5		24/07/2012	Genevieve Turner (GT)	Moved loadPopup,centrePopup and disablePopup functions to popup.js
  */
 jQuery("#itemLinkButton").live('click', function(){
-	centrePopup();
-	loadPopup();
+	centrePopup("#popupLink");
+	linkPopupStatus = loadPopup("#popupLink", linkPopupStatus);
 });
 
 /**
@@ -65,9 +69,10 @@ jQuery("#itemLinkButton").live('click', function(){
  * 
  * Version	Date		Developer				Description
  * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
+ * 0.5		24/07/2012	Genevieve Turner (GT)	Moved loadPopup,centrePopup and disablePopup functions to popup.js
  */
 jQuery("#popupLinkClose").live('click', function(){
-	disablePopup();
+	linkPopupStatus = disablePopup("#popupLink", linkPopupStatus);
 });
 
 /**
@@ -75,9 +80,10 @@ jQuery("#popupLinkClose").live('click', function(){
  * 
  * Version	Date		Developer				Description
  * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
+ * 0.5		24/07/2012	Genevieve Turner (GT)	Moved loadPopup,centrePopup and disablePopup functions to popup.js
  */
 jQuery("#backgroundPopup").live('click', function() {
-	disablePopup();
+	linkPopupStatus = disablePopup("#popupLink", linkPopupStatus);
 });
 
 /**
@@ -85,10 +91,11 @@ jQuery("#backgroundPopup").live('click', function() {
  * 
  * Version	Date		Developer				Description
  * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
+ * 0.5		24/07/2012	Genevieve Turner (GT)	Moved loadPopup,centrePopup and disablePopup functions to popup.js
  */
 jQuery(document).keypress(function(e) {
-	if(e.keyCode==27 && popupStatus==1) {
-		disablePopup();
+	if(e.keyCode==27 && linkPopupStatus==1) {
+		linkPopupStatus = disablePopup("#popupLink", linkPopupStatus);
 	}
 });
 
@@ -99,6 +106,7 @@ jQuery(document).keypress(function(e) {
  * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
  * 0.3		29/05/2012	Genevieve Turner (GT)	Added error notification
  * 0.4		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
+ * 0.5		24/07/2012	Genevieve Turner (GT)	Moved loadPopup,centrePopup and disablePopup functions to popup.js
  */
 jQuery("#formAddLink").live('submit', function() {
 	var pathArray = window.location.pathname.split('/');
@@ -112,76 +120,10 @@ jQuery("#formAddLink").live('submit', function() {
 		url: urlStr,
 		data: dataString,
 		success: function() {
-			disablePopup();
+			linkPopupStatus = disablePopup("#popupLink", linkPopupStatus);
 		},
 		error: function() {
 			alert('Error Adding Link');
 		}
 	});
 });
-
-// Status of the popup
-var popupStatus = 0;
-
-/**
- * loadPopup
- * 
- * Display the popup on the screen
- * 
- * Version	Date		Developer				Description
- * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
- */
-function loadPopup() {
-	if (popupStatus == 0) {
-		// Clear the values when the popup is opened
-		jQuery("#popupLink").find("input:text").val('');
-		
-		jQuery("#backgroundPopup").css ({
-			"opacity": "0.7"
-		});
-		jQuery("#backgroundPopup").fadeIn("slow");
-		jQuery("#popupLink").fadeIn("slow");
-		popupStatus = 1;
-	}
-}
-
-/**
- * centrePopup
- * 
- * Centre the popup in the screen
- * 
- * Version	Date		Developer				Description
- * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
- */
-function centrePopup() {
-	var windowWidth = document.documentElement.clientWidth;
-	var windowHeight = document.documentElement.clientHeight;
-	var popupHeight = jQuery("#popupLink").height();
-	var popupWidth = jQuery("#popupLink").width();
-	
-	jQuery("#popupLink").css({
-		"position": "absolute",
-		"top": windowHeight/2-popupHeight/2,
-		"left": windowWidth/2-popupWidth/2
-	});
-	
-	jQuery("#backgroundPopup").css({
-		"height": windowHeight
-	});
-}
-
-/**
- * disablePopup
- * 
- * Close the popup
- * 
- * Version	Date		Developer				Description
- * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
- */
-function disablePopup() {
-	if (popupStatus == 1) {
-		jQuery("#backgroundPopup").fadeOut("slow");
-		jQuery("#popupLink").fadeOut("slow");
-	}
-	popupStatus = 0;
-}
