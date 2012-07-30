@@ -22,7 +22,7 @@ public class FidoParser
 	public FidoParser(File fileToId) throws IOException, URISyntaxException
 	{
 		pyExec = new PythonExecutor(getFidoScriptFile());
-		pyExec.execute("\"" + fileToId.getCanonicalPath() + "\"");
+		pyExec.execute(new String[] {fileToId.getCanonicalPath()});
 		output = pyExec.getOutputAsString();
 		fileFormat = new PronomFormat(this.output);
 		LOGGER.info("Fido returned {}", output);
