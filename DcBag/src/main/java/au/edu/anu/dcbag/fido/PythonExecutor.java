@@ -2,10 +2,14 @@ package au.edu.anu.dcbag.fido;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Properties;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,10 +19,11 @@ public class PythonExecutor
 
 	private File pyFile;
 	private Process pythonProcess;
-	private String pythonExe = "python2.7";
+	private String pythonExe;
 
 	public PythonExecutor(File pyFile)
 	{
+		initPythonExe();
 		this.pyFile = pyFile;
 	}
 
@@ -29,7 +34,10 @@ public class PythonExecutor
 
 	public void execute(String cmdParams) throws IOException
 	{
-		StringBuilder execStr = new StringBuilder(pythonExe);
+		StringBuilder execStr = new StringBuilder();
+		execStr.append("\"");
+		execStr.append(pythonExe);
+		execStr.append("\"");
 		execStr.append(" \"");
 		execStr.append(pyFile.getCanonicalPath());
 		execStr.append("\"");
@@ -58,5 +66,33 @@ public class PythonExecutor
 		}
 
 		return output.toString();
+	}
+	
+	private void initPythonExe()
+	{
+		Properties fidoProps = new Properties();
+		File propFile = new File(System.getProperty("user.home"), "fido.properties");
+		FileInputStream fis = null;
+		try
+		{
+			fis = new FileInputStream(propFile);
+			fidoProps.load(fis);
+		}
+		catch (FileNotFoundException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		finally
+		{
+			IOUtils.closeQuietly(fis);
+		}
+		
+		this.pythonExe = fidoProps.getProperty("python.exe");
 	}
 }

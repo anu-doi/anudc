@@ -1,9 +1,12 @@
 package au.edu.anu.dcbag.fido;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +21,7 @@ public class FidoParser
 	
 	public FidoParser(File fileToId) throws IOException, URISyntaxException
 	{
-		File fidoScript = getFidoScriptFile();
-		pyExec = new PythonExecutor(fidoScript);
+		pyExec = new PythonExecutor(getFidoScriptFile());
 		pyExec.execute("\"" + fileToId.getCanonicalPath() + "\"");
 		output = pyExec.getOutputAsString();
 		fileFormat = new PronomFormat(this.output);
@@ -38,14 +40,26 @@ public class FidoParser
 	
 	private File getFidoScriptFile()
 	{
-		String fidoHome = System.getenv("FIDO_HOME");
-		if (fidoHome == null || fidoHome.equals(""))
+		Properties fidoProps = new Properties();
+		File propFile = new File(System.getProperty("user.home"), "fido.properties");
+		FileInputStream fis;
+		try
 		{
-			fidoHome = System.getProperty("fido.home");
-			if (fidoHome == null || fidoHome.equals(""))
-				fidoHome = System.getProperty("user.home") + "/fido";
+			fis = new FileInputStream(propFile);
+			fidoProps.load(fis);
+			fis.close();
+		}
+		catch (FileNotFoundException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
-		return new File(fidoHome, "fido.py");
+		return new File(fidoProps.getProperty("fido.py"));
 	}
 }
