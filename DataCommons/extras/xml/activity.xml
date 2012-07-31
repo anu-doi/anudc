@@ -30,13 +30,24 @@
 	</item>
 	<item fieldType="TextFieldMulti" label="Other Subject" name="locSubject" saveType="multiple"/>
 	<item fieldType="TableVertical" label="Publications" name="publication" saveType="table">
-		<column fieldType="Combobox" label="Publication Type" name="pubType">
-			<option label="-No Value Selected-" value=""/>
-			<option label="Digital Object Identifier" value="doi"/>
-			<option label="International Standard Serial Number" value="issn"/>
-			<option label="International Standard Book Number" value="isbn"/>
+		<column name="pubType" label="Identifier Type" fieldType="Combobox">
+			<option value="" label="-No Value Selected-" />
+			<option value="ark" label="ARK Persistent Identifier Scheme" />
+			<option value="doi" label="Digital Object Identifier" />
+			<option value="ean13" label="International Article Number" />
+			<option value="eissn" label="Electronic International Standard Serial Number" />
+			<option value="handle" label="HANDLE System Identifier" />
+			<option value="infouri" label="'info' URI scheme" />
+			<option value="local" label="identifier unique within a local context" />
+			<option value="purl" label="Persistent Uniform Resource Locator" />
+			<option value="uri" label="Uniform Resource Identifier" />
+			<option value="issn" label="International Standard Serial Number" />
+			<option value="isbn" label="International Standard Book Number" />
+			<option value="istc" label="International Standard Text Code http://www.istc-international.org/html" />
+			<option value="upc" label="Universal Product Code" />
+			<option value="urn" label="Uniform Resource Name" />
 		</column>
-		<column fieldType="TextField" label="Publication Value" name="pubValue"/>
-		<column fieldType="TextArea" label="Publication Title" name="pubTitle"/>
+		<column fieldType="TextField" label="Identifier Value" name="pubValue"/>
+		<column fieldType="TextArea" label="Publication Reference" name="pubTitle"/>
 	</item>
 </template>

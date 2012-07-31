@@ -39,18 +39,38 @@
 			<option value="" label="-No Value Selected-" />
 			<option value="text" label="Text" />
 			<option value="gml" label="OpenGIS Geography Markup Language (GML) Encoding Standard" />
+			<option value="gmlKmlPolyCoords" label="KML long/lat co-ordinates from GML defining a polygon" />
+			<option value="gpx" label="the GPS Exchange Format" />
+			<option value="iso31661" label="ISO 3166-1 Country Codes" />
+			<option value="iso31662" label="ISO 3166-2 Country Subdivision Codes" />
+			<option value="iso19139dcmiBox" label="DCMI Box notation conformant with iso 19139" />
+			<option value="kml" label="Keyhole Markup Language developed for use with Google Earth" />
+			<option value="kmlPolyCoords" label="Keyhol Markup Language co-ordinates defining a polygon" />
+			<option value="dcmiPpoint" label="Spatial Location Information in DCMI Point Notation" />
+			<option value="text" label="Free Text" />
 		</column>
 		<column name="covAreaValue" fieldType="TextField" />
 	</item>
 	<item name="publication" label="Publications" fieldType="TableVertical" saveType="table">
-		<column name="pubType" label="Publication Type" fieldType="Combobox">
+		<column name="pubType" label="Identifier Type" fieldType="Combobox">
 			<option value="" label="-No Value Selected-" />
+			<option value="ark" label="ARK Persistent Identifier Scheme" />
 			<option value="doi" label="Digital Object Identifier" />
+			<option value="ean13" label="International Article Number" />
+			<option value="eissn" label="Electronic International Standard Serial Number" />
+			<option value="handle" label="HANDLE System Identifier" />
+			<option value="infouri" label="'info' URI scheme" />
+			<option value="local" label="identifier unique within a local context" />
+			<option value="purl" label="Persistent Uniform Resource Locator" />
+			<option value="uri" label="Uniform Resource Identifier" />
 			<option value="issn" label="International Standard Serial Number" />
 			<option value="isbn" label="International Standard Book Number" />
+			<option value="istc" label="International Standard Text Code http://www.istc-international.org/html" />
+			<option value="upc" label="Universal Product Code" />
+			<option value="urn" label="Uniform Resource Name" />
 		</column>
-		<column name="pubValue" label="Publication Value" fieldType="TextField" />
-		<column name="pubTitle" label="Publication Title" fieldType="TextArea" />
+		<column name="pubValue" label="Identifier Value" fieldType="TextField" />
+		<column name="pubTitle" label="Publication Reference" fieldType="TextArea" />
 	</item>
 	<item name="rightsStatement" label="Rights Statement" fieldType="TextArea" saveType="single" tooltip="Intellectual property rights information" />
 	<item name="licenceType" label="Licence Type" fieldType="Combobox" saveType="single" tooltip="Licence Type" >

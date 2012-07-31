@@ -19,11 +19,16 @@
 								<xsl:variable name="name" select="@name" />
 								<xsl:if test="$mData/data/*[name() = $name]">
 									<tr>
-										<th><xsl:value-of select="@label" /></th>
+										<th valign="top"><xsl:value-of select="@label" /></th>
 										<td>
 											<xsl:choose>
-												<xsl:when test="@saveType='table'">
+												<xsl:when test="@fieldType='Table'">
 													<xsl:call-template name="Table">
+														<xsl:with-param name="tableVal" select="$mData" />
+													</xsl:call-template>
+												</xsl:when>
+												<xsl:when test="@fieldType='TableVertical'">
+													<xsl:call-template name="TableVertical">
 														<xsl:with-param name="tableVal" select="$mData" />
 													</xsl:call-template>
 												</xsl:when>
@@ -44,11 +49,16 @@
 								<xsl:if test="$modifiedData != ''">
 									<xsl:if test="$mModifiedData/data/*[name() = $name]">
 										<tr>			
-											<th><xsl:value-of select="@label" /> Modified</th>
+											<th valign="top"><xsl:value-of select="@label" /> Modified</th>
 											<td>
 												<xsl:choose>
-													<xsl:when test="@saveType='table'">
+												<xsl:when test="@fieldType='Table'">
 														<xsl:call-template name="Table">
+															<xsl:with-param name="tableVal" select="$mModifiedData" />
+														</xsl:call-template>
+													</xsl:when>
+													<xsl:when test="@fieldType='TableVertical'">
+														<xsl:call-template name="TableVertical">
 															<xsl:with-param name="tableVal" select="$mModifiedData" />
 														</xsl:call-template>
 													</xsl:when>
@@ -122,5 +132,22 @@
 				</tr>
 			</xsl:for-each>
 		</table>
+	</xsl:template>
+	
+	<xsl:template name='TableVertical'>
+		<xsl:param name="tableVal" />
+		<xsl:variable name="mTableVal" select="$tableVal" />
+		<xsl:variable name="table" select="." />
+		<xsl:for-each select="$mTableVal/data/*[name() = $table/@name]">
+			<xsl:variable name="tabledata" select="." />
+			<p>
+				<xsl:for-each select="$table/column">
+					<strong class="text-uni"><xsl:value-of select="@label" /></strong><br />
+					<xsl:variable name="colname" select="@name" />
+					<xsl:value-of disable-output-escaping="yes" select="$tabledata/*[name() = $colname]/text()" />
+					<br />
+				</xsl:for-each>
+			</p><br />
+		</xsl:for-each>
 	</xsl:template>
 </xsl:stylesheet>
