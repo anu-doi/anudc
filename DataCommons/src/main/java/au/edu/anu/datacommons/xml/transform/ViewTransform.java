@@ -86,6 +86,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.10		20/06/2012	Genevieve Turner (GT)	Updated to perform additions to the audit object table
  * 0.11		21/06/2012	Genevieve Turner (GT)	Updated to add anzfor subjects to be retrieved from the database
  * 0.12		11/07/2012	Genevieve Turner (GT)	Removed getPublishedPage function and updated getPage
+ * 0.13		26/07/2012	Genevieve Turner (GT)	Updated to add visibility of review changes
  * </pre>
  * 
  */
@@ -128,6 +129,7 @@ public class ViewTransform
 	 * 0.5		02/05/2012	Genevieve Turner (GT)	Updates to display differences between published and non-published records
 	 * 0.8		28/05/2012	Genevieve Turner (GT)	Updated for retrieving data from the database
 	 * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to allow the display of the object type
+	 * 0.13		26/07/2012	Genevieve Turner (GT)	Updated to add visibility of review changes
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -185,6 +187,7 @@ public class ViewTransform
 				List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(fedoraObject.getObject_id()); //FedoraBroker.getDatastreamAsStream(pid, streamId)
 				boolean hasXMLSource = false;
 				boolean hasXMLPublished = false;
+				boolean hasXMLReview = false;
 				for (DatastreamType datastream : datastreamList) {
 					String dsId = datastream.getDsid();
 					LOGGER.debug("Data Source id: {}", dsId);
@@ -193,6 +196,9 @@ public class ViewTransform
 					}
 					else if(dsId.equals(Constants.XML_PUBLISHED)) {
 						hasXMLPublished = true;
+					}
+					else if (dsId.equals(Constants.XML_REVIEW)) {
+						hasXMLReview = true;
 					}
 				}
 				if(hasXMLPublished) {
@@ -205,7 +211,17 @@ public class ViewTransform
 					LOGGER.warn("item specified does not exist");
 					return values;
 				}
-				if(hasXMLPublished && hasXMLSource) {
+				if (hasXMLReview && !hasXMLPublished) {
+					InputStream dataStream2 = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_REVIEW);
+					InputStream modifiedDatastream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
+					try {
+						modifiedDocument = getXMLDifference(dataStream2, modifiedDatastream);
+					}
+					catch (Exception e) {
+						LOGGER.warn("Exception retrieving differences between documents");
+					}
+				}
+				else if (hasXMLPublished && hasXMLSource) {
 					InputStream dataStream2 = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_PUBLISHED);
 					InputStream modifiedDatastream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
 					try {

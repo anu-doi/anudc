@@ -11,9 +11,8 @@
 
 <anu:content layout="doublewide" title="Under Construction">
 	List<br />
-	<c:forEach items="${it.itemList}" var="item">
-		${item.id}
-		${item.object_id}
+	<c:forEach items="${it.resultList}" var="result">
+		<a href='<c:url value="/rest/display/${result.fields.id.value}?layout=def:display" />'>${result.fields.name.value}</a>
 		<br />
 	</c:forEach>
 </anu:content>
