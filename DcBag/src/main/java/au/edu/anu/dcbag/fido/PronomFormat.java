@@ -1,7 +1,5 @@
 package au.edu.anu.dcbag.fido;
 
-import java.util.regex.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,21 +26,36 @@ public class PronomFormat
 	public PronomFormat(String fidoStr)
 	{
 		if (fidoStr == null || fidoStr.equals(""))
-			throw new NullPointerException("Fido output string is null.");
-		
-		this.sourceStr = fidoStr;
-		// Split using commas as delimiters except for commas surrounded by double quotes.
-		String[] tokens = sourceStr.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+		{
+			sourceStr = "";
+			matchStatus = MatchStatus.KO;
+			timeToParse = 0;
+			puid = "";
+			formatName = "";
+			sigName = "";
+			fileSize = 0;
+			fileName = "";
+			mimeType = "";
+			matchType = "";
+			
+			LOGGER.warn("Fido String is null. Assigning default properties.");
+		}
+		else
+		{
+			this.sourceStr = fidoStr;
+			// Split using commas as delimiters except for commas surrounded by double quotes.
+			String[] tokens = sourceStr.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
 
-		matchStatus = MatchStatus.valueOf(tokens[0].trim());
-		timeToParse = Long.parseLong(tokens[1]);
-		puid = tokens[2];
-		formatName = stripQuotes(tokens[3]);
-		sigName = stripQuotes(tokens[4]);
-		fileSize = Long.parseLong(tokens[5]);
-		fileName = stripQuotes(tokens[6]);
-		mimeType = stripQuotes(tokens[7]);
-		matchType = stripQuotes(tokens[8]);
+			matchStatus = MatchStatus.valueOf(tokens[0].trim());
+			timeToParse = Long.parseLong(tokens[1]);
+			puid = tokens[2];
+			formatName = stripQuotes(tokens[3]);
+			sigName = stripQuotes(tokens[4]);
+			fileSize = Long.parseLong(tokens[5]);
+			fileName = stripQuotes(tokens[6]);
+			mimeType = stripQuotes(tokens[7]);
+			matchType = stripQuotes(tokens[8]);
+		}
 	}
 
 	public MatchStatus getMatchStatus()
@@ -90,13 +103,13 @@ public class PronomFormat
 		return matchType;
 	}
 
-	private String  stripQuotes(String str)
+	private String stripQuotes(String str)
 	{
 		StringBuilder sb = new StringBuilder(str);
-		
+
 		if (str == null || str.equals(""))
 			return str;
-		
+
 		if (str.charAt(str.length() - 1) == '"')
 			sb.deleteCharAt(str.length() - 1);
 
