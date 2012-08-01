@@ -18,6 +18,7 @@ import java.util.concurrent.Executors;
 import javax.swing.UIManager;
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,8 @@ import com.sun.jersey.api.client.ClientResponse.Status;
 import au.edu.anu.dcbag.DcBag;
 import au.edu.anu.dcbag.DcBagException;
 import au.edu.anu.dcbag.DcBagProps;
+import au.edu.anu.dcclient.collection.CollectionInfo;
+import au.edu.anu.dcclient.tasks.CreateCollectionTask;
 import au.edu.anu.dcclient.tasks.DownloadBagTask;
 import au.edu.anu.dcclient.tasks.GetInfoTask;
 import au.edu.anu.dcclient.tasks.SaveBagTask;
@@ -145,7 +148,7 @@ public class DcClient
 			for (int i = 0; i < args.length; i++)
 			{
 				// Username
-				if (args[i].equalsIgnoreCase("-n"))
+				if (args[i].equalsIgnoreCase("-u"))
 					username = args[i + 1];
 			}
 
@@ -156,7 +159,7 @@ public class DcClient
 					password = args[i + 1];
 			}
 
-			if (!username.equals("") && !password.equals(""))
+			if (username.length() > 0 && password.length() > 0)
 				Authenticator.setDefault(new DcAuthenticator(username, password));
 		}
 		catch (IndexOutOfBoundsException e)
@@ -258,7 +261,7 @@ public class DcClient
 				System.out.println("Unable to save bag.");
 			}
 		}
-		else if (args[0].toLowerCase().trim().equals(("-u")))
+		else if (args[0].toLowerCase().trim().equals("-l"))
 		{
 			String pid = args[1];
 			bag = new DcBag(Global.getLocalBagStoreAsFile(), pid, LoadOption.BY_FILES);
@@ -306,6 +309,77 @@ public class DcClient
 				System.out.println("Unable to upload bag.");
 			}
 		}
+		else if (args[0].toLowerCase().trim().equals("-c"))
+		{
+			// Create FedoraObject and then upload files.
+			File ciFile = new File(args[1]);
+
+			try
+			{
+				// Create collection.
+				System.out.println("Creating collection with following details...");
+				
+				CollectionInfo ci = new CollectionInfo(ciFile);
+				CreateCollectionTask createCollTask = new CreateCollectionTask(ci, Global.getCreateUri());
+				String pid = createCollTask.call();
+				System.out.println("Created collection with Pid: " + pid);
+
+				// Create empty bag.
+				System.out.println("Creating blank bag for pid...");
+				bag = new DcBag(pid);
+				if (isDsInstrument)
+					setDataSource(bag);
+				File bagFile = bag.saveAs(Global.getLocalBagStoreAsFile(), pid, Format.FILESYSTEM);
+				File payloadDir = new File(bagFile, "data/");
+				payloadDir.mkdirs();
+				System.out.println("Empty bag created.");
+				
+				// Copy files.
+				System.out
+						.println(MessageFormat.format("Copying files from {0} to {1}...", ci.getFilesDir().getCanonicalPath(), payloadDir.getCanonicalPath()));
+				FileUtils.copyDirectory(ci.getFilesDir(), payloadDir, true);
+				System.out.println("Copying complete.");
+
+				// Save bag.
+				System.out.println("Saving bag...");
+				bag = new DcBag(Global.getLocalBagStoreAsFile(), pid, LoadOption.BY_FILES);
+				if (isDsInstrument)
+					setDataSource(bag);
+				SaveBagTask saveTask = new SaveBagTask(bag);
+				saveTask.call();
+				System.out.println("Bag saved. Verifying its integrity...");
+
+				// Verify bag.
+				VerifyBagTask verifyTask = new VerifyBagTask(bag);
+				SimpleResult result = verifyTask.call();
+				if (!result.isSuccess())
+					throw new Exception("Verification failed.");
+				
+				System.out.println("Verification complete. Bag is valid.");
+				
+				// Upload Bag.
+				UploadBagTask uploadTask = new UploadBagTask(bag, Global.getBagUploadUri());
+				// uploadTask.addProgressListener(new ConsoleProgressListener());
+				ClientResponse resp = uploadTask.call();
+				if (resp.getClientResponseStatus() != Status.OK)
+					throw new Exception("Unable to upload bag.");
+
+				System.out.println("Bag uploaded successfully.");
+				exitCode = 0;
+			}
+			catch (IOException e)
+			{
+				LOGGER.error("Exception thrown.", e);
+				System.out.println("Unable to complete operation.");
+				exitCode = 1;
+			}
+			catch (Exception e)
+			{
+				LOGGER.error("Exception thrown.", e);
+				System.out.println("Unable to complete operation.");
+				exitCode = 1;
+			}
+		}
 
 		return exitCode;
 	}
@@ -314,11 +388,13 @@ public class DcClient
 	{
 		System.out.println("Performs an action on a bag.");
 		System.out.println();
-		System.out.println("DcClient -D|-S|-U collectionId -N username -P password [-I]");
+		System.out.println("DcClient -C collectionInfoFile -U username -P password [-I]");
+		System.out.println("DcClient -D|-S|-L collectionId -U username -P password [-I]");
+		System.out.println(" -C\tCreates a Fedora Object and uploads files against it.");
 		System.out.println(" -D\tDownloads a bag from ANU Data Commons onto the local bag store directory.");
 		System.out.println(" -S\tSaves a bag. Any files added/removed/edited are acknowledged and included in their respective manifests.");
-		System.out.println(" -U\tUploads a bag to ANU Data Commons.");
-		System.out.println(" -N\tUsername.");
+		System.out.println(" -L\tUploads a bag to ANU Data Commons.");
+		System.out.println(" -U\tUsername.");
 		System.out.println(" -P\tPassword.");
 		System.out.println(" -I\tTreat the bag as one with an instrument as datasource.");
 	}

@@ -1,5 +1,6 @@
 package au.edu.anu.datacommons.services;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.ws.WebServiceException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.util.Util;
 
+import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
 
 /**
@@ -52,14 +55,16 @@ import com.sun.jersey.api.view.Viewable;
 @Component
 @Scope("request")
 @Path("/display")
-public class DisplayResource {
+public class DisplayResource
+{
 	static final Logger LOGGER = LoggerFactory.getLogger(DisplayResource.class);
 
-	@Context UriInfo uriInfo;
+	@Context
+	UriInfo uriInfo;
 
-	@Resource(name="fedoraObjectServiceImpl")
+	@Resource(name = "fedoraObjectServiceImpl")
 	private FedoraObjectService fedoraObjectService;
-	
+
 	/**
 	 * getItem
 	 * 
@@ -72,9 +77,12 @@ public class DisplayResource {
 	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * </pre>
 	 * 
-	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
-	 * @param template The template that determines the fields on the screen
-	 * @param item The item to retrieve data for
+	 * @param layout
+	 *            The layout to use with display (i.e. the xsl stylesheet)
+	 * @param template
+	 *            The template that determines the fields on the screen
+	 * @param item
+	 *            The item to retrieve data for
 	 * @return Returns the viewable for the jsp file to pick up
 	 */
 	@GET
@@ -84,11 +92,11 @@ public class DisplayResource {
 	{
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
 		Map<String, Object> values = fedoraObjectService.getViewPage(fedoraObject, layout, tmplt);
-		
-		Viewable viewable = new Viewable((String)values.remove("topage"), values);
+
+		Viewable viewable = new Viewable((String) values.remove("topage"), values);
 		return Response.ok(viewable).build();
 	}
-	
+
 	/**
 	 * newItemPage
 	 * 
@@ -98,25 +106,30 @@ public class DisplayResource {
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
 	 * </pre>
 	 * 
-	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
-	 * @param tmplt The template that determines the fields on the screen
-	 * @param item The item to retrieve data for
+	 * @param layout
+	 *            The layout to use with display (i.e. the xsl stylesheet)
+	 * @param tmplt
+	 *            The template that determines the fields on the screen
+	 * @param item
+	 *            The item to retrieve data for
 	 * @return Returns the viewable for the jsp file to pick up
 	 */
 	@GET
 	@Path("/new")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Produces(MediaType.TEXT_HTML)
-	public Response newItemPage(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item, @QueryParam("error") String error)
+	public Response newItemPage(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item,
+			@QueryParam("error") String error)
 	{
 		Map<String, Object> values = fedoraObjectService.getNewPage(layout, tmplt);
-		if (Util.isNotEmpty(error)) {
+		if (Util.isNotEmpty(error))
+		{
 			values.put("error", "Error saving item");
 		}
-		Viewable viewable = new Viewable((String)values.remove("topage"), values);
+		Viewable viewable = new Viewable((String) values.remove("topage"), values);
 		return Response.ok(viewable).build();
 	}
-	
+
 	/**
 	 * postItem
 	 * 
@@ -131,10 +144,14 @@ public class DisplayResource {
 	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * </pre>
 	 * 
-	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
-	 * @param tmplt The template that determines the fields on the screen
-	 * @param item The item to retrieve data for
-	 * @param form Form data that has been posted
+	 * @param layout
+	 *            The layout to use with display (i.e. the xsl stylesheet)
+	 * @param tmplt
+	 *            The template that determines the fields on the screen
+	 * @param item
+	 *            The item to retrieve data for
+	 * @param form
+	 *            Form data that has been posted
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@POST
@@ -142,21 +159,70 @@ public class DisplayResource {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.TEXT_HTML)
-	public Response postItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item, @Context HttpServletRequest request)
+	public Response postItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item,
+			@Context HttpServletRequest request)
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
-		
+
 		FedoraObject fedoraObject = fedoraObjectService.saveNew(layout, tmplt, form);
 		UriBuilder uriBuilder = null;
-		if (fedoraObject == null || !Util.isNotEmpty(fedoraObject.getObject_id())) {
+		if (fedoraObject == null || !Util.isNotEmpty(fedoraObject.getObject_id()))
+		{
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
-		else {
+		else
+		{
 			uriBuilder = UriBuilder.fromPath("/display").path(fedoraObject.getObject_id()).queryParam("layout", layout).queryParam("tmplt", tmplt);
 		}
 		return Response.seeOther(uriBuilder.build()).build();
 	}
-	
+
+	/**
+	 * postItemAsText
+	 * 
+	 * Australian National University Data Commons
+	 * 
+	 * Creates a new Fedora Object. Returns a text response with the Pid of the created object.
+	 * 
+	 * <pre>
+	 * Version	Date		Developer			Description
+	 * 0.1		31/07/2012	Rahul Khanna (RK)	Initial
+	 * </pre>
+	 * 
+	 * @param uriInfo
+	 *            URI context
+	 * @param layout
+	 *            Layout
+	 * @param tmplt
+	 *            Template Id
+	 * @param request
+	 *            HTTPRequest context
+	 * @return HTTP Response
+	 */
+	@POST
+	@Path("new")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response postItemAsText(@Context UriInfo uriInfo, @QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt,
+			@Context HttpServletRequest request)
+	{
+		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
+		LOGGER.debug("Saving Fedora Object... layout: {}, tmplt: {}, form: {}", new Object[] { layout, tmplt, form.toString() });
+		FedoraObject fedoraObject = fedoraObjectService.saveNew(layout, tmplt, form);
+		Response resp = null;
+		if (fedoraObject == null || !Util.isNotEmpty(fedoraObject.getObject_id()))
+			resp = Response.serverError().build();
+		else
+		{
+			LOGGER.info("Created fedora object {}. Returning HTTP 301 response.", fedoraObject.getObject_id());
+			URI createdUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(DisplayResource.class).path(DisplayResource.class, "getItem")
+					.build(fedoraObject.getObject_id());
+			resp = Response.created(createdUri).entity(fedoraObject.getObject_id()).build();
+		}
+		return resp;
+	}
+
 	/**
 	 * editItem
 	 * 
@@ -169,17 +235,22 @@ public class DisplayResource {
 	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * </pre>
 	 * 
-	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
-	 * @param tmplt The template that determines the fields on the screen
-	 * @param item The item to retrieve data for
-	 * @param form Form data that has been posted
+	 * @param layout
+	 *            The layout to use with display (i.e. the xsl stylesheet)
+	 * @param tmplt
+	 *            The template that determines the fields on the screen
+	 * @param item
+	 *            The item to retrieve data for
+	 * @param form
+	 *            Form data that has been posted
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@GET
 	@Path("/edit/{item}/{fieldName}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Produces(MediaType.TEXT_HTML)
-	public String getEditItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item, @PathParam("fieldName") String fieldName)
+	public String getEditItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item,
+			@PathParam("fieldName") String fieldName)
 	{
 		LOGGER.info("PID: {}", item);
 		LOGGER.info("Template: x{}x", tmplt);
@@ -200,9 +271,12 @@ public class DisplayResource {
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
 	 * </pre>
 	 * 
-	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
-	 * @param tmplt The template that determines the fields on the screen
-	 * @param item The item to retrieve data for
+	 * @param layout
+	 *            The layout to use with display (i.e. the xsl stylesheet)
+	 * @param tmplt
+	 *            The template that determines the fields on the screen
+	 * @param item
+	 *            The item to retrieve data for
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@GET
@@ -213,11 +287,11 @@ public class DisplayResource {
 	{
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
 		Map<String, Object> values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt);
-		Viewable viewable = new Viewable((String)values.remove("topage"), values);
-		
+		Viewable viewable = new Viewable((String) values.remove("topage"), values);
+
 		return Response.ok(viewable).build();
 	}
-	
+
 	/**
 	 * editChangeItem
 	 * 
@@ -230,10 +304,14 @@ public class DisplayResource {
 	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * </pre>
 	 * 
-	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
-	 * @param tmplt The template that determines the fields on the screen
-	 * @param item The item to retrieve data for
-	 * @param form Form data that has been posted
+	 * @param layout
+	 *            The layout to use with display (i.e. the xsl stylesheet)
+	 * @param tmplt
+	 *            The template that determines the fields on the screen
+	 * @param item
+	 *            The item to retrieve data for
+	 * @param form
+	 *            Form data that has been posted
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@POST
@@ -241,27 +319,31 @@ public class DisplayResource {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.TEXT_HTML)
-	public Response editChangeItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item, @Context HttpServletRequest request)
+	public Response editChangeItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item,
+			@Context HttpServletRequest request)
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
-		
-		LOGGER.info("tmplt: {}",tmplt);
-		
+
+		LOGGER.info("tmplt: {}", tmplt);
+
 		Map<String, Object> values = fedoraObjectService.saveEdit(fedoraObject, layout, tmplt, form);
 		UriBuilder uriBuilder = null;
-		if (values.containsKey("error")) {
+		if (values.containsKey("error"))
+		{
 			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
-		else {
+		else
+		{
 			uriBuilder = UriBuilder.fromPath("/display/edit").path(item).queryParam("layout", layout);
-			if (Util.isNotEmpty(tmplt)) {
+			if (Util.isNotEmpty(tmplt))
+			{
 				uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
 			}
 		}
 		return Response.seeOther(uriBuilder.build()).build();
 	}
-	
+
 	/**
 	 * addLink
 	 * 
@@ -274,8 +356,10 @@ public class DisplayResource {
 	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * </pre>
 	 * 
-	 * @param item The item to retrieve data for
-	 * @param form Form data that has been posted
+	 * @param item
+	 *            The item to retrieve data for
+	 * @param form
+	 *            Form data that has been posted
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@POST
@@ -289,5 +373,5 @@ public class DisplayResource {
 		String value = fedoraObjectService.addLink(fedoraObject, form);
 		return value;
 	}
-	
+
 }

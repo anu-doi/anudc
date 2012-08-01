@@ -4,7 +4,6 @@ import gov.loc.repository.bagit.BagFactory.LoadOption;
 
 import java.awt.Component;
 import java.awt.Dialog.ModalityType;
-import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -16,14 +15,12 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
+import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.SpringLayout;
-import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -31,9 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.DcBag;
-import au.edu.anu.dcbag.DcBagProps;
+import au.edu.anu.dcbag.fido.PronomFormat;
 import au.edu.anu.dcclient.duvanslabbert.FileExplorer;
-import javax.swing.JSeparator;
 
 public class MainWindow
 {
@@ -267,15 +263,18 @@ public class MainWindow
 			{
 				// bagExplorer.changeDir(new File("C:\\Rahul\\FileUpload\\Store\\test_5"));
 				DcBag bag = new DcBag(bagExplorer.getBagDir(), LoadOption.BY_FILES);
-				bag.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.INSTRUMENT.toString());
-				try
-				{
-					bag.save();
-				}
-				catch (Exception e1)
-				{
-					JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Unable to change data source property to instrument.", "Error", JOptionPane.ERROR_MESSAGE);
-				}
+				PronomFormat fmt = bag.getPronomFormat(bag.getBag().getBagFile("data/An Overview Of Servlet And Jsp Technology.pdf"));
+				System.out.println(fmt.getMatchStatus());
+				System.out.println(fmt.getPuid());
+//				bag.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.GENERAL.toString());
+//				try
+//				{
+//					bag.save();
+//				}
+//				catch (Exception e1)
+//				{
+//					JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Unable to change data source property to instrument.", "Error", JOptionPane.ERROR_MESSAGE);
+//				}
 			}
 		});
 		

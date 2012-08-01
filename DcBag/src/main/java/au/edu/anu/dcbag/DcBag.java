@@ -12,13 +12,8 @@ import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.ManifestHelper;
 import gov.loc.repository.bagit.ProgressListenable;
 import gov.loc.repository.bagit.ProgressListener;
-import gov.loc.repository.bagit.impl.FetchTxtImpl;
-import gov.loc.repository.bagit.impl.StringBagFile;
-import gov.loc.repository.bagit.transformer.Completer;
-import gov.loc.repository.bagit.transformer.impl.DefaultCompleter;
 import gov.loc.repository.bagit.utilities.MessageDigestHelper;
 import gov.loc.repository.bagit.utilities.SimpleResult;
-import gov.loc.repository.bagit.v0_96.impl.BagImpl;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 import gov.loc.repository.bagit.writer.impl.ZipWriter;
 
@@ -29,11 +24,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -43,12 +39,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.DcBagProps.DataSource;
+import au.edu.anu.dcbag.fido.PronomFormat;
 
 public class DcBag implements ProgressListenable
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcBag.class);
-	private static final Algorithm BAGS_ALGORITHM = Algorithm.MD5;
+	public static final Algorithm BAGS_ALGORITHM = Algorithm.MD5;
 	private static final BagFactory BAG_FACTORY = new BagFactory();
+	private static final DcCompleter dcBagCompleter = new DcCompleter(BAG_FACTORY);
 
 	private Bag bag;
 	private Set<ProgressListener> plSet = null;
@@ -105,10 +103,10 @@ public class DcBag implements ProgressListenable
 
 	public File saveAs(File bagsDir, String bagName, Format format) throws IOException, DcBagException
 	{
-		customValidate();
+		dcBagCompleter.checkValidMods(this);
 
 		if (!this.bag.verifyValid().isSuccess())
-			makeDcComplete();
+			makeComplete();
 
 		List<String> extIdList = this.bag.getBagInfoTxt().getExternalIdentifierList();
 		if (extIdList.size() != 1)
@@ -259,14 +257,7 @@ public class DcBag implements ProgressListenable
 
 	public void close()
 	{
-		if (this.bag != null)
-			try
-			{
-				this.bag.close();
-			}
-			catch (IOException e)
-			{
-			}
+		IOUtils.closeQuietly(this.bag);
 	}
 
 	public Bag getBag()
@@ -319,19 +310,29 @@ public class DcBag implements ProgressListenable
 		bag.getTagManifest(BAGS_ALGORITHM).put(DcBagProps.DCPROPS_FILEPATH, checksum);
 	}
 
-	public void makeDcComplete()
+	public void makeComplete()
 	{
-		DefaultCompleter dcBagCompleter = new DefaultCompleter(BAG_FACTORY);
-		copyProgressListeners(dcBagCompleter);
-		String dataSrc = getBagProperty(DcBagProps.FIELD_DATASOURCE);
-		if (dataSrc != null && dataSrc.equals(DataSource.INSTRUMENT))
-		{
-			LOGGER.debug("Data Source: {}", dataSrc);
-			dcBagCompleter.setCompletePayloadManifests(false);
-		}
-		else
-			LOGGER.debug("Data Source not specified. Assuming data source = General.");
 		this.bag = bag.makeComplete(dcBagCompleter);
+	}
+	
+	public PronomFormatsTxt getPronomFormatsTxt()
+	{
+		BagFile pronomFormatsTxt = this.bag.getBagFile(PronomFormatsTxt.PRONOMFORMATS_FILEPATH);
+		if (pronomFormatsTxt != null)
+			return new PronomFormatsTxt(PronomFormatsTxt.PRONOMFORMATS_FILEPATH, pronomFormatsTxt, this.bag.getBagItTxt().getCharacterEncoding());
+		else
+			return null;
+	}
+	
+	public PronomFormat getPronomFormat(BagFile bagFile)
+	{
+		return getPronomFormat(bagFile.getFilepath());
+	}
+	
+	public PronomFormat getPronomFormat(String filePath)
+	{
+		PronomFormatsTxt pTxt = getPronomFormatsTxt();
+		return new PronomFormat(pTxt.get(filePath));
 	}
 
 	public static String convertToDiskSafe(String source)
@@ -354,19 +355,6 @@ public class DcBag implements ProgressListenable
 		}
 
 		return bagFile;
-	}
-
-	public static boolean deleteDir(File dir)
-	{
-		if (dir.isDirectory())
-		{
-			String[] children = dir.list();
-			for (int i = 0; i < children.length; i++)
-				if (!deleteDir(new File(dir, children[i])))
-					return false;
-		}
-		// The directory is now empty so delete it
-		return dir.delete();
 	}
 
 	@Override
@@ -481,6 +469,15 @@ public class DcBag implements ProgressListenable
 		if (deleteOrig)
 			FileUtils.deleteQuietly(newBagFile);
 	}
+	
+	public Map<BagFile, FileSummary> getFileSummaryMap()
+	{
+		Map<BagFile, FileSummary> fsMap = new HashMap<BagFile, FileSummary>();
+		for (BagFile iBagFile : this.bag.getPayload())
+			fsMap.put(iBagFile, new FileSummary(this, iBagFile));
+		
+		return fsMap;
+	}
 
 	private void archiveBag(File file) throws IOException
 	{
@@ -505,13 +502,7 @@ public class DcBag implements ProgressListenable
 	private void copyProgressListeners(ProgressListenable listenable)
 	{
 		if (plSet != null)
-			for (ProgressListener l : plSet)
-				listenable.addProgressListener(l);
-	}
-
-	@Override
-	protected void finalize()
-	{
-		this.close();
+			for (ProgressListener pl : this.plSet)
+				listenable.addProgressListener(pl);
 	}
 }

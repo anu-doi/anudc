@@ -2,6 +2,7 @@ package au.edu.anu.datacommons.upload;
 
 import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
+import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.transfer.BagTransferException;
 
 import java.io.BufferedInputStream;
@@ -12,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -67,6 +69,8 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.AccessLogRecord;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.DcBag;
+import au.edu.anu.dcbag.FileSummary;
+import au.edu.anu.dcbag.fido.PronomFormat;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
@@ -241,7 +245,7 @@ public class UploadService
 			if (!Util.isNotEmpty(pid))
 				throw new Exception("Missing Pid value.");
 			File curBagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
-			
+
 			// Create access log.
 			if (curBagFile == null)
 				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.CREATE);
@@ -349,7 +353,6 @@ public class UploadService
 	public Response doGetBagFileListingAsHtml(@Context UriInfo uriInfo, @PathParam("pid") String pid)
 	{
 		Response resp = null;
-		HashMap<String, String> downloadables = new HashMap<String, String>();
 		Map<String, Object> model = new HashMap<String, Object>();
 		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
 		DcBag dcBag;
@@ -358,14 +361,22 @@ public class UploadService
 		else
 			throw new NotFoundException("Bag not found for " + pid);
 
+		Map<BagFile, FileSummary> downloadables = dcBag.getFileSummaryMap();
+		/*
 		Set<Entry<String, String>> plFileSet = dcBag.getPayloadFileList();
 		for (Entry<String, String> entry : plFileSet)
-			downloadables.put(
-					entry.getKey(),
-					UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream2")
-							.build(pid, entry.getKey()).toString());
-
+		{
+			PronomFormat pronom = dcBag.getPronomFormat(entry.getKey());
+			String dlUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream2")
+					.build(pid, entry.getKey()).toString();
+			FileSummary fileSummary = new FileSummary(entry.getKey(), dcBag.getBagFileSize(entry.getKey()), pronom.getFormatName(), pronom.getPuid(),
+					dcBag.getBagFileHash(entry.getKey()), dlUri);
+			downloadables.put(entry.getKey(), fileSummary);
+		}
+		*/
 		model.put("downloadables", downloadables);
+		model.put("dlBaseUri", UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream2")
+				.build(pid, "").toString());
 		resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
 
 		return resp;
@@ -470,7 +481,7 @@ public class UploadService
 
 			// Add access log.
 			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessRec);
-			
+
 			// Create a placeholder datastream.
 			FedoraBroker.addDatastreamBySource(pid, FILE_DS_PREFIX + "0", "FILE0", "<text>Files available.</text>");
 
@@ -842,4 +853,3 @@ public class UploadService
 		}
 	}
 }
-

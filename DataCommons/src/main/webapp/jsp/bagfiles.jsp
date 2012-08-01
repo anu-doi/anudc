@@ -13,21 +13,51 @@
 <c:choose>
 	<c:when test="${it.downloadables != null}">
 		<!-- Display list of files -->
-		
+
 		<anu:content layout="doublewide" title="Bag Files">
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
 
-			<table>
+			<table class="small">
 				<tr>
 					<th>File</th>
+					<th>Format</th>
+					<th>Pronom PUID</th>
+					<th>Size</th>
 					<th>MD5</th>
+					<th>Expand</th>
 				</tr>
 				<c:forEach var="iFile" items="${it.downloadables}">
 					<tr>
-						<td><a href="<c:url value='${iFile.value}' />">${iFile.key}</a></td>
-						<td>Placeholder for MD5</td>
+						<td><a href="<c:url value='${it.dlBaseUri}${iFile.key.filepath}' />">${iFile.key.filepath}</a></td>
+						<c:choose>
+							<c:when test="${not empty iFile.value.format}">
+								<td><c:out value="${iFile.value.format}" /></td>
+								<td><a target="_blank" href="http://www.nationalarchives.gov.uk/pronom/${iFile.value.formatPuid}">${iFile.value.formatPuid}</a></td>
+							</c:when>
+							<c:otherwise>
+								<td>Unknown</td>
+								<td>Unknown</td>
+							</c:otherwise>
+						</c:choose>
+						<td><c:out value="${iFile.value.friendlySize}" /></td>
+						<td><c:out value="${iFile.value.md5}" /></td>
+						<td onclick="jQuery('#${iFile.value.md5}').slideToggle()"><a href="#" onclick="return false">Expand</a></td>
+					</tr>
+					<tr id="<c:out value='${iFile.value.md5}' />" style="display: none;">
+						<td colspan="6">
+							<table class=small>
+								<c:forEach var="iProperty" items="${iFile.value.metadata}">
+									<tr>
+										<th><c:out value="${iProperty.key}" /></th>
+										<c:forEach var="iPropertyVal" items="${iProperty.value}">
+											<td><c:out value="${iPropertyVal}" /></td>
+										</c:forEach>
+									</tr>
+								</c:forEach>
+							</table>
+						</td>
 					</tr>
 				</c:forEach>
 			</table>

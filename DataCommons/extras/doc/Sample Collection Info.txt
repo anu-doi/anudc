@@ -1,0 +1,33 @@
+# Following attributes can be used as keys to provide information about a collection.
+#
+# abbrName
+# accessRights
+# altName
+# anzforSubject
+# briefDesc
+# covAreaType
+# covAreaValue
+# dateFrom
+# dateTo
+# email
+# fax
+# fullDesc
+# licence
+# locSubject
+# name
+# ownerGroup
+# phone
+# postalAddress
+# pubTitle
+# pubType
+# pubValue
+# rightsStatement
+# significanceStatement
+# subType
+# type
+# websiteAddress
+#
+# The following key(s) are not sent to the server.
+# 
+# files.dir
+# 

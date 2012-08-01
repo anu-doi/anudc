@@ -1,0 +1,7 @@
+# Comment that should be ignored.
+Key1=value1
+Key1=value2
+Key2 = value 2.1
+Key3 = value with = symbol
+KeyWithoutVal=
+=ValueWithoutKey
