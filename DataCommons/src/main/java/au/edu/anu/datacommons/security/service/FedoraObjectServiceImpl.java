@@ -418,7 +418,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		boolean hasPermission = false;
 		if (fedoraObject == null) {
 			hasPermission = true;
-			LOGGER.info("Fedora Object is null");
 		}else {
 			hasPermission = checkViewPermission(fedoraObject);
 		}
@@ -439,17 +438,12 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 				}
 			}
 			if (hasPermission) {
-				LOGGER.info("Has permission");
 				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false, false));
 			}
 			else if (fedoraObject.getPublished()) {
-				LOGGER.info("Is published");
-				//viewTransform.getPublishedPage(layout, template, fedoraObject, null);
-				//values.putAll(viewTransform.getPublishedPage(layout, template, fedoraObject, null));
 				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false, true));
 			}
 			else {
-				LOGGER.info("Access Denied");
 				throw new AccessDeniedException("User does not have permission to view page");
 			}
 		}
