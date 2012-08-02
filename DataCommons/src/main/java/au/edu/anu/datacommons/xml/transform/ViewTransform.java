@@ -25,6 +25,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -87,6 +88,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.11		21/06/2012	Genevieve Turner (GT)	Updated to add anzfor subjects to be retrieved from the database
  * 0.12		11/07/2012	Genevieve Turner (GT)	Removed getPublishedPage function and updated getPage
  * 0.13		26/07/2012	Genevieve Turner (GT)	Updated to add visibility of review changes
+ * 0.14		02/08/2012	Genevieve Turner (GT)	Updated to unescape html characters when saving
  * </pre>
  * 
  */
@@ -1032,6 +1034,7 @@ public class ViewTransform
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		23/03/2012	Genevieve Turner (GT)	Initial creation
+	 * 0.14		02/08/2012	Genevieve Turner (GT)	Updated to unescape html characters when saving
 	 * </pre>
 	 * 
 	 * @param key The name of the field to process
@@ -1046,7 +1049,8 @@ public class ViewTransform
 				if (Util.isNotEmpty(strValue)) {
 					DataItem dataItem = new DataItem();
 					dataItem.setName(key);
-					dataItem.setValue(strValue);
+					// Unescape the html characters
+					dataItem.setValue(StringEscapeUtils.unescapeHtml(strValue));
 					data.getItems().add(dataItem);
 					addedItems_.add(dataItem);
 				}
@@ -1064,6 +1068,7 @@ public class ViewTransform
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		23/03/2012	Genevieve Turner (GT)	Initial creation
+	 * 0.14		02/08/2012	Genevieve Turner (GT)	Updated to unescape html characters when saving
 	 * </pre>
 	 * 
 	 * @param key The name of the field to process
@@ -1078,7 +1083,8 @@ public class ViewTransform
 				if (Util.isNotEmpty(strValue)) {
 					DataItem dataItem = new DataItem();
 					dataItem.setName(key);
-					dataItem.setValue(strValue);
+					// Unescape the html characters
+					dataItem.setValue(StringEscapeUtils.unescapeHtml(strValue));
 					data.getItems().add(dataItem);
 					addedItems_.add(dataItem);
 				}
@@ -1098,6 +1104,7 @@ public class ViewTransform
 	 * 0.2		23/03/2012	Genevieve Turner (GT)	Initial creation
 	 * 0.3		23/03/2012	Genevieve Turner (GT)	Updated to cater for changes to the 'Data' class
 	 * 0.4		26/04/2012	Genevieve Turner (GT)	Updated to fix an issue with the Form class when introducing security
+	 * 0.14		02/08/2012	Genevieve Turner (GT)	Updated to unescape html characters when saving
 	 * </pre>
 	 * 
 	 * @param item The template item object
@@ -1128,7 +1135,8 @@ public class ViewTransform
 						addedItems_.add(dataItem);
 					}
 					if(Util.isNotEmpty(values.get(i))) {
-						tableData.get(i).getChildValues().put(columnName, values.get(i));
+						// Unescape the html characters
+						tableData.get(i).getChildValues().put(columnName, StringEscapeUtils.unescapeHtml(values.get(i)));
 					}
 				}
 			}
