@@ -58,6 +58,9 @@
 		<th>
 			<label for="{@name}">
 				<xsl:value-of select="@label" />
+				<xsl:if test="contains(@class,'required')">
+					<b style="color:red;">*</b>
+				</xsl:if>
 			</label>
 		</th>
 	</xsl:template>

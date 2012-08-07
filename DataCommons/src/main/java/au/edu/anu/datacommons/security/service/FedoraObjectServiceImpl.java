@@ -63,7 +63,10 @@ import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
+import au.edu.anu.datacommons.xml.sparql.Result;
+import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
+import au.edu.anu.datacommons.xml.transform.JAXBTransform;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
 import au.edu.anu.dcbag.DcBag;
 
@@ -97,6 +100,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.11		13/07/2012	Rahul Khanna (RK)		Updated filelist displayed on collection page
  * 0.12		17/07/2012	Genevieve Turner (GT)	Added validation prior to publishing
  * 0.13		24/07/2012	Genevieve Turner (GT)	Moved the generating of a list of messages to a util function
+ * 0.14		27/07/2012	Genevieve Turner (GT)	Added method to retrieve some information about a fedora object
  * </pre>
  * 
  */
@@ -414,7 +418,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		boolean hasPermission = false;
 		if (fedoraObject == null) {
 			hasPermission = true;
-			LOGGER.info("Fedora Object is null");
 		}else {
 			hasPermission = checkViewPermission(fedoraObject);
 		}
@@ -439,17 +442,12 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 				}
 			}
 			if (hasPermission) {
-				LOGGER.info("Has permission");
 				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false, false));
 			}
 			else if (fedoraObject.getPublished()) {
-				LOGGER.info("Is published");
-				//viewTransform.getPublishedPage(layout, template, fedoraObject, null);
-				//values.putAll(viewTransform.getPublishedPage(layout, template, fedoraObject, null));
 				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false, true));
 			}
 			else {
-				LOGGER.info("Access Denied");
 				throw new AccessDeniedException("User does not have permission to view page");
 			}
 		}
@@ -756,7 +754,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	public List<FedoraObject> getReadyForReview() {
 		FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
 		List<FedoraObject> reviewReadyList = fedoraObjectDAO.getAllReadyForReview();
-		LOGGER.info("List Size: {}", reviewReadyList.size());
 		return reviewReadyList;
 	}
 	
@@ -776,7 +773,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	public List<FedoraObject> getRejected() {
 		FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
 		List<FedoraObject> rejectedList = fedoraObjectDAO.getAllRejected();
-		LOGGER.info("List Size: {}", rejectedList.size());
 		return rejectedList;
 	}
 	
@@ -796,7 +792,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	public List<FedoraObject> getReadyForPublish() {
 		FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
 		List<FedoraObject> publishReadyList = fedoraObjectDAO.getAllReadyForPublish();
-		LOGGER.info("List Size: {}", publishReadyList.size());
 		return publishReadyList;
 	}
 	
@@ -988,5 +983,57 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		catch (FedoraClientException e) {
 			LOGGER.info("Exception setting review xml: ", e);
 		}
+	}
+	
+	/**
+	 * getListInformation
+	 * 
+	 * Retrieves some information about the list of fedora objects.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.14		26/07/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObjects A list of fedora objects to get more information for
+	 * @return Returns a list of fedora objects
+	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#getListInformation(java.util.List)
+	 */
+	public List<Result> getListInformation(List<FedoraObject> fedoraObjects) {
+		if (fedoraObjects.size() == 0) {
+			return null;
+		}
+		// Create the sparql query
+		SparqlQuery sparqlQuery = new SparqlQuery();
+		sparqlQuery.addVar("?id");
+		sparqlQuery.addVar("?name");
+		sparqlQuery.addTriple("?item", "<dc:identifier>", "?id", Boolean.FALSE);
+		sparqlQuery.addTriple("?item", "<dc:title>", "?name", Boolean.FALSE);
+		StringBuffer queryFilter = new StringBuffer();
+		for (FedoraObject fedoraObject : fedoraObjects) {
+			if (queryFilter.length() > 0) {
+				queryFilter.append(" || ");
+			}
+			queryFilter.append("?id = '");
+			queryFilter.append(fedoraObject.getObject_id());
+			queryFilter.append("' ");
+		}
+		sparqlQuery.addFilter(queryFilter.toString(), "");
+		
+		ClientResponse clientResponse =riSearchService.post("query", sparqlQuery.generateQuery());
+		
+		List<Result> resultList = null;
+		JAXBTransform jaxbTransform = new JAXBTransform();
+		try {
+			Sparql sparqlResult = (Sparql)jaxbTransform.unmarshalStream(clientResponse.getEntityInputStream(), Sparql.class);
+			if (sparqlResult != null && sparqlResult.getResults() != null && sparqlResult.getResults().getResults() != null) {
+				resultList = sparqlResult.getResults().getResults();
+			}
+		}
+		catch (JAXBException e) {
+			LOGGER.info("Exception doing transform", e);
+		}
+		
+		return resultList;
 	}
 }

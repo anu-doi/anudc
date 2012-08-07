@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.util.Util;
+import au.edu.anu.datacommons.xml.sparql.Result;
 
 import com.sun.jersey.api.view.Viewable;
 
@@ -42,6 +43,7 @@ import com.sun.jersey.api.view.Viewable;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		25/07/2012	Genevieve Turner (GT)	Initial
+ * 0.2		01/08/2012	Genevieve Turner (GT)	Updated the return values for getting lists of objects in a particular status
  * </pre>
  *
  */
@@ -145,6 +147,7 @@ public class ReadyResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		25/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		01/08/2012	Genevieve Turner (GT)	Updated the return values for getting lists of objects in a particular status
 	 * </pre>
 	 * 
 	 * @return The html response
@@ -154,11 +157,12 @@ public class ReadyResource {
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response listReadyForReview() {
-		//TODO add more comprehensive list
 		List<FedoraObject> reviewReadyList = fedoraObjectService.getReadyForReview();
+		List<Result> results = fedoraObjectService.getListInformation(reviewReadyList);
 		
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("itemList", reviewReadyList);
+		values.put("resultList", results);
 		
 		Viewable viewable = new Viewable("/status_lists.jsp", values);
 		return Response.ok(viewable).build();
@@ -172,6 +176,7 @@ public class ReadyResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		25/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		01/08/2012	Genevieve Turner (GT)	Updated the return values for getting lists of objects in a particular status
 	 * </pre>
 	 * 
 	 * @return The html response
@@ -181,11 +186,12 @@ public class ReadyResource {
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response listRejected() {
-		//TODO add more comprehensive list
 		List<FedoraObject> rejectedList = fedoraObjectService.getRejected();
+		List<Result> results = fedoraObjectService.getListInformation(rejectedList);
 		
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("itemList", rejectedList);
+		values.put("resultList", results);
 		
 		Viewable viewable = new Viewable("/status_lists.jsp", values);
 		return Response.ok(viewable).build();
@@ -199,6 +205,7 @@ public class ReadyResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		25/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		01/08/2012	Genevieve Turner (GT)	Updated the return values for getting lists of objects in a particular status
 	 * </pre>
 	 * 
 	 * @return The html response
@@ -208,11 +215,12 @@ public class ReadyResource {
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response listReadyForPublish() {
-		//TODO add more comprehensive list
 		List<FedoraObject> publishReadyList = fedoraObjectService.getReadyForPublish();
+		List<Result> results = fedoraObjectService.getListInformation(publishReadyList);
 		
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("itemList", publishReadyList);
+		values.put("resultList", results);
 		
 		Viewable viewable = new Viewable("/status_lists.jsp", values);
 		return Response.ok(viewable).build();
@@ -228,9 +236,9 @@ public class ReadyResource {
 	 * 0.1		25/07/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @param pid
-	 * @param layout
-	 * @param tmplt
+	 * @param pid The item to perform actions on
+	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
+	 * @param tmplt The template that determines the fields on the screen
 	 * @return The html response
 	 */
 	private Response buildDisplayResponse(String pid, String layout, String tmplt) {

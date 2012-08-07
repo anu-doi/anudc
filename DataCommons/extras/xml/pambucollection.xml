@@ -22,7 +22,6 @@
 	<item name="coverageDates" label="Coverage Dates" fieldType="Table" saveType="table">
 		<column name="dateFrom" label="Date From" fieldType="TextField" class="date" />
 		<column name="dateTo" label="Date To" fieldType="TextField" class="date" />
-		<column name="dateText" label="Text" fieldType="TextField" />
 	</item>
 	<item name="numReels" label="Number of Reels" fieldType="TextField" saveType="single"/>
 	<item name="format" label="Format" fieldType="TextField" saveType="single" />
@@ -70,6 +69,19 @@
 		<column name="pubTitle" label="Publication Title" fieldType="TextArea" />
 	</item>
 	<item name="rightsStatement" label="Rights Statement" fieldType="TextArea" saveType="single" tooltip="Intellectual property rights information" />
+	<item name="licenceType" label="Licence Type" fieldType="Combobox" saveType="single" tooltip="Licence Type" >
+		<option value="" label="-No Value Selected-" />
+		<option value="CC-BY" label="Attribution" />
+		<option value="CC-BY-SA" label="Attribution-SharedAlice" />
+		<option value="CC-BY-ND" label="Attribution-NoDervis" />
+		<option value="CC-BY-NC" label="Attribution-NonCommercial" />
+		<option value="CC-BY-NC-SA" label="Attribution-NonCommercial-SharedAlike" />
+		<option value="CC-BY-NC-ND" label="Attribution-NonCommercial-NoDervis" />
+		<option value="GPL" label="General Public Licence" />
+		<option value="AusGoalRestrictive" label="AusGoal Restrictive Licence" />
+		<option value="NoLicence" label="No licence" />
+		<option value="Unknown/Other" label="Unknown licence or record provider defined licence" />
+	</item>
 	<item name="licence" label="Licence" fieldType="TextArea" saveType="single" tooltip="Licence Information" />
 	<item name="accessRights" label="Access Rights" fieldType="TextArea" saveType="single" tooltip="Information about who and when people may access the information in this collection" />
 	

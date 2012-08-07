@@ -1,3 +1,4 @@
+<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
@@ -11,9 +12,8 @@
 
 <anu:content layout="doublewide" title="Under Construction">
 	List<br />
-	<c:forEach items="${it.itemList}" var="item">
-		${item.id}
-		${item.object_id}
+	<c:forEach items="${it.resultList}" var="result">
+		<a href='<c:url value="/rest/display/${result.fields.id.value}?layout=def:display" />'>${result.fields.name.value}</a>
 		<br />
 	</c:forEach>
 </anu:content>

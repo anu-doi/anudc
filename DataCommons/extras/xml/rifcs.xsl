@@ -198,10 +198,45 @@
 				</location>
 			</xsl:for-each>
 		</xsl:if>
+		<xsl:if test="data/coverageDates">
+			<xsl:for-each select="data/coverageDates">
+				<coverage>
+					<temporal>
+						<xsl:if test="dateFrom">
+							<date type="dateFrom" dateFormat="W3CDTF"><xsl:value-of select="dateFrom" /></date>
+						</xsl:if>
+						<xsl:if test="dateTo">
+							<date type="dateFrom" dateFormat="W3CDTF"><xsl:value-of select="dateTo" /></date>
+						</xsl:if>
+					</temporal>
+				</coverage>
+			</xsl:for-each>
+		</xsl:if>
+		<xsl:if test="data/coverageArea">
+			<xsl:for-each select="data/coverageArea">
+				<coverage>
+					<spatial>
+						<xsl:if test="covAreaType">
+							<xsl:attribute name="type"><xsl:value-of select="covAreaType" /></xsl:attribute>
+						</xsl:if>
+						<xsl:if test="covAreaValue">
+							<xsl:value-of select="covAreaValue" />
+						</xsl:if>
+					</spatial>
+				</coverage>
+			</xsl:for-each>
+		</xsl:if>
 		<xsl:if test="$external">
 			<xsl:for-each select="document($external)//*[namespace-uri()='http://anu.edu.au/related/']">
 				<relatedObject>
-					<key><xsl:value-of select="$anukey" /><xsl:value-of select="substring-after(@rdf:resource, 'info:fedora/')" /></key>
+					<xsl:choose>
+						<xsl:when test="contains(@rdf:resource,'info:fedora')">
+							<key><xsl:value-of select="$anukey" /><xsl:value-of select="substring-after(@rdf:resource, 'info:fedora/')" /></key>
+						</xsl:when>
+						<xsl:otherwise>
+							<key><xsl:value-of select="@rdf:resource" /></key>
+						</xsl:otherwise>
+					</xsl:choose>
 					<relation type="{name()}" />
 				</relatedObject>
 			</xsl:for-each>
@@ -240,52 +275,6 @@
 				<xsl:value-of select="data/deliveryMethod" />
 			</description>
 		</xsl:if>
-		<xsl:if test="data/coverageDates">
-			<xsl:for-each select="date/coverageDates">
-				<coverage>
-					<temporal>
-						<xsl:if test="dateFrom">
-							<date type="dateFrom" dateFormat="W3CDTF"><xsl:value-of select="dateFrom" /></date>
-						</xsl:if>
-						<xsl:if test="dateTo">
-							<date type="dateFrom" dateFormat="W3CDTF"><xsl:value-of select="dateTo" /></date>
-						</xsl:if>
-					</temporal>
-				</coverage>
-			</xsl:for-each>
-		</xsl:if>
-		<xsl:if test="data/coverageArea">
-			<xsl:for-each select="data/coverageArea">
-				<coverage>
-					<spatial>
-						<xsl:if test="covAreaType">
-							<xsl:attribute name="type"><xsl:value-of select="covAreaType" /></xsl:attribute>
-						</xsl:if>
-						<xsl:if test="covAreaValue">
-							<xsl:value-of select="covAreaValue" />
-						</xsl:if>
-					</spatial>
-				</coverage>
-			</xsl:for-each>
-		</xsl:if>
-		<xsl:if test="data/publication">
-			<xsl:for-each select="data/publication">
-				<relatedInfo type="publication">
-					<identifier>
-						<xsl:attribute name="type"><xsl:value-of select="pubType" /></xsl:attribute>
-						<xsl:value-of select="pubValue" />
-					</identifier>
-					<title><xsl:value-of select="pubTitle" /></title>
-				</relatedInfo>
-			</xsl:for-each>
-		</xsl:if>
-		<xsl:if test="data/relatedURL">
-			<relatedInfo type="website">
-				<identifier type="uri">
-					<xsl:value-of select="data/relatedURL" />
-				</identifier>
-			</relatedInfo>
-		</xsl:if>
 		<xsl:if test="data/rightsStatement">
 			<xsl:for-each select="data/rightsStatement">
 				<rights>
@@ -317,6 +306,24 @@
 			<accessPolicy>
 				<xsl:value-of select="data/accessPolicy" />
 			</accessPolicy>
+		</xsl:if>
+		<xsl:if test="data/publication">
+			<xsl:for-each select="data/publication">
+				<relatedInfo type="publication">
+					<identifier>
+						<xsl:attribute name="type"><xsl:value-of select="pubType" /></xsl:attribute>
+						<xsl:value-of select="pubValue" />
+					</identifier>
+					<title><xsl:value-of select="pubTitle" /></title>
+				</relatedInfo>
+			</xsl:for-each>
+		</xsl:if>
+		<xsl:if test="data/relatedURL">
+			<relatedInfo type="website">
+				<identifier type="uri">
+					<xsl:value-of select="data/relatedURL" />
+				</identifier>
+			</relatedInfo>
 		</xsl:if>
 	</xsl:template>
 </xsl:stylesheet>

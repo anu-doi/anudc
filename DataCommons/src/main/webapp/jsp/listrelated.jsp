@@ -1,3 +1,4 @@
+<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
@@ -10,7 +11,7 @@
 			<c:choose>
 				<c:when test="${iCol == 1}">
 					<!-- Label -->
-					<a href="<c:url value="/rest/display?layout=def:display&item=${row[0]}" />"><c:out value="${row[iCol]}" /></a>
+					<a href="<c:url value="/rest/display/${row[0]}?layout=def:display" />"><c:out value="${row[iCol]}" /></a>
 				</c:when>
 				<c:when test="${iCol > 1}">
 					<!-- Description -->

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<xsl:stylesheet version="1.0" exclude-result-prefixes="exts" xmlns:audit="info:fedora/fedora-system:def/audit#" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:exts="xalan://dk.defxws.fedoragsearch.server.GenericOperationsImpl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dtu_meta="http://www.dtu.dk/dtu_meta/" xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://www.dtu.dk/dtu_meta/meta/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<xsl:stylesheet version="1.0" exclude-result-prefixes="exts" xmlns:audit="info:fedora/fedora-system:def/audit#" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:exts="xalan://dk.defxws.fedoragsearch.server.GenericOperationsImpl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dtu_meta="http://www.dtu.dk/dtu_meta/" xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:meta="http://www.dtu.dk/dtu_meta/meta/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:datetime="http://exslt.org/dates-and-times">
 	<xsl:output method="xml" indent="yes" encoding="UTF-8"/>
 	<xsl:param name="REPOSITORYNAME" select="'FgsRepos'"/>
 	<xsl:param name="REPOSBASEURL" select="'http://localhost:8380/fedora'"/>
@@ -131,6 +131,34 @@
 								<xsl:if test="not(position() = last())">,</xsl:if>
 							</xsl:for-each>
 						</field>
+						<field name="published.combinedDates.formatted">
+							<xsl:for-each select="document($docstr)/data/coverageDates">
+								<xsl:sort select="concat(dateFrom,'_', dateTo,'_', dateText)" />
+								<xsl:choose>
+									<xsl:when test="dateFrom != '' and dateTo != ''">
+										<xsl:call-template name="readableDate">
+											<xsl:with-param name="date" select="dateFrom" />
+										</xsl:call-template>
+										<xsl:text> - </xsl:text>
+										<xsl:call-template name="readableDate">
+											<xsl:with-param name="date" select="dateTo" />
+										</xsl:call-template>
+									</xsl:when>
+									<xsl:when test="dateFrom != '' or dateTo != ''">
+										<xsl:call-template name="readableDate">
+											<xsl:with-param name="date" select="dateFrom" />
+										</xsl:call-template>
+										<xsl:call-template name="readableDate">
+											<xsl:with-param name="date" select="dateTo" />
+										</xsl:call-template>
+									</xsl:when>
+								</xsl:choose>
+								<xsl:if test="dateText != ''">
+									<xsl:value-of select="dateText" />
+								</xsl:if>
+								<xsl:if test="not(position() = last())">, </xsl:if>
+							</xsl:for-each>
+						</field>
 					</xsl:if>
 				</xsl:for-each>
 				
@@ -138,15 +166,15 @@
 					<xsl:for-each select="foxml:datastream[@ID='XML_SOURCE']/foxml:datastreamVersion[last()]/foxml:xmlContent//text()">
 						<xsl:value-of select="."/>
 						<xsl:text> </xsl:text>
-						<xsl:value-of select="$PID"/>
 					</xsl:for-each>
+					<xsl:value-of select="$PID"/>
 				</field>
 				<field name="published.all">
 					<xsl:for-each select="foxml:datastream[@CONTROL_GROUP='M' and @ID='XML_PUBLISHED']">
 						<xsl:value-of select="exts:getDatastreamText($PID, $REPOSITORYNAME, @ID, $FEDORASOAP, $FEDORAUSER, $FEDORAPASS, $TRUSTSTOREPATH, $TRUSTSTOREPASS)"/>
 						<xsl:text> </xsl:text>
-						<xsl:value-of select="$PID"/>
-					</xsl:for-each> 
+					</xsl:for-each>
+					<xsl:value-of select="$PID"/>
 				</field>
 			</doc>
 		</add>
@@ -177,6 +205,24 @@
 					</xsl:attribute>
 					<xsl:value-of select="text()" />
 				</field>
+			</xsl:otherwise>
+		</xsl:choose>
+	</xsl:template>
+	<xsl:template name="readableDate">
+		<xsl:param name="date" />
+		
+		<xsl:choose>
+			<xsl:when test="string-length($date) >= 10"> 
+				<xsl:value-of select="datetime:formatDate($date,'d MMM yyyy')" />
+			</xsl:when>
+			<xsl:when test="string-length($date) >= 7"> 
+				<xsl:value-of select="datetime:formatDate($date,'MMM yyyy')" />
+			</xsl:when>
+			<xsl:when test="string-length($date) = 4"> 
+				<xsl:value-of select="datetime:formatDate($date,'yyyy')" />
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="$date" />
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>

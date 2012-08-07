@@ -8,6 +8,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import au.edu.anu.datacommons.xml.sparql.Result;
 
 /**
  * FedoraObjectService
@@ -28,6 +29,8 @@ import au.edu.anu.datacommons.data.db.model.PublishLocation;
  * 0.4		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
  * 0.5		22/06/2012	Genevieve Turner (GT)	Updated to only allow people with ADMIN or Publish permissions the ability to publish
  * 0.6		25/07/2012	Genevieve Turner (GT)	Added information for review processing
+ * 0.7		01/08/2012	Genevieve Turner (GT)	Added retrieval of information for fedora objects
+ * 0.8		03/08/2012	Genevieve Turner (GT)	Fixed issue with permissions
  * </pre>
  * 
  */
@@ -253,11 +256,12 @@ public interface FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.8		03/08/2012	Genevieve Turner (GT)	Fixed issue with permissions
 	 * </pre>
 	 * 
 	 * @param fedoraObject
 	 */
-	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE,ADMINISTRATION')")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE') or hasPermission(#fedoraObject, 'ADMINISTRATION')")
 	public void setReadyForReview(FedoraObject fedoraObject);
 	
 	/**
@@ -268,11 +272,12 @@ public interface FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.8		03/08/2012	Genevieve Turner (GT)	Fixed issue with permissions
 	 * </pre>
 	 * 
 	 * @param fedoraObject
 	 */
-	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'REVIEW,ADMINISTRATION')")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'REVIEW') or hasPermission(#fedoraObject, 'ADMINISTRATION')")
 	public void setReadyForPublish(FedoraObject fedoraObject);
 	
 	/**
@@ -283,11 +288,27 @@ public interface FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.8		03/08/2012	Genevieve Turner (GT)	Fixed issue with permissions
 	 * </pre>
 	 * 
 	 * @param fedoraObject
 	 * @param reasons
 	 */
-	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'REVIEW,PUBLISH,ADMINISTRATION')")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'REVIEW') or hasPermission(#fedoraObject, 'PUBLISH') or hasPermission(#fedoraObject, 'ADMINISTRATION')")
 	public void setRejected(FedoraObject fedoraObject, List<String> reasons);
+	
+	/**
+	 * getListInformation
+	 *
+	 * Retrieves information given the list of fedora objects
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.7		01/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObjects A list of fedora objects to retrieve information for
+	 * @return Information about the given list of fedora objects.
+	 */
+	public List<Result> getListInformation(List<FedoraObject> fedoraObjects);
 }
