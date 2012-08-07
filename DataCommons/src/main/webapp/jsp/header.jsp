@@ -9,19 +9,24 @@
 
 <anu:tabnav>
 	<anu:tabmeta>
+	<div class="right right">
+		<ul>
 		<sec:authorize access="isAnonymous()">
 			<fmt:bundle basename='global'>
 				<fmt:message var="casserver" key='cas.server' />
 				<fmt:message var="appserver" key='app.server' />
 			</fmt:bundle>
-			Welcome Guest <a href='<c:url value="/login" />'>Login</a>
-			<a href="<c:url value='${casserver}/login'><c:param name='service' value='${appserver}/DataCommons/j_spring_cas_security_check' /></c:url>">ANU Login</a>
+			<li>Welcome Guest</li>
+			<li> <a href='<c:url value="/login" />'>Login</a></li>
+			<li><a href="<c:url value='${casserver}/login'><c:param name='service' value='${appserver}/DataCommons/j_spring_cas_security_check' /></c:url>">ANU Login</a></li>
 		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
-			Welcome <sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.username" />)
-			<a href='<c:url value="/j_spring_security_logout" />'>Logout</a>
-			<a href="<c:url value="https://login-test.anu.edu.au/logout" />">CAS Logout</a>
+			<li>Welcome <sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.username" />)</li>
+			<li><a href='<c:url value="/j_spring_security_logout" />'>Logout</a></li>
+			<li><a href="<c:url value="https://login-test.anu.edu.au/logout" />">CAS Logout</a></li>
 		</sec:authorize>
+		</ul>
+	</div>
 	</anu:tabmeta>
 </anu:tabnav>
 
