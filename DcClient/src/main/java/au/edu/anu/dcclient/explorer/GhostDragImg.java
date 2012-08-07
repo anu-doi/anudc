@@ -2,7 +2,7 @@
  * Source: http://www.java-forums.org/blogs/duvanslabbert/92-java-file-explorer.html
  */
 
-package au.edu.anu.dcclient.duvanslabbert;
+package au.edu.anu.dcclient.explorer;
 import java.awt.MouseInfo;
 import java.awt.Window;
 import java.io.File;

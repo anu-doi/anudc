@@ -101,7 +101,7 @@ public class DcClient
 			{
 				try
 				{
-					MainWindow window = new MainWindow();
+					MainWindow window = MainWindow.getInstance();
 					window.setVisible(true);
 				}
 				catch (Exception e)

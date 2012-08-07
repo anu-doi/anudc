@@ -12,6 +12,7 @@ import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.ManifestHelper;
 import gov.loc.repository.bagit.ProgressListenable;
 import gov.loc.repository.bagit.ProgressListener;
+import gov.loc.repository.bagit.transformer.Completer;
 import gov.loc.repository.bagit.utilities.MessageDigestHelper;
 import gov.loc.repository.bagit.utilities.SimpleResult;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
@@ -45,8 +46,7 @@ public class DcBag implements ProgressListenable
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcBag.class);
 	public static final Algorithm BAGS_ALGORITHM = Algorithm.MD5;
-	private static final BagFactory BAG_FACTORY = new BagFactory();
-	private static final DcCompleter dcBagCompleter = new DcCompleter(BAG_FACTORY);
+	public static final BagFactory BAG_FACTORY = new BagFactory();
 
 	private Bag bag;
 	private Set<ProgressListener> plSet = null;
@@ -103,7 +103,7 @@ public class DcBag implements ProgressListenable
 
 	public File saveAs(File bagsDir, String bagName, Format format) throws IOException, DcBagException
 	{
-		dcBagCompleter.checkValidMods(this);
+		customValidate();
 
 		if (!this.bag.verifyValid().isSuccess())
 			makeComplete();
@@ -312,7 +312,12 @@ public class DcBag implements ProgressListenable
 
 	public void makeComplete()
 	{
-		this.bag = bag.makeComplete(dcBagCompleter);
+		this.bag = bag.makeComplete();
+	}
+	
+	public void makeComplete(Completer c)
+	{
+		this.bag = bag.makeComplete(c);
 	}
 	
 	public PronomFormatsTxt getPronomFormatsTxt()
@@ -371,7 +376,7 @@ public class DcBag implements ProgressListenable
 		if (plSet != null)
 			this.plSet.remove(progressListener);
 	}
-
+	
 	public void customValidate() throws DcBagException
 	{
 		if (getBagProperty(DcBagProps.FIELD_DATASOURCE) != null
@@ -478,7 +483,7 @@ public class DcBag implements ProgressListenable
 		
 		return fsMap;
 	}
-
+	
 	private void archiveBag(File file) throws IOException
 	{
 		Date dateNow = new Date();

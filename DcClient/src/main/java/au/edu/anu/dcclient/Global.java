@@ -119,4 +119,9 @@ public abstract class Global
 	{
 		return System.getProperty("app.server", globalProperties.getProperty("app.server"));
 	}
+	
+	public static URI getUserInfoUri()
+	{
+		return UriBuilder.fromUri(getAppServerUriAsString()).path(globalProperties.getProperty("app.server.userInfoUri")).build();
+	}
 }

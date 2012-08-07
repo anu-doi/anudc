@@ -26,6 +26,7 @@
 					<th>Pronom PUID</th>
 					<th>Size</th>
 					<th>MD5</th>
+					<th>Virus</th>
 					<th>Expand</th>
 				</tr>
 				<c:forEach var="iFile" items="${it.downloadables}">
@@ -43,6 +44,9 @@
 						</c:choose>
 						<td><c:out value="${iFile.value.friendlySize}" /></td>
 						<td><c:out value="${iFile.value.md5}" /></td>
+						<td><c:out value="${iFile.value.scanResult.status}" />
+							<c:if test="${not empty iFile.value.scanResult.signature}">,<c:out value="${iFile.value.scanResult.signature}" />
+							</c:if></td>
 						<td onclick="jQuery('#${iFile.value.md5}').slideToggle()"><a href="#" onclick="return false">Expand</a></td>
 					</tr>
 					<tr id="<c:out value='${iFile.value.md5}' />" style="display: none;">

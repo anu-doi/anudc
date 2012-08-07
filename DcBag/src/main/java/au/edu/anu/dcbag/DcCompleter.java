@@ -2,8 +2,10 @@ package au.edu.anu.dcbag;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -12,6 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.DcBagProps.DataSource;
+import au.edu.anu.dcbag.clamscan.ClamScan;
+import au.edu.anu.dcbag.clamscan.ScanResult;
+import au.edu.anu.dcbag.clamscan.ScanResult.Status;
 import au.edu.anu.dcbag.fido.FidoParser;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFactory;
@@ -38,6 +43,7 @@ public class DcCompleter extends DefaultCompleter
 	{
 		bag = super.complete(bag);
 		handlePronomTxt(bag);
+		handleAvScan(bag);
 		return super.complete(bag);
 	}
 
@@ -74,6 +80,31 @@ public class DcCompleter extends DefaultCompleter
 		}
 
 		bag.putBagFile(pFormats);
+	}
+
+	private void handleAvScan(Bag bag)
+	{
+		VirusScanTxt vsTxt;
+		BagFile avStatusFile = bag.getBagFile(VirusScanTxt.VIRUSSCAN_FILEPATH);
+		if (avStatusFile == null)
+			vsTxt = new VirusScanTxt(VirusScanTxt.VIRUSSCAN_FILEPATH, bag.getBagItTxt().getCharacterEncoding());
+		else
+			vsTxt = new VirusScanTxt(VirusScanTxt.VIRUSSCAN_FILEPATH, avStatusFile, bag.getBagItTxt().getCharacterEncoding());
+
+		// Get scan result for each payload file.
+		vsTxt.clear();
+		ClamScan cs = new ClamScan("localhost", 3310, 30000);
+		if (cs.ping() == true)
+		{
+			for (BagFile iBagFile : bag.getPayload())
+			{
+				InputStream is = iBagFile.newInputStream();
+				ScanResult sr = cs.scan(is);
+				vsTxt.put(iBagFile.getFilepath(), sr.getResult());
+			}
+		}
+
+		bag.putBagFile(vsTxt);
 	}
 
 	private File getFileFromBagFile(BagFile bagFile)
@@ -134,10 +165,10 @@ public class DcCompleter extends DefaultCompleter
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		return file;
 	}
-	
+
 	public void checkValidMods(DcBag dcBag) throws DcBagException
 	{
 		if (dcBag.getBagProperty(DcBagProps.FIELD_DATASOURCE) != null

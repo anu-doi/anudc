@@ -1,232 +1,221 @@
 package au.edu.anu.dcclient;
 
-import gov.loc.repository.bagit.BagFactory.LoadOption;
+import java.awt.EventQueue;
 
-import java.awt.Component;
-import java.awt.Dialog.ModalityType;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.net.Authenticator;
-
-import javax.swing.JButton;
 import javax.swing.JFrame;
+import java.awt.GridBagLayout;
+import javax.swing.JButton;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.JTabbedPane;
+import java.awt.BorderLayout;
+import javax.swing.JList;
 import javax.swing.JTextField;
-import javax.swing.JToolBar;
-import javax.swing.SpringLayout;
+import javax.swing.JTree;
+import java.awt.Font;
+import java.awt.FlowLayout;
+
+import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.dcbag.DcBag;
-import au.edu.anu.dcbag.fido.PronomFormat;
-import au.edu.anu.dcclient.duvanslabbert.FileExplorer;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.text.MessageFormat;
 
-public class MainWindow
+import au.edu.anu.dcclient.actions.GetPidBagAction;
+import au.edu.anu.dcclient.actions.SavePidBagAction;
+import au.edu.anu.dcclient.actions.UploadPidBagAction;
+import au.edu.anu.dcclient.explorer.FileExplorer;
+
+public class MainWindow extends JFrame implements ActionListener
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MainWindow.class);
-	private static Component mainWindow = null;
+	private static MainWindow instance = null;
 
-	private JFrame frmAnuDataCommons;
+	private JPanel panel_north;
+	private JPanel panel_west;
+	private JPanel panel_east;
+	private JPanel panel_bottom;
+	private JPanel panel_centre;
+	private JList listItems;
+	private JTextField txtPid;
+	private JButton btnGet;
+	private JLabel lblStatus;
+	private JProgressBar progressBar;
 	private JMenuBar menuBar;
 	private JMenu mnFile;
 	private JMenuItem mntmExit;
-	private JPanel panelPid;
-	private JLabel lblPid;
-	private JTextField txtPid;
-	private JButton btnRetrieve;
-	private JToolBar toolBar;
+	private JTextField txtSearch;
+	private JScrollPane scrollPane;
+	private JButton btnLogin;
 	private JTabbedPane tabbedPane;
-	private JPanel panel;
+	private JPanel pnlLocalBag;
 	private FileExplorer bagExplorer;
-	private JTabbedPane tabbedPane_1;
-	private JPanel panelBagInfo;
+	private JLabel lblSearch;
+	private JLabel lblPid;
+	private JPanel pnlServerBag;
+	private JButton btnRefresh;
 	private JButton btnSave;
-	private JMenu mnEdit;
-	private JMenuItem mntmRefresh;
 	private JButton btnUpload;
-	private JButton btnDebug;
-	private JMenuItem mntmLogin;
-	private JSeparator separator;
-	private LoginDialog loginDialog = null;
-	private JLabel lblDcUri;
-	
+
 	/**
-	 * MainWindow
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * Constructor for MainWindow
-	 * 
-	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 * 
+	 * Create the application.
 	 */
-	public MainWindow()
+	protected MainWindow()
 	{
+		setTitle("ANU Data Commons");
 		initialize();
-		initActions();
-		if (mainWindow == null)
-			mainWindow = frmAnuDataCommons;
 	}
 
 	/**
-	 * initialize
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * Initializes the contents of this window by adding controls.
-	 * 
-	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 * 
+	 * Initialize the contents of the frame.
 	 */
 	private void initialize()
 	{
-		this.frmAnuDataCommons = new JFrame();
-		this.frmAnuDataCommons.setTitle("ANU Data Commons Client");
-		this.frmAnuDataCommons.setBounds(1800, 100, 787, 594);
-		// TODO Uncomment the following line.
-		// this.frmAnuDataCommons.setLocationRelativeTo(null);				// To centre the window on the screen.
-		this.frmAnuDataCommons.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		BorderLayout borderLayout = (BorderLayout) this.getContentPane().getLayout();
+		this.setBounds(100, 100, 688, 586);
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		this.panel_north = new JPanel();
+		this.getContentPane().add(this.panel_north, BorderLayout.NORTH);
+		this.panel_north.setLayout(new FlowLayout(FlowLayout.RIGHT, 5, 5));
+
+		this.btnLogin = new JButton("Login");
+		this.btnLogin.addActionListener(this);
+		this.panel_north.add(this.btnLogin);
 
 		this.menuBar = new JMenuBar();
-		this.frmAnuDataCommons.setJMenuBar(this.menuBar);
+		this.setJMenuBar(this.menuBar);
 
 		this.mnFile = new JMenu("File");
 		this.menuBar.add(this.mnFile);
 
 		this.mntmExit = new JMenuItem("Exit");
-		this.mntmLogin = new JMenuItem("Login...");
-		this.mnFile.add(this.mntmLogin);
-
-		this.separator = new JSeparator();
-		this.mnFile.add(this.separator);
+		this.mntmExit.addActionListener(this);
 		this.mnFile.add(this.mntmExit);
 
-		this.mnEdit = new JMenu("Edit");
-		this.menuBar.add(this.mnEdit);
+		this.panel_west = new JPanel();
+		this.getContentPane().add(this.panel_west, BorderLayout.WEST);
 
-		this.mntmRefresh = new JMenuItem("Refresh");
-		this.mnEdit.add(this.mntmRefresh);
-		SpringLayout springLayout = new SpringLayout();
-		this.frmAnuDataCommons.getContentPane().setLayout(springLayout);
+		this.panel_east = new JPanel();
+		this.getContentPane().add(this.panel_east, BorderLayout.EAST);
 
-		this.panelPid = new JPanel();
-		springLayout.putConstraint(SpringLayout.SOUTH, this.panelPid, 60, SpringLayout.NORTH, this.frmAnuDataCommons.getContentPane());
-		springLayout.putConstraint(SpringLayout.EAST, this.panelPid, 769, SpringLayout.WEST, this.frmAnuDataCommons.getContentPane());
-		this.frmAnuDataCommons.getContentPane().add(this.panelPid);
-		SpringLayout sl_panelPid = new SpringLayout();
-		this.panelPid.setLayout(sl_panelPid);
+		this.panel_bottom = new JPanel();
+		this.getContentPane().add(this.panel_bottom, BorderLayout.SOUTH);
+		GridBagLayout gbl_panel_bottom = new GridBagLayout();
+		gbl_panel_bottom.columnWidths = new int[] { 0, 0, 0, 0 };
+		gbl_panel_bottom.rowHeights = new int[] { 0, 0 };
+		gbl_panel_bottom.columnWeights = new double[] { 0.0, 1.0, 0.0, Double.MIN_VALUE };
+		gbl_panel_bottom.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
+		this.panel_bottom.setLayout(gbl_panel_bottom);
 
-		this.lblPid = new JLabel("Pid");
-		sl_panelPid.putConstraint(SpringLayout.NORTH, this.lblPid, 10, SpringLayout.NORTH, this.panelPid);
-		sl_panelPid.putConstraint(SpringLayout.WEST, this.lblPid, 10, SpringLayout.WEST, this.panelPid);
-		this.panelPid.add(this.lblPid);
+		this.lblStatus = new JLabel("Status");
+		GridBagConstraints gbc_lblStatus = new GridBagConstraints();
+		gbc_lblStatus.insets = new Insets(0, 0, 0, 5);
+		gbc_lblStatus.gridx = 0;
+		gbc_lblStatus.gridy = 0;
+		this.panel_bottom.add(this.lblStatus, gbc_lblStatus);
 
-		this.txtPid = new JTextField();
-		sl_panelPid.putConstraint(SpringLayout.NORTH, this.txtPid, -3, SpringLayout.NORTH, this.lblPid);
-		sl_panelPid.putConstraint(SpringLayout.WEST, this.txtPid, 25, SpringLayout.EAST, this.lblPid);
-		this.panelPid.add(this.txtPid);
-		this.txtPid.setColumns(10);
+		this.progressBar = new JProgressBar();
+		GridBagConstraints gbc_progressBar = new GridBagConstraints();
+		gbc_progressBar.gridx = 2;
+		gbc_progressBar.gridy = 0;
+		this.panel_bottom.add(this.progressBar, gbc_progressBar);
 
-		this.btnRetrieve = new JButton("Retrieve");
-		sl_panelPid.putConstraint(SpringLayout.NORTH, this.btnRetrieve, 4, SpringLayout.NORTH, this.panelPid);
-		sl_panelPid.putConstraint(SpringLayout.WEST, this.btnRetrieve, 39, SpringLayout.EAST, this.txtPid);
-		this.btnRetrieve.setEnabled(false);
-		this.panelPid.getRootPane().setDefaultButton(btnRetrieve);
-		this.panelPid.add(this.btnRetrieve);
+		this.panel_centre = new JPanel();
+		this.getContentPane().add(this.panel_centre, BorderLayout.CENTER);
+		GridBagLayout gbl_panel_centre = new GridBagLayout();
+		gbl_panel_centre.columnWidths = new int[] { 60, 0, 70, 0, 0 };
+		gbl_panel_centre.rowHeights = new int[] { 0, 0, 0, 0 };
+		gbl_panel_centre.columnWeights = new double[] { 0.0, 1.0, 0.0, 1.0, Double.MIN_VALUE };
+		gbl_panel_centre.rowWeights = new double[] { 0.0, 1.0, 0.0, Double.MIN_VALUE };
+		this.panel_centre.setLayout(gbl_panel_centre);
 
-		this.toolBar = new JToolBar();
-		sl_panelPid.putConstraint(SpringLayout.WEST, this.toolBar, 0, SpringLayout.WEST, this.frmAnuDataCommons.getContentPane());
-		springLayout.putConstraint(SpringLayout.NORTH, this.panelPid, 6, SpringLayout.SOUTH, this.toolBar);
-		springLayout.putConstraint(SpringLayout.WEST, this.panelPid, 0, SpringLayout.WEST, this.toolBar);
-		sl_panelPid.putConstraint(SpringLayout.NORTH, this.toolBar, 10, SpringLayout.NORTH, this.frmAnuDataCommons.getContentPane());
-		this.frmAnuDataCommons.getContentPane().add(this.toolBar);
+		this.lblSearch = new JLabel("Search");
+		GridBagConstraints gbc_lblSearch = new GridBagConstraints();
+		gbc_lblSearch.insets = new Insets(0, 0, 5, 5);
+		gbc_lblSearch.anchor = GridBagConstraints.WEST;
+		gbc_lblSearch.gridx = 0;
+		gbc_lblSearch.gridy = 0;
+		this.panel_centre.add(this.lblSearch, gbc_lblSearch);
+
+		this.txtSearch = new JTextField();
+		GridBagConstraints gbc_txtSearch = new GridBagConstraints();
+		gbc_txtSearch.gridwidth = 2;
+		gbc_txtSearch.insets = new Insets(0, 0, 5, 5);
+		gbc_txtSearch.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtSearch.gridx = 1;
+		gbc_txtSearch.gridy = 0;
+		this.panel_centre.add(this.txtSearch, gbc_txtSearch);
+		this.txtSearch.setColumns(10);
+
+		this.scrollPane = new JScrollPane();
+		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
+		gbc_scrollPane.fill = GridBagConstraints.BOTH;
+		gbc_scrollPane.gridwidth = 3;
+		gbc_scrollPane.insets = new Insets(0, 0, 5, 5);
+		gbc_scrollPane.gridx = 0;
+		gbc_scrollPane.gridy = 1;
+		this.panel_centre.add(this.scrollPane, gbc_scrollPane);
+
+		this.listItems = new JList();
+		this.scrollPane.setViewportView(this.listItems);
 
 		this.tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		springLayout.putConstraint(SpringLayout.NORTH, this.tabbedPane, 10, SpringLayout.SOUTH, this.panelPid);
-		
-		this.lblDcUri = new JLabel(Global.getBagUploadUrl());
-		sl_panelPid.putConstraint(SpringLayout.NORTH, this.lblDcUri, 0, SpringLayout.NORTH, this.lblPid);
-		sl_panelPid.putConstraint(SpringLayout.WEST, this.lblDcUri, 6, SpringLayout.EAST, this.btnRetrieve);
-		this.panelPid.add(this.lblDcUri);
-		springLayout.putConstraint(SpringLayout.WEST, this.tabbedPane, 10, SpringLayout.WEST, this.frmAnuDataCommons.getContentPane());
-		springLayout.putConstraint(SpringLayout.SOUTH, this.tabbedPane, -10, SpringLayout.SOUTH, this.frmAnuDataCommons.getContentPane());
-		springLayout.putConstraint(SpringLayout.EAST, this.tabbedPane, -10, SpringLayout.EAST, this.frmAnuDataCommons.getContentPane());
-		this.frmAnuDataCommons.getContentPane().add(this.tabbedPane);
+		GridBagConstraints gbc_tabbedPane = new GridBagConstraints();
+		gbc_tabbedPane.insets = new Insets(0, 0, 5, 0);
+		gbc_tabbedPane.fill = GridBagConstraints.BOTH;
+		gbc_tabbedPane.gridx = 3;
+		gbc_tabbedPane.gridy = 1;
+		this.panel_centre.add(this.tabbedPane, gbc_tabbedPane);
 
-		this.panel = new JPanel();
-		this.tabbedPane.addTab("Bag", null, this.panel, null);
-		SpringLayout sl_panel = new SpringLayout();
-		this.panel.setLayout(sl_panel);
+		this.pnlLocalBag = new JPanel();
+		this.tabbedPane.addTab("Local Bag", null, this.pnlLocalBag, null);
+		GridBagLayout gbl_pnlLocalBag = new GridBagLayout();
+		gbl_pnlLocalBag.columnWidths = new int[] { 0, 0, 0, 0 };
+		gbl_pnlLocalBag.rowHeights = new int[] { 322, 0, 0 };
+		gbl_pnlLocalBag.columnWeights = new double[] { 1.0, 1.0, 1.0, Double.MIN_VALUE };
+		gbl_pnlLocalBag.rowWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
+		this.pnlLocalBag.setLayout(gbl_pnlLocalBag);
 
 		this.bagExplorer = new FileExplorer(new File("C:\\"));
-		sl_panel.putConstraint(SpringLayout.NORTH, this.bagExplorer, 5, SpringLayout.NORTH, this.panel);
-		sl_panel.putConstraint(SpringLayout.WEST, this.bagExplorer, 10, SpringLayout.WEST, this.panel);
-		sl_panel.putConstraint(SpringLayout.SOUTH, this.bagExplorer, -5, SpringLayout.SOUTH, this.panel);
-		sl_panel.putConstraint(SpringLayout.EAST, this.bagExplorer, 262, SpringLayout.WEST, this.panel);
-		this.panel.add(this.bagExplorer);
+		GridBagConstraints gbc_bagExplorer = new GridBagConstraints();
+		gbc_bagExplorer.gridwidth = 3;
+		gbc_bagExplorer.insets = new Insets(0, 0, 5, 0);
+		gbc_bagExplorer.fill = GridBagConstraints.BOTH;
+		gbc_bagExplorer.gridx = 0;
+		gbc_bagExplorer.gridy = 0;
+		this.pnlLocalBag.add(this.bagExplorer, gbc_bagExplorer);
 
-		this.panelBagInfo = new JPanel();
-		sl_panel.putConstraint(SpringLayout.NORTH, this.panelBagInfo, 5, SpringLayout.NORTH, this.panel);
-		sl_panel.putConstraint(SpringLayout.WEST, this.panelBagInfo, 6, SpringLayout.EAST, this.bagExplorer);
-		sl_panel.putConstraint(SpringLayout.SOUTH, this.panelBagInfo, -5, SpringLayout.SOUTH, this.panel);
-		sl_panel.putConstraint(SpringLayout.EAST, this.panelBagInfo, -10, SpringLayout.EAST, this.panel);
-		this.panel.add(this.panelBagInfo);
-		SpringLayout sl_panelBagInfo = new SpringLayout();
-		this.panelBagInfo.setLayout(sl_panelBagInfo);
+		this.lblPid = new JLabel("Pid");
+		GridBagConstraints gbc_lblPid = new GridBagConstraints();
+		gbc_lblPid.insets = new Insets(0, 0, 0, 5);
+		gbc_lblPid.anchor = GridBagConstraints.WEST;
+		gbc_lblPid.gridx = 0;
+		gbc_lblPid.gridy = 2;
+		this.panel_centre.add(this.lblPid, gbc_lblPid);
 
-		this.btnSave = new JButton("Save");
-		sl_panelBagInfo.putConstraint(SpringLayout.WEST, this.btnSave, 10, SpringLayout.WEST, this.panelBagInfo);
-		sl_panelBagInfo.putConstraint(SpringLayout.SOUTH, this.btnSave, -10, SpringLayout.SOUTH, this.panelBagInfo);
-		this.panelBagInfo.add(this.btnSave);
-
-		this.btnUpload = new JButton("Upload");
-		sl_panelBagInfo.putConstraint(SpringLayout.NORTH, this.btnUpload, 0, SpringLayout.NORTH, this.btnSave);
-		sl_panelBagInfo.putConstraint(SpringLayout.WEST, this.btnUpload, 6, SpringLayout.EAST, this.btnSave);
-		this.panelBagInfo.add(this.btnUpload);
-
-		this.btnDebug = new JButton("Debug");
-		sl_panelBagInfo.putConstraint(SpringLayout.SOUTH, this.btnDebug, 0, SpringLayout.SOUTH, this.btnSave);
-		sl_panelBagInfo.putConstraint(SpringLayout.EAST, this.btnDebug, -10, SpringLayout.EAST, this.panelBagInfo);
-		this.panelBagInfo.add(this.btnDebug);
-
-		this.tabbedPane_1 = new JTabbedPane(JTabbedPane.TOP);
-		this.tabbedPane.addTab("New tab", null, this.tabbedPane_1, null);
-	}
-
-	/**
-	 * initActions
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * Initializes the ActionListeners on components in this window.
-	 * 
-	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 * 
-	 */
-	private void initActions()
-	{
-		this.btnRetrieve.addActionListener(new GetPidBagAction(this.txtPid, this.bagExplorer));
-		this.btnSave.addActionListener(new SavePidBagAction(this.txtPid, this.bagExplorer));
-		this.btnUpload.addActionListener(new UploadPidBagAction(this.txtPid, this.bagExplorer));
+		this.txtPid = new JTextField();
+		this.txtPid.setEnabled(false);
+		GridBagConstraints gbc_txtPid = new GridBagConstraints();
+		gbc_txtPid.insets = new Insets(0, 0, 0, 5);
+		gbc_txtPid.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtPid.gridx = 1;
+		gbc_txtPid.gridy = 2;
+		this.panel_centre.add(this.txtPid, gbc_txtPid);
+		this.txtPid.setColumns(10);
 		this.txtPid.getDocument().addDocumentListener(new DocumentListener()
 		{
 
@@ -250,92 +239,105 @@ public class MainWindow
 
 			private void toggleRetrieve(DocumentEvent e)
 			{
-				if (txtPid.getText().trim().equals(""))
-					btnRetrieve.setEnabled(false);
+				if (txtPid.getText().length() == 0)
+					btnGet.setEnabled(false);
 				else
-					btnRetrieve.setEnabled(true);
+					btnGet.setEnabled(true);
 			}
 		});
 
-		this.btnDebug.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				// bagExplorer.changeDir(new File("C:\\Rahul\\FileUpload\\Store\\test_5"));
-				DcBag bag = new DcBag(bagExplorer.getBagDir(), LoadOption.BY_FILES);
-				PronomFormat fmt = bag.getPronomFormat(bag.getBag().getBagFile("data/An Overview Of Servlet And Jsp Technology.pdf"));
-				System.out.println(fmt.getMatchStatus());
-				System.out.println(fmt.getPuid());
-//				bag.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.GENERAL.toString());
-//				try
-//				{
-//					bag.save();
-//				}
-//				catch (Exception e1)
-//				{
-//					JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Unable to change data source property to instrument.", "Error", JOptionPane.ERROR_MESSAGE);
-//				}
-			}
-		});
-		
-		// Menu item - Edit > Refresh
-		this.mntmRefresh.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				bagExplorer.refresh();
-			}
-		});
-		
-		// Menu item - File > Login
-		this.mntmLogin.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				if (loginDialog == null)
-				{
-					loginDialog = new LoginDialog(frmAnuDataCommons);
-					loginDialog.setModalityType(ModalityType.APPLICATION_MODAL);
-				}
-				loginDialog.setVisible(true);
-				
-				LOGGER.debug("Username: {}, password: {}", loginDialog.getUsername(), "****");
-				Authenticator.setDefault(new DcAuthenticator(loginDialog.getUsername(), loginDialog.getPassword()));
-			}
-		});
+		this.btnGet = new JButton("Get");
+		this.btnGet.setEnabled(false);
+		this.btnGet.addActionListener(new GetPidBagAction(this.txtPid, this.bagExplorer));
 
-		// Menu item - File > Exit
-		this.mntmExit.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent e)
-			{
-				System.exit(0);
-			}
-		});
+		this.btnRefresh = new JButton("Refresh");
+		this.btnRefresh.setEnabled(false);
+		this.btnRefresh.addActionListener(this);
+		GridBagConstraints gbc_btnRefresh = new GridBagConstraints();
+		gbc_btnRefresh.insets = new Insets(0, 0, 0, 5);
+		gbc_btnRefresh.gridx = 0;
+		gbc_btnRefresh.gridy = 1;
+		this.pnlLocalBag.add(this.btnRefresh, gbc_btnRefresh);
+
+		this.btnSave = new JButton("Save");
+		this.btnSave.setEnabled(false);
+		this.btnSave.addActionListener(new SavePidBagAction(this.txtPid, this.bagExplorer));
+		GridBagConstraints gbc_btnSave = new GridBagConstraints();
+		gbc_btnSave.insets = new Insets(0, 0, 0, 5);
+		gbc_btnSave.gridx = 1;
+		gbc_btnSave.gridy = 1;
+		this.pnlLocalBag.add(this.btnSave, gbc_btnSave);
+
+		this.btnUpload = new JButton("Upload");
+		this.btnUpload.setEnabled(false);
+		this.btnUpload.addActionListener(new UploadPidBagAction(this.txtPid, this.bagExplorer));
+		GridBagConstraints gbc_btnUpload = new GridBagConstraints();
+		gbc_btnUpload.gridx = 2;
+		gbc_btnUpload.gridy = 1;
+		this.pnlLocalBag.add(this.btnUpload, gbc_btnUpload);
+
+		this.pnlServerBag = new JPanel();
+		this.tabbedPane.addTab("Server Bag", null, this.pnlServerBag, null);
+		GridBagConstraints gbc_btnGet = new GridBagConstraints();
+		gbc_btnGet.insets = new Insets(0, 0, 0, 5);
+		gbc_btnGet.gridx = 2;
+		gbc_btnGet.gridy = 2;
+		this.panel_centre.add(this.btnGet, gbc_btnGet);
 	}
 
-	/**
-	 * setVisible
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * Changes the visibility status of this window.
-	 * 
-	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 * 
-	 * @param isVisible
-	 *            true to display, false to hide.
-	 */
-	public void setVisible(boolean isVisible)
+	public void actionPerformed(ActionEvent e)
 	{
-		this.frmAnuDataCommons.setVisible(isVisible);
+		if (e.getSource() == this.btnRefresh)
+		{
+			do_btnRefresh_actionPerformed(e);
+		}
+		if (e.getSource() == this.btnLogin)
+		{
+			do_btnLogin_actionPerformed(e);
+		}
+		if (e.getSource() == this.mntmExit)
+		{
+			do_mntmExit_actionPerformed(e);
+		}
+	}
+
+	protected void do_mntmExit_actionPerformed(ActionEvent e)
+	{
+		System.exit(0);
+	}
+
+	protected void do_btnLogin_actionPerformed(ActionEvent e)
+	{
+		LoginDialog ld = LoginDialog.getInstance();
+		if (ld.display() == JOptionPane.OK_OPTION)
+		{
+			LOGGER.debug("OK button clicked in Login Dialog.");
+			if (ld.getUserInfo() != null)
+			{
+				enableControls();
+				btnLogin.setText(MessageFormat.format("Switch user ({0}, {1})", ld.getUserInfo()[0], ld.getUserInfo()[1]));
+			}
+		}
 	}
 	
-	public static Component getMainParent()
+	private void enableControls()
 	{
-		return mainWindow;
+		// Enable controls.
+		txtPid.setEnabled(true);
+		btnRefresh.setEnabled(true);
+		btnSave.setEnabled(true);
+		btnUpload.setEnabled(true);
+	}
+
+	public static MainWindow getInstance()
+	{
+		if (instance == null)
+			instance = new MainWindow();
+		return instance;
+	}
+
+	protected void do_btnRefresh_actionPerformed(ActionEvent e)
+	{
+		bagExplorer.refresh();
 	}
 }

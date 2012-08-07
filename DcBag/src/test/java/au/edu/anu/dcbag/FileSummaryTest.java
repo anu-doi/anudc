@@ -36,18 +36,4 @@ public class FileSummaryTest
 	{
 	}
 
-	@Test
-	public void testGetFriendlySize()
-	{
-		// 12 MB
-		FileSummary mbSummary = new FileSummary("abc.txt", 1024L * 1024L * 12L, "some format", "fmt/20", "e75658d2e33d15dbed9940118712b902", "downloadUri");
-		LOGGER.info("{} bytes will be displayed as: {}", mbSummary.getSizeInBytes(), mbSummary.getFriendlySize());
-		assertTrue(mbSummary.getFriendlySize().equals("12 MB"));
-		
-		// 1024 GB
-		FileSummary gbSummary = new FileSummary("abc.txt", 1024L * 1024L * 1024L * 1001L, "some format", "fmt/20", "e75658d2e33d15dbed9940118712b902", "downloadUri");
-		LOGGER.info("{} bytes will be displayed as: {}", gbSummary.getSizeInBytes(), gbSummary.getFriendlySize());
-		assertTrue(gbSummary.getFriendlySize().equals("1,001 GB"));
-	}
-
 }

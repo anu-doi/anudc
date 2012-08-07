@@ -4,6 +4,7 @@ import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.transfer.BagTransferException;
+import gov.loc.repository.bagit.transformer.Completer;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -37,7 +38,9 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.PropertyException;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
@@ -61,6 +64,7 @@ import au.edu.anu.datacommons.data.db.dao.AccessLogRecordDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAO;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.UsersDAO;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Users;
@@ -69,6 +73,7 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.AccessLogRecord;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.DcBag;
+import au.edu.anu.dcbag.DcCompleter;
 import au.edu.anu.dcbag.FileSummary;
 import au.edu.anu.dcbag.fido.PronomFormat;
 
@@ -97,6 +102,7 @@ public class UploadService
 	private static final String UPLOAD_JSP = "/upload.jsp";
 	private static final String BAGFILES_JSP = "/bagfiles.jsp";
 	private static final String FILE_DS_PREFIX = "FILE";
+	private static final Completer DC_COMPLETER = new DcCompleter(DcBag.BAG_FACTORY);
 
 	/**
 	 * doGetAsHtml
@@ -270,6 +276,7 @@ public class UploadService
 			}
 
 			// Save the bag.
+			dcBag.makeComplete(DC_COMPLETER);
 			dcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, Format.FILESYSTEM);
 			// Create a log record for the activity performed.
 			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessRec);
@@ -362,18 +369,6 @@ public class UploadService
 			throw new NotFoundException("Bag not found for " + pid);
 
 		Map<BagFile, FileSummary> downloadables = dcBag.getFileSummaryMap();
-		/*
-		Set<Entry<String, String>> plFileSet = dcBag.getPayloadFileList();
-		for (Entry<String, String> entry : plFileSet)
-		{
-			PronomFormat pronom = dcBag.getPronomFormat(entry.getKey());
-			String dlUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream2")
-					.build(pid, entry.getKey()).toString();
-			FileSummary fileSummary = new FileSummary(entry.getKey(), dcBag.getBagFileSize(entry.getKey()), pronom.getFormatName(), pronom.getPuid(),
-					dcBag.getBagFileHash(entry.getKey()), dlUri);
-			downloadables.put(entry.getKey(), fileSummary);
-		}
-		*/
 		model.put("downloadables", downloadables);
 		model.put("dlBaseUri", UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream2")
 				.build(pid, "").toString());
@@ -401,8 +396,10 @@ public class UploadService
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("bag/{pid}")
+	@Deprecated
 	public Response doGetBagInfoAsJson(@PathParam("pid") String pid)
 	{
+		LOGGER.warn("In doGetBagInfoAsJson. This method should not be called anymore.");
 		Response resp = null;
 		JSONObject bagInfoJson = new JSONObject();
 		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
@@ -463,7 +460,7 @@ public class UploadService
 			if (!uploadedDcBag.getBagInfoTxt().getExternalIdentifier().equals(pid))
 				throw new BagTransferException("Bag received is not for the Pid " + pid);
 
-			// Check if a current bag exists. If yes, replace, else saveas.
+			// Check if a current bag exists. If yes, replace, else saveAs.
 			curPidBagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
 			if (curPidBagFile != null)
 			{
@@ -471,10 +468,14 @@ public class UploadService
 				uploadedDcBag.close();
 				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.UPDATE);
 				curDcBag.replaceWith(uploadedFile, true);
+				curDcBag.makeComplete(DC_COMPLETER);
+				curDcBag.save();
+				curDcBag.close();
 			}
 			else
 			{
 				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.CREATE);
+				uploadedDcBag.makeComplete(DC_COMPLETER);
 				uploadedDcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, Format.FILESYSTEM);
 				uploadedDcBag.close();
 			}
@@ -493,6 +494,22 @@ public class UploadService
 			resp = Response.serverError().build();
 		}
 
+		return resp;
+	}
+	
+	@GET
+	@Produces(MediaType.APPLICATION_XML)
+	@Path("userinfo")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response doGetUserInfo()
+	{
+		Users curUser = getCurUser();
+		Response resp = null;
+		StringBuilder respEntity = new StringBuilder();
+		respEntity.append(curUser.getUsername());
+		respEntity.append(":");
+		respEntity.append(curUser.getDisplayName());
+		resp = Response.ok(respEntity.toString()).build();
 		return resp;
 	}
 
