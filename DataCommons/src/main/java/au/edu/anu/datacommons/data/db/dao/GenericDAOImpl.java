@@ -152,7 +152,7 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 		EntityTransaction entityTransaction = entityManager.getTransaction();
 		try {
 			entityTransaction.begin();
-			entityManager.merge(o);
+			o = entityManager.merge(o);
 			entityTransaction.commit();
 		}
 		finally {

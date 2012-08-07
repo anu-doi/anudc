@@ -256,7 +256,6 @@ public class CollectionRequestService
 			if (requestedFileSet.size() <= 0)
 				throw new Exception("At least one datastream must be selected in the request.");
 
-			//entityManager.getTransaction().begin();
 			Users user = new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
 			FedoraObject fedoraObject = fedoraObjectService.getItemByName(pid);
 			CollectionRequest newCollReq = new CollectionRequest(pid, user, request.getRemoteAddr(), fedoraObject);
@@ -268,9 +267,8 @@ public class CollectionRequestService
 				newCollReq.addItem(collReqItem);
 			}
 
-			QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
-
 			// Get a list of questions assigned to the Pid.
+			QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
 			List<Question> questionList = questionDAO.getQuestionsByPid(pid);
 
 			// Iterate through the questions that need to be answered for the pid, get the answers for those questions and add to CR.
@@ -337,12 +335,12 @@ public class CollectionRequestService
 	@Path("{collReqId}")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doPostUpdateCollReqAsHtml(@PathParam("collReqId") Long collReqId, @FormParam("status") ReqStatus status, @FormParam("reason") String reason)
+	public Response doPostUpdateCollReqAsHtml(@PathParam("collReqId") Long collReqId, @Context UriInfo uriInfo, @FormParam("status") ReqStatus status,
+			@FormParam("reason") String reason)
 	{
-		PageMessages messages = new PageMessages();
-		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
 		CollectionRequest collReq = null;
+		UriBuilder redirUri = UriBuilder.fromPath("/collreq/").path(collReqId.toString());
 
 		LOGGER.trace("In doPostUpdateCollReqAsHtml. Params collReqId={}, status={}, reason={}", new Object[] { collReqId, status, reason });
 
@@ -373,56 +371,67 @@ public class CollectionRequestService
 			CollectionRequestStatus newStatus = new CollectionRequestStatus(collReq, status, reason, user);
 			collReq.addStatus(newStatus);
 			collReq = collectionRequestDAO.update(collReq);
+			// collReq = collectionRequestDAO.getSingleByIdEager(collReq.getId());
 
-			model.put("collReq", collReq);
+			// model.put("collReq", collReq);
 
 			LOGGER.debug("Updated details of CR ID# {}.", collReq.getId());
-			messages.add(MessageType.SUCCESS, "Successfully added status to Status History", model);
+			redirUri.queryParam("smsg", "Successfully added status to Status History");
 
-			// Add a message about the dropbox being created if the status is now Accepted.
+			// Generate the dropbox access URI.
+			URI dropboxUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(CollectionRequestService.class)
+					.path(CollectionRequestService.class, "doGetDropboxAccessAsHtml").queryParam("p", collReq.getDropbox().getAccessPassword())
+					.build(collReq.getDropbox().getAccessCode());
+
 			if (status == ReqStatus.ACCEPTED)
 			{
-				messages.add(MessageType.INFO, "Dropbox created<br /><strong>Code: </strong>" + collReq.getDropbox().getAccessCode()
-						+ "<br /><strong>Password: </strong>" + collReq.getDropbox().getAccessPassword(), model);
-				// TODO Change hard code below.
-				messages.add(MessageType.INFO, "Dropbox Access Link: <a href='" + "/DataCommons/rest/collreq/dropbox/access/"
-						+ collReq.getDropbox().getAccessCode() + "?p=" + collReq.getDropbox().getAccessPassword() + "'>Dropbox Access</a>", model);
+				redirUri.queryParam(
+						"imsg",
+						MessageFormat.format("Dropbox created<br /><strong>Code: </strong>{0}<br /><strong>Password: </strong>{1}", collReq.getDropbox()
+								.getAccessCode().toString(), collReq.getDropbox().getAccessPassword()));
+				redirUri.queryParam("imsg", MessageFormat.format("Dropbox Access Link: <a href=''{0}''>Dropbox Access</a>", dropboxUri.toString()));
 			}
+			
+			// Send out an email to the requestor. If failed, add status message advising that the requestor should be contacted directly.
+			try
+			{
+				HashMap<String, String> varMap = new HashMap<String, String>();
+				varMap.put("requestorGivenName", collReq.getRequestor().getGivenName());
+				varMap.put("collReqId", collReq.getId().toString());
+				varMap.put("changedByDispName", collReq.getLastStatus().getUser().getDisplayName());
+				varMap.put("dateChanged", collReq.getLastStatus().getTimestamp().toString());
+				varMap.put("status", collReq.getLastStatus().getStatus().toString());
+				varMap.put("reason", collReq.getLastStatus().getReason());
 
-			/*
-			// TODO Send email to requestor. Add message to screen if email was successful.
-			HashMap<String, String> varMap = new HashMap<String, String>();
-			varMap.put("requestorGivenName", collReq.getRequestor().getGivenName());
-			varMap.put("collReqId", collReq.getId().toString());
-			varMap.put("changedByDispName", collReq.getLastStatus().getUser().getDisplayName());
-			varMap.put("dateChanged", collReq.getLastStatus().getTimestamp().toString());
-			varMap.put("status", collReq.getLastStatus().getStatus().toString());
-			varMap.put("reason", collReq.getLastStatus().getReason());
+				Email email = new Email(mailSender);
+				email.setToName(collReq.getRequestor().getDisplayName());
+				email.setToEmail(collReq.getRequestor().getEmail());
+				email.setSubject("Dropbox# " + collReq.getId() + " Status Changed");
 
-			Email email = new Email(mailSender);
-			email.setFromName("ANU DataCommons");
-			email.setFromEmail("no-reply@anu.edu.au");
-			email.setToName(collReq.getRequestor().getDisplayName());
-			email.setToEmail(collReq.getRequestor().getEmail());
-			email.setSubject("Dropbox# " + collReq.getId() + " Status Changed");
-			email.setBody("mailtmpl/dropboxstatus.txt", varMap);
-			*/
-
+				// Add a message about the dropbox being created if the status is now Accepted.
+				if (status == ReqStatus.ACCEPTED)
+				{
+					varMap.put("dropboxLink", dropboxUri.toString());
+					email.setBody("mailtmpl/dropboxcreated.txt", varMap);
+				}
+				else
+				{
+					email.setBody("mailtmpl/dropboxstatus.txt", varMap);
+				}
+				email.send();
+			}
+			catch (Exception e)
+			{
+				redirUri.queryParam("emsg", "Could not email the requestor. Please contact him/her with the dropbox access link.");
+			}
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to add request row.", e);
-			messages.clear();
-			messages.add(MessageType.ERROR, e.getMessage(), model);
-		}
-		finally
-		{
-			//resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
-			//TODO add messsages to the get
-			UriBuilder uriBuilder = UriBuilder.fromPath("/collreq/").path(collReqId.toString());
-			resp = Response.seeOther(uriBuilder.build()).build();
+			redirUri.queryParam("emsg", e.getMessage());
 		}
 
+		resp = Response.seeOther(redirUri.build()).build();
 		return resp;
 	}
 
@@ -460,11 +469,11 @@ public class CollectionRequestService
 			String username = SecurityContextHolder.getContext().getAuthentication().getName();
 			UsersDAO userDAO = new UsersDAOImpl(Users.class);
 			Users user = userDAO.getUserByName(username);
-			
+
 			DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
 			dropboxes = dropboxDAO.getUserDropboxes(user);
 			model.put("dropboxes", dropboxes);
-			
+
 			if (dropboxes.size() == 0)
 				messages.add(MessageType.WARNING, "No dropboxes found.", model);
 			model.put("dropboxes", dropboxes);
@@ -614,7 +623,7 @@ public class CollectionRequestService
 
 			LOGGER.debug("Dropbox found.");
 			model.put("dropbox", dropbox);
-			
+
 			Users requestor = dropbox.getCollectionRequest().getRequestor();
 			String username = SecurityContextHolder.getContext().getAuthentication().getName();
 			if (!requestor.getUsername().equals(username))

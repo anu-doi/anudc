@@ -35,13 +35,11 @@ public class Email
 	private String subject;
 	private String body;
 
-	public Email()
-	{
-	}
-
 	public Email(JavaMailSenderImpl mailSender)
 	{
 		this.mailSender = mailSender;
+		this.setFromName("ANU Data Commons");
+		this.setFromEmail("no-reply@anu.edu.au");
 	}
 
 	public String getFromName()
@@ -136,15 +134,18 @@ public class Email
 			message.setTo(toName + " <" + toEmail + ">");
 			message.setSubject(subject);
 			message.setText(body);
+			LOGGER.info("Sending email...\r\nTO: {}\r\nSUBJECT: {}\r\nBODY: {}", new Object[] { toName + " <" + toEmail + ">", subject, body });
 			mailSender.send(message);
 		}
 		else
 		{
-			LOGGER.warn("email.debug.sendmail set to 'false' or not present in Global Properties. Email not sent out.");
+			LOGGER.info(
+					"email.debug.sendmail set to 'false' or not present in Global Properties. Following email not sent out.\r\nTO: {}\r\nSUBJECT: {}\r\nBODY: {}",
+					new Object[] { toName + " <" + toEmail + ">", subject, body });
 		}
 	}
 
-	public String convertStreamToString(InputStream is) throws IOException
+	private String convertStreamToString(InputStream is) throws IOException
 	{
 		Writer writer = new StringWriter();
 
