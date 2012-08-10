@@ -25,7 +25,6 @@
 		<input id="deleteItem" type="button" class="deleteItem" value="Delete" />
 	</form>
 	<form>
-		<input id="cancelEdit" type="cancel" class="cancelEdit" value="" />
 	<c:url value="/rest/display/${it.fedoraObject.object_id}" var="cancelLink">
 		<c:param name="tmplt" value="${param.tmplt}" />
 		<c:param name="layout" value="${param.layout}" />

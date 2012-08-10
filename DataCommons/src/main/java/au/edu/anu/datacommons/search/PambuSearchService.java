@@ -99,8 +99,7 @@ public class PambuSearchService {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.TEXT_HTML)
 	public Response doPostPAMBUHTML(@Context HttpServletRequest request) {
-		LOGGER.info("In do post");
-		int numRows = 5;
+		int numRows = 1000;
 		String selection = request.getParameter("selection");
 		String pmbHolding = request.getParameter("pmbHolding");
 		String modifier = request.getParameter("modifier");

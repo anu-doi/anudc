@@ -15,7 +15,7 @@
 
 	<c:if test="${not empty it.resultSet}">
 		<c:set var="curPage" value="${(param.offset == null ? 0 : param.offset) / searchItemsPerPage + 1}" />
-		<c:set var="searchItemsPerPage" value="5" />
+		<c:set var="searchItemsPerPage" value="1000" />
 		<h2>Search result</h2>
 		<em>Your search produced <strong>${it.resultSet.numFound}</strong> results.</em><br />
 		<table class="tbl-col-bdr tbl-cell-bdr" style="width: 100%;">
