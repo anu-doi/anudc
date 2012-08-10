@@ -1,4 +1,4 @@
-package au.edu.anu.dcclient;
+package au.edu.anu.dcclient.actions;
 
 import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
@@ -22,7 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.DcBag;
-import au.edu.anu.dcclient.duvanslabbert.FileExplorer;
+import au.edu.anu.dcclient.Global;
+import au.edu.anu.dcclient.MainWindow;
+import au.edu.anu.dcclient.ProgressDialog;
+import au.edu.anu.dcclient.explorer.FileExplorer;
 import au.edu.anu.dcclient.tasks.DownloadBagTask;
 import au.edu.anu.dcclient.tasks.GetInfoTask;
 import au.edu.anu.dcclient.tasks.VerifyBagTask;
@@ -86,7 +89,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 		if (localBagFile != null && localBagFile.exists())
 		{
 			// Ask user to redownload or use existing bag on local drive.
-			if (JOptionPane.showConfirmDialog(MainWindow.getMainParent(), "Pid's bag already exists on your local drive. Redownload?", "Confirm Dialog",
+			if (JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Pid's bag already exists on your local drive. Redownload?", "Confirm Dialog",
 					JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
 			{
 				// Delete local bag, redownload.
@@ -108,11 +111,11 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 						}
 						catch (InterruptedException e)
 						{
-							JOptionPane.showMessageDialog(MainWindow.getMainParent(), "The bag download was cancelled", "Cancelled", JOptionPane.WARNING_MESSAGE);
+							JOptionPane.showMessageDialog(MainWindow.getInstance(), "The bag download was cancelled", "Cancelled", JOptionPane.WARNING_MESSAGE);
 						}
 						catch (ExecutionException e)
 						{
-							JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
+							JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
 						}
 					}
 				});
@@ -138,7 +141,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 							else
 							{
 								// Local bag isn't valid. Redownload.
-								if (JOptionPane.showConfirmDialog(MainWindow.getMainParent(), "Local bag seems to be corrupted. The bag needs to be redownloaded.",
+								if (JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Local bag seems to be corrupted. The bag needs to be redownloaded.",
 										"Confirm Dialog", JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE) == JOptionPane.OK_OPTION)
 								{
 									// Delete local drive, redownload.
@@ -160,13 +163,13 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 											}
 											catch (InterruptedException e)
 											{
-												JOptionPane.showMessageDialog(MainWindow.getMainParent(), "The bag download was cancelled", "Cancelled",
+												JOptionPane.showMessageDialog(MainWindow.getInstance(), "The bag download was cancelled", "Cancelled",
 														JOptionPane.WARNING_MESSAGE);
 												LOGGER.error("Bag download cancelled.", e);
 											}
 											catch (ExecutionException e)
 											{
-												JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
+												JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
 												LOGGER.error("Bag download execution failed.", e);
 											}
 										}
@@ -177,11 +180,11 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 						}
 						catch (InterruptedException e)
 						{
-							JOptionPane.showMessageDialog(MainWindow.getMainParent(), "The bag download was cancelled", "Cancelled", JOptionPane.WARNING_MESSAGE);
+							JOptionPane.showMessageDialog(MainWindow.getInstance(), "The bag download was cancelled", "Cancelled", JOptionPane.WARNING_MESSAGE);
 						}
 						catch (ExecutionException e)
 						{
-							JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
+							JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
 						}
 					}
 				});
@@ -204,7 +207,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 						resp = getInfoTaskResult.get();
 						if (resp.getStatus() == HttpStatus.SC_NOT_FOUND)
 						{
-							if (JOptionPane.showConfirmDialog(MainWindow.getMainParent(), "Bag doesn't exist in Data Commons. Would you like to create one?",
+							if (JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Bag doesn't exist in Data Commons. Would you like to create one?",
 									"Bag not found", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
 							{
 								if (localBagFile != null)
@@ -237,11 +240,11 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 									}
 									catch (InterruptedException e)
 									{
-										JOptionPane.showMessageDialog(MainWindow.getMainParent(), "The bag download was cancelled", "Cancelled", JOptionPane.WARNING_MESSAGE);
+										JOptionPane.showMessageDialog(MainWindow.getInstance(), "The bag download was cancelled", "Cancelled", JOptionPane.WARNING_MESSAGE);
 									}
 									catch (ExecutionException e)
 									{
-										JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
+										JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
 									}
 								}
 							});
@@ -249,15 +252,15 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 					}
 					catch (InterruptedException e)
 					{
-						JOptionPane.showMessageDialog(MainWindow.getMainParent(), "The bag download was cancelled", "Cancelled", JOptionPane.WARNING_MESSAGE);
+						JOptionPane.showMessageDialog(MainWindow.getInstance(), "The bag download was cancelled", "Cancelled", JOptionPane.WARNING_MESSAGE);
 					}
 					catch (ExecutionException e)
 					{
-						JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
 					}
 					catch (Exception e)
 					{
-						JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
 					}
 				}
 

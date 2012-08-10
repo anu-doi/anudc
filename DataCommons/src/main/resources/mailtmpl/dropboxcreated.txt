@@ -1,0 +1,16 @@
+Dear ${requestorGivenName},
+This is to let you know that the status of your Collection Request has changed to the following...
+
+ID: ${collReqId}
+Changed By: ${changedByDispName}
+Changed On: ${dateChanged}
+New Status: ${status}
+Reason: ${reason}
+
+Dropbox Access Link: ${dropboxLink}
+
+If the link above didn't work, please try the following:
+<a href="${dropboxLink}">${dropboxLink}</a>
+
+Regards,
+ANU

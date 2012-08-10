@@ -139,7 +139,7 @@ public class UploadBagTask extends AbstractDcBagTask implements Callable<ClientR
 		String contDisp = MessageFormat.format("attachment; filename=\"{0}\"", serializedBagFile.getName());
 
 		ClientResponse response = webResource.type(MediaType.APPLICATION_OCTET_STREAM_TYPE).header("Content-Disposition", contDisp)
-				.post(ClientResponse.class, new FileInputStream(serializedBagFile));
+				.header("User-Agent", "BagIt Library Parallel Fetcher").post(ClientResponse.class, new FileInputStream(serializedBagFile));
 		LOGGER.info("Response status: {}", response.getStatus());
 		return response;
 	}

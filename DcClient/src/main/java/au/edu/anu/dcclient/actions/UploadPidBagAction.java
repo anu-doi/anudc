@@ -1,4 +1,4 @@
-package au.edu.anu.dcclient;
+package au.edu.anu.dcclient.actions;
 
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.Bag.Format;
@@ -26,7 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.DcBag;
-import au.edu.anu.dcclient.duvanslabbert.FileExplorer;
+import au.edu.anu.dcclient.Global;
+import au.edu.anu.dcclient.MainWindow;
+import au.edu.anu.dcclient.ProgressDialog;
+import au.edu.anu.dcclient.explorer.FileExplorer;
 import au.edu.anu.dcclient.tasks.SaveBagTask;
 import au.edu.anu.dcclient.tasks.UploadBagTask;
 
@@ -116,9 +119,9 @@ public class UploadPidBagAction extends AbstractAction implements ActionListener
 				{
 					resp = uploadTaskResult.get();
 					if (resp.getStatus() == HttpStatus.SC_OK)
-						JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Bag successfully uploaded.", "Bag Upload", JOptionPane.INFORMATION_MESSAGE);
+						JOptionPane.showMessageDialog(MainWindow.getInstance(), "Bag successfully uploaded.", "Bag Upload", JOptionPane.INFORMATION_MESSAGE);
 					else
-						JOptionPane.showMessageDialog(MainWindow.getMainParent(), "Error uploading bag.", "Bag Upload", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(MainWindow.getInstance(), "Error uploading bag.", "Bag Upload", JOptionPane.ERROR_MESSAGE);
 				}
 				catch (InterruptedException e)
 				{

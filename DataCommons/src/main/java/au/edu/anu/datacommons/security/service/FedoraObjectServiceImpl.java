@@ -429,10 +429,14 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 				// Update this section if we want to have a full list of files
 				List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(fedoraObject.getObject_id());
 				for (DatastreamType dsType : datastreamList) {
-					if (dsType.getDsid().contains("FILE0") )
+					if (dsType.getDsid().equals("FILE0") )
 					{
 						DcBag dcBag = new DcBag(GlobalProps.getBagsDirAsFile(), fedoraObject.getObject_id(), LoadOption.BY_MANIFESTS);
-						values.put("filelist", dcBag.getPayloadFileList());
+						if (dcBag != null)
+						{
+							values.put("fileCount", dcBag.getPayloadFileList().size());
+							values.put("bagSizeStr", dcBag.getBagInfoTxt().getBagSize());
+						}
 						break;
 					}
 				}

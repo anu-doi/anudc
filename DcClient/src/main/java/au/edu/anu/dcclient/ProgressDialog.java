@@ -18,6 +18,8 @@ import javax.swing.JTextPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
 
 public class ProgressDialog extends JDialog implements ProgressListener
 {
@@ -43,7 +45,7 @@ public class ProgressDialog extends JDialog implements ProgressListener
 	public ProgressDialog()
 	{
 		setBounds(100, 100, 401, 213);
-		this.setLocationRelativeTo(MainWindow.getMainParent());
+		this.setLocationRelativeTo(MainWindow.getInstance());
 		// this.setModalityType(ModalityType.APPLICATION_MODAL);
 		getContentPane().setLayout(new BorderLayout());
 		this.contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -108,7 +110,7 @@ public class ProgressDialog extends JDialog implements ProgressListener
 	
 	public void setVisible(boolean b)
 	{
-		this.setLocationRelativeTo(MainWindow.getMainParent());
+		this.setLocationRelativeTo(MainWindow.getInstance());
 		super.setVisible(b);
 	}
 }
