@@ -42,6 +42,7 @@ import com.sun.jersey.api.view.Viewable;
  * Version	Date		Developer				Description
  * 0.1		08/06/2012	Genevieve Turner (GT)	Initial
  * 0.2		13/06/2012	Genevieve Turner (GT)	Updated to use solrj classes and added and/or query functionality
+ * 0.3		10/08/2012	Genevieve Turner (GT)	Updated to provide more get options.
  * </pre>
  *
  */
@@ -58,16 +59,26 @@ public class PambuSearchService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		08/06/2012	Genevieve Turner(GT)	Initial
+	 * 0.3		10/08/2012	Genevieve Turner (GT)	Updated to provide more get options.
 	 * </pre>
 	 * 
 	 * @return The html response
 	 */
 	@GET
 	@Produces(MediaType.TEXT_HTML)
-	public Response doGetPAMBUHTML() {
+	public Response doGetPAMBUHTML(@Context HttpServletRequest request) {
 		Response response = null;
+
+		if (Util.isNotEmpty(request.getParameter("submit"))) {
+			response = doPostPAMBUHTML(request);
+		}
+		else if (Util.isNotEmpty(request.getParameter("browseAll"))) {
+			response = doPostPAMBUHTML(request);
+		}
+		else {
+			response = Response.ok(new Viewable("/pambu/pambusearch.jsp")).build();
+		}
 		
-		response = Response.ok(new Viewable("/pambu/pambusearch.jsp")).build();
 		return response;
 	}
 	
@@ -88,15 +99,23 @@ public class PambuSearchService {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.TEXT_HTML)
 	public Response doPostPAMBUHTML(@Context HttpServletRequest request) {
+		LOGGER.info("In do post");
+		int numRows = 5;
 		String selection = request.getParameter("selection");
 		String pmbHolding = request.getParameter("pmbHolding");
 		String modifier = request.getParameter("modifier");
 		String preferredOrder = request.getParameter("preferredOrder");
 		String output = request.getParameter("output");
 		String entry = request.getParameter("entry");
+		String page = request.getParameter("page");
 		
 		SolrQuery solrQuery = new SolrQuery();
-		solrQuery.setRows(1000);
+		solrQuery.setRows(numRows);
+		if (Util.isNotEmpty(page)) {
+			int pageNum = Integer.valueOf(page);
+			int start = (pageNum - 1) * numRows;
+			solrQuery.setStart(start);
+		}
 		
 		
 		if (Util.isNotEmpty(request.getParameter("submit"))) {

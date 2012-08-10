@@ -24,6 +24,16 @@
 		<input id="editSubmit" type="submit" class="editSubmit" value="Submit" />
 		<input id="deleteItem" type="button" class="deleteItem" value="Delete" />
 	</form>
+	<form>
+		<input id="cancelEdit" type="cancel" class="cancelEdit" value="" />
+	<c:url value="/rest/display/${it.fedoraObject.object_id}" var="cancelLink">
+		<c:param name="tmplt" value="${param.tmplt}" />
+		<c:param name="layout" value="${param.layout}" />
+	</c:url>
+	<p>
+		<input type="button" id="cancelEdit" name="cancelEdit" value="Cancel Edit" onclick="window.location='${cancelLink}'" />
+	</p>
+	</form>
 		<jsp:include page="add_reference.jsp" />
 	</anu:box>
 	<jsp:include page="listrelated.jsp" />
