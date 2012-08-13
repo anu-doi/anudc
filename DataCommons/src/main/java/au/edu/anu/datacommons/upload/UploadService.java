@@ -10,11 +10,16 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +51,7 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -441,18 +447,21 @@ public class UploadService
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doPostBag(@Context HttpServletRequest request, @Context UriInfo uriInfo, @PathParam("pid") String pid, File uploadedFile)
+	public Response doPostBag(@Context HttpServletRequest request, @Context UriInfo uriInfo, @PathParam("pid") String pid, InputStream is)
 	{
 		Response resp = null;
 		DcBag uploadedDcBag = null;
 		File curPidBagFile = null;
 		AccessLogRecord accessRec = null;
+		File uploadedFile;
 
 		// Check for write access to the fedora object.
 		getFedoraObjectWriteAccess(pid);
 
 		try
 		{
+			uploadedFile = File.createTempFile("Rep", null, GlobalProps.getUploadDirAsFile());
+			saveInputStreamAsFile(is, uploadedFile);
 			uploadedDcBag = new DcBag(uploadedFile, LoadOption.BY_FILES);
 			if (!uploadedDcBag.verifyValid().isSuccess())
 				throw new BagTransferException("Bag received is incomplete or invalid.");
@@ -496,7 +505,7 @@ public class UploadService
 
 		return resp;
 	}
-	
+
 	@GET
 	@Produces(MediaType.APPLICATION_XML)
 	@Path("userinfo")
@@ -511,6 +520,37 @@ public class UploadService
 		respEntity.append(curUser.getDisplayName());
 		resp = Response.ok(respEntity.toString()).build();
 		return resp;
+	}
+
+	private void saveInputStreamAsFile(InputStream is, File target) throws IOException
+	{
+		FileChannel targetChannel = null;
+		FileOutputStream fos = null;
+		ReadableByteChannel sourceChannel = null;
+		try
+		{
+			fos = new FileOutputStream(target);
+			targetChannel = fos.getChannel();
+			sourceChannel = Channels.newChannel(is);
+			ByteBuffer buffer = ByteBuffer.allocate(16384);
+			while (sourceChannel.read(buffer) != -1)
+			{
+				buffer.flip();
+				targetChannel.write(buffer);
+				buffer.compact();
+			}
+
+			buffer.flip();
+			while (buffer.hasRemaining())
+				targetChannel.write(buffer);
+		}
+		finally
+		{
+			IOUtils.closeQuietly(targetChannel);
+			IOUtils.closeQuietly(fos);
+			IOUtils.closeQuietly(is);
+			IOUtils.closeQuietly(sourceChannel);
+		}
 	}
 
 	private Users getCurUser()
