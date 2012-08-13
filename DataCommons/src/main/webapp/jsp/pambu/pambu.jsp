@@ -14,6 +14,8 @@
 	<hr />
 
 	<c:if test="${not empty it.resultSet}">
+		<c:set var="curPage" value="${(param.offset == null ? 0 : param.offset) / searchItemsPerPage + 1}" />
+		<c:set var="searchItemsPerPage" value="1000" />
 		<h2>Search result</h2>
 		<em>Your search produced <strong>${it.resultSet.numFound}</strong> results.</em><br />
 		<table class="tbl-col-bdr tbl-cell-bdr" style="width: 100%;">
@@ -47,6 +49,37 @@
 			</tr>
 		</c:forEach>
 		</table>
+		<p class="text-centre">
+			Pages&nbsp;
+			
+			<c:forEach begin="0" end="${((it.resultSet.numFound - 1) / searchItemsPerPage) - (((it.resultSet.numFound - 1) / searchItemsPerPage) % 1)}" var="i">
+				<c:url var="searchURL" value='/rest/search/pambu'>
+					<c:param name="selection" value='${param.selection}' />
+					<c:param name="pmbHolding" value='${param.pmbHolding}' />
+					<c:param name="modifier" value='${param.modifier}' />
+					<c:param name="preferredOrder" value='${param.preferredOrder}' />
+					<c:param name="output" value='${param.output}' />
+					<c:param name="entry" value='${param.entry}' />
+					<c:param name="page" value='${i + 1}' />
+					<c:if test="${not empty param.submit}">
+						<c:param name="submit" value='${param.submit}' />
+					</c:if>
+					<c:if test="${not empty param.browseAll}">
+						<c:param name="browseAll" value='${param.browseAll}' />
+					</c:if>
+				</c:url>
+				<a class="nounderline"
+					href="${searchURL}">
+					<c:if test="${i == curPage - 1}">
+						<strong>
+					</c:if>
+					<c:out value="[ ${i + 1} ]" />
+					<c:if test="${i == curPage - 1}">
+						</strong>
+					</c:if>
+				</a>
+			</c:forEach>
+		</p>
 	</c:if>
 	<c:if test="${empty it.resultSet}">
 		No results returned

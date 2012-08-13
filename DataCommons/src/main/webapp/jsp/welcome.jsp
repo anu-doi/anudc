@@ -15,11 +15,6 @@
 	<p>Welcome to the ANU Data Commons.</p>
 	<p>This project will allow people to add information about their datasets, catalogues etc.</p>
 	<p><jsp:include page="searchbox.jsp"></jsp:include> </p>
-	<sec:authorize access="hasRole('ROLE_ANU_USER')">
-		
-	<p>Create new object: <a href="<c:url value='/rest/list/template' />">New</a></p>
-	</sec:authorize>
-			
 </anu:content>
 
 <!-- Section for changelogs, updates, news and announcements etc. for users to see. -->
