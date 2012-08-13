@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -25,19 +26,58 @@ public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(CollectionInfo.class);
 
-	private File filesDir;
-	
+	private File sourceFile;
+	private File filesDir = null;
+	private String pid = null;
+
+	public String getPid()
+	{
+		return pid;
+	}
+
+	public void setPid(String pid) throws IOException
+	{
+		if (this.containsKey("pid"))
+		{
+			LOGGER.warn("Pid already exists.");
+			return;
+		}
+		
+		this.pid = pid;
+		super.add("pid", pid);
+		
+		// Write pid to collection info file.
+		FileWriter writer = null;
+		try
+		{
+			writer = new FileWriter(this.sourceFile, true);
+			writer.write("\r\npid=" + pid);
+		}
+		finally
+		{
+			if (writer != null)
+				writer.close();
+		}
+
+	}
+
 	public CollectionInfo(File sourceFile) throws IOException
 	{
 		super();
-		readMap(sourceFile);
+		this.sourceFile = sourceFile;
+		readMap(this.sourceFile);
+	}
+
+	public File getFilesDir()
+	{
+		return filesDir;
 	}
 
 	private void readMap(File sourceFile) throws IOException
 	{
 		FileInputStream fis = null;
 		BufferedReader reader = null;
-		
+
 		try
 		{
 			fis = new FileInputStream(sourceFile);
@@ -48,10 +88,10 @@ public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap
 			{
 				LOGGER.trace(line);
 				line = line.trim();
-				
+
 				if (line.length() == 0)
 					continue;
-				
+
 				// Skip if first character is '#'.
 				if (line.charAt(0) == '#')
 					continue;
@@ -63,7 +103,7 @@ public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap
 
 				String key = line.substring(0, equalsIndex).trim();
 				String value = line.substring(equalsIndex + 1).trim();
-				
+
 				// Skip line if key or value is ""
 				if (key.length() == 0 || value.length() == 0)
 					continue;
@@ -73,7 +113,13 @@ public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap
 					this.filesDir = new File(value);
 					continue;
 				}
-				
+
+				if (key.equalsIgnoreCase("pid"))
+				{
+					this.pid = value;
+					continue;
+				}
+
 				this.add(key, value);
 			}
 		}
@@ -82,10 +128,5 @@ public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap
 			IOUtils.closeQuietly(reader);
 			IOUtils.closeQuietly(fis);
 		}
-	}
-	
-	public File getFilesDir()
-	{
-		return filesDir;
 	}
 }

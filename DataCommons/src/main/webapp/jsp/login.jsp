@@ -17,7 +17,7 @@
 	<form class="anuform" name="frmLogin" method="post" action='<c:url value="/j_spring_security_check" />'>
 		<p>
 			<label class="req" for="j_username">Username: </label>
-			<input type="text" class="text" name="j_username" value="">
+			<input type="text" class="text" name="j_username" value="" autofocus="autofocus">
 		</p>
 		<p>
 			<label for="j_password">Password: </label>
@@ -25,7 +25,7 @@
 		</p>
 		<p>
 		<p class="text-right">
-			<input name="submit" type="submit" value="submit" />
+			<input name="submit" type="submit" value="Submit" />
 		</p>
 
 	</form>

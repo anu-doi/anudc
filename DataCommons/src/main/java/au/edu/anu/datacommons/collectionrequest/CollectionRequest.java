@@ -271,11 +271,6 @@ public class CollectionRequest
 	{
 		this.statusHistory.add(collReqStatus);
 		collReqStatus.setCollectionRequest(this);
-
-		if (collReqStatus.getStatus() == ReqStatus.ACCEPTED)
-		{
-			this.dropbox = new CollectionDropbox(this, collReqStatus.getUser(), true);
-		}
 	}
 
 	public void addItem(CollectionRequestItem item)

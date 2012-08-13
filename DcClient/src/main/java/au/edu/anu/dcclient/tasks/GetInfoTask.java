@@ -17,7 +17,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
-public final class GetInfoTask extends AbstractDcBagTask implements Callable<ClientResponse>
+public final class GetInfoTask extends AbstractDcBagTask<ClientResponse>
 {
 	private URI pidBagUri;
 
@@ -62,6 +62,9 @@ public final class GetInfoTask extends AbstractDcBagTask implements Callable<Cli
 	@Override
 	public ClientResponse call() throws Exception
 	{
+		// Begin stopwatch.
+		stopWatch.start();
+
 		Client client = Client.create();
 		PasswordAuthentication auth = Authenticator.requestPasswordAuthentication(pidBagUri.getHost(), null, pidBagUri.getPort(), pidBagUri.getScheme(),
 				"Please provide password for: " + Global.getBagUploadUrl(), "scheme");
@@ -72,6 +75,10 @@ public final class GetInfoTask extends AbstractDcBagTask implements Callable<Cli
 		ClientResponse response = webResource.header("User-Agent", "BagIt Library Parallel Fetcher").get(ClientResponse.class);
 		updateProgress("Pid Info received", pidBagUri.toString(), 1L, 1L);
 		updateProgress("done", null, null, null);
+		
+		// End stopwatch
+		stopWatch.end();
+
 		return response;
 	}
 }

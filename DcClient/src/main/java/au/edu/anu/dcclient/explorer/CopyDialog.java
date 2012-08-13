@@ -9,6 +9,8 @@ import java.awt.event.MouseEvent;
 import java.io.*;
 import javax.swing.*;
 
+import au.edu.anu.dcclient.MainWindow;
+
 public class CopyDialog implements Runnable
 {
 
@@ -30,13 +32,14 @@ public class CopyDialog implements Runnable
 		dlg.setForeground(Color.WHITE);
 		dlg.setLayout(null);
 		dlg.setSize(390, 120);
+		dlg.setLocationRelativeTo(MainWindow.getInstance());
 
 		JLabel label = new JLabel(new ImageIcon("loading.gif"));
 		label.setBounds(5, 8, 31, 31);
 		label.setOpaque(false);
 		dlg.add(label);
 
-		label = new JLabel("Busy copying . . .");
+		label = new JLabel("Copying...");
 		label.setBounds(40, 0, 315, 25);
 		dlg.add(label);
 
@@ -55,7 +58,6 @@ public class CopyDialog implements Runnable
 		btn.setBounds(290, 60, 90, 25);
 		dlg.add(btn);
 
-		dlg.setLocationRelativeTo(null);
 		dlg.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		dlg.setResizable(false);
 		dlg.setVisible(true);
@@ -86,7 +88,7 @@ public class CopyDialog implements Runnable
 		{
 			InputStream in = new FileInputStream(sourceLocation);
 			OutputStream out = new FileOutputStream(targetLocation);
-			byte[] buf = new byte[16384];
+			byte[] buf = new byte[16777216];
 			int len;
 			while ((len = in.read(buf)) > 0 && stopCopy == false)
 			{

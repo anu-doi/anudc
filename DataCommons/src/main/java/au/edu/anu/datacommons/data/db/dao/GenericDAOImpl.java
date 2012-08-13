@@ -74,9 +74,6 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 			entityManager.persist(o);
 			entityTransaction.commit();
 		}
-		catch (Exception e) {
-			LOGGER.info("Error saving object", e);
-		}
 		finally {
 			entityManager.close();
 		}

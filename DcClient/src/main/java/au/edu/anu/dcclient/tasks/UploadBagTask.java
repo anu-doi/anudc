@@ -29,7 +29,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
-public class UploadBagTask extends AbstractDcBagTask implements Callable<ClientResponse>
+public class UploadBagTask extends AbstractDcBagTask<ClientResponse>
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
 
@@ -78,6 +78,9 @@ public class UploadBagTask extends AbstractDcBagTask implements Callable<ClientR
 	@Override
 	public ClientResponse call() throws Exception
 	{
+		// Begin stopwatch.
+		stopWatch.start();
+
 		File zipFile = null;
 		try
 		{
@@ -101,6 +104,8 @@ public class UploadBagTask extends AbstractDcBagTask implements Callable<ClientR
 			updateProgress("done", null, null, null);
 			if (zipFile != null)
 				zipFile.delete();
+			// End stopwatch
+			stopWatch.end();
 		}
 
 	}

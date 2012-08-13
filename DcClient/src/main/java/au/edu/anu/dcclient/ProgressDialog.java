@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.JProgressBar;
 
 public class ProgressDialog extends JDialog implements ProgressListener
 {
@@ -28,7 +29,7 @@ public class ProgressDialog extends JDialog implements ProgressListener
 
 	private JTextPane logTextPane;
 	private JPanel buttonPane;
-	private Component parentComponent;
+	private JProgressBar progressBar;
 
 	/**
 	 * ProgressDialog
@@ -58,6 +59,10 @@ public class ProgressDialog extends JDialog implements ProgressListener
 		buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
+		
+		this.progressBar = new JProgressBar();
+		this.progressBar.setIndeterminate(true);
+		this.buttonPane.add(this.progressBar);
 		JButton okButton = new JButton("OK");
 		okButton.setEnabled(false);
 		okButton.setActionCommand("OK");
@@ -102,7 +107,6 @@ public class ProgressDialog extends JDialog implements ProgressListener
 					if (!ProgressDialog.this.isVisible())
 						ProgressDialog.this.setVisible(true);
 					logTextPane.setText(logTextPane.getText() + "\r\n" + ProgressListenerHelper.format(activity, item, count, total));
-					LOGGER.info("In thread: " + Thread.currentThread().getName());
 				}
 			}
 		});

@@ -47,7 +47,7 @@
 			</form>
 
 			<c:if test="${it.downloadables != null}">
-				<table>
+				<table class="w-doublewide" >
 					<tr>
 						<th>Item</th>
 						<th>Link</th>

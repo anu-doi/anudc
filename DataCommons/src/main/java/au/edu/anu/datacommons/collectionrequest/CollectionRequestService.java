@@ -1,5 +1,6 @@
 package au.edu.anu.datacommons.collectionrequest;
 
+import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.FetchTxt.FilenameSizeUrl;
 
@@ -48,6 +49,8 @@ import au.edu.anu.datacommons.data.db.dao.CollectionRequestDAO;
 import au.edu.anu.datacommons.data.db.dao.CollectionRequestDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAO;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.GenericDAO;
+import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.QuestionDAO;
 import au.edu.anu.datacommons.data.db.dao.QuestionDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.QuestionMapDAO;
@@ -65,6 +68,7 @@ import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.DcBag;
+import au.edu.anu.dcbag.FileSummary;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
@@ -197,6 +201,11 @@ public class CollectionRequestService
 
 			LOGGER.debug("Found Collection Request ID {}, for Pid {}.", collReq.getId(), collReq.getPid());
 			model.put("collReq", collReq);
+			
+			// Add files in payload to model.
+			DcBag dcBag = new DcBag(GlobalProps.getBagsDirAsFile(), collReq.getPid(), LoadOption.BY_MANIFESTS);
+			Map<BagFile, FileSummary> downloadables = dcBag.getFileSummaryMap();
+			model.put("downloadables", downloadables);
 		}
 		catch (Exception e)
 		{
@@ -238,8 +247,8 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doPostCollReqAsHtml(@Context HttpServletRequest request, @FormParam("pid") String pid, @FormParam("file") Set<String> requestedFileSet,
-			MultivaluedMap<String, String> allFormParams)
+	public Response doPostCollReqAsHtml(@Context HttpServletRequest request, @Context UriInfo uriInfo, @FormParam("pid") String pid,
+			@FormParam("file") Set<String> requestedFileSet, MultivaluedMap<String, String> allFormParams)
 	{
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
@@ -251,21 +260,9 @@ public class CollectionRequestService
 		// Save the Collection Request for further processing.
 		try
 		{
-			// Check if at least one item has been requested. If not, throw exception.
-			LOGGER.debug("Number of items selected in CR: {}", requestedFileSet.size());
-			if (requestedFileSet.size() <= 0)
-				throw new Exception("At least one datastream must be selected in the request.");
-
 			Users user = new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
 			FedoraObject fedoraObject = fedoraObjectService.getItemByName(pid);
 			CollectionRequest newCollReq = new CollectionRequest(pid, user, request.getRemoteAddr(), fedoraObject);
-
-			// Add each of the items requested (datastreams) to the CR.
-			for (String iFile : requestedFileSet)
-			{
-				CollectionRequestItem collReqItem = new CollectionRequestItem(iFile);
-				newCollReq.addItem(collReqItem);
-			}
 
 			// Get a list of questions assigned to the Pid.
 			QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
@@ -336,7 +333,7 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostUpdateCollReqAsHtml(@PathParam("collReqId") Long collReqId, @Context UriInfo uriInfo, @FormParam("status") ReqStatus status,
-			@FormParam("reason") String reason)
+			@FormParam("reason") String reason, @FormParam("file") Set<String> fileSet)
 	{
 		Response resp = null;
 		CollectionRequest collReq = null;
@@ -371,27 +368,69 @@ public class CollectionRequestService
 			CollectionRequestStatus newStatus = new CollectionRequestStatus(collReq, status, reason, user);
 			collReq.addStatus(newStatus);
 			collReq = collectionRequestDAO.update(collReq);
-			// collReq = collectionRequestDAO.getSingleByIdEager(collReq.getId());
 
-			// model.put("collReq", collReq);
-
+			// Update the items requested, if required.
+			LOGGER.debug("{} items checked.", fileSet.size());
+			// Add each of the items requested (datastreams) to the CR.
+			Set<CollectionRequestItem> curItems = collReq.getItems();
+			
+			// Sync the list of items in the POST with the ones already stored.
+			for (String iFile : fileSet)
+			{
+				boolean isPresent = false;
+				for (CollectionRequestItem iCurItem : curItems)
+				{
+					if (iCurItem.getItem().equals(iFile))
+					{
+						isPresent = true;
+						break;
+					}
+				}
+				
+				if (!isPresent)
+				{
+					CollectionRequestItem newItem = new CollectionRequestItem(iFile);
+					collReq.addItem(newItem);
+				}
+			}
+			
+			GenericDAO<CollectionRequestItem, Long> collReqDao = new GenericDAOImpl<CollectionRequestItem, Long>(CollectionRequestItem.class);
+			Iterator<CollectionRequestItem> iter = curItems.iterator();
+			while(iter.hasNext())
+			{
+				CollectionRequestItem iItem = iter.next();
+				if (!fileSet.contains(iItem.getItem()))
+				{
+					iter.remove();
+					collReqDao.delete(iItem.getId());
+				}
+			}
+			
+			// Save the updated collection request in the DB.
+			collReq = collectionRequestDAO.update(collReq);
+			
 			LOGGER.debug("Updated details of CR ID# {}.", collReq.getId());
 			redirUri.queryParam("smsg", "Successfully added status to Status History");
 
 			// Generate the dropbox access URI.
-			URI dropboxUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(CollectionRequestService.class)
-					.path(CollectionRequestService.class, "doGetDropboxAccessAsHtml").queryParam("p", collReq.getDropbox().getAccessPassword())
-					.build(collReq.getDropbox().getAccessCode());
-
-			if (status == ReqStatus.ACCEPTED)
+			URI dropboxUri = null;
+			if (status == ReqStatus.ACCEPTED && collReq.getItems().size() > 0)
 			{
+				CollectionDropbox dBox = new CollectionDropbox(collReq, user, true);
+				collReq.setDropbox(dBox);
+				collReq = collectionRequestDAO.update(collReq);
+				
+				dropboxUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(CollectionRequestService.class)
+						.path(CollectionRequestService.class, "doGetDropboxAccessAsHtml").queryParam("p", collReq.getDropbox().getAccessPassword())
+						.build(collReq.getDropbox().getAccessCode());
+
 				redirUri.queryParam(
 						"imsg",
 						MessageFormat.format("Dropbox created<br /><strong>Code: </strong>{0}<br /><strong>Password: </strong>{1}", collReq.getDropbox()
 								.getAccessCode().toString(), collReq.getDropbox().getAccessPassword()));
 				redirUri.queryParam("imsg", MessageFormat.format("Dropbox Access Link: <a href=''{0}''>Dropbox Access</a>", dropboxUri.toString()));
 			}
-			
+
 			// Send out an email to the requestor. If failed, add status message advising that the requestor should be contacted directly.
 			try
 			{
@@ -406,17 +445,17 @@ public class CollectionRequestService
 				Email email = new Email(mailSender);
 				email.setToName(collReq.getRequestor().getDisplayName());
 				email.setToEmail(collReq.getRequestor().getEmail());
-				email.setSubject("Dropbox# " + collReq.getId() + " Status Changed");
+				email.setSubject("Collection Request# " + collReq.getId() + " Status Changed");
 
 				// Add a message about the dropbox being created if the status is now Accepted.
-				if (status == ReqStatus.ACCEPTED)
+				if (status == ReqStatus.ACCEPTED && collReq.getItems().size() > 0)
 				{
 					varMap.put("dropboxLink", dropboxUri.toString());
-					email.setBody("mailtmpl/dropboxcreated.txt", varMap);
+					email.setBody("mailtmpl/collreqaccepted.txt", varMap);
 				}
 				else
 				{
-					email.setBody("mailtmpl/dropboxstatus.txt", varMap);
+					email.setBody("mailtmpl/collreqchanged.txt", varMap);
 				}
 				email.send();
 			}
@@ -860,7 +899,7 @@ public class CollectionRequestService
 						}
 					}
 
-					uriBuilder = uriBuilder.queryParam("smsg", "Question List updated for this Fedora object.");
+					uriBuilder = uriBuilder.queryParam("smsg", "Question List updated for this Collection.");
 				}
 				catch (Exception e)
 				{

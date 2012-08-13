@@ -25,9 +25,9 @@ import au.edu.anu.dcbag.DcBag;
 import au.edu.anu.dcbag.DcBagException;
 import au.edu.anu.dcclient.Global;
 
-public final class DownloadBagTask extends AbstractDcBagTask implements Callable<File>
+public final class DownloadBagTask extends AbstractDcBagTask<File>
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
+	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadBagTask.class);
 
 	private URI pidBagUri;
 	private File localBagFile;
@@ -77,21 +77,14 @@ public final class DownloadBagTask extends AbstractDcBagTask implements Callable
 	@Override
 	public File call() throws BagTransferException, IOException, DcBagException
 	{
-		BagFetcher fetcher = new BagFetcher(new BagFactory());
-		HttpFetchProtocol http = new HttpFetchProtocol();						// HTTP
-		fetcher.registerProtocol("http", http);
-
-		HttpFetchProtocol https = new HttpFetchProtocol();					// HTTPS
-		// TODO Change the following in production when using trusted CA-certified cert
-		https.setRelaxedSsl(true);
-		fetcher.registerProtocol("https", https);
+		// Begin stopwatch.
+		stopWatch.start();
 
 		updateProgress("Initialising bag download", pidBagUri.toString(), null, null);
-		if (this.plSet != null)
-			for (ProgressListener pl : plSet)
-				fetcher.addProgressListener(pl);
+		BagFetcher fetcher = createFetcher();
+
 		LOGGER.info("Beginning download of bag...");
-		SimpleResult result;
+		SimpleResult result = null;
 		File tempBagFile = new File(System.getProperty("java.io.tmpdir"), localBagFile.getName());
 		DcBag dcBag = null;
 		try
@@ -102,6 +95,7 @@ public final class DownloadBagTask extends AbstractDcBagTask implements Callable
 			result = fetcher.fetchRemoteBag(tempBagFile, pidBagUri.toString(), false);
 			if (result.isSuccess())
 			{
+				// If a local bag exists, replace it, else saveAs.
 				if (localBagFile.exists())
 				{
 					dcBag = new DcBag(localBagFile, LoadOption.BY_FILES);
@@ -130,9 +124,36 @@ public final class DownloadBagTask extends AbstractDcBagTask implements Callable
 				dcBag.close();
 			FileUtils.deleteQuietly(tempBagFile);
 			updateProgress("done", null, null, null);
+
+			if (result != null)
+				LOGGER.debug("Result from Bag Fetch: {}.", result.toString());
+
+			// End stopwatch
+			stopWatch.end();
 		}
 
-		LOGGER.debug("Result from Bag Fetch: {}.", result.toString());
 		return localBagFile;
+	}
+
+	private BagFetcher createFetcher()
+	{
+		BagFetcher bagFetcher = new BagFetcher(new BagFactory());
+		
+		// Register HTTP.
+		HttpFetchProtocol http = new HttpFetchProtocol();
+		bagFetcher.registerProtocol("http", http);
+
+		// Register HTTPS.
+		HttpFetchProtocol https = new HttpFetchProtocol();
+		// TODO Change the following in production when using trusted CA-certified cert
+		https.setRelaxedSsl(true);
+		bagFetcher.registerProtocol("https", https);
+
+		// Add progress listeners.
+		if (this.plSet != null)
+			for (ProgressListener pl : plSet)
+				bagFetcher.addProgressListener(pl);
+
+		return bagFetcher;
 	}
 }

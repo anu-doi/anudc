@@ -5,10 +5,15 @@ import gov.loc.repository.bagit.ProgressListener;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
-public abstract class AbstractDcBagTask implements ProgressListenable
+import au.edu.anu.dcclient.stopwatch.StopWatch;
+import au.edu.anu.dcclient.stopwatch.Timeable;
+
+public abstract class AbstractDcBagTask<T> implements Callable<T>, ProgressListenable, Timeable
 {
 	protected Set<ProgressListener> plSet = null;
+	protected StopWatch stopWatch = new StopWatch();
 
 	/**
 	 * addProgressListener
@@ -102,5 +107,11 @@ public abstract class AbstractDcBagTask implements ProgressListenable
 			for (ProgressListener pl : this.plSet)
 				pl.reportProgress(activity, item, count, total);
 		}
+	}
+	
+	@Override
+	public StopWatch getStopWatch()
+	{
+		return this.stopWatch;
 	}
 }

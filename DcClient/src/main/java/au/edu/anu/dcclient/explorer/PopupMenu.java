@@ -11,6 +11,10 @@ import java.util.concurrent.Executors;
 import javax.swing.*;
 import javax.swing.tree.*;
 
+import org.apache.commons.io.FileUtils;
+
+import au.edu.anu.dcclient.MainWindow;
+
 @SuppressWarnings("serial")
 public class PopupMenu extends JPopupMenu
 {
@@ -30,21 +34,18 @@ public class PopupMenu extends JPopupMenu
 			public void actionPerformed(ActionEvent ae)
 			{
 				String str = curNode.toString();
-				str = str.substring(str.lastIndexOf("\\") + 1, str.length());
-				if (JOptionPane.showConfirmDialog(tree, "Rename " + str, "Rename", JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION)
+				str = str.substring(str.lastIndexOf(File.separatorChar) + 1, str.length());
+				String reply = JOptionPane.showInputDialog(MainWindow.getInstance(), "Rename " + str);
+				if (reply != "" && reply != null)
 				{
-					String reply = JOptionPane.showInputDialog(null, "Rename " + str);
-					if (reply != "" && reply != null)
-					{
-						str = curNode.toString();
-						str = str.substring(0, str.lastIndexOf("\\"));
-						((File) curNode.getUserObject()).renameTo(new File(str + "\\" + reply));
-						curNode.setUserObject(new File(str + "\\" + reply));
-					}
+					str = curNode.toString();
+					str = str.substring(0, str.lastIndexOf(File.separatorChar));
+					((File) curNode.getUserObject()).renameTo(new File(str + File.separatorChar + reply));
+					curNode.setUserObject(new File(str + File.separatorChar + reply));
 				}
 			}
 		});
-		
+
 		// Delete menu item.
 		add(menuItem = new JMenuItem("Delete"));
 		menuItem.setIcon(new ImageIcon(this.getClass().getResource("delete.png")));
@@ -52,18 +53,19 @@ public class PopupMenu extends JPopupMenu
 		{
 			public void actionPerformed(ActionEvent ae)
 			{
-				if (JOptionPane.showConfirmDialog(tree, "Delete " + curNode, "Delete File", JOptionPane.ERROR_MESSAGE) == JOptionPane.YES_OPTION)
+				if (JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Are you sure you want to delete\r\n" + curNode, "Delete File",
+						JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
 				{
 					if (((File) curNode.getUserObject()).isFile())
 						((File) curNode.getUserObject()).delete();
 					else
-						DelDir((File) curNode.getUserObject());
+						FileUtils.deleteQuietly((File) curNode.getUserObject());
 					treeModel = (DefaultTreeModel) tree.getModel();
 					treeModel.removeNodeFromParent(curNode);
 				}
 			}
 		});
-		
+
 		// Cut menu item.
 		addSeparator();
 		add(menuItem = new JMenuItem("Cut"));
@@ -76,7 +78,7 @@ public class PopupMenu extends JPopupMenu
 				cut = true;
 			}
 		});
-		
+
 		// Copy menu item.
 		add(menuItem = new JMenuItem("Copy"));
 		menuItem.setIcon(new ImageIcon(this.getClass().getResource("copy.png")));
@@ -88,7 +90,7 @@ public class PopupMenu extends JPopupMenu
 				cut = false;
 			}
 		});
-		
+
 		// Paste menu item.
 		add(menuItem = new JMenuItem("Paste"));
 		menuItem.setIcon(new ImageIcon(this.getClass().getResource("paste.png")));
@@ -97,13 +99,13 @@ public class PopupMenu extends JPopupMenu
 			public void actionPerformed(ActionEvent ae)
 			{
 				String str = lastSelNode.toString();
-				str = str.substring(str.lastIndexOf("\\") + 1, str.length());
+				str = str.substring(str.lastIndexOf(File.separatorChar) + 1, str.length());
 				ExecutorService threadExecutor = Executors.newFixedThreadPool(1);
-				threadExecutor.execute(new CopyDialog((File) lastSelNode.getUserObject(), new File(curNode.toString() + "\\" + str), cut));
+				threadExecutor.execute(new CopyDialog((File) lastSelNode.getUserObject(), new File(curNode.toString() + File.separatorChar + str), cut));
 				threadExecutor.shutdown();
 				DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
-				DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new File(((MutableTreeNode) tree.getLastSelectedPathComponent()).toString() + "\\"
-						+ str));
+				DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new File(((MutableTreeNode) tree.getLastSelectedPathComponent()).toString()
+						+ File.separatorChar + str));
 				if (lastSelNode.getChildCount() != 0)
 					newNode.add(new DefaultMutableTreeNode("**"));
 				treeModel.insertNodeInto(newNode, (MutableTreeNode) tree.getLastSelectedPathComponent(), 0);
@@ -129,26 +131,5 @@ public class PopupMenu extends JPopupMenu
 			else
 				menuItem.setEnabled(false);
 		}
-	}
-
-	public static void DelDir(File dir)
-	{
-		if (dir.isDirectory())
-		{
-			File[] files = dir.listFiles();
-			for (int i = 0; i < files.length; i++)
-			{
-				if (files[i].isDirectory())
-				{
-					DelDir(files[i]);
-					files[i].delete();
-				}
-				else
-					files[i].delete();
-			}
-			dir.delete();
-		}
-		if (dir.exists())
-			DelDir(dir);
 	}
 }
