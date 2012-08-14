@@ -50,6 +50,7 @@
 				</ul>
 			</li>
 		</sec:authorize>
+		<li><a href="<c:url value='/rest/admin/anupublished' />">Site Map</a></li>
 	</anu:submenu>
 	<sec:authorize access="hasRole('ROLE_ADMIN')">
 		<anu:submenu title="Admin">
