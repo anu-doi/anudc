@@ -1,7 +1,10 @@
-package au.edu.anu.datacommons.search;
+package au.edu.anu.datacommons.pambu;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -12,18 +15,22 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.solr.SolrManager;
+import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.search.SolrSearchResult;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.view.Viewable;
@@ -43,13 +50,14 @@ import com.sun.jersey.api.view.Viewable;
  * 0.1		08/06/2012	Genevieve Turner (GT)	Initial
  * 0.2		13/06/2012	Genevieve Turner (GT)	Updated to use solrj classes and added and/or query functionality
  * 0.3		10/08/2012	Genevieve Turner (GT)	Updated to provide more get options.
+ * 0.4		14/08/2012	Genevieve Turner (GT)	Updated to show links for the web crawler
  * </pre>
  *
  */
 @Component
-@Path("/search/pambu")
-public class PambuSearchService {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PambuSearchService.class);
+@Path("/pambu")
+public class PambuSearchResource {
+	private static final Logger LOGGER = LoggerFactory.getLogger(PambuSearchResource.class);
 	
 	/**
 	 * doGetPAMBUHTML
@@ -65,6 +73,7 @@ public class PambuSearchService {
 	 * @return The html response
 	 */
 	@GET
+	@Path("/search")
 	@Produces(MediaType.TEXT_HTML)
 	public Response doGetPAMBUHTML(@Context HttpServletRequest request) {
 		Response response = null;
@@ -96,6 +105,7 @@ public class PambuSearchService {
 	 * @return The html response
 	 */
 	@POST
+	@Path("/search")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.TEXT_HTML)
 	public Response doPostPAMBUHTML(@Context HttpServletRequest request) {
@@ -318,11 +328,120 @@ public class PambuSearchService {
 		if ("sortVal".equals(value)) {
 			solrQuery.addSortField("published.sortVal", ORDER.asc);
 		}
-		if ("author".equals(value)) {
+		else if ("author".equals(value)) {
 			solrQuery.addSortField("published.combinedAuthors", ORDER.asc);
 		}
-		if ("date".equals(value)) {
+		else if ("date".equals(value)) {
 			solrQuery.addSortField("published.combinedDates", ORDER.asc);
 		}
+	}
+	
+	/**
+	 * listAllPAMBUPublished
+	 *
+	 * Gets a list of links for the web crawler.  For Printed Documents and Manuscripts
+	 * the link is a search result for the id.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.4		14/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param context Uri information
+	 * @return A page with links for the web crawler
+	 */
+	@GET
+	@Path("/published")
+	@Produces(MediaType.TEXT_HTML)
+	public Response listAllPAMBUPublished(@Context UriInfo context) {
+		int numResults = 1000;
+		StringBuffer linksPage = new StringBuffer();
+		linksPage.append("<html><body>");
+		
+		Response response = null;
+
+		// get manuscript and document series
+
+		SolrQuery solrQuery = new SolrQuery();
+		solrQuery.setRows(numResults);
+
+		// Get all the records
+		setPAMBUQueryFields("browseAll", "", solrQuery);
+		
+		// Get all both manuscripts and printed documents
+		setPAMBUFilterFields("", solrQuery);
+		
+		// Sort items
+		setPAMBUSortFields("sortVal", solrQuery);
+		
+		// Set the values to be returned
+		// may need to change this to the serial number and then adjust createLinks accordingly
+		solrQuery.addField("published.externalId");
+		
+		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		
+		try {
+			QueryResponse queryResponse = solrServer.query(solrQuery);
+			SolrDocumentList resultList = queryResponse.getResults();
+			long numFound = resultList.getNumFound();
+			linksPage.append(createLinks(resultList, context));
+			for (int i = numResults; i < numFound; i = i + numResults) {
+				LOGGER.info("Start: {}", i);
+				
+				solrQuery.setStart(i);
+				queryResponse = solrServer.query(solrQuery);
+				resultList = queryResponse.getResults();
+				linksPage.append(createLinks(resultList, context));
+			}
+		}
+		catch (SolrServerException e) {
+			LOGGER.error("Exception querying solr", e);
+		}
+
+		linksPage.append("</html></body>");
+		response = Response.ok(linksPage.toString()).build();
+		
+		return response;
+	}
+	
+	/**
+	 * createLinks
+	 *
+	 * Generates a list of links for the given list of documents
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.4		14/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param resultList A list of results to create links for
+	 * @param context Uri information
+	 * @return HTML formatted links
+	 */
+	private String createLinks(SolrDocumentList resultList, UriInfo context) {
+		String patternStr = "(ms|doc){1}([0-9]*)";
+		Pattern pattern = Pattern.compile(patternStr);
+		StringBuffer sb = new StringBuffer();
+		resultList.iterator();
+		Iterator<SolrDocument> it = resultList.iterator();
+		
+		while (it.hasNext()) {
+			SolrDocument document = it.next();
+			String value = (String) document.getFirstValue("published.externalId");
+			Matcher matcher = pattern.matcher(value);
+			boolean matchFound = matcher.find();
+			if (matchFound) {
+				String typeStr = matcher.group(1);
+				String numberStr = matcher.group(2);
+				String urlStr = String.format("%s%spambu/search?selection=serial&pmbHolding=%s&modifier=AND&preferredOrder=sortVal&output=long&entry=%s&page=1&submit=Submit+this+search",GlobalProps.getProperty(GlobalProps.PROP_APP_SERVER), context.getBaseUri().getRawPath(), typeStr, numberStr);
+				sb.append("<a href='");
+				sb.append(urlStr);
+				sb.append("'>");
+				sb.append(matcher.group(0));
+				sb.append("</a>");
+				sb.append("<br />");
+			}
+		}
+		return sb.toString();
 	}
 }

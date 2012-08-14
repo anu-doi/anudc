@@ -10,7 +10,10 @@
 
 <jsp:include page="../header.jsp" />
 
+<anu:content layout="doublewide">
+<h1>Pacific Manuscripts Bureau Administration Page</h1>
 <p>
-Under Construction
+<a href='<c:url value="/rest/pambu/admin/index" />'>Generate Index File</a>
 </p>
+</anu:content>
 <jsp:include page="../footer.jsp" />

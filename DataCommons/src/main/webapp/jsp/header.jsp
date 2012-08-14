@@ -54,13 +54,13 @@
 	<sec:authorize access="hasRole('ROLE_ADMIN')">
 		<anu:submenu title="Admin">
 			<li><a href="<c:url value='/rest/search/admin' />">Update Index</a></li>
-			<li><a href="<c:url value='/jsp/pambu/pambuadmin.jsp' />">Pambu Administration</a></li>
+			<li><a href="<c:url value='/rest/pambu/admin' />">Pambu Administration</a></li>
 		</anu:submenu>
 	</sec:authorize>
 
 	<anu:submenu title="External Links">
 		<li><a href="<c:url value='http://ands.org.au/' />">ANDS</a></li>
 		<li><a href="<c:url value='http://services.ands.org.au/home/orca/rda/' />">Research Data Australia</a></li>
-		<li><a href="<c:url value='/rest/search/pambu' />">PAMBU Catalogue Search</a>
+		<li><a href="<c:url value='/rest/pambu/search' />">PAMBU Catalogue Search</a>
 	</anu:submenu>
 </anu:menu>

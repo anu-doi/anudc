@@ -2,6 +2,13 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 
+<anu:header id="226" title="Microfilm catalogue - PAMBU - ANU" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
+	ssl="true">
+	<c:set var="pambusite" value="http://asiapacific.anu.edu.au/pambu" scope="page" />
+	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
+	<link href="http://styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
+</anu:header>
+
 <jsp:include page="pambuheader.jsp" />
 <anu:content layout="doublewide">
 	<h1 class="doublewide nopadbottom">Microfilm catalogue</h1>
