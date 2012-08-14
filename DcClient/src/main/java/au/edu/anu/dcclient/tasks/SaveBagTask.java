@@ -8,7 +8,7 @@ import java.util.concurrent.Callable;
 
 import au.edu.anu.dcbag.DcBag;
 
-public final class SaveBagTask extends AbstractDcBagTask implements Callable<File>
+public final class SaveBagTask extends AbstractDcBagTask<File>
 {
 	private DcBag dcBag;
 	private File targetDir = null;
@@ -86,6 +86,9 @@ public final class SaveBagTask extends AbstractDcBagTask implements Callable<Fil
 	@Override
 	public File call() throws Exception
 	{
+		// Begin stopwatch.
+		stopWatch.start();
+
 		try
 		{
 			updateProgress("Preparing bag for saving", null, null, null);
@@ -105,6 +108,9 @@ public final class SaveBagTask extends AbstractDcBagTask implements Callable<Fil
 		finally
 		{
 			updateProgress("done", null, null, null);
+
+			// End stopwatch
+			stopWatch.end();
 		}
 	}
 }

@@ -21,7 +21,7 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import au.edu.anu.dcclient.Global;
 import au.edu.anu.dcclient.collection.CollectionInfo;
 
-public class CreateCollectionTask extends AbstractDcBagTask implements Callable<String>
+public class CreateCollectionTask extends AbstractDcBagTask<String>
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CreateCollectionTask.class);
 
@@ -37,19 +37,31 @@ public class CreateCollectionTask extends AbstractDcBagTask implements Callable<
 	@Override
 	public String call() throws Exception
 	{
-		Client client = Client.create();
-		PasswordAuthentication auth = Authenticator.requestPasswordAuthentication(createUri.getHost(), null, createUri.getPort(), createUri.getScheme(),
-				"Please provide password for: " + Global.getBagUploadUrl(), "scheme");
-		if (auth != null)
-			client.addFilter(new HTTPBasicAuthFilter(auth.getUserName(), new String(auth.getPassword())));
-		WebResource webResource = client.resource(UriBuilder.fromUri(createUri).queryParam("layout", "def:display").queryParam("tmplt", "tmplt:1").build());
-		ClientResponse response = webResource.accept(MediaType.TEXT_PLAIN_TYPE).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-				.header("User-Agent", "BagIt Library Parallel Fetcher").post(ClientResponse.class, collInfo);
+		// Begin stopwatch.
+		stopWatch.start();
+
 		String createdPid;
-		if (response.getClientResponseStatus() != Status.CREATED)
-			throw new Exception("Unable to create a collection. Server returned HTTP " + response.getStatus());
-		createdPid = response.getEntity(String.class);
-		LOGGER.info("Created object with pid: {}", createdPid);
+		try
+		{
+			Client client = Client.create();
+			PasswordAuthentication auth = Authenticator.requestPasswordAuthentication(createUri.getHost(), null, createUri.getPort(), createUri.getScheme(),
+					"Please provide password for: " + Global.getBagUploadUrl(), "scheme");
+			if (auth != null)
+				client.addFilter(new HTTPBasicAuthFilter(auth.getUserName(), new String(auth.getPassword())));
+			WebResource webResource = client.resource(UriBuilder.fromUri(createUri).queryParam("layout", "def:display").queryParam("tmplt", "tmplt:1").build());
+			ClientResponse response = webResource.accept(MediaType.TEXT_PLAIN_TYPE).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+					.header("User-Agent", "BagIt Library Parallel Fetcher").post(ClientResponse.class, collInfo);
+			if (response.getClientResponseStatus() != Status.CREATED)
+				throw new Exception("Unable to create a collection. Server returned HTTP " + response.getStatus());
+			createdPid = response.getEntity(String.class);
+			LOGGER.info("Created object with pid: {}", createdPid);
+		}
+		finally
+		{
+			// End stopwatch
+			stopWatch.end();
+		}
+
 		return createdPid;
 	}
 }

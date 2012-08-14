@@ -17,7 +17,7 @@ public class CollectionRequestItem
 	private String item;
 	private CollectionRequest collectionRequest;
 
-	public CollectionRequestItem()
+	protected CollectionRequestItem()
 	{
 	}
 

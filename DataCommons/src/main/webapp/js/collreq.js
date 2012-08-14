@@ -19,23 +19,6 @@ function ajaxGetPidInfo(pid)
 	if (jQuery.trim(pid) == "")
 		return;
 
-	// Empty the container element for Datastream List.
-	jQuery("#idFileListContainer").empty();
-	jQuery("#idFileListContainer").append(
-			jQuery("<p></p>").text("Getting item list... ").append(jQuery("<img></img>").attr("src", "/DataCommons/images/ajax-loader.gif")));
-
-	// Get Datastreams for the pid and add each to the container.
-	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listPidItems&pid=" + pid, function(fileList)
-	{
-		jQuery("#idFileListContainer").empty();
-		jQuery.each(fileList, function(i, fileItem)
-		{
-			jQuery("<input></input>").attr("type", "checkbox").attr("name", "file").attr("value", fileItem.filename).appendTo("#idFileListContainer");
-			jQuery("#idFileListContainer").append(fileItem.filename);
-			jQuery("#idFileListContainer").append("<br />");
-		});
-	});
-
 	// Empty the container element for Questions that need to be answered.
 	jQuery("#idQuestionsContainer").empty();
 	jQuery("#idQuestionsContainer").append(
@@ -49,7 +32,7 @@ function ajaxGetPidInfo(pid)
 		{
 			var pQuestion = jQuery("<p></p>");
 			pQuestion.append(jQuery("<label></label>").text(question));
-			pQuestion.append(jQuery("<textarea rows='5' cols='50'></textarea>").attr("name", "q" + id));
+			pQuestion.append(jQuery("<textarea rows='5' cols='50' maxlength='255'></textarea>").attr("name", "q" + id));
 			jQuery("#idQuestionsContainer").append(pQuestion);
 		});
 	});

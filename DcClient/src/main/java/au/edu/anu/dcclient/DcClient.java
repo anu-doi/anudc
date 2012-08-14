@@ -30,6 +30,7 @@ import au.edu.anu.dcbag.DcBag;
 import au.edu.anu.dcbag.DcBagException;
 import au.edu.anu.dcbag.DcBagProps;
 import au.edu.anu.dcclient.collection.CollectionInfo;
+import au.edu.anu.dcclient.stopwatch.StopWatch;
 import au.edu.anu.dcclient.tasks.CreateCollectionTask;
 import au.edu.anu.dcclient.tasks.DownloadBagTask;
 import au.edu.anu.dcclient.tasks.GetInfoTask;
@@ -101,7 +102,7 @@ public class DcClient
 			{
 				try
 				{
-					MainWindow window = MainWindow.getInstance();
+					MainWindow window = new MainWindow();
 					window.setVisible(true);
 				}
 				catch (Exception e)
@@ -316,13 +317,22 @@ public class DcClient
 
 			try
 			{
-				// Create collection.
-				System.out.println("Creating collection with following details...");
+				// Read collection details.
+				System.out.println("Reading collection...");
 				
 				CollectionInfo ci = new CollectionInfo(ciFile);
-				CreateCollectionTask createCollTask = new CreateCollectionTask(ci, Global.getCreateUri());
-				String pid = createCollTask.call();
-				System.out.println("Created collection with Pid: " + pid);
+				String pid = ci.getPid();
+				if (pid == null)
+				{
+					CreateCollectionTask createCollTask = new CreateCollectionTask(ci, Global.getCreateUri());
+					pid = createCollTask.call();
+					ci.setPid(pid);
+					System.out.println("Created collection with Pid: " + pid);
+				}
+				else
+				{
+					System.out.println("Pid already exists for this collection: " + pid);
+				}
 
 				// Create empty bag.
 				System.out.println("Creating blank bag for pid...");
@@ -360,11 +370,15 @@ public class DcClient
 				// Upload Bag.
 				UploadBagTask uploadTask = new UploadBagTask(bag, Global.getBagUploadUri());
 				// uploadTask.addProgressListener(new ConsoleProgressListener());
+				StopWatch timeEl = new StopWatch();
+				timeEl.start();
 				ClientResponse resp = uploadTask.call();
+				timeEl.end();
 				if (resp.getClientResponseStatus() != Status.OK)
 					throw new Exception("Unable to upload bag.");
 
 				System.out.println("Bag uploaded successfully.");
+				System.out.println("Time: " + timeEl.getFriendlyElapsed());
 				exitCode = 0;
 			}
 			catch (IOException e)

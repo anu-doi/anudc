@@ -110,7 +110,7 @@ public class CollectionRequestDAOImpl extends GenericDAOImpl<CollectionRequest, 
 	 */
 	public CollectionRequest getSingleByIdEager(Long id) {
 		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
-		Query query = entityManager.createQuery("SELECT cr FROM CollectionRequest cr left join fetch cr.answers left join fetch cr.status join fetch cr.fedoraObject WHERE cr.id = :id");
+		Query query = entityManager.createQuery("SELECT cr FROM CollectionRequest cr left join fetch cr.answers left join fetch cr.items left join fetch cr.status join fetch cr.fedoraObject WHERE cr.id = :id");
 		query.setParameter("id", id);
 		
 		CollectionRequest collectionRequest = (CollectionRequest) query.getSingleResult();

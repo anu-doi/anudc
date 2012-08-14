@@ -8,6 +8,7 @@ import java.text.MessageFormat;
 import java.util.Map;
 
 import au.edu.anu.dcbag.clamscan.ScanResult;
+import au.edu.anu.dcbag.clamscan.ScanResult.Status;
 import au.edu.anu.dcbag.fido.PronomFormat;
 import au.edu.anu.dcbag.metadata.MetadataExtractorImpl;
 
@@ -30,13 +31,31 @@ public class FileSummary
 		this.path = bagFile.getFilepath();
 		this.sizeInBytes = bagFile.getSize();
 		PronomFormat pFmt = bag.getPronomFormat(bagFile);
-		this.format = pFmt.getFormatName();
-		this.formatPuid = pFmt.getPuid();
+		if (pFmt != null)
+		{
+			this.format = pFmt.getFormatName();
+			this.formatPuid = pFmt.getPuid();
+		}
+		else
+		{
+			this.format = "";
+			this.formatPuid = "";
+		}
 		this.md5 = bag.getBagFileHash(bagFile.getFilepath());
 		this.metadata = new MetadataExtractorImpl(bagFile.newInputStream()).getMetadataMap();
-		VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.VIRUSSCAN_FILEPATH, bag.getBag().getBagFile(VirusScanTxt.VIRUSSCAN_FILEPATH), bag.getBag()
+		
+		BagFile virusScanTxt = bag.getBag().getBagFile(VirusScanTxt.VIRUSSCAN_FILEPATH);
+		if (virusScanTxt != null)
+		{
+			VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.VIRUSSCAN_FILEPATH, virusScanTxt, bag.getBag()
 				.getBagItTxt().getCharacterEncoding());
-		this.scanResult = new ScanResult(vs.get(bagFile.getFilepath()));
+			this.scanResult = new ScanResult(vs.get(bagFile.getFilepath()));
+		}
+		else
+		{
+			this.scanResult = new ScanResult("");
+			this.scanResult.setStatus(Status.ERROR);
+		}
 	}
 
 	public String getPath()

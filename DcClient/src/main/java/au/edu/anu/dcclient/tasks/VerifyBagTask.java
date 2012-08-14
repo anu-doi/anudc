@@ -7,7 +7,7 @@ import java.util.concurrent.Callable;
 
 import au.edu.anu.dcbag.DcBag;
 
-public final class VerifyBagTask extends AbstractDcBagTask implements Callable<SimpleResult>
+public final class VerifyBagTask extends AbstractDcBagTask<SimpleResult>
 {
 	private DcBag dcBag;
 
@@ -52,9 +52,22 @@ public final class VerifyBagTask extends AbstractDcBagTask implements Callable<S
 	@Override
 	public SimpleResult call() throws Exception
 	{
-		updateProgress("Verifying integrity of bag for pid", dcBag.getExternalIdentifier(), 1L, 1L);
-		SimpleResult result = dcBag.verifyValid();
-		updateProgress("done", null, null, null);
+		// Begin stopwatch.
+		stopWatch.start();
+
+		SimpleResult result;
+		try
+		{
+			updateProgress("Verifying integrity of bag for pid", dcBag.getExternalIdentifier(), 1L, 1L);
+			result = dcBag.verifyValid();
+			updateProgress("done", null, null, null);
+		}
+		finally
+		{
+			// End stopwatch
+			stopWatch.end();
+		}
+
 		return result;
 	}
 }

@@ -41,7 +41,9 @@ import au.edu.anu.dcclient.explorer.FileExplorer;
 
 public class MainWindow extends JFrame implements ActionListener
 {
+	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(MainWindow.class);
+
 	private static MainWindow instance = null;
 
 	private JPanel panel_north;
@@ -73,10 +75,12 @@ public class MainWindow extends JFrame implements ActionListener
 	/**
 	 * Create the application.
 	 */
-	protected MainWindow()
+	public MainWindow()
 	{
 		setTitle("ANU Data Commons");
 		initialize();
+		lblStatus.setText(Global.getAppServerUriAsString());
+		instance = this;
 	}
 
 	/**
@@ -123,7 +127,7 @@ public class MainWindow extends JFrame implements ActionListener
 
 		this.lblStatus = new JLabel("Status");
 		GridBagConstraints gbc_lblStatus = new GridBagConstraints();
-		gbc_lblStatus.insets = new Insets(0, 0, 0, 5);
+		gbc_lblStatus.insets = new Insets(0, 5, 0, 5);
 		gbc_lblStatus.gridx = 0;
 		gbc_lblStatus.gridy = 0;
 		this.panel_bottom.add(this.lblStatus, gbc_lblStatus);
@@ -239,10 +243,10 @@ public class MainWindow extends JFrame implements ActionListener
 
 			private void toggleRetrieve(DocumentEvent e)
 			{
-				if (txtPid.getText().length() == 0)
-					btnGet.setEnabled(false);
-				else
+				if (txtPid.getText().length() > 0)
 					btnGet.setEnabled(true);
+				else
+					btnGet.setEnabled(false);
 			}
 		});
 
@@ -331,8 +335,6 @@ public class MainWindow extends JFrame implements ActionListener
 
 	public static MainWindow getInstance()
 	{
-		if (instance == null)
-			instance = new MainWindow();
 		return instance;
 	}
 
