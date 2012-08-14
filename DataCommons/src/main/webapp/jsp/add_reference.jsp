@@ -25,7 +25,10 @@
 						<option value="Service">Service</option>
 					</select>
 				</p>
-				<p><label for="itemId">Item Id</label><input type="text" id="itemId" name="itemId" /></p>
+				<p><label for="itemSearch" title="Search for an item to link to">Item Search</label><input type="text" id="itemSearch" name="itemSearch" /></p>
+				<p><label for="itemIdentifier">Item Id</label><div id="itemIdentifier">None Selected</div></p>
+				<p><label for="itemName">Item Name</label><div id="itemName">None Selected</div></p>
+				<p class="hidden"><label for="itemId">Item Full Id</label><div class="hidden" id="itemId">None Selected</div></p>
 				<p><label for="linkType">Link Type</label>
 					<select id="linkType" name="linkType">
 						<option value="isPartOf">Is Part Of</option>

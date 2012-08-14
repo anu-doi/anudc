@@ -46,3 +46,8 @@
 #popupLink input:text {
 	width:150px;
 }
+
+.hidden {
+	display: none;
+	color: red;
+}
