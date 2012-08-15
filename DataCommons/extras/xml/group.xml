@@ -1,30 +1,34 @@
 <template>
 	<name>Party Template</name>
 	<briefDesc>Template for creating groups and administrative positions</briefDesc>
+	<tab name="general" label="General" order="1" />
+	<tab name="description" label="Description" order="2" />
+	<tab name="contact" label="Contact" tooltip="Information about contact(s)" order="4" />
+	<tab name="subject" label="Subject" order="5" />
 	<item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type"
-		readonly="readonly" saveType="single"/>
-	<item editPerm="admin" fieldType="Combobox" label="Party Type" name="subType" saveType="single" class="required">
+		readonly="readonly" saveType="single" tab="general"/>
+	<item editPerm="admin" fieldType="Combobox" label="Party Type" name="subType" saveType="single" class="required" tab="general">
 		<option label="- No Value Selected -" value="" />
 		<option label="Group" value="group" />
 		<option label="Administrative Position" value="administrativePosition" />
 	</item>
-	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required">
+	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required" tab="general">
 		<option value="" label="-No Value Selected-" />
 		<option value="1" label="Administrator" />
 	</item>
-	<item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"/>
-	<item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"/>
-	<item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single"/>
-	<item fieldType="TextField" label="NLA Identifier" name="nlaIdentifier" saveType="single"/>
-	<item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single"/>
-	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single"/>
-	<item class="required email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple"/>
-	<item fieldType="TextArea" label="Contact Address" name="postalAddress" saveType="single"/>
-	<item fieldType="TextFieldMulti" label="Contact Phone Number" name="phone" saveType="multiple"/>
-	<item fieldType="TextFieldMulti" label="Contact Fax Number" name="fax" saveType="multiple"/>
-	<item fieldType="TextFieldMulti" label="Website Address" name="websiteAddress" saveType="multiple"/>
-	<item name="anzforSubject" label="ANZSRC-FOR Subject" fieldType="ComboBoxMulti" saveType="multiple" class="required">
+	<item class="required" fieldType="TextField" label="Title" maxLength="80" name="name" saveType="single" tab="general"/>
+	<item fieldType="TextField" label="Abbreviated Title" maxLength="255" name="abbrName" saveType="single" tab="general"/>
+	<item fieldType="TextField" label="Alternate Title" maxLength="255" name="altName" saveType="single" tab="general"/>
+	<item fieldType="TextField" label="NLA Identifier" name="nlaIdentifier" saveType="single" tab="general"/>
+	<item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description"/>
+	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description"/>
+	<item class="required email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple" tab="contact"/>
+	<item fieldType="TextArea" label="Contact Address" name="postalAddress" saveType="single" tab="contact"/>
+	<item fieldType="TextFieldMulti" label="Contact Phone Number" name="phone" saveType="multiple" tab="contact"/>
+	<item fieldType="TextFieldMulti" label="Contact Fax Number" name="fax" saveType="multiple" tab="contact"/>
+	<item fieldType="TextFieldMulti" label="Website Address" name="websiteAddress" saveType="multiple" tab="contact"/>
+	<item name="anzforSubject" label="ANZSRC-FOR Subject" fieldType="ComboBoxMulti" saveType="multiple" class="required" tab="subject">
 		<option value="" label="-No Value Selected-" />
 	</item>
-	<item fieldType="TextFieldMulti" label="Other Subject" name="locSubject" saveType="multiple"/>
+	<item fieldType="TextFieldMulti" label="Other Subject" name="locSubject" saveType="multiple" tab="subject"/>
 </template>

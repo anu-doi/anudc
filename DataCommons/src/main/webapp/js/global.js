@@ -22,6 +22,20 @@
 jQuery(document).ready(function()
 {
 	jQuery("#editSubmit").attr("disabled", "disabled");
+	
+	// Load the selected tab when it has been clicked.
+	jQuery("#tabs li").click(function() {
+		jQuery("#tabs li").removeClass('pagetabs-select');
+		jQuery(this).addClass('pagetabs-select');
+		jQuery(".tab-content").hide();
+		var selected_tab = jQuery(this).find("a").attr("href");
+		jQuery(selected_tab).fadeIn();
+		return false;
+	});
+	jQuery("#tabs li.pagetabs-select").each(function(key,value) {
+		var selected_tab = jQuery(value).find("a").attr("href");
+		jQuery(selected_tab).fadeIn();
+	});
 });
 
 /**

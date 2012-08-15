@@ -1,6 +1,28 @@
 select {
-	width:150px;
+	width:250px;
 }
 label.error {
 	color: red;
+}
+.tab-content {
+	display: none;
+}
+.field {
+	padding-bottom: 10px;
+}
+input[type='text'] {
+	width:250px;
+}
+textarea {
+	width:400px;
+	height:100px;
+}
+table select {
+	width:150px;
+}
+table input[type='text'] {
+	width:150px;
+}
+table textarea {
+	width:200px;
 }

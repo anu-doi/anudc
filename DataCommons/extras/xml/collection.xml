@@ -2,8 +2,15 @@
 <template>
 	<name>Collection Template</name>
 	<briefDesc>Template for creating collections</briefDesc>
-	<item name="type" label="Type" fieldType="TextField" saveType="single" defaultValue="Collection" readonly="readonly" editPerm="admin" />
-	<item name="subType" label="Collection Type" fieldType="Combobox" saveType="single" class="required">
+	<tab name="general" label="General" order="1" />
+	<tab name="description" label="Description" order="2" />
+	<tab name="coverage" label="Coverage" tooltip="Dates and Locations relating to collection" order="3" />
+	<tab name="contact" label="Contact" tooltip="Information about contact(s)" order="4" />
+	<tab name="subject" label="Subject" order="5" />
+	<tab name="rights" label="Rights" order="6" />
+	<tab name="publications" label="Publications" order="7" />
+	<item name="type" label="Type" fieldType="TextField" saveType="single" defaultValue="Collection" readonly="readonly" editPerm="admin" tab="general" />
+	<item name="subType" label="Collection Type" fieldType="Combobox" saveType="single" class="required" tab="general">
 		<option value="" label="-No Value Selected-" />
 		<option value="dataset" label="Dataset" />
 		<option value="catalogueOrIndex" label="Catalogue or Index" />
@@ -11,30 +18,29 @@
 		<option value="registry" label="Registry" />
 		<option value="repository" label="Repository" />
 	</item>
-	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required">
-		<option value="" label="-No Value Selected-" />
-		<option value="1" label="Administrator" />
-	</item>
-	<item name="name" label="Name" fieldType="TextField" saveType="single" maxLength="80" class="required" />
-	<item name="abbrName" label="Abbreviated Name" fieldType="TextField" saveType="single" maxLength="255" />
-	<item name="altName" label="Alternate Name" fieldType="TextField" saveType="single" maxLength="255" />
-	<item name="significanceStatement" label="Significance Statement" fieldType="TextArea" saveType="single" maxLength="4000" />
-	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000" class="required" />
-	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" maxLength="4000" />
-	<item name="email" label="Contact Email" fieldType="TextFieldMulti" saveType="multiple" class="required email" />
-	<item name="postalAddress" label="Contact Address" fieldType="TextArea" saveType="single" />
-	<item name="phone" label="Contact Phone Number" fieldType="TextFieldMulti" saveType="multiple" />
-	<item name="fax" label="Contact Fax Number" fieldType="TextFieldMulti"  saveType="multiple" />
-	<item name="websiteAddress" label="Website Address" fieldType="TextFieldMulti" saveType="multiple" />
-	<item name="anzforSubject" label="ANZSRC-FOR Subject" fieldType="ComboBoxMulti" saveType="multiple" class="required">
+	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required" tab="general">
 		<option value="" label="-No Value Selected-" />
 	</item>
-	<item name="locSubject" label="Other Subject" fieldType="TextFieldMulti" saveType="multiple" />
-	<item name="coverageDates" label="Coverage Dates" fieldType="Table" saveType="table">
+	<item name="name" label="Title" fieldType="TextField" saveType="single" maxLength="80" class="required" tooltip="The title of the collection" tab="general" />
+	<item name="abbrName" label="Abbreviated Title" fieldType="TextField" saveType="single" maxLength="255" tab="general" />
+	<item name="altName" label="Alternate Title" fieldType="TextField" saveType="single" maxLength="255" tab="general" />
+	<item name="significanceStatement" label="Significance Statement" fieldType="TextArea" saveType="single" maxLength="4000" tab="description" />
+	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000" class="required"  tab="description" />
+	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" maxLength="4000"  tab="description" />
+	<item name="email" label="Contact Email" fieldType="TextFieldMulti" saveType="multiple" class="required email" tab="contact" />
+	<item name="postalAddress" label="Contact Address" fieldType="TextArea" saveType="single" tab="contact" />
+	<item name="phone" label="Contact Phone Number" fieldType="TextFieldMulti" saveType="multiple" tab="contact" />
+	<item name="fax" label="Contact Fax Number" fieldType="TextFieldMulti"  saveType="multiple" tab="contact" />
+	<item name="websiteAddress" label="Website Address" fieldType="TextFieldMulti" saveType="multiple" tab="contact" />
+	<item name="anzforSubject" label="ANZSRC-FOR Subject" fieldType="ComboBoxMulti" saveType="multiple" class="required" tab="subject">
+		<option value="" label="-No Value Selected-" />
+	</item>
+	<item name="locSubject" label="Other Subject" fieldType="TextFieldMulti" saveType="multiple" tab="subject" />
+	<item name="coverageDates" label="Coverage Dates" fieldType="Table" saveType="table" tab="coverage">
 		<column name="dateFrom" label="Date From" fieldType="TextField" class="date" />
 		<column name="dateTo" label="Date To" fieldType="TextField" class="date" />
 	</item>
-	<item name="coverageArea" label="Coverage Area" fieldType="Table" saveType="table">
+	<item name="coverageArea" label="Coverage Area" fieldType="Table" saveType="table" tab="coverage">
 		<column name="covAreaType" label="Location Type" fieldType="Combobox">
 			<option value="" label="-No Value Selected-" />
 			<option value="text" label="Text" />
@@ -51,7 +57,7 @@
 		</column>
 		<column name="covAreaValue" fieldType="TextField" />
 	</item>
-	<item name="publication" label="Publications" fieldType="TableVertical" saveType="table">
+	<item name="publication" label="Publications" fieldType="TableVertical" saveType="table" tab="publications">
 		<column name="pubType" label="Identifier Type" fieldType="Combobox">
 			<option value="" label="-No Value Selected-" />
 			<option value="ark" label="ARK Persistent Identifier Scheme" />
@@ -72,8 +78,8 @@
 		<column name="pubValue" label="Identifier Value" fieldType="TextField" />
 		<column name="pubTitle" label="Publication Reference" fieldType="TextArea" />
 	</item>
-	<item name="rightsStatement" label="Rights Statement" fieldType="TextArea" saveType="single" tooltip="Intellectual property rights information" />
-	<item name="licenceType" label="Licence Type" fieldType="Combobox" saveType="single" tooltip="Licence Type" >
+	<item name="rightsStatement" label="Rights Statement" fieldType="TextArea" saveType="single" tooltip="Intellectual property rights information" tab="rights" />
+	<item name="licenceType" label="Licence Type" fieldType="Combobox" saveType="single" tooltip="Licence Type" tab="rights" >
 		<option value="" label="-No Value Selected-" />
 		<option value="CC-BY" label="Attribution" />
 		<option value="CC-BY-SA" label="Attribution-SharedAlice" />
@@ -86,6 +92,6 @@
 		<option value="NoLicence" label="No licence" />
 		<option value="Unknown/Other" label="Unknown licence or record provider defined licence" />
 	</item>
-	<item name="licence" label="Licence" fieldType="TextArea" saveType="single" tooltip="Licence Information" />
-	<item name="accessRights" label="Access Rights" fieldType="TextArea" saveType="single" tooltip="Information about who and when people may access the information in this collection" />
+	<item name="licence" label="Licence" fieldType="TextArea" saveType="single" tooltip="Licence Information" tab="rights" />
+	<item name="accessRights" label="Access Rights" fieldType="TextArea" saveType="single" tooltip="Information about who and when people may access the information in this collection" tab="rights" />
 </template>

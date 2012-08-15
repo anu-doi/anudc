@@ -1,9 +1,12 @@
 <template>
 	<name>Service Template</name>
 	<briefDesc>Template for creating services</briefDesc>
+	<tab name="general" label="General" order="1" />
+	<tab name="description" label="Description" order="2" />
+	<tab name="contact" label="Contact" tooltip="Information about contact(s)" order="4" />
 	<item defaultValue="Service" editPerm="admin" fieldType="TextField" label="Type" name="type"
-		readonly="readonly" saveType="single"/>
-	<item fieldType="Combobox" label="Service Type" name="subType" saveType="single" class="required">
+		readonly="readonly" saveType="single" tab="general"/>
+	<item fieldType="Combobox" label="Service Type" name="subType" saveType="single" class="required" tab="general">
 		<option value="" label="-No Value Selected-" />
 		<option label="Create" value="create"/>
 		<option label="Generate" value="generate"/>
@@ -12,19 +15,19 @@
 		<option label="Transform" value="transform"/>
 		<option label="Assemble" value="assemble"/>
 	</item>
-	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required">
+	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required" tab="general">
 		<option value="" label="-No Value Selected-" />
 		<option value="1" label="Administrator" />
 	</item>
-	<item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"/>
-	<item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"/>
-	<item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single"/>
-	<item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single"/>
-	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single"/>
-	<item class="required email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple"/>
-	<item fieldType="TextArea" label="Contact Address" name="postalAddress" saveType="single"/>
-	<item fieldType="TextFieldMulti" label="Contact Phone Number" name="phone" saveType="multiple"/>
-	<item fieldType="TextFieldMulti" label="Contact Fax Number" name="fax" saveType="multiple"/>
+	<item class="required" fieldType="TextField" label="Title" maxLength="80" name="name" saveType="single" tab="general"/>
+	<item fieldType="TextField" label="Abbreviated Title" maxLength="255" name="abbrName" saveType="single" tab="general"/>
+	<item fieldType="TextField" label="Alternate Title" maxLength="255" name="altName" saveType="single" tab="general"/>
+	<item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description"/>
+	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description"/>
+	<item class="required email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple" tab="contact"/>
+	<item fieldType="TextArea" label="Contact Address" name="postalAddress" saveType="single" tab="contact"/>
+	<item fieldType="TextFieldMulti" label="Contact Phone Number" name="phone" saveType="multiple" tab="contact"/>
+	<item fieldType="TextFieldMulti" label="Contact Fax Number" name="fax" saveType="multiple" tab="contact"/>
 	<item fieldType="Combobox" label="Delivery Method" name="deliveryMethod" saveType="single" class="required">
 		<option label="Offline" value="offline"/>
 		<option label="Software" value="software"/>

@@ -2,7 +2,11 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
-<anu:content layout="doublenarrow">
+<c:set var="layoutstyle" value="doublenarrow" />
+<c:if test="${empty it.sidepage}">
+	<c:set var="layoutstyle" value="doublewide" />
+</c:if>
+<anu:content layout="${layoutstyle}">
 
 	<c:if test="${not empty it.fedoraObject.reviewReady}">
 		<anu:message type="info">

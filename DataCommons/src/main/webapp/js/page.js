@@ -8,6 +8,7 @@
  * Version	Date		Developer			Description
  * 0.1		20/06/2012	Genevieve Turner	Added remove selected function
  * 0.2		02/07/2012	Genevieve Turner	Updated submission function as validation was not correctly occuring
+ * 0.3		15/08/2012	Genevieve Turner	Updated to make validation work correctly with the changes to using tabs
  */
 
 /**
@@ -16,11 +17,16 @@
  * Version	Date		Developer			Description
  * 0.1		26/03/2012	Genevieve Turner	Created function
  * 0.2		02/07/2012	Genevieve Turner	Updated submission function as validation was not correctly occuring
+ * 0.3		15/08/2012	Genevieve Turner	Updated to make validation work correctly with the changes to using tabs (added validator.setDefaults function)
  */
 jQuery(document).ready(function()
 {
 	jQuery(function(){
 		jQuery('#anzforSubject2').combobox();
+	});
+
+	jQuery.validator.setDefaults({
+		ignore: ""
 	});
 	
 	jQuery("#form").submit(function() {
