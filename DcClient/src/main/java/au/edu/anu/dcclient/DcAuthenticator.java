@@ -13,6 +13,7 @@ public class DcAuthenticator extends Authenticator
 		super();
 		this.username = username;
 		this.password = password;
+		CustomClient.setAuth(username, password);
 	}
 	
 	@Override

@@ -2,11 +2,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>au.edu.anu</groupId>
-	<artifactId>DcBag</artifactId>
+	<artifactId>DcShared</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>DcBag</name>
+	<name>DcShared</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
@@ -32,12 +32,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-core</artifactId>
-			<version>1.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-parsers</artifactId>
+			<artifactId>tika-xmp</artifactId>
 			<version>1.2</version>
 		</dependency>
 	</dependencies>

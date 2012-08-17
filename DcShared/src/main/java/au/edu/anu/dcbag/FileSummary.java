@@ -3,34 +3,40 @@ package au.edu.anu.dcbag;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFile;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.HashMap;
 import java.util.Map;
+
+import javax.imageio.stream.FileImageOutputStream;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.tika.exception.TikaException;
+import org.xml.sax.SAXException;
 
 import au.edu.anu.dcbag.clamscan.ScanResult;
 import au.edu.anu.dcbag.clamscan.ScanResult.Status;
 import au.edu.anu.dcbag.fido.PronomFormat;
+import au.edu.anu.dcbag.metadata.MetadataExtractor;
 import au.edu.anu.dcbag.metadata.MetadataExtractorImpl;
 
 public class FileSummary
 {
-	public static final long GIGABYTE = 1073741824L;
-	public static final long MEGABYTE = 1048576L;
-	public static final long KILOBYTE = 1024L;
-
 	private final String path;
 	private final long sizeInBytes;
 	private final String format;
 	private final String formatPuid;
 	private final String md5;
-	private final Map<String, String[]> metadata;
-	private final ScanResult scanResult;
+	private Map<String, String[]> metadata;
+	private String scanResult;
 
-	public FileSummary(DcBag bag, BagFile bagFile)
+	public FileSummary(DcBag bag, BagFile bf)
 	{
-		this.path = bagFile.getFilepath();
-		this.sizeInBytes = bagFile.getSize();
-		PronomFormat pFmt = bag.getPronomFormat(bagFile);
+		this.path = bf.getFilepath();
+		this.sizeInBytes = bf.getSize();
+		PronomFormat pFmt = bag.getPronomFormat(bf);
 		if (pFmt != null)
 		{
 			this.format = pFmt.getFormatName();
@@ -41,20 +47,31 @@ public class FileSummary
 			this.format = "";
 			this.formatPuid = "";
 		}
-		this.md5 = bag.getBagFileHash(bagFile.getFilepath());
-		this.metadata = new MetadataExtractorImpl(bagFile.newInputStream()).getMetadataMap();
+		this.md5 = bag.getBagFileHash(bf.getFilepath());
+		
+		try
+		{
+			ObjectInputStream objInStream = new ObjectInputStream(bag.getBagFileStream("metadata/" + bf.getFilepath().substring(bf.getFilepath().indexOf('/') + 1) + ".ser"));
+			this.metadata = (Map<String, String[]>) objInStream.readObject();
+		}
+		catch (Exception e)
+		{
+			this.metadata = new HashMap<String, String[]>();
+		}
 		
 		BagFile virusScanTxt = bag.getBag().getBagFile(VirusScanTxt.VIRUSSCAN_FILEPATH);
 		if (virusScanTxt != null)
 		{
 			VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.VIRUSSCAN_FILEPATH, virusScanTxt, bag.getBag()
 				.getBagItTxt().getCharacterEncoding());
-			this.scanResult = new ScanResult(vs.get(bagFile.getFilepath()));
+			ScanResult sr = new ScanResult(vs.get(bf.getFilepath()));
+			this.scanResult = sr.getStatus().toString();
+			if (sr.getStatus() == Status.FAILED)
+				this.scanResult += ", " + sr.getSignature();
 		}
 		else
 		{
-			this.scanResult = new ScanResult("");
-			this.scanResult.setStatus(Status.ERROR);
+			this.scanResult = Status.ERROR.toString();
 		}
 	}
 
@@ -92,19 +109,19 @@ public class FileSummary
 	{
 		String friendlySize;
 		MessageFormat msgFmt = new MessageFormat("{0, number, integer} {1}");
-		if (sizeInBytes >= GIGABYTE)
-			friendlySize = msgFmt.format(new Object[] { sizeInBytes / GIGABYTE, "GB" });
-		else if (sizeInBytes >= MEGABYTE)
-			friendlySize = msgFmt.format(new Object[] { sizeInBytes / MEGABYTE, "MB" });
-		else if (sizeInBytes >= KILOBYTE)
-			friendlySize = msgFmt.format(new Object[] { sizeInBytes / KILOBYTE, "KB" });
+		if (sizeInBytes >= FileUtils.ONE_GB)
+			friendlySize = msgFmt.format(new Object[] { sizeInBytes / FileUtils.ONE_GB, "GB" });
+		else if (sizeInBytes >= FileUtils.ONE_MB)
+			friendlySize = msgFmt.format(new Object[] { sizeInBytes / FileUtils.ONE_MB, "MB" });
+		else if (sizeInBytes >= FileUtils.ONE_KB)
+			friendlySize = msgFmt.format(new Object[] { sizeInBytes / FileUtils.ONE_KB, "KB" });
 		else
 			friendlySize = msgFmt.format(new Object[] { sizeInBytes, "bytes" });
 
 		return friendlySize.toString();
 	}
 
-	public ScanResult getScanResult()
+	public String getScanResult()
 	{
 		return scanResult;
 	}

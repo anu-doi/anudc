@@ -4,12 +4,19 @@ import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.ProgressListener;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import au.edu.anu.dcbag.DcBag;
+import au.edu.anu.dcbag.DcBagException;
 
 public final class SaveBagTask extends AbstractDcBagTask<File>
 {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SaveBagTask.class);
+	
 	private DcBag dcBag;
 	private File targetDir = null;
 	private Bag.Format format = null;
@@ -81,36 +88,37 @@ public final class SaveBagTask extends AbstractDcBagTask<File>
 	 * </pre>
 	 * 
 	 * @return The saved bag as File.
+	 * @throws DcBagException 
+	 * @throws IOException 
 	 * @throws Exception
 	 */
 	@Override
-	public File call() throws Exception
+	public File call() throws DcBagException, IOException
 	{
-		// Begin stopwatch.
 		stopWatch.start();
 
+		File savedFile;
 		try
 		{
 			updateProgress("Preparing bag for saving", null, null, null);
 			if (dcBag.getExternalIdentifier() == null || dcBag.getExternalIdentifier().equals(""))
-				throw new Exception("Bag doesn't have an external identifier specified.");
+				throw new DcBagException("Bag doesn't have an external identifier specified.");
 			if (this.plSet != null)
 				for (ProgressListener l : plSet)
 					dcBag.addProgressListener(l);
 
-			File savedFile;
 			if (this.targetDir == null)
 				savedFile = dcBag.save();
 			else
 				savedFile = dcBag.saveAs(targetDir, extId, format);
-			return savedFile;
 		}
 		finally
 		{
 			updateProgress("done", null, null, null);
-
-			// End stopwatch
 			stopWatch.end();
+			LOGGER.info("Time - Save Bag Task: {}", stopWatch.getFriendlyElapsed());
 		}
+
+		return savedFile;
 	}
 }

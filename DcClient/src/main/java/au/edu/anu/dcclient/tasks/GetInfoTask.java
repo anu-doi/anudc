@@ -10,6 +10,9 @@ import java.util.concurrent.Callable;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import au.edu.anu.dcclient.Global;
 
 import com.sun.jersey.api.client.Client;
@@ -19,6 +22,8 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 public final class GetInfoTask extends AbstractDcBagTask<ClientResponse>
 {
+	private static final Logger LOGGER = LoggerFactory.getLogger(GetInfoTask.class);
+
 	private URI pidBagUri;
 
 	/**
@@ -62,22 +67,22 @@ public final class GetInfoTask extends AbstractDcBagTask<ClientResponse>
 	@Override
 	public ClientResponse call() throws Exception
 	{
-		// Begin stopwatch.
 		stopWatch.start();
 
-		Client client = Client.create();
-		PasswordAuthentication auth = Authenticator.requestPasswordAuthentication(pidBagUri.getHost(), null, pidBagUri.getPort(), pidBagUri.getScheme(),
-				"Please provide password for: " + Global.getBagUploadUrl(), "scheme");
-		if (auth != null)
-			client.addFilter(new HTTPBasicAuthFilter(auth.getUserName(), new String(auth.getPassword())));
-		updateProgress("Getting Pid Info", pidBagUri.toString(), 1L, 1L);
-		WebResource webResource = client.resource(UriBuilder.fromUri(pidBagUri).path("bagit.txt").build());
-		ClientResponse response = webResource.header("User-Agent", "BagIt Library Parallel Fetcher").get(ClientResponse.class);
-		updateProgress("Pid Info received", pidBagUri.toString(), 1L, 1L);
-		updateProgress("done", null, null, null);
-		
-		// End stopwatch
-		stopWatch.end();
+		ClientResponse response;
+		try
+		{
+			updateProgress("Getting Pid Info", pidBagUri.toString(), 1L, 1L);
+			WebResource webResource = client.resource(UriBuilder.fromUri(pidBagUri).path("bagit.txt").build());
+			response = webResource.get(ClientResponse.class);
+			updateProgress("Pid Info received", pidBagUri.toString(), 1L, 1L);
+		}
+		finally
+		{
+			updateProgress("done", null, null, null);
+			stopWatch.end();
+			LOGGER.info("Time - Get Bag Info Task: {}", stopWatch.getFriendlyElapsed());
+		}
 
 		return response;
 	}

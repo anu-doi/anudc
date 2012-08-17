@@ -37,17 +37,10 @@ public class CreateCollectionTask extends AbstractDcBagTask<String>
 	@Override
 	public String call() throws Exception
 	{
-		// Begin stopwatch.
 		stopWatch.start();
-
 		String createdPid;
 		try
 		{
-			Client client = Client.create();
-			PasswordAuthentication auth = Authenticator.requestPasswordAuthentication(createUri.getHost(), null, createUri.getPort(), createUri.getScheme(),
-					"Please provide password for: " + Global.getBagUploadUrl(), "scheme");
-			if (auth != null)
-				client.addFilter(new HTTPBasicAuthFilter(auth.getUserName(), new String(auth.getPassword())));
 			WebResource webResource = client.resource(UriBuilder.fromUri(createUri).queryParam("layout", "def:display").queryParam("tmplt", "tmplt:1").build());
 			ClientResponse response = webResource.accept(MediaType.TEXT_PLAIN_TYPE).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
 					.header("User-Agent", "BagIt Library Parallel Fetcher").post(ClientResponse.class, collInfo);
@@ -58,8 +51,8 @@ public class CreateCollectionTask extends AbstractDcBagTask<String>
 		}
 		finally
 		{
-			// End stopwatch
 			stopWatch.end();
+			LOGGER.info("Time - Create Collection Task: {}", stopWatch.getFriendlyElapsed());
 		}
 
 		return createdPid;

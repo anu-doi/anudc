@@ -245,7 +245,7 @@
 		</dependency>
 		<dependency>
 			<groupId>au.edu.anu</groupId>
-			<artifactId>DcBag</artifactId>
+			<artifactId>DcShared</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>

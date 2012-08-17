@@ -5,10 +5,15 @@ import gov.loc.repository.bagit.verify.Verifier;
 
 import java.util.concurrent.Callable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import au.edu.anu.dcbag.DcBag;
 
 public final class VerifyBagTask extends AbstractDcBagTask<SimpleResult>
 {
+	private static final Logger LOGGER = LoggerFactory.getLogger(VerifyBagTask.class);
+	
 	private DcBag dcBag;
 
 	/**
@@ -52,7 +57,6 @@ public final class VerifyBagTask extends AbstractDcBagTask<SimpleResult>
 	@Override
 	public SimpleResult call() throws Exception
 	{
-		// Begin stopwatch.
 		stopWatch.start();
 
 		SimpleResult result;
@@ -60,12 +64,12 @@ public final class VerifyBagTask extends AbstractDcBagTask<SimpleResult>
 		{
 			updateProgress("Verifying integrity of bag for pid", dcBag.getExternalIdentifier(), 1L, 1L);
 			result = dcBag.verifyValid();
-			updateProgress("done", null, null, null);
 		}
 		finally
 		{
-			// End stopwatch
+			updateProgress("done", null, null, null);
 			stopWatch.end();
+			LOGGER.info("Time - Verify Bag Task: {}", stopWatch.getFriendlyElapsed());
 		}
 
 		return result;

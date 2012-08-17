@@ -77,7 +77,6 @@ public final class DownloadBagTask extends AbstractDcBagTask<File>
 	@Override
 	public File call() throws BagTransferException, IOException, DcBagException
 	{
-		// Begin stopwatch.
 		stopWatch.start();
 
 		updateProgress("Initialising bag download", pidBagUri.toString(), null, null);
@@ -128,8 +127,8 @@ public final class DownloadBagTask extends AbstractDcBagTask<File>
 			if (result != null)
 				LOGGER.debug("Result from Bag Fetch: {}.", result.toString());
 
-			// End stopwatch
 			stopWatch.end();
+			LOGGER.info("Time - Download Bag Task: {}", stopWatch.getFriendlyElapsed());
 		}
 
 		return localBagFile;

@@ -26,6 +26,7 @@ import au.edu.anu.dcbag.DcBag;
 import au.edu.anu.dcclient.Global;
 import au.edu.anu.dcclient.MainWindow;
 import au.edu.anu.dcclient.ProgressDialog;
+import au.edu.anu.dcclient.ThreadPoolManager;
 import au.edu.anu.dcclient.explorer.FileExplorer;
 import au.edu.anu.dcclient.tasks.SaveBagTask;
 
@@ -80,7 +81,7 @@ public class SavePidBagAction extends AbstractAction implements ActionListener
 	{
 		File bagFile = bagExplorer.getBagDir();
 		DcBag bag = new DcBag(bagFile, LoadOption.BY_FILES);
-		ExecutorService execSvc = Executors.newSingleThreadExecutor();
+		ExecutorService execSvc = ThreadPoolManager.getExecSvc();
 
 		SaveBagTask saveTask = new SaveBagTask(bag, Global.getLocalBagStoreAsFile(), txtPid.getText(), Format.FILESYSTEM);
 		saveTask.addProgressListener(new ProgressDialog());

@@ -1,5 +1,6 @@
 package au.edu.anu.dcbag;
 
+import au.edu.anu.dcbag.fido.PronomFormat;
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.utilities.namevalue.impl.AbstractNameValueBagFile;
 
@@ -22,5 +23,10 @@ public class PronomFormatsTxt extends AbstractNameValueBagFile
 	public String getType()
 	{
 		return TYPE;
+	}
+	
+	public PronomFormat getPronomFormat(BagFile bagFile)
+	{
+		return new PronomFormat(get(bagFile.getFilepath()));
 	}
 }
