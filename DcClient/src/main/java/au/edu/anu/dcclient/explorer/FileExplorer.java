@@ -13,6 +13,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.filechooser.FileSystemView;
@@ -20,6 +21,8 @@ import javax.swing.tree.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.anu.dcclient.ThreadPoolManager;
 
 @SuppressWarnings("serial")
 public class FileExplorer extends JPanel
@@ -138,12 +141,12 @@ public class FileExplorer extends JPanel
 						DefaultTreeModel treeModel = (DefaultTreeModel) tree.getModel();
 						for (File file : files)
 						{
-							ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
 							// Copy.
-							threadExecutor.execute(new CopyDialog(file, new File(((MutableTreeNode) tree.getLastSelectedPathComponent()).toString() + "\\"
-									+ file.getName()), false));
+							final Future copyTask = ThreadPoolManager.getExecSvc().submit(
+									new CopyDialog(file, new File(((MutableTreeNode) tree.getLastSelectedPathComponent()).toString() + File.separator + file.getName()),
+											false));
 							DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new File(((MutableTreeNode) tree.getLastSelectedPathComponent())
-									.toString() + "\\" + file.getName()));
+									.toString() + File.separator + file.getName()));
 							if (file.isDirectory())
 							{
 								if (file.listFiles() != null)
@@ -151,14 +154,29 @@ public class FileExplorer extends JPanel
 							}
 							treeModel.insertNodeInto(newNode, (MutableTreeNode) tree.getLastSelectedPathComponent(), 0);
 							LOGGER.debug("Added {} to tree", newNode.toString());
-							threadExecutor.submit(new Runnable() {
+							ThreadPoolManager.getExecSvc().submit(new Runnable()
+							{
 								@Override
 								public void run()
 								{
+									try
+									{
+										copyTask.get();
+									}
+									catch (InterruptedException e)
+									{
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									catch (ExecutionException e)
+									{
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+									LOGGER.debug("Refreshing tree.");
 									refresh();
 								}
 							});
-							threadExecutor.shutdown();
 						}
 					}
 				}

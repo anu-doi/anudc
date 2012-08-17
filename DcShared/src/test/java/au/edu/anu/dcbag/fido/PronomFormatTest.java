@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import au.edu.anu.dcbag.fido.PronomFormat.MatchStatus;
 
-public class FidoFileFormatTest
+public class PronomFormatTest
 {
 	private PronomFormat fmt;
 	

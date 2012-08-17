@@ -7,6 +7,7 @@ import gov.loc.repository.bagit.utilities.SimpleResult;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,9 +23,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.DcBag;
+import au.edu.anu.dcbag.DcBagException;
 import au.edu.anu.dcclient.Global;
 import au.edu.anu.dcclient.MainWindow;
 import au.edu.anu.dcclient.ProgressDialog;
+import au.edu.anu.dcclient.ThreadPoolManager;
 import au.edu.anu.dcclient.explorer.FileExplorer;
 import au.edu.anu.dcclient.tasks.DownloadBagTask;
 import au.edu.anu.dcclient.tasks.GetInfoTask;
@@ -52,6 +55,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 	 * Version	Date		Developer			Description
 	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
 	 * </pre>
+	 * 
 	 * @param txtPid
 	 *            The textbox containing the pid to process.
 	 * @param bagExplorer
@@ -82,6 +86,8 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
+		final ProgressDialog progDialog = new ProgressDialog();
+
 		localBagFile = DcBag.getBagFile(Global.getLocalBagStoreAsFile(), txtPid.getText());
 		final ExecutorService execSvc = Executors.newSingleThreadExecutor();
 
@@ -95,37 +101,14 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 				// Delete local bag, redownload.
 				FileUtils.deleteQuietly(localBagFile);
 				localBagFile.mkdirs();
-				DownloadBagTask dlBagTask = new DownloadBagTask(Global.getBagUploadUri(), txtPid.getText().toLowerCase().trim(),
-						Global.getLocalBagStoreAsFile());
-				dlBagTask.addProgressListener(new ProgressDialog());
-				final Future<File> taskResult = execSvc.submit(dlBagTask);
-				execSvc.submit(new Runnable()
-				{
-					@Override
-					public void run()
-					{
-						try
-						{
-							File downloadedBagFile = taskResult.get();
-							bagExplorer.changeDir(new File(downloadedBagFile, "data/"));
-						}
-						catch (InterruptedException e)
-						{
-							JOptionPane.showMessageDialog(MainWindow.getInstance(), "The bag download was cancelled", "Cancelled", JOptionPane.WARNING_MESSAGE);
-						}
-						catch (ExecutionException e)
-						{
-							JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
-						}
-					}
-				});
+				downloadBag(progDialog);
 			}
 			else
 			{
 				// Check if the local bag is valid.
 				final DcBag localBag = new DcBag(localBagFile, LoadOption.BY_FILES);
 				VerifyBagTask verifyTask = new VerifyBagTask(localBag);
-				verifyTask.addProgressListener(new ProgressDialog());
+				verifyTask.addProgressListener(progDialog);
 				final Future<SimpleResult> verifyTaskResult = execSvc.submit(verifyTask);
 				execSvc.submit(new Runnable()
 				{
@@ -141,41 +124,15 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 							else
 							{
 								// Local bag isn't valid. Redownload.
-								if (JOptionPane.showConfirmDialog(MainWindow.getInstance(), "Local bag seems to be corrupted. The bag needs to be redownloaded.",
-										"Confirm Dialog", JOptionPane.OK_CANCEL_OPTION, JOptionPane.ERROR_MESSAGE) == JOptionPane.OK_OPTION)
+								if (JOptionPane.showConfirmDialog(MainWindow.getInstance(),
+										"Local bag seems to be corrupted. The bag needs to be redownloaded.", "Confirm Dialog", JOptionPane.OK_CANCEL_OPTION,
+										JOptionPane.ERROR_MESSAGE) == JOptionPane.OK_OPTION)
 								{
-									// Delete local drive, redownload.
+									// Delete bag on local drive, redownload.
 									FileUtils.deleteQuietly(localBagFile);
 									localBagFile.mkdirs();
-									DownloadBagTask dlBagTask = new DownloadBagTask(Global.getBagUploadUri(), txtPid.getText().toLowerCase().trim(), Global
-											.getLocalBagStoreAsFile());
-									dlBagTask.addProgressListener(new ProgressDialog());
-									final Future<File> dlTaskResult = execSvc.submit(dlBagTask);
-									execSvc.submit(new Runnable()
-									{
-										@Override
-										public void run()
-										{
-											try
-											{
-												File downloadedBagFile = dlTaskResult.get();
-												bagExplorer.changeDir(new File(downloadedBagFile, "data/"));
-											}
-											catch (InterruptedException e)
-											{
-												JOptionPane.showMessageDialog(MainWindow.getInstance(), "The bag download was cancelled", "Cancelled",
-														JOptionPane.WARNING_MESSAGE);
-												LOGGER.error("Bag download cancelled.", e);
-											}
-											catch (ExecutionException e)
-											{
-												JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
-												LOGGER.error("Bag download execution failed.", e);
-											}
-										}
-									});
+									downloadBag(progDialog);
 								}
-
 							}
 						}
 						catch (InterruptedException e)
@@ -194,7 +151,7 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 		{
 			// Local bag doesn't exist, check if there's one to download.
 			GetInfoTask getInfoTask = new GetInfoTask(Global.getBagUploadUri(), txtPid.getText().toLowerCase().trim());
-			getInfoTask.addProgressListener(new ProgressDialog());
+			getInfoTask.addProgressListener(progDialog);
 			final Future<ClientResponse> getInfoTaskResult = execSvc.submit(getInfoTask);
 			execSvc.submit(new Runnable()
 			{
@@ -219,35 +176,12 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 								if (dataDir.mkdir())
 									bagExplorer.changeDir(dataDir);
 								else
-									throw new Exception("Unable to create directory in the local bags directory.");
+									throw new IOException("Unable to create directory in the local bags directory.");
 							}
 						}
 						else if (resp.getStatus() == HttpStatus.SC_OK)
 						{
-							// Download bag.
-							DownloadBagTask dlBagTask = new DownloadBagTask(Global.getBagUploadUri(), txtPid.getText().toLowerCase().trim(), Global.getLocalBagStoreAsFile());
-							dlBagTask.addProgressListener(new ProgressDialog());
-							final Future<File> taskResult = execSvc.submit(dlBagTask);
-							execSvc.submit(new Runnable()
-							{
-								@Override
-								public void run()
-								{
-									try
-									{
-										File downloadedBagFile = taskResult.get();
-										bagExplorer.changeDir(new File(downloadedBagFile, "data/"));
-									}
-									catch (InterruptedException e)
-									{
-										JOptionPane.showMessageDialog(MainWindow.getInstance(), "The bag download was cancelled", "Cancelled", JOptionPane.WARNING_MESSAGE);
-									}
-									catch (ExecutionException e)
-									{
-										JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
-									}
-								}
-							});
+							downloadBag(progDialog);
 						}
 					}
 					catch (InterruptedException e)
@@ -258,13 +192,51 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 					{
 						JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
 					}
-					catch (Exception e)
+					catch (IOException e)
 					{
-						JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to download bag", "Error", JOptionPane.ERROR_MESSAGE);
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					catch (DcBagException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				}
 
 			});
 		}
+	}
+
+	private void downloadBag(ProgressDialog progDialog)
+	{
+		// Download bag.
+		ExecutorService execSvc = ThreadPoolManager.getExecSvc();
+		DownloadBagTask dlBagTask = new DownloadBagTask(Global.getBagUploadUri(), txtPid.getText().toLowerCase().trim(), Global.getLocalBagStoreAsFile());
+		dlBagTask.addProgressListener(progDialog);
+		final Future<File> taskResult = execSvc.submit(dlBagTask);
+		execSvc.submit(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				try
+				{
+					File downloadedBagFile = taskResult.get();
+					bagExplorer.changeDir(new File(downloadedBagFile, "data/"));
+					JOptionPane.showMessageDialog(MainWindow.getInstance(), "Bag downloaded successfully.", "Bag Download", JOptionPane.INFORMATION_MESSAGE);
+				}
+				catch (InterruptedException e)
+				{
+					LOGGER.warn(e.getMessage(), e);
+					JOptionPane.showMessageDialog(MainWindow.getInstance(), "The bag download was cancelled", "Cancelled", JOptionPane.WARNING_MESSAGE);
+				}
+				catch (ExecutionException e)
+				{
+					LOGGER.error(e.getMessage(), e);
+					JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to download bag.\r\n" + e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
 	}
 }

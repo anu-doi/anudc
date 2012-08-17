@@ -1,10 +1,13 @@
 package au.edu.anu.datacommons.upload;
 
 import gov.loc.repository.bagit.Bag.Format;
+import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.transfer.BagTransferException;
 import gov.loc.repository.bagit.transformer.Completer;
+import gov.loc.repository.bagit.transformer.impl.ChainingCompleter;
+import gov.loc.repository.bagit.transformer.impl.DefaultCompleter;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -79,7 +82,7 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.AccessLogRecord;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.DcBag;
-import au.edu.anu.dcbag.DcCompleter;
+import au.edu.anu.dcbag.DcStorageCompleter;
 import au.edu.anu.dcbag.FileSummary;
 import au.edu.anu.dcbag.fido.PronomFormat;
 
@@ -108,7 +111,7 @@ public class UploadService
 	private static final String UPLOAD_JSP = "/upload.jsp";
 	private static final String BAGFILES_JSP = "/bagfiles.jsp";
 	private static final String FILE_DS_PREFIX = "FILE";
-	private static final Completer DC_COMPLETER = new DcCompleter(DcBag.BAG_FACTORY);
+	private static final Completer DC_COMPLETER = new ChainingCompleter(new DefaultCompleter(new BagFactory()), new DcStorageCompleter());
 
 	/**
 	 * doGetAsHtml
@@ -369,6 +372,11 @@ public class UploadService
 		Map<String, Object> model = new HashMap<String, Object>();
 		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
 		DcBag dcBag;
+		
+		// Check if user's got read access to fedora object.
+		FedoraObject fo = getFedoraObjectReadAccess(pid);
+		model.put("fo", fo);
+		
 		if (bagFile != null)
 			dcBag = new DcBag(GlobalProps.getBagsDirAsFile(), pid, LoadOption.BY_FILES);
 		else
@@ -449,19 +457,20 @@ public class UploadService
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostBag(@Context HttpServletRequest request, @Context UriInfo uriInfo, @PathParam("pid") String pid, InputStream is)
 	{
+		// Check for write access to the fedora object.
+		getFedoraObjectWriteAccess(pid);
+
 		Response resp = null;
 		DcBag uploadedDcBag = null;
 		File curPidBagFile = null;
 		AccessLogRecord accessRec = null;
 		File uploadedFile;
-
-		// Check for write access to the fedora object.
-		getFedoraObjectWriteAccess(pid);
-
 		try
 		{
 			uploadedFile = File.createTempFile("Rep", null, GlobalProps.getUploadDirAsFile());
+			LOGGER.info("Saving uploaded file as {}...", uploadedFile.getAbsolutePath());
 			saveInputStreamAsFile(is, uploadedFile);
+			LOGGER.info("Uploaded file saved as {}", uploadedFile.getAbsolutePath());
 			uploadedDcBag = new DcBag(uploadedFile, LoadOption.BY_FILES);
 			if (!uploadedDcBag.verifyValid().isSuccess())
 				throw new BagTransferException("Bag received is incomplete or invalid.");
@@ -473,6 +482,7 @@ public class UploadService
 			curPidBagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
 			if (curPidBagFile != null)
 			{
+				LOGGER.info("A bag exists for {}. Replacing it with the file uploaded...", pid);
 				DcBag curDcBag = new DcBag(curPidBagFile, LoadOption.BY_FILES);
 				uploadedDcBag.close();
 				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.UPDATE);
@@ -480,13 +490,17 @@ public class UploadService
 				curDcBag.makeComplete(DC_COMPLETER);
 				curDcBag.save();
 				curDcBag.close();
+				LOGGER.info("Bag updated for {}", pid);
 			}
 			else
 			{
+				LOGGER.info("No bag exists for {}. Unpacking bag...", pid);
 				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.CREATE);
-				uploadedDcBag.makeComplete(DC_COMPLETER);
 				uploadedDcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, Format.FILESYSTEM);
+				uploadedDcBag.makeComplete(DC_COMPLETER);
+				uploadedDcBag.save();
 				uploadedDcBag.close();
+				LOGGER.info("Bag updated for {}", pid);
 			}
 
 			// Add access log.
@@ -500,14 +514,14 @@ public class UploadService
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to upload bag.", e);
-			resp = Response.serverError().build();
+			resp = Response.serverError().entity(e.toString()).type(MediaType.TEXT_PLAIN).build();
 		}
 
 		return resp;
 	}
 
 	@GET
-	@Produces(MediaType.APPLICATION_XML)
+	@Produces(MediaType.TEXT_PLAIN)
 	@Path("userinfo")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doGetUserInfo()

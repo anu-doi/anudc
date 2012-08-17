@@ -1,9 +1,10 @@
-<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 
-<anu:header id="1998" title="TITLE" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur" respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
+<anu:header id="1998" title="${it.fo.object_id}" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur"
+	respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
 	<link href="http://styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
 </anu:header>
@@ -44,9 +45,7 @@
 						</c:choose>
 						<td><c:out value="${iFile.value.friendlySize}" /></td>
 						<td><c:out value="${iFile.value.md5}" /></td>
-						<td><c:out value="${iFile.value.scanResult.status}" />
-							<c:if test="${not empty iFile.value.scanResult.signature}">,<c:out value="${iFile.value.scanResult.signature}" />
-							</c:if></td>
+						<td><c:out value="${iFile.value.scanResult}" /></td>
 						<td onclick="jQuery('#${iFile.value.md5}').slideToggle()"><a href="#" onclick="return false">Expand</a></td>
 					</tr>
 					<tr id="<c:out value='${iFile.value.md5}' />" style="display: none;">

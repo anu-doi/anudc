@@ -78,7 +78,6 @@ public class UploadBagTask extends AbstractDcBagTask<ClientResponse>
 	@Override
 	public ClientResponse call() throws Exception
 	{
-		// Begin stopwatch.
 		stopWatch.start();
 
 		File zipFile = null;
@@ -104,8 +103,8 @@ public class UploadBagTask extends AbstractDcBagTask<ClientResponse>
 			updateProgress("done", null, null, null);
 			if (zipFile != null)
 				zipFile.delete();
-			// End stopwatch
 			stopWatch.end();
+			LOGGER.info("Time - Upload Bag Task: {}", stopWatch.getFriendlyElapsed());
 		}
 
 	}
@@ -132,19 +131,13 @@ public class UploadBagTask extends AbstractDcBagTask<ClientResponse>
 	private ClientResponse uploadFile(File serializedBagFile) throws UniformInterfaceException, ClientHandlerException, FileNotFoundException
 	{
 		URI pidUri = UriBuilder.fromUri(bagBaseUri).path(dcBag.getExternalIdentifier()).build();
-		Client client = Client.create(new DefaultClientConfig());
-		PasswordAuthentication auth = Authenticator.requestPasswordAuthentication(pidUri.getHost(), null, pidUri.getPort(), pidUri.getScheme(),
-				"Please provide password for: " + Global.getBagUploadUrl(), "scheme");
-		if (auth != null)
-			client.addFilter(new HTTPBasicAuthFilter(auth.getUserName(), new String(auth.getPassword())));
-		client.setChunkedEncodingSize(1024 * 1024);
 		WebResource webResource = client.resource(pidUri);
 		// TODO Replace content disposition using an object.
 		// ContentDisposition contDisp2 = new ContentDispositionBuilder("attachment").fileName(serializedBagFile.getName()).size(serializedBagFile.length()).build();
 		String contDisp = MessageFormat.format("attachment; filename=\"{0}\"", serializedBagFile.getName());
 
 		ClientResponse response = webResource.type(MediaType.APPLICATION_OCTET_STREAM_TYPE).header("Content-Disposition", contDisp)
-				.header("User-Agent", "BagIt Library Parallel Fetcher").post(ClientResponse.class, new FileInputStream(serializedBagFile));
+				.post(ClientResponse.class, new FileInputStream(serializedBagFile));
 		LOGGER.info("Response status: {}", response.getStatus());
 		return response;
 	}

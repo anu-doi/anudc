@@ -7,6 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import com.sun.jersey.api.client.Client;
+
+import au.edu.anu.dcclient.CustomClient;
 import au.edu.anu.dcclient.stopwatch.StopWatch;
 import au.edu.anu.dcclient.stopwatch.Timeable;
 
@@ -14,6 +17,7 @@ public abstract class AbstractDcBagTask<T> implements Callable<T>, ProgressListe
 {
 	protected Set<ProgressListener> plSet = null;
 	protected StopWatch stopWatch = new StopWatch();
+	protected Client client = CustomClient.getInstance();
 
 	/**
 	 * addProgressListener

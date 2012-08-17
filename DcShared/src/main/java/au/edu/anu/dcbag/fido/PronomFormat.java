@@ -1,29 +1,52 @@
 package au.edu.anu.dcbag.fido;
 
+import gov.loc.repository.bagit.Bag;
+import gov.loc.repository.bagit.BagFile;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.anu.dcbag.PronomFormatsTxt;
 
 public class PronomFormat
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
-
+	
 	public enum MatchStatus
 	{
 		OK, KO;
 	}
 
-	private final String sourceStr;
-	private final MatchStatus matchStatus;
-	private final long timeToParse;
-	private final String puid;
-	private final String formatName;
-	private final String sigName;
-	private final long fileSize;
-	private final String fileName;
-	private final String mimeType;
-	private final String matchType;
+	private String sourceStr;
+	private MatchStatus matchStatus;
+	private long timeToParse;
+	private String puid;
+	private String formatName;
+	private String sigName;
+	private long fileSize;
+	private String fileName;
+	private String mimeType;
+	private String matchType;
 
 	public PronomFormat(String fidoStr)
+	{
+		parseFidoStr(fidoStr);
+	}
+	
+	public PronomFormat(Bag bag, BagFile bf)
+	{
+		BagFile pronomFormatsTxt = bag.getBagFile(PronomFormatsTxt.PRONOMFORMATS_FILEPATH);
+		if (pronomFormatsTxt != null)
+		{
+			PronomFormatsTxt tagFile = new PronomFormatsTxt(pronomFormatsTxt.getFilepath(), pronomFormatsTxt, bag.getBagItTxt().getCharacterEncoding());
+			String fidoStr = tagFile.get(bf.getFilepath());
+			parseFidoStr(fidoStr);
+		}
+		else
+			parseFidoStr("");
+	}
+	
+	private void parseFidoStr(String fidoStr)
 	{
 		if (fidoStr == null || fidoStr.equals(""))
 		{
