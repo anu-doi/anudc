@@ -10,19 +10,27 @@ label.error {
 .field {
 	padding-bottom: 10px;
 }
-input[type='text'] {
+.field input[type='text'] {
 	width:250px;
 }
-textarea {
+.field textarea {
 	width:400px;
 	height:100px;
 }
-table select {
+.field table select {
 	width:150px;
 }
-table input[type='text'] {
+.field table input[type='text'] {
 	width:150px;
 }
-table textarea {
+.field table textarea {
 	width:200px;
+}
+.user-label {
+	float: left;
+	width: 100px;
+	font-weight: bold;
+}
+#updateGroups {
+	display: none;
 }

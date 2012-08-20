@@ -2,8 +2,7 @@ package au.edu.anu.datacommons.ldap;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Vector;
-import java.util.logging.Logger;
+import java.util.List;
 
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
@@ -14,7 +13,13 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sun.xml.bind.v2.runtime.unmarshaller.Loader;
+
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.services.UserResource;
 
 /**
  * LdapRequest
@@ -30,14 +35,14 @@ import au.edu.anu.datacommons.properties.GlobalProps;
  */
 public class LdapRequest
 {
+	static final Logger LOGGER = LoggerFactory.getLogger(UserResource.class);
+	
 	private static final String LdapUri = GlobalProps.getProperty(GlobalProps.PROP_LDAP_URI);
 	private static final String LdapBaseDn = GlobalProps.getProperty(GlobalProps.PROP_LDAP_BASEDN);
 	private static final String LdapContextFactoryName = "com.sun.jndi.ldap.LdapCtxFactory";
 	private static final int DEFAULT_MAX_SEARCH_RESULTS = 10;
 	private static final Hashtable<String, String> authCtxEnv = new Hashtable<String, String>();
 	private static final Hashtable<String, String> searchCtxEnv = new Hashtable<String, String>();
-
-	private final Logger log = Logger.getLogger(this.getClass().getName());
 
 	private StringBuilder ldapQuery;
 	private SearchControls ldapSearchControl;
@@ -128,12 +133,12 @@ public class LdapRequest
 	 * @throws NamingException
 	 *             When the LDAP query is either blank or invalid.
 	 */
-	public long search() throws NamingException
+	public List<LdapPerson> search() throws NamingException
 	{
 		DirContext dirContext;
 		NamingEnumeration<SearchResult> searchResults = null;
-		long numResults = 0L;
-
+		//long numResults = 0L;
+		List<LdapPerson> people = new ArrayList<LdapPerson>();
 		// Perform search.
 		dirContext = new InitialDirContext(searchCtxEnv);
 		searchResults = dirContext.search(LdapBaseDn, ldapQuery.toString(), ldapSearchControl);
@@ -141,14 +146,22 @@ public class LdapRequest
 		// Iterate through the results returned, stored each one in results.
 		while (searchResults.hasMore())
 		{
-			results.add(new LdapPerson(searchResults.next().getAttributes()));
-			numResults++;
+			
+			LdapPerson ldapPerson = new LdapPerson(searchResults.next().getAttributes());
+			if (ldapPerson != null) {
+				people.add(ldapPerson);
+			}
+			else {
+				LOGGER.info("No person created?");
+			}
+		//	numResults++;
 		}
 
 		dirContext.close();
 
 		// Return number of results returned.
-		return numResults;
+		//return numResults;
+		return people;
 	}
 
 	/**
@@ -184,7 +197,7 @@ public class LdapRequest
 		try
 		{
 			dirContext = new InitialDirContext(searchCtxEnv);
-			log.info("Running LDAP query: " + ldapQuery.toString());
+			LOGGER.info("Running LDAP query: {}", ldapQuery.toString());
 			searchResults = dirContext.search(LdapBaseDn, ldapQuery.toString(), ldapSearchControl);
 		}
 		catch (NamingException e)

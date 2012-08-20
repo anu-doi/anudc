@@ -177,4 +177,9 @@ public class LdapPerson
 	{
 		return getAttribute(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_EMAIL));
 	}
+	
+	public String getUniId()
+	{
+		return getAttribute(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_UNIID));
+	}
 }
