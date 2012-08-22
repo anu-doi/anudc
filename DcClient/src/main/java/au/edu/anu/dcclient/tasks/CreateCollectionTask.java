@@ -39,7 +39,7 @@ public class CreateCollectionTask extends AbstractDcBagTask<String>
 	{
 		String createdPid = null;
 		
-		if (collInfo.getPid() != null)
+		if (collInfo.getPid() == null)
 		{
 			// The parameter file doesn't contain a pid, create an object and store the pid of newly created object in parameter file.
 			stopWatch.start();
