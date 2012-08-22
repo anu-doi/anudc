@@ -206,7 +206,7 @@
 							<date type="dateFrom" dateFormat="W3CDTF"><xsl:value-of select="dateFrom" /></date>
 						</xsl:if>
 						<xsl:if test="dateTo">
-							<date type="dateFrom" dateFormat="W3CDTF"><xsl:value-of select="dateTo" /></date>
+							<date type="dateTo" dateFormat="W3CDTF"><xsl:value-of select="dateTo" /></date>
 						</xsl:if>
 					</temporal>
 				</coverage>
