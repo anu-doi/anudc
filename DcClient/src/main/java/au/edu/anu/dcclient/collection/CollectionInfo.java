@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,10 +26,25 @@ public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap
 {
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(CollectionInfo.class);
+	private static final String NEWLINE = System.getProperty("line.separator");
 
 	private File sourceFile;
 	private File filesDir = null;
 	private String pid = null;
+
+	public CollectionInfo(File sourceFile) throws IOException
+	{
+		super();
+		if (!sourceFile.isFile())
+			throw new IOException(MessageFormat.format("{0} is not a file.", sourceFile.getAbsolutePath()));
+		if (!sourceFile.canRead())
+			throw new IOException(MessageFormat.format("Unable to read {0}. Ensure read permission.", sourceFile.getAbsolutePath()));
+		if (!sourceFile.canWrite())
+			throw new IOException(MessageFormat.format("Unable to write {0}. Ensure write permission.", sourceFile.getAbsolutePath()));
+		
+		this.sourceFile = sourceFile;
+		readMap(this.sourceFile);
+	}
 
 	public String getPid()
 	{
@@ -39,7 +55,7 @@ public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap
 	{
 		if (this.containsKey("pid"))
 		{
-			LOGGER.warn("Pid already exists.");
+			LOGGER.warn("Pid already exists. Leaving Pid unchanged.");
 			return;
 		}
 		
@@ -51,21 +67,13 @@ public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap
 		try
 		{
 			writer = new FileWriter(this.sourceFile, true);
-			writer.write("\r\npid=" + pid);
+			writer.write(MessageFormat.format("{0}pid={1}{0}", NEWLINE, pid));
 		}
 		finally
 		{
-			if (writer != null)
-				writer.close();
+			IOUtils.closeQuietly(writer);
 		}
 
-	}
-
-	public CollectionInfo(File sourceFile) throws IOException
-	{
-		super();
-		this.sourceFile = sourceFile;
-		readMap(this.sourceFile);
 	}
 
 	public File getFilesDir()
@@ -111,6 +119,8 @@ public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap
 				if (key.equalsIgnoreCase("files.dir"))
 				{
 					this.filesDir = new File(value);
+					if (!this.filesDir.exists() || !this.filesDir.isDirectory())
+						throw new IOException(MessageFormat.format("{0} doesn't exist or isn't a directory.", this.filesDir.getAbsolutePath()));
 					continue;
 				}
 

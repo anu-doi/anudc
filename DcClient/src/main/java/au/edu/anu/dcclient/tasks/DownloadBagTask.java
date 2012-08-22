@@ -3,6 +3,7 @@ package au.edu.anu.dcclient.tasks;
 import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
+import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.ProgressListener;
 import gov.loc.repository.bagit.transfer.BagFetcher;
 import gov.loc.repository.bagit.transfer.BagTransferException;
@@ -82,7 +83,7 @@ public final class DownloadBagTask extends AbstractDcBagTask<File>
 		updateProgress("Initialising bag download", pidBagUri.toString(), null, null);
 		BagFetcher fetcher = createFetcher();
 
-		LOGGER.info("Beginning download of bag...");
+		LOGGER.info("Downloading bag...");
 		SimpleResult result = null;
 		File tempBagFile = new File(System.getProperty("java.io.tmpdir"), localBagFile.getName());
 		DcBag dcBag = null;
@@ -106,7 +107,9 @@ public final class DownloadBagTask extends AbstractDcBagTask<File>
 					dcBag.saveAs(Global.getLocalBagStoreAsFile(), dcBag.getExternalIdentifier(), Format.FILESYSTEM);
 				}
 				// Following code is added due to a possible bug in BagIt lib - the fetch.txt should be deleted after all payload files are downloaded.
-				dcBag.removeBagFile(dcBag.getBag().getFetchTxt().getFilepath());
+				BagFile fetchTxt = dcBag.getBag().getFetchTxt();
+				if (fetchTxt != null)
+					dcBag.removeBagFile(dcBag.getBag().getFetchTxt().getFilepath());
 				dcBag.save();
 				dcBag.close();
 			}

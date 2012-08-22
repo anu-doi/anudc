@@ -121,7 +121,9 @@ public class DcBag implements ProgressListenable
 		{
 			FileSystemWriter fsWriter = new FileSystemWriter(BAG_FACTORY);
 			copyProgressListeners(fsWriter);
-			this.bag = fsWriter.write(this.bag, new File(bagsDir, bagFilename));
+			Bag tempBag = fsWriter.write(this.bag, new File(bagsDir, bagFilename));
+			this.bag.close();
+			this.bag = tempBag;
 		}
 		else if (format == Format.ZIP)
 		{
@@ -138,7 +140,11 @@ public class DcBag implements ProgressListenable
 				tempFile.delete();
 			}
 			else
-				this.bag = zipWriter.write(this.bag, bagFile);
+			{
+				Bag tempBag = zipWriter.write(this.bag, bagFile);
+				this.bag.close();
+				this.bag = tempBag;
+			}
 		}
 
 		return bagFile;
@@ -314,12 +320,12 @@ public class DcBag implements ProgressListenable
 	{
 		this.bag = bag.makeComplete();
 	}
-	
+
 	public void makeComplete(Completer c)
 	{
 		this.bag = bag.makeComplete(c);
 	}
-	
+
 	public PronomFormatsTxt getPronomFormatsTxt()
 	{
 		BagFile pronomFormatsTxt = this.bag.getBagFile(PronomFormatsTxt.PRONOMFORMATS_FILEPATH);
@@ -328,12 +334,12 @@ public class DcBag implements ProgressListenable
 		else
 			return null;
 	}
-	
+
 	public PronomFormat getPronomFormat(BagFile bagFile)
 	{
 		return getPronomFormat(bagFile.getFilepath());
 	}
-	
+
 	public PronomFormat getPronomFormat(String filePath)
 	{
 		PronomFormatsTxt pTxt = getPronomFormatsTxt();
@@ -376,7 +382,7 @@ public class DcBag implements ProgressListenable
 		if (plSet != null)
 			this.plSet.remove(progressListener);
 	}
-	
+
 	public void customValidate() throws DcBagException
 	{
 		if (getBagProperty(DcBagProps.FIELD_DATASOURCE) != null
@@ -452,6 +458,10 @@ public class DcBag implements ProgressListenable
 				IOUtils.closeQuietly(newBag);
 				throw e;
 			}
+			finally
+			{
+				newBag.close();
+			}
 		}
 
 		IOUtils.closeQuietly(this.bag);
@@ -468,22 +478,23 @@ public class DcBag implements ProgressListenable
 			}
 		}
 
-		this.bag = BAG_FACTORY.createBag(newBagFile);
+		this.bag = BAG_FACTORY.createBag(newBagFile, LoadOption.BY_MANIFESTS);
 		saveAs(curBagFile.getParentFile(), getExternalIdentifier(), Format.FILESYSTEM);
 
 		if (deleteOrig)
-			FileUtils.deleteQuietly(newBagFile);
+			if (!FileUtils.deleteQuietly(newBagFile))
+				LOGGER.warn("Unable to delete temporary uploaded bag.");
 	}
-	
+
 	public Map<BagFile, FileSummary> getFileSummaryMap()
 	{
 		Map<BagFile, FileSummary> fsMap = new HashMap<BagFile, FileSummary>();
 		for (BagFile iBagFile : this.bag.getPayload())
 			fsMap.put(iBagFile, new FileSummary(this, iBagFile));
-		
+
 		return fsMap;
 	}
-	
+
 	private void archiveBag(File file) throws IOException
 	{
 		Date dateNow = new Date();

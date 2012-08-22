@@ -1,0 +1,1215 @@
+Apache Maven 3.0.4 (r1232337; 2012-01-17 19:44:56+1100)
+Maven home: C:\Program Files\Java\Maven\bin\..
+Java version: 1.7.0_04, vendor: Oracle Corporation
+Java home: C:\Program Files\Java\jdk1.7.0_04\jre
+Default locale: en_AU, platform encoding: Cp1252
+OS name: "windows xp", version: "5.1", arch: "x86", family: "windows"
+[INFO] Error stacktraces are turned on.
+[DEBUG] Reading global settings from C:\Program Files\Java\Maven\bin\..\conf\settings.xml
+[DEBUG] Reading user settings from C:\Documents and Settings\u4465201\.m2\settings.xml
+[DEBUG] Using local repository at C:\Program Files\Java\Maven\repo
+[DEBUG] Using manager EnhancedLocalRepositoryManager with priority 10 for C:\Program Files\Java\Maven\repo
+[INFO] Scanning for projects...
+[DEBUG] org.apache.maven.wagon:wagon-webdav:jar:1.0-beta-2:
+[DEBUG]    slide:slide-webdavlib:jar:2.1:compile
+[DEBUG]       commons-httpclient:commons-httpclient:jar:2.0.2:compile
+[DEBUG]       jdom:jdom:jar:1.0:compile
+[DEBUG]       de.zeigermann.xml:xml-im-exporter:jar:1.1:compile
+[DEBUG]    commons-logging:commons-logging:jar:1.0.4:runtime
+[DEBUG]    org.apache.maven.wagon:wagon-provider-api:jar:1.0-beta-2:compile
+[DEBUG]       org.codehaus.plexus:plexus-utils:jar:1.0.4:compile
+[DEBUG] Created new class realm maven.api
+[DEBUG] Importing foreign packages into class realm maven.api
+[DEBUG]   Imported: org.apache.maven.wagon.events < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.transfer < plexus.core
+[DEBUG]   Imported: org.apache.maven.exception < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.metadata < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.util.xml.Xpp3Dom < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.collection < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.version < plexus.core
+[DEBUG]   Imported: org.apache.maven.monitor < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.repository < plexus.core
+[DEBUG]   Imported: org.apache.maven.repository < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.resource < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.logging < plexus.core
+[DEBUG]   Imported: org.apache.maven.profiles < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.repository < plexus.core
+[DEBUG]   Imported: org.apache.maven.classrealm < plexus.core
+[DEBUG]   Imported: org.apache.maven.execution < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.artifact < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.spi < plexus.core
+[DEBUG]   Imported: org.apache.maven.reporting < plexus.core
+[DEBUG]   Imported: org.apache.maven.usability < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.container < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.component < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.util.xml.pull.XmlSerializer < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.authentication < plexus.core
+[DEBUG]   Imported: org.apache.maven.lifecycle < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.classworlds < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.graph < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.* < plexus.core
+[DEBUG]   Imported: org.apache.maven.settings < plexus.core
+[DEBUG]   Imported: org.codehaus.classworlds < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.impl < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.* < plexus.core
+[DEBUG]   Imported: org.apache.maven.toolchain < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.deployment < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.observers < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.util.xml.pull.XmlPullParserException < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.util.xml.pull.XmlPullParser < plexus.core
+[DEBUG]   Imported: org.apache.maven.configuration < plexus.core
+[DEBUG]   Imported: org.apache.maven.cli < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.installation < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.context < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.authorization < plexus.core
+[DEBUG]   Imported: org.apache.maven.project < plexus.core
+[DEBUG]   Imported: org.apache.maven.rtinfo < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.lifecycle < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.configuration < plexus.core
+[DEBUG]   Imported: org.apache.maven.artifact < plexus.core
+[DEBUG]   Imported: org.apache.maven.model < plexus.core
+[DEBUG]   Imported: org.apache.maven.* < plexus.core
+[DEBUG]   Imported: org.apache.maven.wagon.proxy < plexus.core
+[DEBUG]   Imported: org.sonatype.aether.resolution < plexus.core
+[DEBUG]   Imported: org.apache.maven.plugin < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.* < plexus.core
+[DEBUG]   Imported: org.codehaus.plexus.personality < plexus.core
+[DEBUG] Populating class realm maven.api
+[DEBUG] Created new class realm extension>org.apache.maven.wagon:wagon-webdav:1.0-beta-2
+[DEBUG] Importing foreign packages into class realm extension>org.apache.maven.wagon:wagon-webdav:1.0-beta-2
+[DEBUG]   Imported:  < maven.api
+[DEBUG] Populating class realm extension>org.apache.maven.wagon:wagon-webdav:1.0-beta-2
+[DEBUG]   Included: org.apache.maven.wagon:wagon-webdav:jar:1.0-beta-2
+[DEBUG]   Included: slide:slide-webdavlib:jar:2.1
+[DEBUG]   Included: commons-httpclient:commons-httpclient:jar:2.0.2
+[DEBUG]   Included: jdom:jdom:jar:1.0
+[DEBUG]   Included: de.zeigermann.xml:xml-im-exporter:jar:1.1
+[DEBUG]   Included: commons-logging:commons-logging:jar:1.0.4
+[DEBUG]   Included: org.codehaus.plexus:plexus-utils:jar:1.0.4
+[DEBUG] Extension realms for project gov.loc:bagit:jar:4.3: [ClassRealm[extension>org.apache.maven.wagon:wagon-webdav:1.0-beta-2, parent: sun.misc.Launcher$AppClassLoader@9fef6f]]
+[DEBUG] Created new class realm project>gov.loc:bagit:4.3
+[DEBUG] Populating class realm project>gov.loc:bagit:4.3
+[DEBUG] Looking up lifecyle mappings for packaging jar from ClassRealm[project>gov.loc:bagit:4.3, parent: ClassRealm[maven.api, parent: null]]
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for gov.loc:bagit:jar:4.3
+[WARNING] 'build.plugins.plugin.version' for org.apache.maven.plugins:maven-compiler-plugin is missing. @ line 62, column 12
+[WARNING] 'build.plugins.plugin.version' for org.apache.maven.plugins:maven-surefire-plugin is missing. @ line 70, column 12
+[WARNING] 'build.plugins.plugin.version' for org.apache.maven.plugins:maven-enforcer-plugin is missing. @ line 43, column 12
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[DEBUG] === REACTOR BUILD PLAN ================================================
+[DEBUG] Project: gov.loc:bagit:jar:4.3
+[DEBUG] Tasks:   [test]
+[DEBUG] Style:   Regular
+[DEBUG] =======================================================================
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building BagIt Implementation 4.3
+[INFO] ------------------------------------------------------------------------
+[DEBUG] Resolving plugin version for org.apache.maven.plugins:maven-enforcer-plugin
+[DEBUG] Could not find metadata org.apache.maven.plugins:maven-enforcer-plugin/maven-metadata.xml in local (C:\Program Files\Java\Maven\repo)
+[DEBUG] Skipped remote update check for org.apache.maven.plugins:maven-enforcer-plugin/maven-metadata.xml, locally cached metadata up-to-date.
+[DEBUG] Resolved plugin version for org.apache.maven.plugins:maven-enforcer-plugin to 1.1 from repository central (http://repo.maven.apache.org/maven2, releases)
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[DEBUG] Lifecycle clean -> [pre-clean, clean, post-clean]
+[DEBUG] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[DEBUG] === PROJECT BUILD PLAN ================================================
+[DEBUG] Project:       gov.loc:bagit:4.3
+[DEBUG] Dependencies (collect): []
+[DEBUG] Dependencies (resolve): [compile, test]
+[DEBUG] Repositories (dependencies): [central (http://repo.maven.apache.org/maven2, releases)]
+[DEBUG] Repositories (plugins)     : [central (http://repo.maven.apache.org/maven2, releases)]
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Goal:          org.apache.maven.plugins:maven-enforcer-plugin:1.1:enforce (enforce-versions)
+[DEBUG] Style:         Regular
+[DEBUG] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <fail default-value="true">${enforcer.fail}</fail>
+  <failFast default-value="false">${enforcer.failFast}</failFast>
+  <ignoreCache default-value="false">${enforcer.ignoreCache}</ignoreCache>
+  <project>${project}</project>
+  <rules>
+    <requireMavenVersion>
+      <version>[2.0.9,)</version>
+    </requireMavenVersion>
+  </rules>
+  <session>${session}</session>
+  <skip default-value="false">${enforcer.skip}</skip>
+</configuration>
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Goal:          org.apache.maven.plugins:maven-resources-plugin:2.5:resources (default-resources)
+[DEBUG] Style:         Regular
+[DEBUG] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <buildFilters default-value="${project.build.filters}"/>
+  <encoding default-value="${project.build.sourceEncoding}">${encoding}</encoding>
+  <escapeString>${maven.resources.escapeString}</escapeString>
+  <escapeWindowsPaths default-value="true">${maven.resources.escapeWindowsPaths}</escapeWindowsPaths>
+  <includeEmptyDirs default-value="false">${maven.resources.includeEmptyDirs}</includeEmptyDirs>
+  <outputDirectory default-value="${project.build.outputDirectory}"/>
+  <overwrite default-value="false">${maven.resources.overwrite}</overwrite>
+  <project default-value="${project}"/>
+  <resources default-value="${project.resources}"/>
+  <session default-value="${session}"/>
+  <supportMultiLineFiltering default-value="false">${maven.resources.supportMultiLineFiltering}</supportMultiLineFiltering>
+  <useBuildFilters default-value="true"/>
+  <useDefaultDelimiters default-value="true"/>
+</configuration>
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Goal:          org.apache.maven.plugins:maven-compiler-plugin:2.3.2:compile (default-compile)
+[DEBUG] Style:         Regular
+[DEBUG] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <basedir default-value="${basedir}"/>
+  <buildDirectory default-value="${project.build.directory}"/>
+  <classpathElements default-value="${project.compileClasspathElements}"/>
+  <compileSourceRoots default-value="${project.compileSourceRoots}"/>
+  <compilerId default-value="javac">${maven.compiler.compilerId}</compilerId>
+  <compilerVersion>${maven.compiler.compilerVersion}</compilerVersion>
+  <debug default-value="true">${maven.compiler.debug}</debug>
+  <debuglevel>${maven.compiler.debuglevel}</debuglevel>
+  <encoding default-value="${project.build.sourceEncoding}">UTF-8</encoding>
+  <executable>${maven.compiler.executable}</executable>
+  <failOnError default-value="true">${maven.compiler.failOnError}</failOnError>
+  <fork default-value="false">${maven.compiler.fork}</fork>
+  <generatedSourcesDirectory default-value="${project.build.directory}/generated-sources/annotations"/>
+  <maxmem>${maven.compiler.maxmem}</maxmem>
+  <meminitial>${maven.compiler.meminitial}</meminitial>
+  <optimize default-value="false">${maven.compiler.optimize}</optimize>
+  <outputDirectory default-value="${project.build.outputDirectory}"/>
+  <outputFileName>${project.build.finalName}</outputFileName>
+  <projectArtifact default-value="${project.artifact}"/>
+  <session default-value="${session}"/>
+  <showDeprecation default-value="false">${maven.compiler.showDeprecation}</showDeprecation>
+  <showWarnings default-value="false">${maven.compiler.showWarnings}</showWarnings>
+  <source default-value="1.5">1.6</source>
+  <staleMillis default-value="0">${lastModGranularityMs}</staleMillis>
+  <target default-value="1.5">1.6</target>
+  <verbose default-value="false">${maven.compiler.verbose}</verbose>
+</configuration>
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Goal:          org.apache.maven.plugins:maven-resources-plugin:2.5:testResources (default-testResources)
+[DEBUG] Style:         Regular
+[DEBUG] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <buildFilters default-value="${project.build.filters}"/>
+  <encoding default-value="${project.build.sourceEncoding}">${encoding}</encoding>
+  <escapeString>${maven.resources.escapeString}</escapeString>
+  <escapeWindowsPaths default-value="true">${maven.resources.escapeWindowsPaths}</escapeWindowsPaths>
+  <includeEmptyDirs default-value="false">${maven.resources.includeEmptyDirs}</includeEmptyDirs>
+  <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+  <overwrite default-value="false">${maven.resources.overwrite}</overwrite>
+  <project default-value="${project}"/>
+  <resources>${project.testResources}</resources>
+  <session default-value="${session}"/>
+  <supportMultiLineFiltering default-value="false">${maven.resources.supportMultiLineFiltering}</supportMultiLineFiltering>
+  <useBuildFilters default-value="true"/>
+  <useDefaultDelimiters default-value="true"/>
+</configuration>
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Goal:          org.apache.maven.plugins:maven-compiler-plugin:2.3.2:testCompile (default-testCompile)
+[DEBUG] Style:         Regular
+[DEBUG] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <basedir default-value="${basedir}"/>
+  <buildDirectory default-value="${project.build.directory}"/>
+  <classpathElements default-value="${project.testClasspathElements}"/>
+  <compileSourceRoots default-value="${project.testCompileSourceRoots}"/>
+  <compilerId default-value="javac">${maven.compiler.compilerId}</compilerId>
+  <compilerVersion>${maven.compiler.compilerVersion}</compilerVersion>
+  <debug default-value="true">${maven.compiler.debug}</debug>
+  <debuglevel>${maven.compiler.debuglevel}</debuglevel>
+  <encoding default-value="${project.build.sourceEncoding}">UTF-8</encoding>
+  <executable>${maven.compiler.executable}</executable>
+  <failOnError default-value="true">${maven.compiler.failOnError}</failOnError>
+  <fork default-value="false">${maven.compiler.fork}</fork>
+  <generatedTestSourcesDirectory default-value="${project.build.directory}/generated-sources/test-annotations"/>
+  <maxmem>${maven.compiler.maxmem}</maxmem>
+  <meminitial>${maven.compiler.meminitial}</meminitial>
+  <optimize default-value="false">${maven.compiler.optimize}</optimize>
+  <outputDirectory default-value="${project.build.testOutputDirectory}"/>
+  <outputFileName>${project.build.finalName}</outputFileName>
+  <session default-value="${session}"/>
+  <showDeprecation default-value="false">${maven.compiler.showDeprecation}</showDeprecation>
+  <showWarnings default-value="false">${maven.compiler.showWarnings}</showWarnings>
+  <skip>${maven.test.skip}</skip>
+  <source default-value="1.5">1.6</source>
+  <staleMillis default-value="0">${lastModGranularityMs}</staleMillis>
+  <target default-value="1.5">1.6</target>
+  <testSource>${maven.compiler.testSource}</testSource>
+  <testTarget>${maven.compiler.testTarget}</testTarget>
+  <verbose default-value="false">${maven.compiler.verbose}</verbose>
+</configuration>
+[DEBUG] -----------------------------------------------------------------------
+[DEBUG] Goal:          org.apache.maven.plugins:maven-surefire-plugin:2.10:test (default-test)
+[DEBUG] Style:         Regular
+[DEBUG] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <argLine>${argLine}</argLine>
+  <basedir default-value="${basedir}"/>
+  <childDelegation default-value="false">${childDelegation}</childDelegation>
+  <classesDirectory default-value="${project.build.outputDirectory}"/>
+  <debugForkedProcess>${maven.surefire.debug}</debugForkedProcess>
+  <disableXmlReport default-value="false">true</disableXmlReport>
+  <enableAssertions default-value="true">${enableAssertions}</enableAssertions>
+  <excludedGroups>${excludedGroups}</excludedGroups>
+  <excludes>
+    <exclude>**/Abstract*.java</exclude>
+  </excludes>
+  <failIfNoTests>${failIfNoTests}</failIfNoTests>
+  <forkMode default-value="once">${forkMode}</forkMode>
+  <forkedProcessTimeoutInSeconds>${surefire.timeout}</forkedProcessTimeoutInSeconds>
+  <groups>${groups}</groups>
+  <includes>
+    <include>**/*Test.java</include>
+  </includes>
+  <junitArtifactName default-value="junit:junit">${junitArtifactName}</junitArtifactName>
+  <jvm>${jvm}</jvm>
+  <localRepository>${localRepository}</localRepository>
+  <objectFactory>${objectFactory}</objectFactory>
+  <parallel>${parallel}</parallel>
+  <parallelMavenExecution default-value="${session.parallel}"/>
+  <perCoreThreadCount default-value="true">${perCoreThreadCount}</perCoreThreadCount>
+  <pluginArtifactMap>${plugin.artifactMap}</pluginArtifactMap>
+  <printSummary default-value="true">${surefire.printSummary}</printSummary>
+  <project default-value="${project}"/>
+  <projectArtifactMap>${project.artifactMap}</projectArtifactMap>
+  <redirectTestOutputToFile default-value="false">${maven.test.redirectTestOutputToFile}</redirectTestOutputToFile>
+  <remoteRepositories>${project.pluginArtifactRepositories}</remoteRepositories>
+  <reportFormat default-value="brief">${surefire.reportFormat}</reportFormat>
+  <reportNameSuffix default-value="">${surefire.reportNameSuffix}</reportNameSuffix>
+  <reportsDirectory default-value="${project.build.directory}/surefire-reports"/>
+  <runOrder default-value="filesystem"/>
+  <session>${session}</session>
+  <skip default-value="false">${maven.test.skip}</skip>
+  <skipExec>${maven.test.skip.exec}</skipExec>
+  <skipTests default-value="false">${skipTests}</skipTests>
+  <test>${test}</test>
+  <testClassesDirectory default-value="${project.build.testOutputDirectory}"/>
+  <testFailureIgnore default-value="false">${maven.test.failure.ignore}</testFailureIgnore>
+  <testNGArtifactName default-value="org.testng:testng">${testNGArtifactName}</testNGArtifactName>
+  <testSourceDirectory default-value="${project.build.testSourceDirectory}"/>
+  <threadCount>${threadCount}</threadCount>
+  <trimStackTrace default-value="true">${trimStackTrace}</trimStackTrace>
+  <useFile default-value="true">${surefire.useFile}</useFile>
+  <useManifestOnlyJar default-value="true">${surefire.useManifestOnlyJar}</useManifestOnlyJar>
+  <useSystemClassLoader default-value="true">${surefire.useSystemClassLoader}</useSystemClassLoader>
+  <useUnlimitedThreads default-value="false">${useUnlimitedThreads}</useUnlimitedThreads>
+  <workingDirectory>${basedir}</workingDirectory>
+</configuration>
+[DEBUG] =======================================================================
+[DEBUG] gov.loc:bagit:jar:4.3
+[DEBUG]    org.apache.commons:commons-compress:jar:1.3:compile
+[DEBUG]    commons-logging:commons-logging-api:jar:1.1:compile
+[DEBUG]    commons-logging:commons-logging:jar:1.1.1:compile
+[DEBUG]    commons-io:commons-io:jar:2.0.1:compile
+[DEBUG]    commons-codec:commons-codec:jar:1.3:compile
+[DEBUG]    org.apache.httpcomponents:httpclient:jar:4.1.2:compile
+[DEBUG]       org.apache.httpcomponents:httpcore:jar:4.1.2:compile
+[DEBUG]    org.apache.httpcomponents:httpmime:jar:4.1.2:compile
+[DEBUG]    com.martiansoftware:jsap:jar:2.1:compile
+[DEBUG]    dom4j:dom4j:jar:1.6.1:compile
+[DEBUG]       xml-apis:xml-apis:jar:1.0.b2:compile
+[DEBUG]    jaxen:jaxen:jar:1.1.1:runtime
+[DEBUG]       jdom:jdom:jar:1.0:runtime
+[DEBUG]       xerces:xercesImpl:jar:2.6.2:runtime
+[DEBUG]    classworlds:classworlds:jar:1.1:runtime
+[DEBUG]    log4j:log4j:jar:1.2.14:runtime
+[DEBUG]    junit:junit:jar:4.4:test
+[DEBUG]    org.mortbay.jetty:jetty:jar:6.1.15:test
+[DEBUG]       org.mortbay.jetty:jetty-util:jar:6.1.15:test
+[DEBUG]       org.mortbay.jetty:servlet-api:jar:2.5-20081211:test
+[DEBUG]    org.jmock:jmock-junit4:jar:2.5.1:test
+[DEBUG]       org.jmock:jmock:jar:2.5.1:test
+[DEBUG]          org.hamcrest:hamcrest-core:jar:1.1:test
+[DEBUG]          org.hamcrest:hamcrest-library:jar:1.1:test
+[DEBUG]       junit:junit-dep:jar:4.4:test
+[DEBUG]    commons-net:commons-net:jar:2.0:compile
+[DEBUG]    org.apache.commons:commons-exec:jar:1.0:compile
+[INFO] 
+[INFO] --- maven-enforcer-plugin:1.1:enforce (enforce-versions) @ bagit ---
+[DEBUG] org.apache.maven.plugins:maven-enforcer-plugin:jar:1.1:
+[DEBUG]    org.apache.maven:maven-artifact:jar:2.0.9:compile
+[DEBUG]    org.apache.maven:maven-plugin-api:jar:2.0.9:compile
+[DEBUG]    org.apache.maven:maven-project:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-settings:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-profile:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-model:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-artifact-manager:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-plugin-registry:jar:2.0.9:compile
+[DEBUG]       org.codehaus.plexus:plexus-container-default:jar:1.0-alpha-9-stable-1:compile
+[DEBUG]          junit:junit:jar:3.8.2:test (scope managed from compile) (version managed from 3.8.1)
+[DEBUG]    org.apache.maven:maven-core:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.9:compile
+[DEBUG]       org.apache.maven.reporting:maven-reporting-api:jar:2.0.9:compile
+[DEBUG]          org.apache.maven.doxia:doxia-sink-api:jar:1.0-alpha-10:compile
+[DEBUG]       org.apache.maven:maven-repository-metadata:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-error-diagnostics:jar:2.0.9:compile
+[DEBUG]       commons-cli:commons-cli:jar:1.0:compile
+[DEBUG]       org.apache.maven:maven-plugin-descriptor:jar:2.0.9:compile
+[DEBUG]       org.codehaus.plexus:plexus-interactivity-api:jar:1.0-alpha-4:compile
+[DEBUG]       org.apache.maven:maven-monitor:jar:2.0.9:compile
+[DEBUG]       classworlds:classworlds:jar:1.1:compile
+[DEBUG]    org.codehaus.plexus:plexus-utils:jar:1.5.8:compile
+[DEBUG]    commons-lang:commons-lang:jar:2.3:compile
+[DEBUG]    org.apache.maven.enforcer:enforcer-api:jar:1.1:compile
+[DEBUG]    org.apache.maven.enforcer:enforcer-rules:jar:1.1:compile
+[DEBUG]       org.apache.maven.shared:maven-common-artifact-filters:jar:1.2:compile
+[DEBUG]          org.apache.maven.shared:maven-plugin-testing-harness:jar:1.1:test (scope managed from compile)
+[DEBUG]             org.codehaus.plexus:plexus-archiver:jar:1.0-alpha-7:test
+[DEBUG]       org.beanshell:bsh:jar:2.0b4:compile
+[DEBUG]       org.apache.maven.shared:maven-dependency-tree:jar:1.2:compile
+[DEBUG]       org.codehaus.plexus:plexus-i18n:jar:1.0-beta-6:compile
+[DEBUG] Created new class realm plugin>org.apache.maven.plugins:maven-enforcer-plugin:1.1
+[DEBUG] Importing foreign packages into class realm plugin>org.apache.maven.plugins:maven-enforcer-plugin:1.1
+[DEBUG]   Imported:  < project>gov.loc:bagit:4.3
+[DEBUG] Populating class realm plugin>org.apache.maven.plugins:maven-enforcer-plugin:1.1
+[DEBUG]   Included: org.apache.maven.plugins:maven-enforcer-plugin:jar:1.1
+[DEBUG]   Included: org.apache.maven.reporting:maven-reporting-api:jar:2.0.9
+[DEBUG]   Included: org.apache.maven.doxia:doxia-sink-api:jar:1.0-alpha-10
+[DEBUG]   Included: commons-cli:commons-cli:jar:1.0
+[DEBUG]   Included: org.codehaus.plexus:plexus-interactivity-api:jar:1.0-alpha-4
+[DEBUG]   Included: org.codehaus.plexus:plexus-utils:jar:1.5.8
+[DEBUG]   Included: commons-lang:commons-lang:jar:2.3
+[DEBUG]   Included: org.apache.maven.enforcer:enforcer-api:jar:1.1
+[DEBUG]   Included: org.apache.maven.enforcer:enforcer-rules:jar:1.1
+[DEBUG]   Included: org.apache.maven.shared:maven-common-artifact-filters:jar:1.2
+[DEBUG]   Included: org.beanshell:bsh:jar:2.0b4
+[DEBUG]   Included: org.apache.maven.shared:maven-dependency-tree:jar:1.2
+[DEBUG]   Included: org.codehaus.plexus:plexus-i18n:jar:1.0-beta-6
+[DEBUG]   Excluded: org.apache.maven:maven-artifact:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-api:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-project:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-settings:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-profile:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-model:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-artifact-manager:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-registry:jar:2.0.9
+[DEBUG]   Excluded: org.codehaus.plexus:plexus-container-default:jar:1.0-alpha-9-stable-1
+[DEBUG]   Excluded: junit:junit:jar:3.8.2
+[DEBUG]   Excluded: org.apache.maven:maven-core:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-repository-metadata:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-error-diagnostics:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-descriptor:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-monitor:jar:2.0.9
+[DEBUG]   Excluded: classworlds:classworlds:jar:1.1
+[DEBUG]   Excluded: org.apache.maven.shared:maven-plugin-testing-harness:jar:1.1
+[DEBUG]   Excluded: org.codehaus.plexus:plexus-archiver:jar:1.0-alpha-7
+[DEBUG] Configuring mojo org.apache.maven.plugins:maven-enforcer-plugin:1.1:enforce from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-enforcer-plugin:1.1, parent: sun.misc.Launcher$AppClassLoader@9fef6f]
+[DEBUG] Configuring mojo 'org.apache.maven.plugins:maven-enforcer-plugin:1.1:enforce' with basic configurator -->
+[DEBUG]   (s) fail = true
+[DEBUG]   (s) failFast = false
+[DEBUG]   (f) ignoreCache = false
+[DEBUG]   (s) project = MavenProject: gov.loc:bagit:4.3 @ C:\Rahul\Temp\bagit-4.3\pom.xml
+[DEBUG]   (s) version = [2.0.9,)
+[DEBUG]   (s) rules = [org.apache.maven.plugins.enforcer.RequireMavenVersion@19805da]
+[DEBUG]   (s) session = org.apache.maven.execution.MavenSession@9ed26e
+[DEBUG]   (s) skip = false
+[DEBUG] -- end configuration --
+[DEBUG] Executing rule: org.apache.maven.plugins.enforcer.RequireMavenVersion
+[DEBUG] Rule org.apache.maven.plugins.enforcer.RequireMavenVersion is cacheable.
+[DEBUG] Detected Maven Version: 3.0.4
+[DEBUG] Detected Maven Version: 3.0.4 is allowed in the range [2.0.9,).
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ bagit ---
+[DEBUG] org.apache.maven.plugins:maven-resources-plugin:jar:2.5:
+[DEBUG]    org.apache.maven:maven-plugin-api:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-project:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-profile:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-artifact-manager:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-plugin-registry:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-core:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.6:compile
+[DEBUG]       org.apache.maven.reporting:maven-reporting-api:jar:2.0.6:compile
+[DEBUG]          org.apache.maven.doxia:doxia-sink-api:jar:1.0-alpha-7:compile
+[DEBUG]       org.apache.maven:maven-repository-metadata:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-error-diagnostics:jar:2.0.6:compile
+[DEBUG]       commons-cli:commons-cli:jar:1.0:compile
+[DEBUG]       org.apache.maven:maven-plugin-descriptor:jar:2.0.6:compile
+[DEBUG]       org.codehaus.plexus:plexus-interactivity-api:jar:1.0-alpha-4:compile
+[DEBUG]       classworlds:classworlds:jar:1.1:compile
+[DEBUG]    org.apache.maven:maven-artifact:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-settings:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-model:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-monitor:jar:2.0.6:compile
+[DEBUG]    org.codehaus.plexus:plexus-container-default:jar:1.0-alpha-9-stable-1:compile
+[DEBUG]       junit:junit:jar:3.8.1:compile
+[DEBUG]    org.codehaus.plexus:plexus-utils:jar:2.0.5:compile
+[DEBUG]    org.apache.maven.shared:maven-filtering:jar:1.0:compile
+[DEBUG]       org.sonatype.plexus:plexus-build-api:jar:0.0.4:compile
+[DEBUG]    org.codehaus.plexus:plexus-interpolation:jar:1.13:compile
+[DEBUG] Created new class realm plugin>org.apache.maven.plugins:maven-resources-plugin:2.5
+[DEBUG] Importing foreign packages into class realm plugin>org.apache.maven.plugins:maven-resources-plugin:2.5
+[DEBUG]   Imported:  < project>gov.loc:bagit:4.3
+[DEBUG] Populating class realm plugin>org.apache.maven.plugins:maven-resources-plugin:2.5
+[DEBUG]   Included: org.apache.maven.plugins:maven-resources-plugin:jar:2.5
+[DEBUG]   Included: org.apache.maven.reporting:maven-reporting-api:jar:2.0.6
+[DEBUG]   Included: org.apache.maven.doxia:doxia-sink-api:jar:1.0-alpha-7
+[DEBUG]   Included: commons-cli:commons-cli:jar:1.0
+[DEBUG]   Included: org.codehaus.plexus:plexus-interactivity-api:jar:1.0-alpha-4
+[DEBUG]   Included: junit:junit:jar:3.8.1
+[DEBUG]   Included: org.codehaus.plexus:plexus-utils:jar:2.0.5
+[DEBUG]   Included: org.apache.maven.shared:maven-filtering:jar:1.0
+[DEBUG]   Included: org.sonatype.plexus:plexus-build-api:jar:0.0.4
+[DEBUG]   Included: org.codehaus.plexus:plexus-interpolation:jar:1.13
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-api:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-project:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-profile:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-artifact-manager:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-registry:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-core:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-repository-metadata:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-error-diagnostics:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-descriptor:jar:2.0.6
+[DEBUG]   Excluded: classworlds:classworlds:jar:1.1
+[DEBUG]   Excluded: org.apache.maven:maven-artifact:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-settings:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-model:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-monitor:jar:2.0.6
+[DEBUG]   Excluded: org.codehaus.plexus:plexus-container-default:jar:1.0-alpha-9-stable-1
+[DEBUG] Configuring mojo org.apache.maven.plugins:maven-resources-plugin:2.5:resources from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-resources-plugin:2.5, parent: sun.misc.Launcher$AppClassLoader@9fef6f]
+[debug] execute contextualize
+[DEBUG] Configuring mojo 'org.apache.maven.plugins:maven-resources-plugin:2.5:resources' with basic configurator -->
+[DEBUG]   (f) buildFilters = []
+[DEBUG]   (f) encoding = UTF-8
+[DEBUG]   (f) escapeWindowsPaths = true
+[DEBUG]   (s) includeEmptyDirs = false
+[DEBUG]   (s) outputDirectory = C:\Rahul\Temp\bagit-4.3\target\classes
+[DEBUG]   (s) overwrite = false
+[DEBUG]   (f) project = MavenProject: gov.loc:bagit:4.3 @ C:\Rahul\Temp\bagit-4.3\pom.xml
+[DEBUG]   (s) resources = [Resource {targetPath: null, filtering: false, FileSet {directory: C:\Rahul\Temp\bagit-4.3\src\main\resources, PatternSet [includes: {}, excludes: {}]}}]
+[DEBUG]   (f) session = org.apache.maven.execution.MavenSession@9ed26e
+[DEBUG]   (f) supportMultiLineFiltering = false
+[DEBUG]   (f) useBuildFilters = true
+[DEBUG]   (s) useDefaultDelimiters = true
+[DEBUG] -- end configuration --
+[DEBUG] properties used {java.vendor=Oracle Corporation, env.SYSTEMROOT=C:\WINDOWS, sun.java.launcher=SUN_STANDARD, sun.management.compiler=HotSpot Client Compiler, env.PROMPT=$P$G, os.name=Windows XP, env.FP_NO_HOST_CHECK=NO, sun.boot.class.path=C:\Program Files\Java\jdk1.7.0_04\jre\lib\resources.jar;C:\Program Files\Java\jdk1.7.0_04\jre\lib\rt.jar;C:\Program Files\Java\jdk1.7.0_04\jre\lib\sunrsasign.jar;C:\Program Files\Java\jdk1.7.0_04\jre\lib\jsse.jar;C:\Program Files\Java\jdk1.7.0_04\jre\lib\jce.jar;C:\Program Files\Java\jdk1.7.0_04\jre\lib\charsets.jar;C:\Program Files\Java\jdk1.7.0_04\jre\lib\jfr.jar;C:\Program Files\Java\jdk1.7.0_04\jre\classes, env.COMPUTERNAME=L3A5006, env.ALLUSERSPROFILE=C:\Documents and Settings\All Users, sun.desktop=windows, bagit.version=0.97, java.vm.specification.vendor=Oracle Corporation, java.runtime.version=1.7.0_04-b22, env.HOMEPATH=\Documents and Settings\u4465201, project.build.sourceEncoding=UTF-8, user.name=u4465201, maven.build.version=Apache Maven 3.0.4 (r1232337; 2012-01-17 19:44:56+1100), env.PATH=C:/Program Files/Java/jre7/bin/client;C:/Program Files/Java/jre7/bin;C:/Program Files/Java/jre7/lib/i386;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\system32\WindowsPowerShell\v1.0;C:\Program Files\ManageSoft\Common;C:\Program Files\Java\jdk1.7.0_04\bin;C:\Program Files\Java\apache-ant-1.8.2\bin;C:\Rahul\Programs\SysInternals;C:\Program Files\PostgreSQL\9.1\bin;C:\Program Files\Java\Maven\bin;C:\Program Files\Git\bin;;C:\Program Files\Java\Eclipse;, user.language=en, env.WINDIR=C:\WINDOWS, sun.boot.library.path=C:\Program Files\Java\jdk1.7.0_04\jre\bin, classworlds.conf=C:\Program Files\Java\Maven\bin\..\bin\m2.conf, java.version=1.7.0_04, env.PROCESSOR_IDENTIFIER=x86 Family 6 Model 15 Stepping 11, GenuineIntel, user.timezone=Australia/Sydney, env.TEMP=C:\DOCUME~1\u4465201\LOCALS~1\Temp, sun.arch.data.model=32, java.endorsed.dirs=C:\Program Files\Java\jdk1.7.0_04\jre\lib\endorsed, sun.cpu.isalist=pentium_pro+mmx pentium_pro pentium+mmx pentium i486 i386 i86, env.HOMEDRIVE=C:, sun.jnu.encoding=Cp1252, file.encoding.pkg=sun.io, env.SYSTEMDRIVE=C:, file.separator=\, java.specification.name=Java Platform API Specification, java.class.version=51.0, user.country=AU, java.home=C:\Program Files\Java\jdk1.7.0_04\jre, env.APPDATA=C:\Documents and Settings\u4465201\Application Data, java.vm.info=mixed mode, sharing, env.OS=Windows_NT, os.version=5.1, env.=::=::\, path.separator=;, java.vm.version=23.0-b21, env.USERPROFILE=C:\Documents and Settings\u4465201, user.variant=, env.JAVA_HOME=C:\Program Files\Java\jdk1.7.0_04, java.awt.printerjob=sun.awt.windows.WPrinterJob, env.TMP=C:\DOCUME~1\u4465201\LOCALS~1\Temp, env.PROGRAMFILES=C:\Program Files, sun.io.unicode.encoding=UnicodeLittle, awt.toolkit=sun.awt.windows.WToolkit, user.script=, user.home=C:\Documents and Settings\u4465201, env.COMMONPROGRAMFILES=C:\Program Files\Common Files, env.=EXITCODE=00000001, env.SESSIONNAME=Console, java.specification.vendor=Oracle Corporation, test=ZipBagWriterTest#testOverwrite, env.CLASSPATH=.;C:\Program Files\PostgreSQL\pgJDBC\postgresql-9.0-801.jdbc4.jar, env.M2_HOME=C:\Program Files\Java\Maven\bin\.., env.NUMBER_OF_PROCESSORS=2, java.library.path=C:\Program Files\Java\jdk1.7.0_04\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:/Program Files/Java/jre7/bin/client;C:/Program Files/Java/jre7/bin;C:/Program Files/Java/jre7/lib/i386;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\system32\WindowsPowerShell\v1.0;C:\Program Files\ManageSoft\Common;C:\Program Files\Java\jdk1.7.0_04\bin;C:\Program Files\Java\apache-ant-1.8.2\bin;C:\Rahul\Programs\SysInternals;C:\Program Files\PostgreSQL\9.1\bin;C:\Program Files\Java\Maven\bin;C:\Program Files\Git\bin;;C:\Program Files\Java\Eclipse;;., java.vendor.url=http://java.oracle.com/, env.USERDNSDOMAIN=UDS.ANU.EDU.AU, env.PSMODULEPATH=C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules\, env.CLASSWORLDS_LAUNCHER=org.codehaus.plexus.classworlds.launcher.Launcher, env.MAVEN_CMD_LINE_ARGS=test -X -Dtest=ZipBagWriterTest#testOverwrite, java.vm.vendor=Oracle Corporation, maven.home=C:\Program Files\Java\Maven\bin\.., java.runtime.name=Java(TM) SE Runtime Environment, sun.java.command=org.codehaus.plexus.classworlds.launcher.Launcher test -X -Dtest=ZipBagWriterTest#testOverwrite, java.class.path=C:\Program Files\Java\Maven\bin\..\boot\plexus-classworlds-2.4.jar, maven.version=3.0.4, env.MAVEN_JAVA_EXE="C:\Program Files\Java\jdk1.7.0_04\bin\java.exe", java.vm.specification.name=Java Virtual Machine Specification, env.LOGONSERVER=\\UDSDC03, java.vm.specification.version=1.7, env.PROCESSOR_ARCHITECTURE=x86, sun.cpu.endian=little, sun.os.patch.level=Service Pack 3, env.HOME=C:\Documents and Settings\u4465201, env.ANT_HOME=C:\Program Files\Java\apache-ant-1.8.2, env.PROCESSOR_REVISION=0f0b, java.io.tmpdir=C:\DOCUME~1\u4465201\LOCALS~1\Temp\, env.VBOX_INSTALL_PATH=C:\Program Files\Oracle\VirtualBox\, java.vendor.url.bug=http://bugreport.sun.com/bugreport/, env.COMSPEC=C:\WINDOWS\system32\cmd.exe, os.arch=x86, java.awt.graphicsenv=sun.awt.Win32GraphicsEnvironment, java.ext.dirs=C:\Program Files\Java\jdk1.7.0_04\jre\lib\ext;C:\WINDOWS\Sun\Java\lib\ext, user.dir=C:\Rahul\Temp\bagit-4.3, line.separator=
+, env.CLASSWORLDS_JAR="C:\Program Files\Java\Maven\bin\..\boot\plexus-classworlds-2.4.jar", java.vm.name=Java HotSpot(TM) Client VM, env.PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.PSC1, env.ERROR_CODE=0, env.USERNAME=u4465201, file.encoding=Cp1252, env.USERDOMAIN=UDS, env.FEDORA_HOME=C:\Program Files\Java\Fedora, java.specification.version=1.7, env.=C:=C:\Rahul\Temp\bagit-4.3, env.PROCESSOR_LEVEL=6}
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[DEBUG] resource with targetPath null
+directory C:\Rahul\Temp\bagit-4.3\src\main\resources
+excludes []
+includes []
+[INFO] skip non existing resourceDirectory C:\Rahul\Temp\bagit-4.3\src\main\resources
+[DEBUG] no use filter components
+[INFO] 
+[INFO] --- maven-compiler-plugin:2.3.2:compile (default-compile) @ bagit ---
+[DEBUG] org.apache.maven.plugins:maven-compiler-plugin:jar:2.3.2:
+[DEBUG]    org.apache.maven:maven-plugin-api:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-artifact:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-core:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-settings:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-profile:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-model:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-repository-metadata:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-error-diagnostics:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-project:jar:2.0.6:compile
+[DEBUG]          org.apache.maven:maven-plugin-registry:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-plugin-descriptor:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-artifact-manager:jar:2.0.6:compile
+[DEBUG]       org.apache.maven:maven-monitor:jar:2.0.6:compile
+[DEBUG]    org.apache.maven:maven-toolchain:jar:1.0:compile
+[DEBUG]    org.codehaus.plexus:plexus-utils:jar:2.0.5:compile
+[DEBUG]    org.codehaus.plexus:plexus-compiler-api:jar:1.8.1:compile
+[DEBUG]    org.codehaus.plexus:plexus-compiler-manager:jar:1.8.1:compile
+[DEBUG]    org.codehaus.plexus:plexus-compiler-javac:jar:1.8.1:runtime
+[DEBUG] Created new class realm plugin>org.apache.maven.plugins:maven-compiler-plugin:2.3.2
+[DEBUG] Importing foreign packages into class realm plugin>org.apache.maven.plugins:maven-compiler-plugin:2.3.2
+[DEBUG]   Imported:  < project>gov.loc:bagit:4.3
+[DEBUG] Populating class realm plugin>org.apache.maven.plugins:maven-compiler-plugin:2.3.2
+[DEBUG]   Included: org.apache.maven.plugins:maven-compiler-plugin:jar:2.3.2
+[DEBUG]   Included: org.codehaus.plexus:plexus-utils:jar:2.0.5
+[DEBUG]   Included: org.codehaus.plexus:plexus-compiler-api:jar:1.8.1
+[DEBUG]   Included: org.codehaus.plexus:plexus-compiler-manager:jar:1.8.1
+[DEBUG]   Included: org.codehaus.plexus:plexus-compiler-javac:jar:1.8.1
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-api:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-artifact:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-core:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-settings:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-profile:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-model:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-repository-metadata:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-error-diagnostics:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-project:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-registry:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-descriptor:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-artifact-manager:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-monitor:jar:2.0.6
+[DEBUG]   Excluded: org.apache.maven:maven-toolchain:jar:1.0
+[DEBUG] Configuring mojo org.apache.maven.plugins:maven-compiler-plugin:2.3.2:compile from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-compiler-plugin:2.3.2, parent: sun.misc.Launcher$AppClassLoader@9fef6f]
+[DEBUG] Configuring mojo 'org.apache.maven.plugins:maven-compiler-plugin:2.3.2:compile' with basic configurator -->
+[DEBUG]   (f) basedir = C:\Rahul\Temp\bagit-4.3
+[DEBUG]   (f) buildDirectory = C:\Rahul\Temp\bagit-4.3\target
+[DEBUG]   (f) classpathElements = [C:\Rahul\Temp\bagit-4.3\target\classes, C:\Program Files\Java\Maven\repo\org\apache\commons\commons-compress\1.3\commons-compress-1.3.jar, C:\Program Files\Java\Maven\repo\commons-logging\commons-logging-api\1.1\commons-logging-api-1.1.jar, C:\Program Files\Java\Maven\repo\commons-logging\commons-logging\1.1.1\commons-logging-1.1.1.jar, C:\Program Files\Java\Maven\repo\commons-io\commons-io\2.0.1\commons-io-2.0.1.jar, C:\Program Files\Java\Maven\repo\commons-codec\commons-codec\1.3\commons-codec-1.3.jar, C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpclient\4.1.2\httpclient-4.1.2.jar, C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpcore\4.1.2\httpcore-4.1.2.jar, C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpmime\4.1.2\httpmime-4.1.2.jar, C:\Program Files\Java\Maven\repo\com\martiansoftware\jsap\2.1\jsap-2.1.jar, C:\Program Files\Java\Maven\repo\dom4j\dom4j\1.6.1\dom4j-1.6.1.jar, C:\Program Files\Java\Maven\repo\xml-apis\xml-apis\1.0.b2\xml-apis-1.0.b2.jar, C:\Program Files\Java\Maven\repo\commons-net\commons-net\2.0\commons-net-2.0.jar, C:\Program Files\Java\Maven\repo\org\apache\commons\commons-exec\1.0\commons-exec-1.0.jar]
+[DEBUG]   (f) compileSourceRoots = [C:\Rahul\Temp\bagit-4.3\src\main\java]
+[DEBUG]   (f) compilerId = javac
+[DEBUG]   (f) debug = true
+[DEBUG]   (f) encoding = UTF-8
+[DEBUG]   (f) failOnError = true
+[DEBUG]   (f) fork = false
+[DEBUG]   (f) generatedSourcesDirectory = C:\Rahul\Temp\bagit-4.3\target\generated-sources\annotations
+[DEBUG]   (f) optimize = false
+[DEBUG]   (f) outputDirectory = C:\Rahul\Temp\bagit-4.3\target\classes
+[DEBUG]   (f) outputFileName = bagit-4.3
+[DEBUG]   (f) projectArtifact = gov.loc:bagit:jar:4.3
+[DEBUG]   (f) session = org.apache.maven.execution.MavenSession@9ed26e
+[DEBUG]   (f) showDeprecation = false
+[DEBUG]   (f) showWarnings = false
+[DEBUG]   (f) source = 1.6
+[DEBUG]   (f) staleMillis = 0
+[DEBUG]   (f) target = 1.6
+[DEBUG]   (f) verbose = false
+[DEBUG] -- end configuration --
+[DEBUG] Using compiler 'javac'.
+[DEBUG] Source directories: [C:\Rahul\Temp\bagit-4.3\src\main\java]
+[DEBUG] Classpath: [C:\Rahul\Temp\bagit-4.3\target\classes
+ C:\Program Files\Java\Maven\repo\org\apache\commons\commons-compress\1.3\commons-compress-1.3.jar
+ C:\Program Files\Java\Maven\repo\commons-logging\commons-logging-api\1.1\commons-logging-api-1.1.jar
+ C:\Program Files\Java\Maven\repo\commons-logging\commons-logging\1.1.1\commons-logging-1.1.1.jar
+ C:\Program Files\Java\Maven\repo\commons-io\commons-io\2.0.1\commons-io-2.0.1.jar
+ C:\Program Files\Java\Maven\repo\commons-codec\commons-codec\1.3\commons-codec-1.3.jar
+ C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpclient\4.1.2\httpclient-4.1.2.jar
+ C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpcore\4.1.2\httpcore-4.1.2.jar
+ C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpmime\4.1.2\httpmime-4.1.2.jar
+ C:\Program Files\Java\Maven\repo\com\martiansoftware\jsap\2.1\jsap-2.1.jar
+ C:\Program Files\Java\Maven\repo\dom4j\dom4j\1.6.1\dom4j-1.6.1.jar
+ C:\Program Files\Java\Maven\repo\xml-apis\xml-apis\1.0.b2\xml-apis-1.0.b2.jar
+ C:\Program Files\Java\Maven\repo\commons-net\commons-net\2.0\commons-net-2.0.jar
+ C:\Program Files\Java\Maven\repo\org\apache\commons\commons-exec\1.0\commons-exec-1.0.jar]
+[DEBUG] Output directory: C:\Rahul\Temp\bagit-4.3\target\classes
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ bagit ---
+[DEBUG] Configuring mojo org.apache.maven.plugins:maven-resources-plugin:2.5:testResources from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-resources-plugin:2.5, parent: sun.misc.Launcher$AppClassLoader@9fef6f]
+[debug] execute contextualize
+[DEBUG] Configuring mojo 'org.apache.maven.plugins:maven-resources-plugin:2.5:testResources' with basic configurator -->
+[DEBUG]   (f) buildFilters = []
+[DEBUG]   (f) encoding = UTF-8
+[DEBUG]   (f) escapeWindowsPaths = true
+[DEBUG]   (s) includeEmptyDirs = false
+[DEBUG]   (s) outputDirectory = C:\Rahul\Temp\bagit-4.3\target\test-classes
+[DEBUG]   (s) overwrite = false
+[DEBUG]   (f) project = MavenProject: gov.loc:bagit:4.3 @ C:\Rahul\Temp\bagit-4.3\pom.xml
+[DEBUG]   (s) resources = [Resource {targetPath: null, filtering: false, FileSet {directory: C:\Rahul\Temp\bagit-4.3\src\test\resources, PatternSet [includes: {}, excludes: {}]}}]
+[DEBUG]   (f) session = org.apache.maven.execution.MavenSession@9ed26e
+[DEBUG]   (f) supportMultiLineFiltering = false
+[DEBUG]   (f) useBuildFilters = true
+[DEBUG]   (s) useDefaultDelimiters = true
+[DEBUG] -- end configuration --
+[DEBUG] properties used {java.vendor=Oracle Corporation, env.SYSTEMROOT=C:\WINDOWS, sun.java.launcher=SUN_STANDARD, sun.management.compiler=HotSpot Client Compiler, env.PROMPT=$P$G, os.name=Windows XP, env.FP_NO_HOST_CHECK=NO, sun.boot.class.path=C:\Program Files\Java\jdk1.7.0_04\jre\lib\resources.jar;C:\Program Files\Java\jdk1.7.0_04\jre\lib\rt.jar;C:\Program Files\Java\jdk1.7.0_04\jre\lib\sunrsasign.jar;C:\Program Files\Java\jdk1.7.0_04\jre\lib\jsse.jar;C:\Program Files\Java\jdk1.7.0_04\jre\lib\jce.jar;C:\Program Files\Java\jdk1.7.0_04\jre\lib\charsets.jar;C:\Program Files\Java\jdk1.7.0_04\jre\lib\jfr.jar;C:\Program Files\Java\jdk1.7.0_04\jre\classes, env.COMPUTERNAME=L3A5006, env.ALLUSERSPROFILE=C:\Documents and Settings\All Users, sun.desktop=windows, bagit.version=0.97, java.vm.specification.vendor=Oracle Corporation, java.runtime.version=1.7.0_04-b22, env.HOMEPATH=\Documents and Settings\u4465201, project.build.sourceEncoding=UTF-8, user.name=u4465201, maven.build.version=Apache Maven 3.0.4 (r1232337; 2012-01-17 19:44:56+1100), env.PATH=C:/Program Files/Java/jre7/bin/client;C:/Program Files/Java/jre7/bin;C:/Program Files/Java/jre7/lib/i386;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\system32\WindowsPowerShell\v1.0;C:\Program Files\ManageSoft\Common;C:\Program Files\Java\jdk1.7.0_04\bin;C:\Program Files\Java\apache-ant-1.8.2\bin;C:\Rahul\Programs\SysInternals;C:\Program Files\PostgreSQL\9.1\bin;C:\Program Files\Java\Maven\bin;C:\Program Files\Git\bin;;C:\Program Files\Java\Eclipse;, user.language=en, env.WINDIR=C:\WINDOWS, sun.boot.library.path=C:\Program Files\Java\jdk1.7.0_04\jre\bin, classworlds.conf=C:\Program Files\Java\Maven\bin\..\bin\m2.conf, java.version=1.7.0_04, env.PROCESSOR_IDENTIFIER=x86 Family 6 Model 15 Stepping 11, GenuineIntel, user.timezone=Australia/Sydney, env.TEMP=C:\DOCUME~1\u4465201\LOCALS~1\Temp, sun.arch.data.model=32, java.endorsed.dirs=C:\Program Files\Java\jdk1.7.0_04\jre\lib\endorsed, sun.cpu.isalist=pentium_pro+mmx pentium_pro pentium+mmx pentium i486 i386 i86, env.HOMEDRIVE=C:, sun.jnu.encoding=Cp1252, file.encoding.pkg=sun.io, env.SYSTEMDRIVE=C:, file.separator=\, java.specification.name=Java Platform API Specification, java.class.version=51.0, user.country=AU, java.home=C:\Program Files\Java\jdk1.7.0_04\jre, env.APPDATA=C:\Documents and Settings\u4465201\Application Data, java.vm.info=mixed mode, sharing, env.OS=Windows_NT, os.version=5.1, env.=::=::\, path.separator=;, java.vm.version=23.0-b21, env.USERPROFILE=C:\Documents and Settings\u4465201, user.variant=, env.JAVA_HOME=C:\Program Files\Java\jdk1.7.0_04, java.awt.printerjob=sun.awt.windows.WPrinterJob, env.TMP=C:\DOCUME~1\u4465201\LOCALS~1\Temp, env.PROGRAMFILES=C:\Program Files, sun.io.unicode.encoding=UnicodeLittle, awt.toolkit=sun.awt.windows.WToolkit, user.script=, user.home=C:\Documents and Settings\u4465201, env.COMMONPROGRAMFILES=C:\Program Files\Common Files, env.=EXITCODE=00000001, env.SESSIONNAME=Console, java.specification.vendor=Oracle Corporation, test=ZipBagWriterTest#testOverwrite, env.CLASSPATH=.;C:\Program Files\PostgreSQL\pgJDBC\postgresql-9.0-801.jdbc4.jar, env.M2_HOME=C:\Program Files\Java\Maven\bin\.., env.NUMBER_OF_PROCESSORS=2, java.library.path=C:\Program Files\Java\jdk1.7.0_04\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:/Program Files/Java/jre7/bin/client;C:/Program Files/Java/jre7/bin;C:/Program Files/Java/jre7/lib/i386;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\system32\WindowsPowerShell\v1.0;C:\Program Files\ManageSoft\Common;C:\Program Files\Java\jdk1.7.0_04\bin;C:\Program Files\Java\apache-ant-1.8.2\bin;C:\Rahul\Programs\SysInternals;C:\Program Files\PostgreSQL\9.1\bin;C:\Program Files\Java\Maven\bin;C:\Program Files\Git\bin;;C:\Program Files\Java\Eclipse;;., java.vendor.url=http://java.oracle.com/, env.USERDNSDOMAIN=UDS.ANU.EDU.AU, env.PSMODULEPATH=C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules\, env.CLASSWORLDS_LAUNCHER=org.codehaus.plexus.classworlds.launcher.Launcher, env.MAVEN_CMD_LINE_ARGS=test -X -Dtest=ZipBagWriterTest#testOverwrite, java.vm.vendor=Oracle Corporation, maven.home=C:\Program Files\Java\Maven\bin\.., java.runtime.name=Java(TM) SE Runtime Environment, sun.java.command=org.codehaus.plexus.classworlds.launcher.Launcher test -X -Dtest=ZipBagWriterTest#testOverwrite, java.class.path=C:\Program Files\Java\Maven\bin\..\boot\plexus-classworlds-2.4.jar, maven.version=3.0.4, env.MAVEN_JAVA_EXE="C:\Program Files\Java\jdk1.7.0_04\bin\java.exe", java.vm.specification.name=Java Virtual Machine Specification, env.LOGONSERVER=\\UDSDC03, java.vm.specification.version=1.7, env.PROCESSOR_ARCHITECTURE=x86, sun.cpu.endian=little, sun.os.patch.level=Service Pack 3, env.HOME=C:\Documents and Settings\u4465201, env.ANT_HOME=C:\Program Files\Java\apache-ant-1.8.2, env.PROCESSOR_REVISION=0f0b, java.io.tmpdir=C:\DOCUME~1\u4465201\LOCALS~1\Temp\, env.VBOX_INSTALL_PATH=C:\Program Files\Oracle\VirtualBox\, java.vendor.url.bug=http://bugreport.sun.com/bugreport/, env.COMSPEC=C:\WINDOWS\system32\cmd.exe, os.arch=x86, java.awt.graphicsenv=sun.awt.Win32GraphicsEnvironment, java.ext.dirs=C:\Program Files\Java\jdk1.7.0_04\jre\lib\ext;C:\WINDOWS\Sun\Java\lib\ext, user.dir=C:\Rahul\Temp\bagit-4.3, line.separator=
+, env.CLASSWORLDS_JAR="C:\Program Files\Java\Maven\bin\..\boot\plexus-classworlds-2.4.jar", java.vm.name=Java HotSpot(TM) Client VM, env.PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.PSC1, env.ERROR_CODE=0, env.USERNAME=u4465201, file.encoding=Cp1252, env.USERDOMAIN=UDS, env.FEDORA_HOME=C:\Program Files\Java\Fedora, java.specification.version=1.7, env.=C:=C:\Rahul\Temp\bagit-4.3, env.PROCESSOR_LEVEL=6}
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[DEBUG] resource with targetPath null
+directory C:\Rahul\Temp\bagit-4.3\src\test\resources
+excludes []
+includes []
+[DEBUG] ignoreDelta true
+[INFO] Copying 151 resources
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_93\bag\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_93\bag\bagit.txt
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_93\bag\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_93\bag\data\dir1\test3.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_93\bag\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_93\bag\data\dir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_93\bag\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_93\bag\data\dir2\test4.txt
+[DEBUG] file test1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_93\bag\data\test1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_93\bag\data\test1.txt
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_93\bag\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_93\bag\data\test2.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_93\bag\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_93\bag\manifest-md5.txt
+[DEBUG] file package-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_93\bag\package-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_93\bag\package-info.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_93\bag\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_93\bag\tagmanifest-md5.txt
+[DEBUG] file bag.zip has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_93\bag.zip to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_93\bag.zip
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_94\bag\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_94\bag\bagit.txt
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_94\bag\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_94\bag\data\dir1\test3.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_94\bag\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_94\bag\data\dir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_94\bag\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_94\bag\data\dir2\test4.txt
+[DEBUG] file test1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_94\bag\data\test1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_94\bag\data\test1.txt
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_94\bag\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_94\bag\data\test2.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_94\bag\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_94\bag\manifest-md5.txt
+[DEBUG] file package-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_94\bag\package-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_94\bag\package-info.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_94\bag\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_94\bag\tagmanifest-md5.txt
+[DEBUG] file bag.zip has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_94\bag.zip to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_94\bag.zip
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_95\bag\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_95\bag\bagit.txt
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_95\bag\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_95\bag\data\dir1\test3.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_95\bag\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_95\bag\data\dir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_95\bag\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_95\bag\data\dir2\test4.txt
+[DEBUG] file test1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_95\bag\data\test1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_95\bag\data\test1.txt
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_95\bag\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_95\bag\data\test2.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_95\bag\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_95\bag\manifest-md5.txt
+[DEBUG] file package-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_95\bag\package-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_95\bag\package-info.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_95\bag\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_95\bag\tagmanifest-md5.txt
+[DEBUG] file bag.zip has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_95\bag.zip to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_95\bag.zip
+[DEBUG] file bag-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag\bag-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag\bag-info.txt
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag\bagit.txt
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag\data\dir1\test3.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag\data\dir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag\data\dir2\test4.txt
+[DEBUG] file test1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag\data\test1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag\data\test1.txt
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag\data\test2.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag\manifest-md5.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag\tagmanifest-md5.txt
+[DEBUG] file bag-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\bag-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\bag-info.txt
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\bagit.txt
+[DEBUG] file bag-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\data\bag\bag-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\data\bag\bag-info.txt
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\data\bag\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\data\bag\bagit.txt
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\data\bag\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\data\bag\data\dir1\test3.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\data\bag\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\data\bag\data\dir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\data\bag\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\data\bag\data\dir2\test4.txt
+[DEBUG] file test1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\data\bag\data\test1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\data\bag\data\test1.txt
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\data\bag\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\data\bag\data\test2.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\data\bag\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\data\bag\manifest-md5.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\data\bag\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\data\bag\tagmanifest-md5.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\manifest-md5.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag\tagmanifest-md5.txt
+[DEBUG] file bag-in-a-bag.zip has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-in-a-bag.zip to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-in-a-bag.zip
+[DEBUG] file bag-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\bag-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\bag-info.txt
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\bagit.txt
+[DEBUG] file test3.html has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\data\dir1\test3.html to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\data\dir1\test3.html
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\data\dir1\test3.txt
+[DEBUG] file test3.xml has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\data\dir1\test3.xml to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\data\dir1\test3.xml
+[DEBUG] file test5.html has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\data\dir2\dir3\test5.html to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\data\dir2\dir3\test5.html
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\data\dir2\dir3\test5.txt
+[DEBUG] file test5.xml has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\data\dir2\dir3\test5.xml to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\data\dir2\dir3\test5.xml
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\data\dir2\test4.txt
+[DEBUG] file test4.xml has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\data\dir2\test4.xml to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\data\dir2\test4.xml
+[DEBUG] file test1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\data\test1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\data\test1.txt
+[DEBUG] file test1.xml has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\data\test1.xml to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\data\test1.xml
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\data\test2.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\manifest-md5.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-split\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-split\tagmanifest-md5.txt
+[DEBUG] file bag-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-encoded-names\bag-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-encoded-names\bag-info.txt
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-encoded-names\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-encoded-names\bagit.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-encoded-names\data\%7Edir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-encoded-names\data\%7Edir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-encoded-names\data\%7Edir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-encoded-names\data\%7Edir2\test4.txt
+[DEBUG] file %7Etest1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-encoded-names\data\%7Etest1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-encoded-names\data\%7Etest1.txt
+[DEBUG] file %test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-encoded-names\data\%test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-encoded-names\data\%test2.txt
+[DEBUG] file ~test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-encoded-names\data\dir1\~test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-encoded-names\data\dir1\~test3.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-encoded-names\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-encoded-names\manifest-md5.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-encoded-names\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-encoded-names\tagmanifest-md5.txt
+[DEBUG] file bag-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-escapable-characters\bag-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-escapable-characters\bag-info.txt
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-escapable-characters\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-escapable-characters\bagit.txt
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-escapable-characters\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-escapable-characters\data\dir1\test3.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-escapable-characters\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-escapable-characters\data\dir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-escapable-characters\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-escapable-characters\data\dir2\test4.txt
+[DEBUG] file test file with spaces.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-escapable-characters\data\test file with spaces.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-escapable-characters\data\test file with spaces.txt
+[DEBUG] file test1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-escapable-characters\data\test1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-escapable-characters\data\test1.txt
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-escapable-characters\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-escapable-characters\data\test2.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-escapable-characters\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-escapable-characters\manifest-md5.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-escapable-characters\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-escapable-characters\tagmanifest-md5.txt
+[DEBUG] file bag-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-leading-dot-slash-in-manifest\bag-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-leading-dot-slash-in-manifest\bag-info.txt
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-leading-dot-slash-in-manifest\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-leading-dot-slash-in-manifest\bagit.txt
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-leading-dot-slash-in-manifest\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-leading-dot-slash-in-manifest\data\dir1\test3.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-leading-dot-slash-in-manifest\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-leading-dot-slash-in-manifest\data\dir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-leading-dot-slash-in-manifest\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-leading-dot-slash-in-manifest\data\dir2\test4.txt
+[DEBUG] file test1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-leading-dot-slash-in-manifest\data\test1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-leading-dot-slash-in-manifest\data\test1.txt
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-leading-dot-slash-in-manifest\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-leading-dot-slash-in-manifest\data\test2.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-leading-dot-slash-in-manifest\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-leading-dot-slash-in-manifest\manifest-md5.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-leading-dot-slash-in-manifest\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-leading-dot-slash-in-manifest\tagmanifest-md5.txt
+[DEBUG] file bag-with-leading-dot-slash-in-manifest.zip has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-leading-dot-slash-in-manifest.zip to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-leading-dot-slash-in-manifest.zip
+[DEBUG] file bag-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-space\bag-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-space\bag-info.txt
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-space\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-space\bagit.txt
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-space\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-space\data\dir1\test3.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-space\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-space\data\dir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-space\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-space\data\dir2\test4.txt
+[DEBUG] file test 1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-space\data\test 1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-space\data\test 1.txt
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-space\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-space\data\test2.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-space\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-space\manifest-md5.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-space\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-space\tagmanifest-md5.txt
+[DEBUG] file bag-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-tagfiles-in-payload-manifest\bag-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-tagfiles-in-payload-manifest\bag-info.txt
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-tagfiles-in-payload-manifest\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-tagfiles-in-payload-manifest\bagit.txt
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-tagfiles-in-payload-manifest\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-tagfiles-in-payload-manifest\data\dir1\test3.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-tagfiles-in-payload-manifest\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-tagfiles-in-payload-manifest\data\dir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-tagfiles-in-payload-manifest\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-tagfiles-in-payload-manifest\data\dir2\test4.txt
+[DEBUG] file test1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-tagfiles-in-payload-manifest\data\test1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-tagfiles-in-payload-manifest\data\test1.txt
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-tagfiles-in-payload-manifest\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-tagfiles-in-payload-manifest\data\test2.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-tagfiles-in-payload-manifest\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-tagfiles-in-payload-manifest\manifest-md5.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-tagfiles-in-payload-manifest\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-tagfiles-in-payload-manifest\tagmanifest-md5.txt
+[DEBUG] file bag-with-tagfiles-in-payload-manifest.zip has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag-with-tagfiles-in-payload-manifest.zip to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag-with-tagfiles-in-payload-manifest.zip
+[DEBUG] file bag.zip has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\bag.zip to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\bag.zip
+[DEBUG] file bag-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\holey-bag\bag-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\holey-bag\bag-info.txt
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\holey-bag\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\holey-bag\bagit.txt
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\holey-bag\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\holey-bag\data\dir1\test3.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\holey-bag\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\holey-bag\data\dir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\holey-bag\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\holey-bag\data\dir2\test4.txt
+[DEBUG] file test 1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\holey-bag\data\test 1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\holey-bag\data\test 1.txt
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\holey-bag\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\holey-bag\data\test2.txt
+[DEBUG] file fetch.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\holey-bag\fetch.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\holey-bag\fetch.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\holey-bag\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\holey-bag\manifest-md5.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_96\holey-bag\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_96\holey-bag\tagmanifest-md5.txt
+[DEBUG] file tag1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_97\bag\addl_tags\tag1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_97\bag\addl_tags\tag1.txt
+[DEBUG] file bag-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_97\bag\bag-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_97\bag\bag-info.txt
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_97\bag\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_97\bag\bagit.txt
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_97\bag\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_97\bag\data\dir1\test3.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_97\bag\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_97\bag\data\dir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_97\bag\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_97\bag\data\dir2\test4.txt
+[DEBUG] file test1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_97\bag\data\test1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_97\bag\data\test1.txt
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_97\bag\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_97\bag\data\test2.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_97\bag\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_97\bag\manifest-md5.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_97\bag\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_97\bag\tagmanifest-md5.txt
+[DEBUG] file bag.zip has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\bags\v0_97\bag.zip to C:\Rahul\Temp\bagit-4.3\target\test-classes\bags\v0_97\bag.zip
+[DEBUG] file bagit.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\file_systems\test\bagit.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\file_systems\test\bagit.txt
+[DEBUG] file test3.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\file_systems\test\data\dir1\test3.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\file_systems\test\data\dir1\test3.txt
+[DEBUG] file test5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\file_systems\test\data\dir2\dir3\test5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\file_systems\test\data\dir2\dir3\test5.txt
+[DEBUG] file test4.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\file_systems\test\data\dir2\test4.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\file_systems\test\data\dir2\test4.txt
+[DEBUG] file test1.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\file_systems\test\data\test1.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\file_systems\test\data\test1.txt
+[DEBUG] file test2.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\file_systems\test\data\test2.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\file_systems\test\data\test2.txt
+[DEBUG] file manifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\file_systems\test\manifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\file_systems\test\manifest-md5.txt
+[DEBUG] file package-info.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\file_systems\test\package-info.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\file_systems\test\package-info.txt
+[DEBUG] file tagmanifest-md5.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\file_systems\test\tagmanifest-md5.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\file_systems\test\tagmanifest-md5.txt
+[DEBUG] file test.zip has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\file_systems\test.zip to C:\Rahul\Temp\bagit-4.3\target\test-classes\file_systems\test.zip
+[DEBUG] file log4j.properties has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\log4j.properties to C:\Rahul\Temp\bagit-4.3\target\test-classes\log4j.properties
+[DEBUG] file test6.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\srcFiles\test6.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\srcFiles\test6.txt
+[DEBUG] file test7.txt has a filtered file extension
+[DEBUG] copy C:\Rahul\Temp\bagit-4.3\src\test\resources\srcFiles\test7.txt to C:\Rahul\Temp\bagit-4.3\target\test-classes\srcFiles\test7.txt
+[DEBUG] no use filter components
+[INFO] 
+[INFO] --- maven-compiler-plugin:2.3.2:testCompile (default-testCompile) @ bagit ---
+[DEBUG] Configuring mojo org.apache.maven.plugins:maven-compiler-plugin:2.3.2:testCompile from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-compiler-plugin:2.3.2, parent: sun.misc.Launcher$AppClassLoader@9fef6f]
+[DEBUG] Configuring mojo 'org.apache.maven.plugins:maven-compiler-plugin:2.3.2:testCompile' with basic configurator -->
+[DEBUG]   (f) basedir = C:\Rahul\Temp\bagit-4.3
+[DEBUG]   (f) buildDirectory = C:\Rahul\Temp\bagit-4.3\target
+[DEBUG]   (f) classpathElements = [C:\Rahul\Temp\bagit-4.3\target\test-classes, C:\Rahul\Temp\bagit-4.3\target\classes, C:\Program Files\Java\Maven\repo\org\apache\commons\commons-compress\1.3\commons-compress-1.3.jar, C:\Program Files\Java\Maven\repo\commons-logging\commons-logging-api\1.1\commons-logging-api-1.1.jar, C:\Program Files\Java\Maven\repo\commons-logging\commons-logging\1.1.1\commons-logging-1.1.1.jar, C:\Program Files\Java\Maven\repo\commons-io\commons-io\2.0.1\commons-io-2.0.1.jar, C:\Program Files\Java\Maven\repo\commons-codec\commons-codec\1.3\commons-codec-1.3.jar, C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpclient\4.1.2\httpclient-4.1.2.jar, C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpcore\4.1.2\httpcore-4.1.2.jar, C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpmime\4.1.2\httpmime-4.1.2.jar, C:\Program Files\Java\Maven\repo\com\martiansoftware\jsap\2.1\jsap-2.1.jar, C:\Program Files\Java\Maven\repo\dom4j\dom4j\1.6.1\dom4j-1.6.1.jar, C:\Program Files\Java\Maven\repo\xml-apis\xml-apis\1.0.b2\xml-apis-1.0.b2.jar, C:\Program Files\Java\Maven\repo\jaxen\jaxen\1.1.1\jaxen-1.1.1.jar, C:\Program Files\Java\Maven\repo\jdom\jdom\1.0\jdom-1.0.jar, C:\Program Files\Java\Maven\repo\xerces\xercesImpl\2.6.2\xercesImpl-2.6.2.jar, C:\Program Files\Java\Maven\repo\classworlds\classworlds\1.1\classworlds-1.1.jar, C:\Program Files\Java\Maven\repo\log4j\log4j\1.2.14\log4j-1.2.14.jar, C:\Program Files\Java\Maven\repo\junit\junit\4.4\junit-4.4.jar, C:\Program Files\Java\Maven\repo\org\mortbay\jetty\jetty\6.1.15\jetty-6.1.15.jar, C:\Program Files\Java\Maven\repo\org\mortbay\jetty\jetty-util\6.1.15\jetty-util-6.1.15.jar, C:\Program Files\Java\Maven\repo\org\mortbay\jetty\servlet-api\2.5-20081211\servlet-api-2.5-20081211.jar, C:\Program Files\Java\Maven\repo\org\jmock\jmock-junit4\2.5.1\jmock-junit4-2.5.1.jar, C:\Program Files\Java\Maven\repo\org\jmock\jmock\2.5.1\jmock-2.5.1.jar, C:\Program Files\Java\Maven\repo\org\hamcrest\hamcrest-core\1.1\hamcrest-core-1.1.jar, C:\Program Files\Java\Maven\repo\org\hamcrest\hamcrest-library\1.1\hamcrest-library-1.1.jar, C:\Program Files\Java\Maven\repo\junit\junit-dep\4.4\junit-dep-4.4.jar, C:\Program Files\Java\Maven\repo\commons-net\commons-net\2.0\commons-net-2.0.jar, C:\Program Files\Java\Maven\repo\org\apache\commons\commons-exec\1.0\commons-exec-1.0.jar]
+[DEBUG]   (f) compileSourceRoots = [C:\Rahul\Temp\bagit-4.3\src\test\java]
+[DEBUG]   (f) compilerId = javac
+[DEBUG]   (f) debug = true
+[DEBUG]   (f) encoding = UTF-8
+[DEBUG]   (f) failOnError = true
+[DEBUG]   (f) fork = false
+[DEBUG]   (f) generatedTestSourcesDirectory = C:\Rahul\Temp\bagit-4.3\target\generated-sources\test-annotations
+[DEBUG]   (f) optimize = false
+[DEBUG]   (f) outputDirectory = C:\Rahul\Temp\bagit-4.3\target\test-classes
+[DEBUG]   (f) outputFileName = bagit-4.3
+[DEBUG]   (f) session = org.apache.maven.execution.MavenSession@9ed26e
+[DEBUG]   (f) showDeprecation = false
+[DEBUG]   (f) showWarnings = false
+[DEBUG]   (f) source = 1.6
+[DEBUG]   (f) staleMillis = 0
+[DEBUG]   (f) target = 1.6
+[DEBUG]   (f) verbose = false
+[DEBUG] -- end configuration --
+[DEBUG] Using compiler 'javac'.
+[DEBUG] Source directories: [C:\Rahul\Temp\bagit-4.3\src\test\java]
+[DEBUG] Classpath: [C:\Rahul\Temp\bagit-4.3\target\test-classes
+ C:\Rahul\Temp\bagit-4.3\target\classes
+ C:\Program Files\Java\Maven\repo\org\apache\commons\commons-compress\1.3\commons-compress-1.3.jar
+ C:\Program Files\Java\Maven\repo\commons-logging\commons-logging-api\1.1\commons-logging-api-1.1.jar
+ C:\Program Files\Java\Maven\repo\commons-logging\commons-logging\1.1.1\commons-logging-1.1.1.jar
+ C:\Program Files\Java\Maven\repo\commons-io\commons-io\2.0.1\commons-io-2.0.1.jar
+ C:\Program Files\Java\Maven\repo\commons-codec\commons-codec\1.3\commons-codec-1.3.jar
+ C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpclient\4.1.2\httpclient-4.1.2.jar
+ C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpcore\4.1.2\httpcore-4.1.2.jar
+ C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpmime\4.1.2\httpmime-4.1.2.jar
+ C:\Program Files\Java\Maven\repo\com\martiansoftware\jsap\2.1\jsap-2.1.jar
+ C:\Program Files\Java\Maven\repo\dom4j\dom4j\1.6.1\dom4j-1.6.1.jar
+ C:\Program Files\Java\Maven\repo\xml-apis\xml-apis\1.0.b2\xml-apis-1.0.b2.jar
+ C:\Program Files\Java\Maven\repo\jaxen\jaxen\1.1.1\jaxen-1.1.1.jar
+ C:\Program Files\Java\Maven\repo\jdom\jdom\1.0\jdom-1.0.jar
+ C:\Program Files\Java\Maven\repo\xerces\xercesImpl\2.6.2\xercesImpl-2.6.2.jar
+ C:\Program Files\Java\Maven\repo\classworlds\classworlds\1.1\classworlds-1.1.jar
+ C:\Program Files\Java\Maven\repo\log4j\log4j\1.2.14\log4j-1.2.14.jar
+ C:\Program Files\Java\Maven\repo\junit\junit\4.4\junit-4.4.jar
+ C:\Program Files\Java\Maven\repo\org\mortbay\jetty\jetty\6.1.15\jetty-6.1.15.jar
+ C:\Program Files\Java\Maven\repo\org\mortbay\jetty\jetty-util\6.1.15\jetty-util-6.1.15.jar
+ C:\Program Files\Java\Maven\repo\org\mortbay\jetty\servlet-api\2.5-20081211\servlet-api-2.5-20081211.jar
+ C:\Program Files\Java\Maven\repo\org\jmock\jmock-junit4\2.5.1\jmock-junit4-2.5.1.jar
+ C:\Program Files\Java\Maven\repo\org\jmock\jmock\2.5.1\jmock-2.5.1.jar
+ C:\Program Files\Java\Maven\repo\org\hamcrest\hamcrest-core\1.1\hamcrest-core-1.1.jar
+ C:\Program Files\Java\Maven\repo\org\hamcrest\hamcrest-library\1.1\hamcrest-library-1.1.jar
+ C:\Program Files\Java\Maven\repo\junit\junit-dep\4.4\junit-dep-4.4.jar
+ C:\Program Files\Java\Maven\repo\commons-net\commons-net\2.0\commons-net-2.0.jar
+ C:\Program Files\Java\Maven\repo\org\apache\commons\commons-exec\1.0\commons-exec-1.0.jar]
+[DEBUG] Output directory: C:\Rahul\Temp\bagit-4.3\target\test-classes
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.10:test (default-test) @ bagit ---
+[DEBUG] org.apache.maven.plugins:maven-surefire-plugin:jar:2.10:
+[DEBUG]    org.apache.maven:maven-plugin-api:jar:2.0.9:compile
+[DEBUG]    org.apache.maven.surefire:surefire-booter:jar:2.10:compile
+[DEBUG]       org.apache.maven.surefire:surefire-api:jar:2.10:compile
+[DEBUG]    org.apache.maven.surefire:maven-surefire-common:jar:2.10:compile
+[DEBUG]       org.apache.maven.shared:maven-common-artifact-filters:jar:1.3:compile
+[DEBUG]    org.codehaus.plexus:plexus-utils:jar:2.1:compile
+[DEBUG]    org.apache.maven:maven-artifact:jar:2.0.9:compile
+[DEBUG]    org.apache.maven:maven-project:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-settings:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-profile:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-model:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-artifact-manager:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-plugin-registry:jar:2.0.9:compile
+[DEBUG]       org.codehaus.plexus:plexus-container-default:jar:1.0-alpha-9-stable-1:compile
+[DEBUG]          junit:junit:jar:3.8.1:test (scope managed from compile)
+[DEBUG]    org.apache.maven:maven-core:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.9:compile
+[DEBUG]       org.apache.maven.reporting:maven-reporting-api:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-repository-metadata:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-error-diagnostics:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-plugin-descriptor:jar:2.0.9:compile
+[DEBUG]       org.apache.maven:maven-monitor:jar:2.0.9:compile
+[DEBUG]       classworlds:classworlds:jar:1.1:compile
+[DEBUG]    org.apache.maven:maven-toolchain:jar:2.0.9:compile
+[DEBUG] Created new class realm plugin>org.apache.maven.plugins:maven-surefire-plugin:2.10
+[DEBUG] Importing foreign packages into class realm plugin>org.apache.maven.plugins:maven-surefire-plugin:2.10
+[DEBUG]   Imported:  < project>gov.loc:bagit:4.3
+[DEBUG] Populating class realm plugin>org.apache.maven.plugins:maven-surefire-plugin:2.10
+[DEBUG]   Included: org.apache.maven.plugins:maven-surefire-plugin:jar:2.10
+[DEBUG]   Included: org.apache.maven.surefire:surefire-booter:jar:2.10
+[DEBUG]   Included: org.apache.maven.surefire:surefire-api:jar:2.10
+[DEBUG]   Included: org.apache.maven.surefire:maven-surefire-common:jar:2.10
+[DEBUG]   Included: org.apache.maven.shared:maven-common-artifact-filters:jar:1.3
+[DEBUG]   Included: org.codehaus.plexus:plexus-utils:jar:2.1
+[DEBUG]   Included: org.apache.maven.reporting:maven-reporting-api:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-api:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-artifact:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-project:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-settings:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-profile:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-model:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-artifact-manager:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-registry:jar:2.0.9
+[DEBUG]   Excluded: org.codehaus.plexus:plexus-container-default:jar:1.0-alpha-9-stable-1
+[DEBUG]   Excluded: junit:junit:jar:3.8.1
+[DEBUG]   Excluded: org.apache.maven:maven-core:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-repository-metadata:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-error-diagnostics:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-plugin-descriptor:jar:2.0.9
+[DEBUG]   Excluded: org.apache.maven:maven-monitor:jar:2.0.9
+[DEBUG]   Excluded: classworlds:classworlds:jar:1.1
+[DEBUG]   Excluded: org.apache.maven:maven-toolchain:jar:2.0.9
+[DEBUG] Configuring mojo org.apache.maven.plugins:maven-surefire-plugin:2.10:test from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-surefire-plugin:2.10, parent: sun.misc.Launcher$AppClassLoader@9fef6f]
+[DEBUG] Configuring mojo 'org.apache.maven.plugins:maven-surefire-plugin:2.10:test' with basic configurator -->
+[DEBUG]   (s) basedir = C:\Rahul\Temp\bagit-4.3
+[DEBUG]   (s) childDelegation = false
+[DEBUG]   (s) classesDirectory = C:\Rahul\Temp\bagit-4.3\target\classes
+[DEBUG]   (s) disableXmlReport = true
+[DEBUG]   (s) enableAssertions = true
+[DEBUG]   (s) excludes = [**/Abstract*.java]
+[DEBUG]   (s) forkMode = once
+[DEBUG]   (s) includes = [**/*Test.java]
+[DEBUG]   (s) junitArtifactName = junit:junit
+[DEBUG]   (s) localRepository =        id: local
+      url: file:///C:/Program%20Files/Java/Maven/repo/
+   layout: none
+
+[DEBUG]   (f) parallelMavenExecution = false
+[DEBUG]   (s) perCoreThreadCount = true
+[DEBUG]   (s) pluginArtifactMap = {org.apache.maven.plugins:maven-surefire-plugin=org.apache.maven.plugins:maven-surefire-plugin:maven-plugin:2.10:, org.apache.maven.surefire:surefire-booter=org.apache.maven.surefire:surefire-booter:jar:2.10:compile, org.apache.maven.surefire:surefire-api=org.apache.maven.surefire:surefire-api:jar:2.10:compile, org.apache.maven.surefire:maven-surefire-common=org.apache.maven.surefire:maven-surefire-common:jar:2.10:compile, org.apache.maven.shared:maven-common-artifact-filters=org.apache.maven.shared:maven-common-artifact-filters:jar:1.3:compile, org.codehaus.plexus:plexus-utils=org.codehaus.plexus:plexus-utils:jar:2.1:compile, org.apache.maven.reporting:maven-reporting-api=org.apache.maven.reporting:maven-reporting-api:jar:2.0.9:compile}
+[DEBUG]   (s) printSummary = true
+[DEBUG]   (s) project = MavenProject: gov.loc:bagit:4.3 @ C:\Rahul\Temp\bagit-4.3\pom.xml
+[DEBUG]   (s) projectArtifactMap = {org.apache.commons:commons-compress=org.apache.commons:commons-compress:jar:1.3:compile, commons-logging:commons-logging-api=commons-logging:commons-logging-api:jar:1.1:compile, commons-logging:commons-logging=commons-logging:commons-logging:jar:1.1.1:compile, commons-io:commons-io=commons-io:commons-io:jar:2.0.1:compile, commons-codec:commons-codec=commons-codec:commons-codec:jar:1.3:compile, org.apache.httpcomponents:httpclient=org.apache.httpcomponents:httpclient:jar:4.1.2:compile, org.apache.httpcomponents:httpcore=org.apache.httpcomponents:httpcore:jar:4.1.2:compile, org.apache.httpcomponents:httpmime=org.apache.httpcomponents:httpmime:jar:4.1.2:compile, com.martiansoftware:jsap=com.martiansoftware:jsap:jar:2.1:compile, dom4j:dom4j=dom4j:dom4j:jar:1.6.1:compile, xml-apis:xml-apis=xml-apis:xml-apis:jar:1.0.b2:compile, jaxen:jaxen=jaxen:jaxen:jar:1.1.1:runtime, jdom:jdom=jdom:jdom:jar:1.0:runtime, xerces:xercesImpl=xerces:xercesImpl:jar:2.6.2:runtime, classworlds:classworlds=classworlds:classworlds:jar:1.1:runtime, log4j:log4j=log4j:log4j:jar:1.2.14:runtime, junit:junit=junit:junit:jar:4.4:test, org.mortbay.jetty:jetty=org.mortbay.jetty:jetty:jar:6.1.15:test, org.mortbay.jetty:jetty-util=org.mortbay.jetty:jetty-util:jar:6.1.15:test, org.mortbay.jetty:servlet-api=org.mortbay.jetty:servlet-api:jar:2.5-20081211:test, org.jmock:jmock-junit4=org.jmock:jmock-junit4:jar:2.5.1:test, org.jmock:jmock=org.jmock:jmock:jar:2.5.1:test, org.hamcrest:hamcrest-core=org.hamcrest:hamcrest-core:jar:1.1:test, org.hamcrest:hamcrest-library=org.hamcrest:hamcrest-library:jar:1.1:test, junit:junit-dep=junit:junit-dep:jar:4.4:test, commons-net:commons-net=commons-net:commons-net:jar:2.0:compile, org.apache.commons:commons-exec=org.apache.commons:commons-exec:jar:1.0:compile}
+[DEBUG]   (s) redirectTestOutputToFile = false
+[DEBUG]   (s) remoteRepositories = [       id: central
+      url: http://repo.maven.apache.org/maven2
+   layout: default
+snapshots: [enabled => false, update => daily]
+ releases: [enabled => true, update => never]
+]
+[DEBUG]   (s) reportFormat = brief
+[DEBUG]   (s) reportsDirectory = C:\Rahul\Temp\bagit-4.3\target\surefire-reports
+[DEBUG]   (s) runOrder = filesystem
+[DEBUG]   (s) session = org.apache.maven.execution.MavenSession@9ed26e
+[DEBUG]   (s) skip = false
+[DEBUG]   (s) skipTests = false
+[DEBUG]   (s) test = ZipBagWriterTest#testOverwrite
+[DEBUG]   (s) testClassesDirectory = C:\Rahul\Temp\bagit-4.3\target\test-classes
+[DEBUG]   (s) testFailureIgnore = false
+[DEBUG]   (s) testNGArtifactName = org.testng:testng
+[DEBUG]   (s) testSourceDirectory = C:\Rahul\Temp\bagit-4.3\src\test\java
+[DEBUG]   (s) trimStackTrace = true
+[DEBUG]   (s) useFile = true
+[DEBUG]   (s) useManifestOnlyJar = true
+[DEBUG]   (s) useSystemClassLoader = true
+[DEBUG]   (s) useUnlimitedThreads = false
+[DEBUG]   (s) workingDirectory = C:\Rahul\Temp\bagit-4.3
+[DEBUG] -- end configuration --
+[INFO] Surefire report directory: C:\Rahul\Temp\bagit-4.3\target\surefire-reports
+[DEBUG] dummy:dummy:jar:1.0 (selected for null)
+[DEBUG]   org.apache.maven.surefire:surefire-booter:jar:2.10:compile (selected for compile)
+[DEBUG]     org.apache.maven.surefire:surefire-api:jar:2.10:compile (selected for compile)
+[DEBUG] Adding to surefire booter test classpath: C:\Program Files\Java\Maven\repo\org\apache\maven\surefire\surefire-booter\2.10\surefire-booter-2.10.jar Scope: compile
+[DEBUG] Adding to surefire booter test classpath: C:\Program Files\Java\Maven\repo\org\apache\maven\surefire\surefire-api\2.10\surefire-api-2.10.jar Scope: compile
+[DEBUG] Setting system property [user.dir]=[C:\Rahul\Temp\bagit-4.3]
+[DEBUG] Setting system property [localRepository]=[C:\Program Files\Java\Maven\repo]
+[DEBUG] Setting system property [basedir]=[C:\Rahul\Temp\bagit-4.3]
+[DEBUG] Setting system property [test]=[ZipBagWriterTest#testOverwrite]
+[DEBUG] Using JVM: C:\Program Files\Java\jdk1.7.0_04\jre\bin\java
+[DEBUG] dummy:dummy:jar:1.0 (selected for null)
+[DEBUG]   org.apache.maven.surefire:surefire-junit4:jar:2.10:test (selected for test)
+[DEBUG]     org.apache.maven.surefire:surefire-api:jar:2.10:test (selected for test)
+[DEBUG] Adding to surefire test classpath: C:\Program Files\Java\Maven\repo\org\apache\maven\surefire\surefire-junit4\2.10\surefire-junit4-2.10.jar Scope: test
+[DEBUG] Adding to surefire test classpath: C:\Program Files\Java\Maven\repo\org\apache\maven\surefire\surefire-api\2.10\surefire-api-2.10.jar Scope: test
+[DEBUG] test classpath classpath:
+[DEBUG]   C:\Rahul\Temp\bagit-4.3\target\test-classes
+[DEBUG]   C:\Rahul\Temp\bagit-4.3\target\classes
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\apache\commons\commons-compress\1.3\commons-compress-1.3.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\commons-logging\commons-logging-api\1.1\commons-logging-api-1.1.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\commons-logging\commons-logging\1.1.1\commons-logging-1.1.1.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\commons-io\commons-io\2.0.1\commons-io-2.0.1.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\commons-codec\commons-codec\1.3\commons-codec-1.3.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpclient\4.1.2\httpclient-4.1.2.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpcore\4.1.2\httpcore-4.1.2.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\apache\httpcomponents\httpmime\4.1.2\httpmime-4.1.2.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\com\martiansoftware\jsap\2.1\jsap-2.1.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\dom4j\dom4j\1.6.1\dom4j-1.6.1.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\xml-apis\xml-apis\1.0.b2\xml-apis-1.0.b2.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\jaxen\jaxen\1.1.1\jaxen-1.1.1.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\jdom\jdom\1.0\jdom-1.0.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\xerces\xercesImpl\2.6.2\xercesImpl-2.6.2.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\classworlds\classworlds\1.1\classworlds-1.1.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\log4j\log4j\1.2.14\log4j-1.2.14.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\junit\junit\4.4\junit-4.4.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\mortbay\jetty\jetty\6.1.15\jetty-6.1.15.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\mortbay\jetty\jetty-util\6.1.15\jetty-util-6.1.15.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\mortbay\jetty\servlet-api\2.5-20081211\servlet-api-2.5-20081211.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\jmock\jmock-junit4\2.5.1\jmock-junit4-2.5.1.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\jmock\jmock\2.5.1\jmock-2.5.1.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\hamcrest\hamcrest-core\1.1\hamcrest-core-1.1.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\hamcrest\hamcrest-library\1.1\hamcrest-library-1.1.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\junit\junit-dep\4.4\junit-dep-4.4.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\commons-net\commons-net\2.0\commons-net-2.0.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\apache\commons\commons-exec\1.0\commons-exec-1.0.jar
+[DEBUG] provider classpath classpath:
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\apache\maven\surefire\surefire-junit4\2.10\surefire-junit4-2.10.jar
+[DEBUG]   C:\Program Files\Java\Maven\repo\org\apache\maven\surefire\surefire-api\2.10\surefire-api-2.10.jar
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Forking command line: cmd.exe /X /C ""C:\Program Files\Java\jdk1.7.0_04\jre\bin\java" -jar C:\Rahul\Temp\bagit-4.3\target\surefire\surefirebooter6035530339903222386.jar C:\Rahul\Temp\bagit-4.3\target\surefire\surefire7004048367980784107tmp C:\Rahul\Temp\bagit-4.3\target\surefire\surefire3875747640011849878tmp"
+Running gov.loc.repository.bagit.writer.impl.ZipBagWriterTest
+14:52:10,340 [main] INFO  ZipWriter : Writing bag
+14:52:10,449 [main] INFO  CompleteVerifierImpl : Completed verification that bag is complete.
+14:52:10,449 [main] INFO  CompleteVerifierImpl : Note that this a verification of completeness, not validity. A bag may be complete without being valid, though a valid bag must be complete.
+14:52:10,449 [main] INFO  CompleteVerifierImpl : Result of verification that complete: Result is true.
+14:52:10,449 [main] INFO  ValidVerifierImpl : Completed verification that bag is valid.
+14:52:10,449 [main] INFO  ValidVerifierImpl : Validity check: Result is true.
+14:52:10,465 [main] INFO  ZipWriter : Writing bag
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.858 sec <<< FAILURE!
+
+Results :
+
+Tests in error: 
+  testOverwrite(gov.loc.repository.bagit.writer.impl.ZipBagWriterTest): java.io.IOException: Unable to delete file: C:\Rahul\Temp\bagit-4.3\target\unit-test-data\bags\foo.zip
+
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 3.701s
+[INFO] Finished at: Wed Jun 20 14:52:10 EST 2012
+[INFO] Final Memory: 6M/15M
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.10:test (default-test) on project bagit: There are test failures.
+[ERROR] 
+[ERROR] Please refer to C:\Rahul\Temp\bagit-4.3\target\surefire-reports for the individual test results.
+[ERROR] -> [Help 1]
+org.apache.maven.lifecycle.LifecycleExecutionException: Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.10:test (default-test) on project bagit: There are test failures.
+
+Please refer to C:\Rahul\Temp\bagit-4.3\target\surefire-reports for the individual test results.
+	at org.apache.maven.lifecycle.internal.MojoExecutor.execute(MojoExecutor.java:213)
+	at org.apache.maven.lifecycle.internal.MojoExecutor.execute(MojoExecutor.java:153)
+	at org.apache.maven.lifecycle.internal.MojoExecutor.execute(MojoExecutor.java:145)
+	at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject(LifecycleModuleBuilder.java:84)
+	at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject(LifecycleModuleBuilder.java:59)
+	at org.apache.maven.lifecycle.internal.LifecycleStarter.singleThreadedBuild(LifecycleStarter.java:183)
+	at org.apache.maven.lifecycle.internal.LifecycleStarter.execute(LifecycleStarter.java:161)
+	at org.apache.maven.DefaultMaven.doExecute(DefaultMaven.java:320)
+	at org.apache.maven.DefaultMaven.execute(DefaultMaven.java:156)
+	at org.apache.maven.cli.MavenCli.execute(MavenCli.java:537)
+	at org.apache.maven.cli.MavenCli.doMain(MavenCli.java:196)
+	at org.apache.maven.cli.MavenCli.main(MavenCli.java:141)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:601)
+	at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced(Launcher.java:290)
+	at org.codehaus.plexus.classworlds.launcher.Launcher.launch(Launcher.java:230)
+	at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode(Launcher.java:409)
+	at org.codehaus.plexus.classworlds.launcher.Launcher.main(Launcher.java:352)
+Caused by: org.apache.maven.plugin.MojoFailureException: There are test failures.
+
+Please refer to C:\Rahul\Temp\bagit-4.3\target\surefire-reports for the individual test results.
+	at org.apache.maven.plugin.surefire.SurefireHelper.reportExecution(SurefireHelper.java:87)
+	at org.apache.maven.plugin.surefire.SurefirePlugin.writeSummary(SurefirePlugin.java:641)
+	at org.apache.maven.plugin.surefire.SurefirePlugin.handleSummary(SurefirePlugin.java:615)
+	at org.apache.maven.plugin.surefire.AbstractSurefireMojo.executeAfterPreconditionsChecked(AbstractSurefireMojo.java:137)
+	at org.apache.maven.plugin.surefire.AbstractSurefireMojo.execute(AbstractSurefireMojo.java:98)
+	at org.apache.maven.plugin.DefaultBuildPluginManager.executeMojo(DefaultBuildPluginManager.java:101)
+	at org.apache.maven.lifecycle.internal.MojoExecutor.execute(MojoExecutor.java:209)
+	... 19 more
+[ERROR] 
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
