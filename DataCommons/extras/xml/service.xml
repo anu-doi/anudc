@@ -14,6 +14,14 @@
 		<option label="Report" value="report"/>
 		<option label="Transform" value="transform"/>
 		<option label="Assemble" value="assemble"/>
+		<option label="OAI-PMH Harvest" value="harvest-oaipmh" />
+		<option label="Search service over HTTP" value="search-http" />
+		<option label="OpenSearch search" value="search-opensearch" />
+		<option label="SRU Search" value="search-sru" />
+		<option label="SRW Search" value="search-srw" />
+		<option label="z39.50 search" value="search-z3950" />
+		<option label="ATOM syndication" value="syndicate-atom" />
+		<option label="RSS feed" value="syndicate-rss" />
 	</item>
 	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required" tab="general">
 		<option value="" label="-No Value Selected-" />
@@ -29,6 +37,7 @@
 	<item fieldType="TextFieldMulti" label="Contact Phone Number" name="phone" saveType="multiple" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Contact Fax Number" name="fax" saveType="multiple" tab="contact"/>
 	<item fieldType="Combobox" label="Delivery Method" name="deliveryMethod" saveType="single" class="required">
+		<option value="" label="-No Value Selected-" />
 		<option label="Offline" value="offline"/>
 		<option label="Software" value="software"/>
 		<option label="Web Service" value="webservice"/>
