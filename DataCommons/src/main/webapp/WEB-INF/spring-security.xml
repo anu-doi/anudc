@@ -37,7 +37,7 @@
 	<security:ldap-server url="${ldap.uri}" manager-dn="" manager-password="" />
 	
 	<bean id="contextSource" class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
-		<constructor-arg value="ldaps://ldap.anu.edu.au:636" />
+		<constructor-arg value="${ldap.uri}" />
 	<!-- 	<property name="userDn" value="" /> -->
 		<property name="password" value="password" />
 	</bean>
