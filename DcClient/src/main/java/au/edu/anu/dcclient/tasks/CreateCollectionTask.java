@@ -37,23 +37,35 @@ public class CreateCollectionTask extends AbstractDcBagTask<String>
 	@Override
 	public String call() throws Exception
 	{
-		stopWatch.start();
-		String createdPid;
-		try
+		String createdPid = null;
+		
+		if (collInfo.getPid() == null)
 		{
-			WebResource webResource = client.resource(UriBuilder.fromUri(createUri).queryParam("layout", "def:display").queryParam("tmplt", "tmplt:1").build());
-			ClientResponse response = webResource.accept(MediaType.TEXT_PLAIN_TYPE).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-					.header("User-Agent", "BagIt Library Parallel Fetcher").post(ClientResponse.class, collInfo);
-			if (response.getClientResponseStatus() != Status.CREATED)
-				throw new Exception("Unable to create a collection. Server returned HTTP " + response.getStatus());
-			createdPid = response.getEntity(String.class);
-			LOGGER.info("Created object with pid: {}", createdPid);
+			// The parameter file doesn't contain a pid, create an object and store the pid of newly created object in parameter file.
+			stopWatch.start();
+			try
+			{
+				WebResource webResource = client.resource(UriBuilder.fromUri(createUri).queryParam("layout", "def:display").queryParam("tmplt", "tmplt:1").build());
+				ClientResponse response = webResource.accept(MediaType.TEXT_PLAIN_TYPE).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+						.header("User-Agent", "BagIt Library Parallel Fetcher").post(ClientResponse.class, collInfo);
+				if (response.getClientResponseStatus() != Status.CREATED)
+					throw new Exception("Unable to create a collection. Server returned HTTP " + response.getStatus());
+				createdPid = response.getEntity(String.class);
+				collInfo.setPid(createdPid);
+				LOGGER.info("Created object with pid: {}", createdPid);
+			}
+			finally
+			{
+				stopWatch.end();
+				LOGGER.info("Time - Create Collection Task: {}", stopWatch.getFriendlyElapsed());
+			}
 		}
-		finally
+		else
 		{
-			stopWatch.end();
-			LOGGER.info("Time - Create Collection Task: {}", stopWatch.getFriendlyElapsed());
+			// Sync the collection details.
+			// TODO Implement syncing.
 		}
+		
 
 		return createdPid;
 	}

@@ -24,6 +24,16 @@ public class StopWatch
 		LOGGER.debug(getFriendlyElapsed());
 	}
 	
+	public long getStartTimeInMs()
+	{
+		return startTimeInMs;
+	}
+
+	public long getEndTimeInMs()
+	{
+		return endTimeInMs;
+	}
+
 	public boolean hasEnded()
 	{
 		return endTimeInMs != -1;

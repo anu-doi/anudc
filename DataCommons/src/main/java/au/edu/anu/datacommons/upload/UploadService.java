@@ -54,6 +54,7 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -465,7 +466,7 @@ public class UploadService
 		DcBag uploadedDcBag = null;
 		File curPidBagFile = null;
 		AccessLogRecord accessRec = null;
-		File uploadedFile;
+		File uploadedFile = null;
 		try
 		{
 			uploadedFile = File.createTempFile("Rep", null, GlobalProps.getUploadDirAsFile());
@@ -516,6 +517,11 @@ public class UploadService
 		{
 			LOGGER.error("Unable to upload bag.", e);
 			resp = Response.serverError().entity(e.toString()).type(MediaType.TEXT_PLAIN).build();
+		}
+		finally
+		{
+			if (uploadedFile != null && uploadedFile.exists())
+				FileUtils.deleteQuietly(uploadedFile);
 		}
 
 		return resp;
