@@ -89,6 +89,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.12		11/07/2012	Genevieve Turner (GT)	Removed getPublishedPage function and updated getPage
  * 0.13		26/07/2012	Genevieve Turner (GT)	Updated to add visibility of review changes
  * 0.14		02/08/2012	Genevieve Turner (GT)	Updated to unescape html characters when saving
+ * 0.15		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
  * </pre>
  * 
  */
@@ -673,6 +674,7 @@ public class ViewTransform
 	 * 0.5		03/05/2012	Genevieve Turner (GT)	Updated so the fedora object is used to get the input stream
 	 * 0.6		14/05/2012	Genevieve Turner (GT)	Updated to retrieve the pid namespace from a global property
 	 * 0.10		20/06/2012	Genevieve Turner (GT)	Updated to perform additions to the audit object table
+	 * 0.15		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated
 	 * </pre>
 	 * 
 	 * @param tmplt The id of the template
@@ -776,6 +778,12 @@ public class ViewTransform
 			FedoraBroker.modifyDatastreamBySource(fedoraObject.getObject_id(), Constants.XML_SOURCE, "XML Source", sw.toString());
 			if(Util.isNotEmpty(dcSW.toString())) {
 				FedoraBroker.modifyDatastreamBySource(fedoraObject.getObject_id(), Constants.DC, "Dublin Core Record for this object", dcSW.toString());
+			}
+			if (form.containsKey("ownerGroup")) {
+				String group_id = form.get("ownerGroup").get(0);
+				fedoraObject.setGroup_id(new Long(group_id));
+				FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
+				fedoraObjectDAO.update(fedoraObject);
 			}
 			saveAuditModifyRow(fedoraObject);
 		}

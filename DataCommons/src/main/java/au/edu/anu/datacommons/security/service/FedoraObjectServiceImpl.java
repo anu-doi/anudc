@@ -87,6 +87,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.13		24/07/2012	Genevieve Turner (GT)	Moved the generating of a list of messages to a util function
  * 0.14		27/07/2012	Genevieve Turner (GT)	Added method to retrieve some information about a fedora object
  * 0.15		20/08/2012	Genevieve Turner (GT)	Updated to use permissionService rather than aclService
+ * 0.16		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
  * </pre>
  * 
  */
@@ -276,6 +277,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.7		04/06/2012	Genevieve Turner (GT)	Fixed an issue where the fedora object was not returned in the values map
 	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * 0.13		25/07/2012	Genevieve Turner (GT)	Added removing of ready for review/publish
+	 * 0.16		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
 	 * </pre>
 	 * 
 	 * @param fedoraObject The  fedora object to get the page for
@@ -290,6 +292,13 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			fedoraObject = viewTransform.saveData(tmplt, fedoraObject, form);
 			removeReviewReady(fedoraObject);
 			removePublishReady(fedoraObject);
+			if (form.containsKey("ownerGroup")) {
+				LOGGER.info("Has owner group change");
+				permissionService.saveObjectPermissions(fedoraObject);
+			}
+			else {
+				LOGGER.info("Does not have owner group change");
+			}
 		}
 		catch (JAXBException e) {
 			LOGGER.error("Exception transforming jaxb", e);
