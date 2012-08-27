@@ -246,7 +246,7 @@ public class CollectionRequestService
 	@POST
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@PreAuthorize("hasRole('ROLE_REGISTERED')")
 	public Response doPostCollReqAsHtml(@Context HttpServletRequest request, @Context UriInfo uriInfo, @FormParam("pid") String pid,
 			@FormParam("file") Set<String> requestedFileSet, MultivaluedMap<String, String> allFormParams)
 	{

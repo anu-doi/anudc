@@ -1,0 +1,7 @@
+Dear ${displayNam},
+
+Your account has been created at The Australian National University Data Commons.
+
+Regards,
+
+The Australian National University Data Commons Team

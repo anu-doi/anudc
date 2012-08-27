@@ -294,6 +294,7 @@ public class UploadService
 		}
 		catch (Exception e)
 		{
+			LOGGER.error("Unable to bag file", e);
 			resp = Response.temporaryRedirect(UriBuilder.fromPath("/upload").queryParam("emsg", "Upload Unsuccessful. Unable to bag file.").build()).build();
 		}
 

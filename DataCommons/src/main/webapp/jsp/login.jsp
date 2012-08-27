@@ -29,6 +29,8 @@
 		</p>
 
 	</form>
+	<a href="<c:url value='/rest/user/new' />">Register</a>
+	<a href="<c:url value='/rest/user/forgotpassword' />">Forgot Password</a>
 
 </anu:content>
 

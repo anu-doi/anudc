@@ -18,9 +18,9 @@
 	<div id="message"></div>
 	<form id="form">
 	Search for User:<br/>
-	<label for="firstname" class="user-label">First Name</label><input id="firstname" name="firstname" type="text" /><br/>
-	<label for="lastname" class="user-label">Last Name</label><input id="lastname" name="lastname" type="text" /><br/>
-	<label for="uniId" class="user-label">Uni Id</label><input id="uniId" name="uniId" type="text" /><br/>
+	<label for="firstname" class="text-uni user-label">First Name</label><input id="firstname" name="firstname" type="text" /><br/>
+	<label for="lastname" class="text-uni user-label">Last Name</label><input id="lastname" name="lastname" type="text" /><br/>
+	<label for="uniId" class="text-uni user-label">Uni Id</label><input id="uniId" name="uniId" type="text" /><br/>
 	<input type="button" id="findPeople" value="Search" />
 	</form>
 	<div id="peopleList"></div>

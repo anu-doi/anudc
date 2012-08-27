@@ -27,6 +27,7 @@ import au.edu.anu.datacommons.data.db.PersistenceManager;
  * 0.2		09/05/2012	Genevieve Turner (GT)	Added constructor class
  * 0.3		15/05/2012	Genevieve Turner (GT)	Fixed an issue with 'detached entity passed to persist'
  * 0.4		29/06/2012	Genevieve Turner (GT)	Updated to retrieve the object prior to delete
+ * 0.5		23/08/2012	Genevieve Turner (GT)	Removed log statement after entity manager close
  * </pre>
  * 
  * @param <T> The object type to implement
@@ -88,6 +89,7 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		03/05/2012	Genevieve Turner (GT)	Initial
+	 * 0.5		23/08/2012	Genevieve Turner (GT)	Removed log statement after entity manager close
 	 * </pre>
 	 * 
 	 * @param id The primary key of the object to retrieve
@@ -100,7 +102,6 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 			object = (T) entityManager.find(type_, id);
 		}
 		finally {
-			LOGGER.info("EntityManager close has been run");
 			entityManager.close();
 		}
 		return object;

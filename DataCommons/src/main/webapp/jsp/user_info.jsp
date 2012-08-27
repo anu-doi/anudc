@@ -15,10 +15,46 @@
 <jsp:include page="/jsp/header.jsp" />
 
 <anu:content layout="doublenarrow" title="User Information">
-	<label class="user-label">Name:</label><sec:authentication property="principal.displayName" /><br/>
-	<label class="user-label">Identification:</label><sec:authentication property="principal.username" /><br/>
-	<br/>
-	
+	<div>
+		<table width="100%">
+			<tr>
+				<th valign="top"><label>Name</label></th>
+				<td><sec:authentication property="principal.displayName" /></td>
+			</tr>
+			<tr>
+				<th valign="top"><label>Identification</label></th>
+				<td><sec:authentication property="principal.username" /></td>
+			</tr>
+			<tr>
+				<th valign="top"><label>Institution Affiliation</label></th>
+				<td>
+					<c:choose>
+						<c:when test="${it.user.user_type == 1}">
+							The Australian National University
+						</c:when>
+						<c:otherwise>
+							${it.user.user_registered.institution}
+						</c:otherwise>
+					</c:choose>
+				</td>
+			</tr>
+			<tr>
+				<th valign="top"><label>Phone</label></th>
+				<td>${it.user.user_registered.phone}</td>
+			</tr>
+			<tr>
+				<th valign="top"><label>Address</label></th>
+				<% pageContext.setAttribute("newLineChar", "\n"); %>
+				<td>${fn:replace(it.user.user_registered.address, newLineChar,"<br/>")}</td>
+			</tr>
+		</table>
+	</div>
+	<c:if test="${it.user.user_type == 2}">
+		<c:url value="/rest/user/update" var="updateUserLink" />
+		<p>
+		<input class="right" type="button" id="updateuser" name="updateuser" value="Update Details" onclick="window.location='${updateUserLink}'" />
+		</p>
+	</c:if>
 </anu:content>
 
 <anu:content layout="narrow">

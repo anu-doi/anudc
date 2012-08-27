@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
+import au.edu.anu.datacommons.data.db.model.Users;
+
 /**
  * CustomUser
  * 
@@ -19,6 +21,7 @@ import org.springframework.security.core.userdetails.User;
  * Version	Date		Developer				Description
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
  * 0.2		23/05/2012	Genevieve Turner (GT)	Updated for display name
+ * 0.3		23/08/2012	Genevieve Turner (GT)	Updated to allow for passing through a Users object
  * </pre>
  * 
  */
@@ -55,6 +58,32 @@ public class CustomUser extends User {
 				accountNonLocked, authorities);
 		this.id = id;
 		this.displayName = displayName;
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * Constructor to build the custom user
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		23/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param user User to create a information for
+	 * @param enabled Set to true if the user is enabled
+	 * @param accountNonExpired set to true if the account has not expired
+	 * @param credentialsNonExpired set to true if the credentials have not expired
+	 * @param accountNonLocked set to true if the account is not locked
+	 * @param authorities the authorities that should be granted to the caller if they presented the correct username and password and the user is enabled
+	 * @throws IllegalArgumentException
+	 */
+	public CustomUser (Users user, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired,
+			boolean accountNonLocked, List<GrantedAuthority> authorities) throws IllegalArgumentException {
+		super(user.getUsername(), user.getPassword(), enabled, accountNonExpired, credentialsNonExpired,
+				accountNonLocked, authorities);
+		this.id = user.getId();
+		this.displayName = user.getDisplayName();
 	}
 
 	/**

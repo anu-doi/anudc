@@ -98,13 +98,18 @@
 	
 	<bean id="daoAuthenticationProvider" class="org.springframework.security.authentication.dao.DaoAuthenticationProvider">
 		<property name="userDetailsService" ref="daoUserService" />
-		<property name="passwordEncoder" ref="passwordEncoder"/>
+		<property name="passwordEncoder" ref="passwordEncoder" />
+		<property name="saltSource" ref="saltSource" />
 	</bean>
 	
 	<bean id="daoUserService" class="au.edu.anu.datacommons.security.registered.RegisteredUserDetails">
 		<property name="dataSource" ref="dataSource" />
 	</bean>
 	
-	<bean class="org.springframework.security.authentication.encoding.Md5PasswordEncoder" id="passwordEncoder"/>
+	<bean class="org.springframework.security.authentication.encoding.Md5PasswordEncoder" id="passwordEncoder" />
+	
+	<bean id="saltSource" class="org.springframework.security.authentication.dao.ReflectionSaltSource">
+		<property name="userPropertyToUse" value="username" />
+	</bean>
 	
 </beans>

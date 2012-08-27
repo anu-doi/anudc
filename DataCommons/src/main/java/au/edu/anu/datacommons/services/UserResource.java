@@ -1,9 +1,12 @@
 package au.edu.anu.datacommons.services;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.annotation.Resource;
 import javax.naming.NamingException;
@@ -19,19 +22,39 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.model.MutableAclService;
 import org.springframework.security.acls.model.Permission;
+import org.springframework.security.authentication.dao.SaltSource;
+import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import au.edu.anu.datacommons.collectionrequest.Email;
+import au.edu.anu.datacommons.data.db.dao.GenericDAO;
+import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.UserRequestPasswordDAO;
+import au.edu.anu.datacommons.data.db.dao.UserRequestPasswordDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.UsersDAO;
+import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
+import au.edu.anu.datacommons.data.db.model.Authorities;
 import au.edu.anu.datacommons.data.db.model.Groups;
+import au.edu.anu.datacommons.data.db.model.UserRegistered;
+import au.edu.anu.datacommons.data.db.model.UserRequestPassword;
+import au.edu.anu.datacommons.data.db.model.Users;
+import au.edu.anu.datacommons.exception.WebPageException;
 import au.edu.anu.datacommons.ldap.LdapPerson;
 import au.edu.anu.datacommons.ldap.LdapRequest;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.util.Util;
@@ -53,6 +76,7 @@ import com.sun.jersey.api.view.Viewable;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		20/08/2012	Genevieve Turner (GT)	Initial
+ * 0.2		27/08/2012	Genevieve Turner (GT)	Updates for adding 
  * </pre>
  *
  */
@@ -61,15 +85,20 @@ import com.sun.jersey.api.view.Viewable;
 @Path("user")
 public class UserResource {
 	static final Logger LOGGER = LoggerFactory.getLogger(UserResource.class);
-
-	@Resource(name="aclService")
-	MutableAclService aclService;
+	private final static long MILLIS_PER_DAY = 24 * 3600 * 1000;
 	
+
 	@Resource(name="groupServiceImpl")
 	GroupService groupService;
 	
 	@Resource(name="permissionService")
 	PermissionService permissionService;
+	
+	@Resource(name="saltSource")
+	SaltSource saltSource;
+	
+	@Resource(name = "mailSender")
+	JavaMailSenderImpl mailSender;
 	
 	/**
 	 * getUserInformation
@@ -88,9 +117,13 @@ public class UserResource {
 	@PreAuthorize("isAuthenticated()")
 	public Response getUserInformation() {
 		Map<String, Object> model = new HashMap<String, Object>();
+		CustomUser customUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		UsersDAO userDAO = new UsersDAOImpl(Users.class);
+		Users user = userDAO.getSingleById(customUser.getId());
 		
 		List<Groups> groups = groupService.getAll();
 		model.put("groups", groups);
+		model.put("user", user);
 		
 		return Response.ok(new Viewable("/user_info.jsp", model)).build();
 	}
@@ -255,5 +288,427 @@ public class UserResource {
 		sb.append(value);
 		sb.append(")");
 		return sb.toString();
+	}
+	
+	/**
+	 * updateUser
+	 *
+	 * Retrieves a page for updating user information
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param request Http request information
+	 * @return Response for updating user information
+	 */
+	@GET
+	@Path("update")
+	@PreAuthorize("hasRole('ROLE_REGISTERED')")
+	public Response updateUser(@Context HttpServletRequest request) {
+		Map<String, Object> model = new HashMap<String, Object>();
+		CustomUser customUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		
+		UsersDAO userDAO = new UsersDAOImpl(Users.class);
+		Users user = userDAO.getSingleById(customUser.getId());
+		
+		if (!user.getUser_type().equals(new Long(2))) {
+			throw new WebApplicationException(Response.status(403).entity("Can only update registered users").build());
+		}
+		
+		model.put("user", user);
+		
+		return Response.ok(new Viewable("/user_update.jsp", model)).build();
+	}
+	
+	/**
+	 * saveUpdateUser
+	 *
+	 * Updates user information
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param request Http request information
+	 * @param uriInfo URI information
+	 * @return The user page
+	 */
+	@POST
+	@Path("update")
+	@PreAuthorize("hasRole('ROLE_REGISTERED')")
+	public Response saveUpdateUser(@Context HttpServletRequest request, @Context UriInfo uriInfo) {
+		String password = request.getParameter("password");
+		String newpassword = request.getParameter("newpassword");
+		String newpassword2 = request.getParameter("newpassword2");
+		
+
+		Map<String, Object> model = new HashMap<String, Object>();
+		CustomUser customUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		
+		UsersDAO userDAO = new UsersDAOImpl(Users.class);
+		Users user = userDAO.getSingleById(customUser.getId());
+
+		if (!user.getUser_type().equals(new Long(2))) {
+			throw new WebApplicationException(Response.status(403).entity("Can only update registered users").build());
+		}
+		
+		// Verify password
+		Md5PasswordEncoder passwordEncoder = new Md5PasswordEncoder();
+		user = setUserDetails(request, user);
+		
+		if (!user.getPassword().equals(passwordEncoder.encodePassword(password, saltSource.getSalt(customUser)))) {
+			model.put("error", "Incorrect Password");
+			model.put("user", user);
+			throw new WebApplicationException(Response.status(403).entity(new Viewable("/user_update.jsp", model)).build());
+		}
+		if (Util.isNotEmpty(newpassword)) {
+			user.setPassword(getEncodedPassword(newpassword, newpassword2, user));
+		}
+		
+		
+		userDAO.update(user);
+		
+		model.put("user", user);
+		UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path("user");
+		return Response.seeOther(uriBuilder.build()).build(); 
+	}
+	
+	/**
+	 * setUserDetails
+	 *
+	 * Set user details information
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param request Http request information
+	 * @param user The user to update user details for
+	 * @return An updated user
+	 */
+	private Users setUserDetails(HttpServletRequest request, Users user) {
+		String firstname = request.getParameter("firstname");
+		String lastname = request.getParameter("lastname");
+		String institution = request.getParameter("institution");
+		String phone = request.getParameter("phone");
+		String address = request.getParameter("address");
+		
+		UserRegistered user_registered = user.getUser_registered();
+		if (user_registered == null) {
+			user_registered = new UserRegistered();
+		}
+		
+		user_registered.setId(user.getId());
+		user_registered.setGiven_name(firstname);
+		user_registered.setLast_name(lastname);
+		user_registered.setInstitution(institution);
+		user_registered.setPhone(phone);
+		user_registered.setAddress(address);
+		user.setUser_registered(user_registered);
+		
+		return user;
+	}
+	
+	/**
+	 * getNewUser
+	 *
+	 * Gets a new user page
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return A create new user page
+	 */
+	@GET
+	@Path("new")
+	public Response getNewUser() {
+		Viewable viewable = new Viewable("/user_new.jsp");
+		return Response.ok(viewable).build();
+	}
+	
+	/**
+	 * createNewUser
+	 *
+	 * Create a new registered user
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param request Http request information
+	 * @return A resposne to the create new user
+	 */
+	@POST
+	@Path("new")
+	public Response createNewUser(@Context HttpServletRequest request) {
+		String emailAddr = request.getParameter("email");
+		String password = request.getParameter("password");
+		String password2 = request.getParameter("password2");
+		
+		Users user = new Users();
+		user.setUsername(emailAddr);
+		
+		List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+		authorities.add(new GrantedAuthorityImpl("ROLE_REGISTERED"));
+		String encodedPassword = getEncodedPassword(password, password2, user);
+		
+		user.setPassword(encodedPassword);
+		user.setEnabled(Boolean.TRUE);
+		user.setUser_type(new Long(2));
+		
+		UsersDAO userDAO = new UsersDAOImpl(Users.class);
+		user = userDAO.create(user);
+		
+		user = setUserDetails(request, user);
+		userDAO.update(user);
+		
+		Authorities authority = new Authorities();
+		authority.setUsername(emailAddr);
+		authority.setAuthority("ROLE_REGISTERED");
+		GenericDAO<Authorities, String> authorityDAO = new GenericDAOImpl<Authorities, String>(Authorities.class);
+		authorityDAO.create(authority);
+		
+		Email email = new Email(mailSender);
+		email.setToName(user.getDisplayName());
+		email.setToEmail(emailAddr);
+		email.setSubject("Account Created");
+		
+		Map<String, String> varMap = new HashMap<String, String>();
+		varMap.put("displayName", user.getDisplayName());
+		try {
+			email.setBody("mailtmpl/newaccount.txt", varMap);
+			email.send();
+		}
+		catch (IOException e) {
+			LOGGER.error("Exception creating email", e);
+			throw new WebPageException(500, createMessageMap("Exception creating email"));
+		}
+		
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("message", "The user has been created and an email has been sent");
+		return Response.ok(new Viewable("/message.jsp", model)).build();
+	}
+	
+	/**
+	 * getForgotPassword
+	 *
+	 * Gets a forgot password page
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return Returns a page to notify that the password has been forgotten
+	 */
+	@GET
+	@Path("forgotpassword")
+	public Response getForgotPassword() {
+		return Response.ok(new Viewable("/user_forgotpassword.jsp")).build();
+	}
+	
+	/**
+	 * sendForgotPasswordEmail
+	 *
+	 * Sends an email about a forgotten password for the specified user
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param request Http request information
+	 * @param uriInfo URI information
+	 * @return A response to the email request
+	 */
+	@POST
+	@Path("forgotpassword")
+	public Response sendForgotPasswordEmail(@Context HttpServletRequest request, @Context UriInfo uriInfo) {
+		String username = request.getParameter("email");
+		UsersDAO userDAO = new UsersDAOImpl(Users.class);
+		Users user = userDAO.getUserByName(username);
+		Map<String, Object> model = new HashMap<String, Object>();
+		if (user == null) {
+			model.put("error", "Email address does not exist in the database");
+			throw new WebApplicationException(Response.status(400).entity(new Viewable("/user_forgotpassword.jsp", model)).build());
+		}
+		
+		UserRequestPassword userRequest = new UserRequestPassword();
+		userRequest.setUser(user);
+		userRequest.setRequest_date(new Date());
+		userRequest.setIp_address(request.getRemoteAddr());
+		userRequest.setLink_id(UUID.randomUUID().toString());
+		UserRequestPasswordDAO userRequestDAO = new UserRequestPasswordDAOImpl(UserRequestPassword.class);
+		userRequestDAO.create(userRequest);
+		
+		UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path("user").path("resetpassword").queryParam("link", userRequest.getLink_id());
+		
+		Email email = new Email(mailSender);
+		email.setToName(user.getDisplayName());
+		email.setToEmail(username);
+		email.setSubject("Forgotten Password");
+		
+		Map<String, String> varMap = new HashMap<String, String>();
+		varMap.put("displayName", user.getDisplayName());
+		varMap.put("link", uriBuilder.build().toString());
+		try {
+			email.setBody("mailtmpl/forgotpassword.txt", varMap);
+			email.send();
+		}
+		catch (IOException e) {
+			LOGGER.error("Exception creating email", e);
+			throw new WebPageException(500, createMessageMap("Exception creating email"));
+		}
+		
+		return Response.ok(new Viewable("/user_emailsent.jsp")).build();
+	}
+	
+	/**
+	 * getResetPassword
+	 *
+	 * Gets a page to reset the password
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param link The link to use to get the password reset page
+	 * @return A page to reset the password
+	 */
+	@GET
+	@Path("resetpassword")
+	public Response getResetPassword(@QueryParam("link") String link) {
+		UserRequestPasswordDAO userRequestDAO = new UserRequestPasswordDAOImpl(UserRequestPassword.class);
+		UserRequestPassword userRequest = userRequestDAO.getByLink(link);
+		isValidReset(userRequest);
+		
+		return Response.ok(new Viewable("/user_forgottenreset.jsp")).build();
+	}
+	
+	/**
+	 * resetPassword
+	 *
+	 * Resets the password
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param link The link of the password reset request
+	 * @param request The http request performed
+	 * @return A response from restting the password
+	 */
+	@POST
+	@Path("resetpassword")
+	public Response resetPassword(@QueryParam("link") String link, @Context HttpServletRequest request) {
+		UserRequestPasswordDAO userRequestDAO = new UserRequestPasswordDAOImpl(UserRequestPassword.class);
+		UserRequestPassword userRequest = userRequestDAO.getByLink(link);
+		
+		isValidReset(userRequest);
+		
+		Users user = userRequest.getUser();
+		user.setPassword(getEncodedPassword(request.getParameter("password"), request.getParameter("password2"), user));
+		UsersDAO userDAO = new UsersDAOImpl(Users.class);
+		userDAO.update(user);
+		userRequest.setUsed(Boolean.TRUE);
+		userRequestDAO.update(userRequest);
+		
+		Email email = new Email(mailSender);
+		email.setToName(user.getDisplayName());
+		email.setToEmail(user.getUsername());
+		email.setSubject("Forgotten Password");
+		
+		Map<String, String> varMap = new HashMap<String, String>();
+		varMap.put("displayName", user.getDisplayName());
+		try {
+			email.setBody("mailtmpl/passwordreset.txt", varMap);
+			email.send();
+		}
+		catch (IOException e) {
+			LOGGER.error("Exception creating email", e);
+			throw new WebApplicationException(Response.status(500).build());
+		}
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("message", "Password Reset and email has been sent");
+		return Response.ok(new Viewable("/message.jsp", model)).build();
+	}
+	
+	/**
+	 * isValidReset
+	 *
+	 * Verfies that its a valid link for resetting the password.  It checks that the link exists in a row
+	 * and that it has not expired.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param userRequest The user request to validate
+	 * @return true if the link is valid
+	 */
+	private boolean isValidReset(UserRequestPassword userRequest) {
+		Date today = new Date();
+		if (userRequest == null) {
+			throw new WebPageException(404, createMessageMap("Either a request was not found or is invalid"));
+		}
+		else if (today.getTime() - userRequest.getRequest_date().getTime() - MILLIS_PER_DAY > 0 || Boolean.TRUE.equals(userRequest.getUsed())) {
+			throw new WebPageException(400, createMessageMap("Password change request has expired"));
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * getEncodedPassword
+	 *
+	 * Verifies that two passwords are the same and returns an md5 salted password
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param password Password 1 for comparison
+	 * @param password2 Password 2 for comparison
+	 * @param user User to match password for
+	 * @return An md5 salted password
+	 */
+	private String getEncodedPassword(String password, String password2, Users user) {
+		if (password == null || !password.equals(password2)) {
+			throw new WebPageException(400, createMessageMap("Passwords do not match"));
+		}
+		Md5PasswordEncoder passwordEncoder = new Md5PasswordEncoder();
+		CustomUser customUser = new CustomUser(user, true, true, true, true, new ArrayList<GrantedAuthority>());
+		
+		return passwordEncoder.encodePassword(password, saltSource.getSalt(customUser));
+	}
+	
+	/**
+	 * createMessageMap
+	 *
+	 * Create a map for messages to display on the screen
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param message The message to add to the map
+	 * @return A map with the message in it
+	 */
+	private Map<String, Object> createMessageMap(String message) {
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("message", message);
+		return model;
 	}
 }
