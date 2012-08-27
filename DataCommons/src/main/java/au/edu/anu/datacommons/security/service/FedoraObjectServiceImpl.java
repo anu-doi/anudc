@@ -293,11 +293,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			removeReviewReady(fedoraObject);
 			removePublishReady(fedoraObject);
 			if (form.containsKey("ownerGroup")) {
-				LOGGER.info("Has owner group change");
 				permissionService.saveObjectPermissions(fedoraObject);
-			}
-			else {
-				LOGGER.info("Does not have owner group change");
 			}
 		}
 		catch (JAXBException e) {
