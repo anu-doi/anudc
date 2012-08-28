@@ -88,6 +88,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.14		27/07/2012	Genevieve Turner (GT)	Added method to retrieve some information about a fedora object
  * 0.15		20/08/2012	Genevieve Turner (GT)	Updated to use permissionService rather than aclService
  * 0.16		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
+ * 0.17		28/08/2012	Genevieve Turner (GT)	Added the display of reverse links
  * </pre>
  * 
  */
@@ -433,6 +434,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * Version	Date		Developer				Description
 	 * 0.3		26/04/2012	Genevieve Turner (GT)	Initial
 	 * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to cater for change to post method in the riSearchService
+	 * 0.17		28/08/2012	Genevieve Turner (GT)	Added the display of reverse links
 	 * </pre>
 	 * 
 	 * @param fedoraObject The object to retrieve the links for
@@ -445,7 +447,18 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		sparqlQuery.addVar("?item");
 		sparqlQuery.addVar("?title");
 		sparqlQuery.addVar("?predicate");
-		sparqlQuery.addTriple("<info:fedora/" + fedoraObject.getObject_id() + ">", "?predicate", "?item", false);
+		
+		StringBuilder tripleString = new StringBuilder();
+		
+		tripleString.append("{ <info:fedora/");
+		tripleString.append(fedoraObject.getObject_id());
+		tripleString.append("> ?predicate ?item . } ");
+		tripleString.append("UNION ");
+		tripleString.append("{ ?item ?predicate <info:fedora/");
+		tripleString.append(fedoraObject.getObject_id());
+		tripleString.append("> } ");
+		
+		sparqlQuery.addTripleSet(tripleString.toString());
 		sparqlQuery.addTriple("?item", "<dc:title>", "?title", false);
 		String filterString = "regex(str(?predicate), '" + GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI) + "', 'i')";
 		sparqlQuery.addFilter(filterString, "");
