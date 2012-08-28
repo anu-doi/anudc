@@ -7,6 +7,7 @@
 <anu:boxheader text="Related Items"/>
 <anu:box style="solid">
 	<c:forEach items="${it.resultSet.allResults}" var="row">
+		-
 		<c:forEach var="iCol" begin="0" end="${it.resultSet.numCols - 1}">
 			<c:choose>
 				<c:when test="${iCol == 1}">
