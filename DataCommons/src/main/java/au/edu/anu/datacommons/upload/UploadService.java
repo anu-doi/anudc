@@ -1,9 +1,11 @@
 package au.edu.anu.datacommons.upload;
 
+import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.BagFile;
+import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.transfer.BagTransferException;
 import gov.loc.repository.bagit.transformer.Completer;
 import gov.loc.repository.bagit.transformer.impl.ChainingCompleter;
@@ -69,6 +71,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.collectionrequest.CollectionDropbox;
+import au.edu.anu.datacommons.collectionrequest.PageMessages;
+import au.edu.anu.datacommons.collectionrequest.PageMessages.MessageType;
 import au.edu.anu.datacommons.data.db.dao.AccessLogRecordDAO;
 import au.edu.anu.datacommons.data.db.dao.AccessLogRecordDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAO;
@@ -81,9 +85,11 @@ import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.AccessLogRecord;
+import au.edu.anu.datacommons.storage.DcStorage;
+import au.edu.anu.datacommons.storage.DcStorageCompleter;
+import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.DcBag;
-import au.edu.anu.dcbag.DcStorageCompleter;
 import au.edu.anu.dcbag.FileSummary;
 import au.edu.anu.dcbag.fido.PronomFormat;
 
@@ -113,6 +119,7 @@ public class UploadService
 	private static final String BAGFILES_JSP = "/bagfiles.jsp";
 	private static final String FILE_DS_PREFIX = "FILE";
 	private static final Completer DC_COMPLETER = new ChainingCompleter(new DefaultCompleter(new BagFactory()), new DcStorageCompleter());
+	private static final DcStorage dcStorage = DcStorage.getInstance();
 
 	/**
 	 * doGetAsHtml
@@ -331,21 +338,58 @@ public class UploadService
 	}
 
 	@GET
+	@Produces(MediaType.TEXT_HTML)
+	@Path("bag/{pid}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response doGetBagFileListingAsHtml(@Context UriInfo uriInfo, @PathParam("pid") String pid)
+	{
+		Response resp = null;
+		Map<String, Object> model = new HashMap<String, Object>();
+		
+		// Check if user's got read access to fedora object.
+		FedoraObject fo = getFedoraObjectReadAccess(pid);
+		model.put("fo", fo);
+		
+		Bag bag = dcStorage.getBag(pid);
+		if (bag == null)
+			throw new NotFoundException("Bag not found for " + pid);
+
+		Map<BagFile, FileSummary> downloadables;
+		try
+		{
+			downloadables = dcStorage.getFileSummaryMap(pid);
+			model.put("downloadables", downloadables);
+			model.put("dlBaseUri", UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream2")
+					.build(pid, "").toString());
+		}
+		catch (DcStorageException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			PageMessages messages = new PageMessages();
+			messages.add(MessageType.ERROR, e.getMessage(), model);
+		}
+		
+		resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
+		return resp;
+	}
+
+	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("files/{pid}/{fileInBag:.*}")
 	public Response doGetFileInBagAsOctetStream(@Context HttpServletRequest request, @Context UriInfo uriInfo, @PathParam("pid") String pid,
 			@PathParam("fileInBag") String filename, @QueryParam("dropboxAccessCode") Long dropboxAccessCode, @QueryParam("p") String password)
 	{
 		Response resp = null;
-
+	
 		LOGGER.trace("pid: {}, filename: {}", pid, filename);
-
+	
 		// Get dropbox requesting file.
 		DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
 		CollectionDropbox dropbox = dropboxDAO.getSingleByAccessCode(dropboxAccessCode);
 		Users requestor = dropbox.getCollectionRequest().getRequestor();
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
+	
+		// If dropbox is valid and the requestor of the collection request is the one accessing it, return file as octet stream.
 		if (dropbox.isValid(password) && requestor.getUsername().equals(username))
 		{
 			LOGGER.info("Dropbox details valid. ID: {}, Access Code: {}. Returning file requested.", dropbox.getId().toString(), dropbox.getAccessCode()
@@ -360,36 +404,7 @@ public class UploadService
 					.getAccessCode().toString());
 			resp = Response.status(Status.FORBIDDEN).build();
 		}
-
-		return resp;
-	}
-
-	@GET
-	@Produces(MediaType.TEXT_HTML)
-	@Path("bag/{pid}")
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doGetBagFileListingAsHtml(@Context UriInfo uriInfo, @PathParam("pid") String pid)
-	{
-		Response resp = null;
-		Map<String, Object> model = new HashMap<String, Object>();
-		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
-		DcBag dcBag;
-		
-		// Check if user's got read access to fedora object.
-		FedoraObject fo = getFedoraObjectReadAccess(pid);
-		model.put("fo", fo);
-		
-		if (bagFile != null)
-			dcBag = new DcBag(GlobalProps.getBagsDirAsFile(), pid, LoadOption.BY_FILES);
-		else
-			throw new NotFoundException("Bag not found for " + pid);
-
-		Map<BagFile, FileSummary> downloadables = dcBag.getFileSummaryMap();
-		model.put("downloadables", downloadables);
-		model.put("dlBaseUri", UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream2")
-				.build(pid, "").toString());
-		resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
-
+	
 		return resp;
 	}
 
@@ -463,8 +478,6 @@ public class UploadService
 		getFedoraObjectWriteAccess(pid);
 
 		Response resp = null;
-		DcBag uploadedDcBag = null;
-		File curPidBagFile = null;
 		AccessLogRecord accessRec = null;
 		File uploadedFile = null;
 		try
@@ -473,44 +486,22 @@ public class UploadService
 			LOGGER.info("Saving uploaded file as {}...", uploadedFile.getAbsolutePath());
 			saveInputStreamAsFile(is, uploadedFile);
 			LOGGER.info("Uploaded file saved as {}", uploadedFile.getAbsolutePath());
-			uploadedDcBag = new DcBag(uploadedFile, LoadOption.BY_FILES);
-			if (!uploadedDcBag.verifyValid().isSuccess())
-				throw new BagTransferException("Bag received is incomplete or invalid.");
-
-			if (!uploadedDcBag.getBagInfoTxt().getExternalIdentifier().equals(pid))
-				throw new BagTransferException("Bag received is not for the Pid " + pid);
 
 			// Check if a current bag exists. If yes, replace, else saveAs.
-			curPidBagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
-			if (curPidBagFile != null)
+			if (dcStorage.bagExists(pid))
 			{
 				LOGGER.info("A bag exists for {}. Replacing it with the file uploaded...", pid);
-				DcBag curDcBag = new DcBag(curPidBagFile, LoadOption.BY_FILES);
-				uploadedDcBag.close();
 				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.UPDATE);
-				curDcBag.replaceWith(uploadedFile, true);
-				curDcBag.makeComplete(DC_COMPLETER);
-				curDcBag.save();
-				curDcBag.close();
-				LOGGER.info("Bag updated for {}", pid);
+				
 			}
 			else
 			{
-				LOGGER.info("No bag exists for {}. Unpacking bag...", pid);
+				LOGGER.info("No bag exists for {}. Storing Bag...", pid);
 				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.CREATE);
-				uploadedDcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, Format.FILESYSTEM);
-				uploadedDcBag.makeComplete(DC_COMPLETER);
-				uploadedDcBag.save();
-				uploadedDcBag.close();
-				LOGGER.info("Bag updated for {}", pid);
 			}
-
-			// Add access log.
+			dcStorage.storeBag(pid, uploadedFile);
 			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessRec);
-
-			// Create a placeholder datastream.
-			FedoraBroker.addDatastreamBySource(pid, FILE_DS_PREFIX + "0", "FILE0", "<text>Files available.</text>");
-
+			LOGGER.info("Bag updated for {}", pid);
 			resp = Response.ok().build();
 		}
 		catch (Exception e)
@@ -520,8 +511,10 @@ public class UploadService
 		}
 		finally
 		{
+			// Delete uploaded file.
 			if (uploadedFile != null && uploadedFile.exists())
-				FileUtils.deleteQuietly(uploadedFile);
+				if (!FileUtils.deleteQuietly(uploadedFile))
+					LOGGER.warn("Unable to delete temp file {}.", uploadedFile.getAbsolutePath());
 		}
 
 		return resp;
@@ -583,29 +576,30 @@ public class UploadService
 	{
 		Response resp = null;
 		InputStream is = null;
-		DcBag dcBag = null;
 
-		// Check if a bag exists for the pid.
-		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
-		if (bagFile == null)
+		Bag bag = dcStorage.getBag(pid);
+		if (bag == null)
 		{
 			LOGGER.error(MessageFormat.format("No bag found for Pid {0}. Throwing NotFoundException.", pid));
 			throw new NotFoundException(MessageFormat.format("No bag found for Pid {0}.", pid));
 		}
 
-		dcBag = new DcBag(bagFile, LoadOption.BY_FILES);
-		is = dcBag.getBagFileStream(fileInBag);
-		if (is == null)
+		try
 		{
-			LOGGER.error(MessageFormat.format("File not found for Pid {0}. Throwing NotFoundException", pid));
-			throw new NotFoundException(MessageFormat.format("File not found for Pid {0}.", pid));
+			is = dcStorage.getFileStream(pid, fileInBag);
+			ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+			// Add filename, MD5 and file size to response header.
+			respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=\"" + getFilenameFromPath(fileInBag) + "\"");
+			respBuilder = respBuilder.header("Content-MD5", bag.getChecksums(fileInBag).get(Algorithm.MD5));
+			respBuilder = respBuilder.header("Content-Length", bag.getBagFile(fileInBag).getSize());				
+			resp = respBuilder.build();
 		}
-
-		ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-		respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=\"" + getFilenameFromPath(fileInBag) + "\"");			// Filename on client's computer.
-		respBuilder = respBuilder.header("Content-MD5", dcBag.getBagFileHash(fileInBag));					// Hash of file. Header not used by most web browsers.
-		respBuilder = respBuilder.header("Content-Length", dcBag.getBagFileSize(fileInBag));				// File size.
-		resp = respBuilder.build();
+		catch (DcStorageException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			throw new NotFoundException(e.getMessage());
+		}
+		
 		return resp;
 	}
 

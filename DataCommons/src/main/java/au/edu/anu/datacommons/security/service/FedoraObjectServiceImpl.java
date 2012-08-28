@@ -46,6 +46,8 @@ import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.search.SparqlResultSet;
 import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.acl.PermissionService;
+import au.edu.anu.datacommons.storage.DcStorage;
+import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.sparql.Result;
@@ -53,6 +55,7 @@ import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.JAXBTransform;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
+import au.edu.anu.dcbag.BagSummary;
 import au.edu.anu.dcbag.DcBag;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -374,19 +377,18 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		values.put("topage", "/page.jsp");
 		ViewTransform viewTransform = new ViewTransform();
 		try {
-			if (fedoraObject != null) {
-				// Update this section if we want to have a full list of files
-				List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(fedoraObject.getObject_id());
-				for (DatastreamType dsType : datastreamList) {
-					if (dsType.getDsid().equals("FILE0") )
+			if (fedoraObject != null)
+			{
+				if (DcStorage.getInstance().bagExists(fedoraObject.getObject_id()))
+				{
+					try
 					{
-						DcBag dcBag = new DcBag(GlobalProps.getBagsDirAsFile(), fedoraObject.getObject_id(), LoadOption.BY_MANIFESTS);
-						if (dcBag != null)
-						{
-							values.put("fileCount", dcBag.getPayloadFileList().size());
-							values.put("bagSizeStr", dcBag.getBagInfoTxt().getBagSize());
-						}
-						break;
+						BagSummary bagSummary = DcStorage.getInstance().getBagSummary(fedoraObject.getObject_id());
+						values.put("bagSummary", bagSummary);
+					}
+					catch (DcStorageException e)
+					{
+						LOGGER.error(e.getMessage(), e);
 					}
 				}
 			}

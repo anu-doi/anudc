@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.DcBag;
-import au.edu.anu.dcbag.DcBagProps;
+import au.edu.anu.dcbag.BagPropsTxt;
 import au.edu.anu.dcclient.collection.CollectionInfo;
 import au.edu.anu.dcclient.stopwatch.StopWatch;
 import au.edu.anu.dcclient.tasks.CreateCollectionTask;
@@ -179,7 +179,7 @@ public final class CmdMgr
 			// Copy files.
 			long sourceDirSizeInBytes = getDirSizeInBytes(ci.getFilesDir());
 			long numFiles = countFilesInDir(ci.getFilesDir());
-			System.out.println(MessageFormat.format("Copying {3} ({2}) files from {0} to {1}...", ci.getFilesDir().getAbsolutePath(),
+			System.out.println(MessageFormat.format("Copying {3} files ({2}) from {0} to {1}...", ci.getFilesDir().getAbsolutePath(),
 					payloadDir.getAbsolutePath(), FileUtils.byteCountToDisplaySize(sourceDirSizeInBytes), numFiles));
 			summary.put("Data", MessageFormat.format("{0} files, {1}.", numFiles, FileUtils.byteCountToDisplaySize(sourceDirSizeInBytes)));
 			summary.put("Files Location", ci.getFilesDir().getAbsolutePath());
@@ -390,7 +390,7 @@ public final class CmdMgr
 
 	private void setDataSource(DcBag dcBag)
 	{
-		dcBag.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.INSTRUMENT.toString());
+		dcBag.setBagProperty(BagPropsTxt.FIELD_DATASOURCE, BagPropsTxt.DataSource.INSTRUMENT.toString());
 	}
 
 	static long getDirSizeInBytes(File sourceDir)

@@ -28,7 +28,7 @@ import com.sun.jersey.api.client.ClientResponse.Status;
 
 import au.edu.anu.dcbag.DcBag;
 import au.edu.anu.dcbag.DcBagException;
-import au.edu.anu.dcbag.DcBagProps;
+import au.edu.anu.dcbag.BagPropsTxt;
 import au.edu.anu.dcclient.collection.CollectionInfo;
 import au.edu.anu.dcclient.stopwatch.StopWatch;
 import au.edu.anu.dcclient.tasks.CreateCollectionTask;
@@ -66,8 +66,6 @@ public class DcClient
 		}
 		else
 		{
-//			int exitCode = cmdMgr(args);
-//			System.exit(exitCode);
 			CmdMgr cmdMgr = new CmdMgr(args);
 			System.exit(cmdMgr.getExitCode());
 		}

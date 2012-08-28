@@ -21,7 +21,6 @@ public class StopWatch
 		if (startTimeInMs == -1)
 			throw new RuntimeException("end() cannot be called before start()");
 		endTimeInMs = System.currentTimeMillis();
-		LOGGER.debug(getFriendlyElapsed());
 	}
 	
 	public long getStartTimeInMs()

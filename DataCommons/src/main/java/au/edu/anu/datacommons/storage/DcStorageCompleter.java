@@ -1,4 +1,4 @@
-package au.edu.anu.dcbag;
+package au.edu.anu.datacommons.storage;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -20,7 +20,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import au.edu.anu.dcbag.DcBagProps.DataSource;
+import au.edu.anu.dcbag.BagPropsTxt;
+import au.edu.anu.dcbag.DcBag;
+import au.edu.anu.dcbag.DcBagException;
+import au.edu.anu.dcbag.PronomFormatsTxt;
+import au.edu.anu.dcbag.VirusScanTxt;
+import au.edu.anu.dcbag.BagPropsTxt.DataSource;
 import au.edu.anu.dcbag.clamscan.ClamScan;
 import au.edu.anu.dcbag.clamscan.ScanResult;
 import au.edu.anu.dcbag.clamscan.ScanResult.Status;
@@ -55,11 +60,11 @@ public class DcStorageCompleter implements Completer
 	private void handlePronomTxt(Bag bag)
 	{
 		PronomFormatsTxt pFormats;
-		BagFile pronomBagFile = bag.getBagFile(PronomFormatsTxt.PRONOMFORMATS_FILEPATH);
+		BagFile pronomBagFile = bag.getBagFile(PronomFormatsTxt.FILEPATH);
 		if (pronomBagFile == null)
-			pFormats = new PronomFormatsTxt(PronomFormatsTxt.PRONOMFORMATS_FILEPATH, bag.getBagItTxt().getCharacterEncoding());
+			pFormats = new PronomFormatsTxt(PronomFormatsTxt.FILEPATH, bag.getBagItTxt().getCharacterEncoding());
 		else
-			pFormats = new PronomFormatsTxt(PronomFormatsTxt.PRONOMFORMATS_FILEPATH, pronomBagFile, bag.getBagItTxt().getCharacterEncoding());
+			pFormats = new PronomFormatsTxt(PronomFormatsTxt.FILEPATH, pronomBagFile, bag.getBagItTxt().getCharacterEncoding());
 
 		// Get Fido Output for each payload file.
 		pFormats.clear();
@@ -256,8 +261,8 @@ public class DcStorageCompleter implements Completer
 	@Deprecated
 	public void checkValidMods(DcBag dcBag) throws DcBagException
 	{
-		if (dcBag.getBagProperty(DcBagProps.FIELD_DATASOURCE) != null
-				&& dcBag.getBagProperty(DcBagProps.FIELD_DATASOURCE).equals(DcBagProps.DataSource.INSTRUMENT.toString()))
+		if (dcBag.getBagProperty(BagPropsTxt.FIELD_DATASOURCE) != null
+				&& dcBag.getBagProperty(BagPropsTxt.FIELD_DATASOURCE).equals(BagPropsTxt.DataSource.INSTRUMENT.toString()))
 		{
 			// Verify the integrity of tagmanifest.
 			Manifest tagManifest = dcBag.getBag().getTagManifest(DcBag.BAGS_ALGORITHM);
@@ -276,7 +281,7 @@ public class DcStorageCompleter implements Completer
 				}
 			}
 
-			if (dcBag.getBagProperty(DcBagProps.FIELD_DATASOURCE).equals(DataSource.INSTRUMENT.toString()))
+			if (dcBag.getBagProperty(BagPropsTxt.FIELD_DATASOURCE).equals(DataSource.INSTRUMENT.toString()))
 			{
 				// Hash check files in payload manifest.
 				Set<Entry<String, String>> plManifestFiles = dcBag.getBag().getPayloadManifest(DcBag.BAGS_ALGORITHM).entrySet();

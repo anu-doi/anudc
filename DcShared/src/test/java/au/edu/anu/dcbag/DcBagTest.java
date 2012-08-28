@@ -155,7 +155,7 @@ public class DcBagTest
 
 		// Add files to payload and set data source property.
 		dcBag.addFileToPayload(payloadFiles.get(0));
-		dcBag.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.INSTRUMENT.toString());
+		dcBag.setBagProperty(BagPropsTxt.FIELD_DATASOURCE, BagPropsTxt.DataSource.INSTRUMENT.toString());
 		File bagFile = dcBag.saveAs(tempFolder.getRoot(), TEST_PID, Format.FILESYSTEM);
 
 		// Close bag.
@@ -180,7 +180,7 @@ public class DcBagTest
 
 		// Add files to payload and set data source property.
 		dcBag.addFileToPayload(payloadFiles.get(0));
-		dcBag.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.INSTRUMENT.toString());
+		dcBag.setBagProperty(BagPropsTxt.FIELD_DATASOURCE, BagPropsTxt.DataSource.INSTRUMENT.toString());
 		File bagFile = dcBag.saveAs(tempFolder.getRoot(), TEST_PID, Format.FILESYSTEM);
 
 		// Close bag.
@@ -206,7 +206,7 @@ public class DcBagTest
 		DcBag bag1 = new DcBag(TEST_PID);
 		bag1.addFileToPayload(payloadFiles.get(0));
 		bag1.addFileToPayload(payloadFiles.get(1));
-		bag1.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.INSTRUMENT.toString());
+		bag1.setBagProperty(BagPropsTxt.FIELD_DATASOURCE, BagPropsTxt.DataSource.INSTRUMENT.toString());
 		File bagFile1 = bag1.saveAs(tempFolder.newFolder(), TEST_PID, Format.FILESYSTEM);
 		
 		// Make a copy of the original bag. In the copy we'll modify existing payload files.
@@ -214,9 +214,9 @@ public class DcBagTest
 		
 		DcBag bag2 = new DcBag(bagFile2, LoadOption.BY_FILES);
 		// Temporarily change the bag property so an existing payload file can be modified.
-		bag2.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.GENERAL.toString());
+		bag2.setBagProperty(BagPropsTxt.FIELD_DATASOURCE, BagPropsTxt.DataSource.GENERAL.toString());
 		bagFile2 = bag2.save();
-		assertTrue("Bag's property should be General", bag2.getBagProperty(DcBagProps.FIELD_DATASOURCE).equals(DcBagProps.DataSource.GENERAL.toString()));
+		assertTrue("Bag's property should be General", bag2.getBagProperty(BagPropsTxt.FIELD_DATASOURCE).equals(BagPropsTxt.DataSource.GENERAL.toString()));
 		
 		// Change a payload file.
 		File plFileToDelete = new File(bag2.getFile(), "data/" + payloadFiles.get(0).getName());
@@ -242,7 +242,7 @@ public class DcBagTest
 		DcBag bag1 = new DcBag(TEST_PID);
 		bag1.addFileToPayload(payloadFiles.get(0));
 		bag1.addFileToPayload(payloadFiles.get(1));
-		bag1.setBagProperty(DcBagProps.FIELD_DATASOURCE, DcBagProps.DataSource.INSTRUMENT.toString());
+		bag1.setBagProperty(BagPropsTxt.FIELD_DATASOURCE, BagPropsTxt.DataSource.INSTRUMENT.toString());
 		File bagFile1 = bag1.saveAs(tempFolder.newFolder(), TEST_PID, Format.FILESYSTEM);
 		
 		// Make a copy of the original bag. In the copy we'll modify existing payload files.

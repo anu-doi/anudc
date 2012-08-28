@@ -59,11 +59,11 @@
 		</sec:authorize>
 	</anu:box>
 	<jsp:include page="listrelated.jsp" />
-	<c:if test="${not empty it.fileCount}">
+	<c:if test="${not empty it.bagSummary}">
 		<anu:boxheader text="<a href='/DataCommons/rest/upload/bag/${it.fedoraObject.object_id}'>Files</a>" />
 		<c:if test="${it.itemType == 'Collection'}">
 			<anu:box style="solid">
-				<p><c:out value="${it.fileCount}" /> file(s) in collection. Size <c:out value="${it.bagSizeStr}" /></p>
+				<p><c:out value="${it.bagSummary.numFiles}" /> file(s) in collection. Size <c:out value="${it.bagSummary.friendlySize}" /></p>
 			</anu:box>
 		</c:if>
 	</c:if>

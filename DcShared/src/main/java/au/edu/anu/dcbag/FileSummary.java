@@ -2,6 +2,7 @@ package au.edu.anu.dcbag;
 
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFile;
+import gov.loc.repository.bagit.Manifest.Algorithm;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -14,6 +15,8 @@ import javax.imageio.stream.FileImageOutputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.tika.exception.TikaException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import au.edu.anu.dcbag.clamscan.ScanResult;
@@ -24,6 +27,8 @@ import au.edu.anu.dcbag.metadata.MetadataExtractorImpl;
 
 public class FileSummary
 {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileSummary.class);
+
 	private final String path;
 	private final long sizeInBytes;
 	private final String format;
@@ -32,46 +37,51 @@ public class FileSummary
 	private Map<String, String[]> metadata;
 	private String scanResult;
 
-	public FileSummary(DcBag bag, BagFile bf)
+	public FileSummary(Bag bag, BagFile bf)
 	{
 		this.path = bf.getFilepath();
 		this.sizeInBytes = bf.getSize();
-		PronomFormat pFmt = bag.getPronomFormat(bf);
-		if (pFmt != null)
-		{
-			this.format = pFmt.getFormatName();
-			this.formatPuid = pFmt.getPuid();
-		}
-		else
-		{
-			this.format = "";
-			this.formatPuid = "";
-		}
-		this.md5 = bag.getBagFileHash(bf.getFilepath());
-		
+		this.md5 = bag.getChecksums(bf.getFilepath()).get(Algorithm.MD5);
+
+		// Fido - Pronom format.
+		PronomFormat pFmt = new PronomFormat(bag, bf);
+		this.format = pFmt.getFormatName();
+		this.formatPuid = pFmt.getPuid();
+
+		// Serialised metadata.
 		try
 		{
-			ObjectInputStream objInStream = new ObjectInputStream(bag.getBagFileStream("metadata/" + bf.getFilepath().substring(bf.getFilepath().indexOf('/') + 1) + ".ser"));
+			String serMetadataFilename = "metadata/" + bf.getFilepath().substring(bf.getFilepath().indexOf('/') + 1) + ".ser";
+			ObjectInputStream objInStream = new ObjectInputStream(bag.getBagFile(serMetadataFilename).newInputStream());
 			this.metadata = (Map<String, String[]>) objInStream.readObject();
 		}
 		catch (Exception e)
 		{
+			LOGGER.warn(e.getMessage(), e);
 			this.metadata = new HashMap<String, String[]>();
 		}
-		
-		BagFile virusScanTxt = bag.getBag().getBagFile(VirusScanTxt.VIRUSSCAN_FILEPATH);
+
+		// Virus scan results.
+		BagFile virusScanTxt = bag.getBagFile(VirusScanTxt.VIRUSSCAN_FILEPATH);
 		if (virusScanTxt != null)
 		{
-			VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.VIRUSSCAN_FILEPATH, virusScanTxt, bag.getBag()
-				.getBagItTxt().getCharacterEncoding());
-			ScanResult sr = new ScanResult(vs.get(bf.getFilepath()));
-			this.scanResult = sr.getStatus().toString();
-			if (sr.getStatus() == Status.FAILED)
-				this.scanResult += ", " + sr.getSignature();
+			VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.VIRUSSCAN_FILEPATH, virusScanTxt, bag.getBagItTxt().getCharacterEncoding());
+			String scanResultStr = vs.get(bf.getFilepath());
+			if (scanResultStr == null || scanResultStr.length() == 0)
+			{
+				this.scanResult = "NOT SCANNED";
+			}
+			else
+			{
+				ScanResult sr = new ScanResult(scanResultStr);
+				this.scanResult = sr.getStatus().toString();
+				if (sr.getStatus() == Status.FAILED)
+					this.scanResult += ", " + sr.getSignature();
+			}
 		}
 		else
 		{
-			this.scanResult = Status.ERROR.toString();
+			this.scanResult = "NOT SCANNED";
 		}
 	}
 
@@ -108,7 +118,7 @@ public class FileSummary
 	public String getFriendlySize()
 	{
 		String friendlySize;
-		MessageFormat msgFmt = new MessageFormat("{0, number, integer} {1}");
+		MessageFormat msgFmt = new MessageFormat("{0,number,integer} {1}");
 		if (sizeInBytes >= FileUtils.ONE_GB)
 			friendlySize = msgFmt.format(new Object[] { sizeInBytes / FileUtils.ONE_GB, "GB" });
 		else if (sizeInBytes >= FileUtils.ONE_MB)
