@@ -24,6 +24,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import au.edu.anu.datacommons.data.db.dao.AclSidDAO;
+import au.edu.anu.datacommons.data.db.dao.AclSidDAOImpl;
+import au.edu.anu.datacommons.data.db.model.AclSid;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.util.Util;
@@ -41,6 +44,7 @@ import au.edu.anu.datacommons.util.Util;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		20/08/2012	Genevieve Turner (GT)	Initial
+ * 0.2		28/08/2012	Genevieve Turner (GT)	Updates to fix an exception if there is no acl_sid row for the user
  * </pre>
  *
  */
@@ -49,6 +53,7 @@ public class PermissionService {
 	static final Logger LOGGER = LoggerFactory.getLogger(PermissionService.class);
 	
 	@Resource(name="aclService")
+	//JdbcMutableAclService aclService;
 	MutableAclService aclService;
 	
 	/**
@@ -193,6 +198,7 @@ public class PermissionService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		20/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		28/08/2012	Genevieve Turner (GT)	Updates to fix an exception if there is no acl_sid row for the user
 	 * </pre>
 	 * 
 	 * @param id The id to save permissions for
@@ -200,6 +206,19 @@ public class PermissionService {
 	 * @param masks The masks of the permissions to save
 	 */
 	public void saveUserPermissions(Long id, String username, List<Integer> masks) {
+		// This code is here due to a exception with Transaction must be running
+		// On the updateAcl action if the acl_sid row does not exist
+		// There may be something in the spring security framework that can be used instead
+		// however at this point in time I am unsure as to what it is.
+		AclSidDAO aclSidDAO = new AclSidDAOImpl(AclSid.class);
+		AclSid aclSid = aclSidDAO.getAclSidByUsername(username);
+		if (aclSid == null) {
+			aclSid = new AclSid();
+			aclSid.setPrincipal(Boolean.TRUE);
+			aclSid.setSid(username);
+			aclSidDAO.create(aclSid);
+		}
+		
 		ObjectIdentity objectIdentity = new ObjectIdentityImpl(Groups.class, id);
 		Sid sid = new PrincipalSid(username);
 		MutableAcl groupAcl = null;
