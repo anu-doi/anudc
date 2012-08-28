@@ -11,6 +11,7 @@
  * 0.4		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
  * 0.5		24/07/2012	Genevieve Turner (GT)	Moved loadPopup,centrePopup and disablePopup functions to popup.js
  * 0.6		14/08/2012	Genevieve Turner (GT)	Updated link functionality such that it does not display the qualified id
+ * 0.7		28/08/2012	Genevieve Turner (GT)	Added amendments for enabling the addition of nla identifiers
  */
 
 /**
@@ -73,8 +74,13 @@ var linkPopupStatus = 0;
  * Version	Date		Developer				Description
  * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
  * 0.5		24/07/2012	Genevieve Turner (GT)	Moved loadPopup,centrePopup and disablePopup functions to popup.js
+ * 0.7		28/08/2012	Genevieve Turner (GT)	Added amendments for enabling the addition of nla identifiers
  */
 jQuery("#itemLinkButton").live('click', function(){
+	jQuery("#itemIdentifier").text('None Selected');
+	jQuery("#itemName").text('None Selected');
+	jQuery("#itemId").val('');
+	jQuery("#nlaId").val('');
 	centrePopup("#popupLink");
 	linkPopupStatus = loadPopup("#popupLink", linkPopupStatus);
 });
@@ -122,6 +128,7 @@ jQuery(document).keypress(function(e) {
  * 0.3		29/05/2012	Genevieve Turner (GT)	Added error notification
  * 0.4		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
  * 0.5		24/07/2012	Genevieve Turner (GT)	Moved loadPopup,centrePopup and disablePopup functions to popup.js
+ * 0.7		28/08/2012	Genevieve Turner (GT)	Added amendments for enabling the addition of nla identifiers
  */
 jQuery("#formAddLink").live('submit', function() {
 	var pathArray = window.location.pathname.split('/');
@@ -129,6 +136,11 @@ jQuery("#formAddLink").live('submit', function() {
 	var urlStr = "/DataCommons/rest/display/addLink/" + pid;
 	var typeStr = jQuery("#linkType").val();
 	var itemStr = jQuery("#itemId").text();
+	console.log(itemStr);
+	if (itemStr == '' || itemStr == 'None Selected') {
+		console.log('no itemStr');
+		itemStr = jQuery("#nlaId").val();
+	}
 	var dataString = 'linkType=' + typeStr + '&itemId=' + itemStr;
 	jQuery.ajax({
 		type: "POST",
