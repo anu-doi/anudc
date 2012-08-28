@@ -13,7 +13,7 @@
 #popupLink {
 	display: none;
 	position:fixed;
-	height:300px;
+	height:400px;
 	width:250px;
 	background:#FFFFFF;
 	border: 2px solid #cecece;
@@ -45,9 +45,4 @@
 
 #popupLink input:text {
 	width:150px;
-}
-
-.hidden {
-	display: none;
-	color: red;
 }

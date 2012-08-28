@@ -2,27 +2,21 @@ package au.edu.anu.datacommons.security.service;
 
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.Resource;
 import javax.ws.rs.WebApplicationException;
 import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
@@ -43,7 +37,6 @@ import au.edu.anu.datacommons.publish.Publish;
 import au.edu.anu.datacommons.publish.Validate;
 import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
-import au.edu.anu.datacommons.search.SparqlResultSet;
 import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.storage.DcStorage;
@@ -51,6 +44,7 @@ import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.sparql.Result;
+import au.edu.anu.datacommons.xml.sparql.ResultItem;
 import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.JAXBTransform;
@@ -91,6 +85,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.14		27/07/2012	Genevieve Turner (GT)	Added method to retrieve some information about a fedora object
  * 0.15		20/08/2012	Genevieve Turner (GT)	Updated to use permissionService rather than aclService
  * 0.16		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
+ * 0.17		28/08/2012	Genevieve Turner (GT)	Added the display of reverse links
  * </pre>
  * 
  */
@@ -419,7 +414,8 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			String sidepage = "buttons.jsp";
 			values.put("sidepage", sidepage);
 			
-			SparqlResultSet resultSet = getLinks(fedoraObject);
+			//SparqlResultSet resultSet = getLinks(fedoraObject);
+			List<Result> resultSet = getLinks(fedoraObject);
 			values.put("resultSet", resultSet);
 		}
 		
@@ -435,43 +431,39 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * Version	Date		Developer				Description
 	 * 0.3		26/04/2012	Genevieve Turner (GT)	Initial
 	 * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to cater for change to post method in the riSearchService
+	 * 0.17		28/08/2012	Genevieve Turner (GT)	Added the display of reverse links
 	 * </pre>
 	 * 
 	 * @param fedoraObject The object to retrieve the links for
 	 * @return The results of the query
 	 */
-	private SparqlResultSet getLinks(FedoraObject fedoraObject) {
-		SparqlResultSet resultSet = null;
+	private List<Result> getLinks(FedoraObject fedoraObject) {
 		SparqlQuery sparqlQuery = new SparqlQuery();
 		
 		sparqlQuery.addVar("?item");
 		sparqlQuery.addVar("?title");
 		sparqlQuery.addVar("?predicate");
-		sparqlQuery.addTriple("<info:fedora/" + fedoraObject.getObject_id() + ">", "?predicate", "?item", false);
-		sparqlQuery.addTriple("?item", "<dc:title>", "?title", false);
+		
+		StringBuilder tripleString = new StringBuilder();
+		
+		tripleString.append("{ <info:fedora/");
+		tripleString.append(fedoraObject.getObject_id());
+		tripleString.append("> ?predicate ?item . } ");
+		tripleString.append("UNION ");
+		tripleString.append("{ ?item ?predicate <info:fedora/");
+		tripleString.append(fedoraObject.getObject_id());
+		tripleString.append("> } ");
+		
+		sparqlQuery.addTripleSet(tripleString.toString());
+		sparqlQuery.addTriple("?item", "<dc:title>", "?title", true);
 		String filterString = "regex(str(?predicate), '" + GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI) + "', 'i')";
 		sparqlQuery.addFilter(filterString, "");
 		
 		ClientResponse respFromRiSearch = riSearchService.post("query", sparqlQuery.generateQuery());
-		try {
-			// For some reason XPath doesn't work properly if you directly get the document from the stream
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			Document resultsXmlDoc = factory.newDocumentBuilder().parse(new InputSource(new StringReader(respFromRiSearch.getEntity(String.class))));
-			resultSet = new SparqlResultSet(resultsXmlDoc);
-		}
-		catch (SAXException e)
-		{
-			LOGGER.error("Error creating document", e);
-		}
-		catch (ParserConfigurationException e)
-		{
-			LOGGER.error("Error creating document", e);
-		}
-		catch (IOException e)
-		{
-			LOGGER.error("Error creating document", e);
-		}
-		return resultSet;
+		
+		List<Result> resultList = getSparqlResultList(respFromRiSearch);
+		
+		return resultList;
 	}
 
 	/**
@@ -917,7 +909,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		sparqlQuery.addFilter(queryFilter.toString(), "");
 		
 		ClientResponse clientResponse =riSearchService.post("query", sparqlQuery.generateQuery());
-		
+		/*
 		List<Result> resultList = null;
 		JAXBTransform jaxbTransform = new JAXBTransform();
 		try {
@@ -929,7 +921,36 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		catch (JAXBException e) {
 			LOGGER.info("Exception doing transform", e);
 		}
-		
+		*/
+		List<Result> resultList = getSparqlResultList(clientResponse);
+		return resultList;
+	}
+	
+	/**
+	 * getSparqlResultList
+	 *
+	 * Transforms a Sparql response to a result list
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.17		28/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param clientResponse
+	 * @return
+	 */
+	private List<Result> getSparqlResultList(ClientResponse clientResponse) {
+		List<Result> resultList = null;
+		JAXBTransform jaxbTransform = new JAXBTransform();
+		try {
+			Sparql sparqlResult = (Sparql)jaxbTransform.unmarshalStream(clientResponse.getEntityInputStream(), Sparql.class);
+			if (sparqlResult != null && sparqlResult.getResults() != null && sparqlResult.getResults().getResults() != null) {
+				resultList = sparqlResult.getResults().getResults();
+			}
+		}
+		catch (JAXBException e) {
+			LOGGER.info("Exception doing transform", e);
+		}
 		return resultList;
 	}
 }
