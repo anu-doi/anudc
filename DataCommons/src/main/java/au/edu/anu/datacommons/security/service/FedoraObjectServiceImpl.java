@@ -2,27 +2,21 @@ package au.edu.anu.datacommons.security.service;
 
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.Resource;
 import javax.ws.rs.WebApplicationException;
 import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
@@ -43,12 +37,12 @@ import au.edu.anu.datacommons.publish.Publish;
 import au.edu.anu.datacommons.publish.Validate;
 import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
-import au.edu.anu.datacommons.search.SparqlResultSet;
 import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.sparql.Result;
+import au.edu.anu.datacommons.xml.sparql.ResultItem;
 import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.JAXBTransform;
@@ -418,7 +412,8 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			String sidepage = "buttons.jsp";
 			values.put("sidepage", sidepage);
 			
-			SparqlResultSet resultSet = getLinks(fedoraObject);
+			//SparqlResultSet resultSet = getLinks(fedoraObject);
+			List<Result> resultSet = getLinks(fedoraObject);
 			values.put("resultSet", resultSet);
 		}
 		
@@ -440,8 +435,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param fedoraObject The object to retrieve the links for
 	 * @return The results of the query
 	 */
-	private SparqlResultSet getLinks(FedoraObject fedoraObject) {
-		SparqlResultSet resultSet = null;
+	private List<Result> getLinks(FedoraObject fedoraObject) {
 		SparqlQuery sparqlQuery = new SparqlQuery();
 		
 		sparqlQuery.addVar("?item");
@@ -459,30 +453,15 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		tripleString.append("> } ");
 		
 		sparqlQuery.addTripleSet(tripleString.toString());
-		sparqlQuery.addTriple("?item", "<dc:title>", "?title", false);
+		sparqlQuery.addTriple("?item", "<dc:title>", "?title", true);
 		String filterString = "regex(str(?predicate), '" + GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI) + "', 'i')";
 		sparqlQuery.addFilter(filterString, "");
 		
 		ClientResponse respFromRiSearch = riSearchService.post("query", sparqlQuery.generateQuery());
-		try {
-			// For some reason XPath doesn't work properly if you directly get the document from the stream
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			Document resultsXmlDoc = factory.newDocumentBuilder().parse(new InputSource(new StringReader(respFromRiSearch.getEntity(String.class))));
-			resultSet = new SparqlResultSet(resultsXmlDoc);
-		}
-		catch (SAXException e)
-		{
-			LOGGER.error("Error creating document", e);
-		}
-		catch (ParserConfigurationException e)
-		{
-			LOGGER.error("Error creating document", e);
-		}
-		catch (IOException e)
-		{
-			LOGGER.error("Error creating document", e);
-		}
-		return resultSet;
+		
+		List<Result> resultList = getSparqlResultList(respFromRiSearch);
+		
+		return resultList;
 	}
 
 	/**
@@ -928,7 +907,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		sparqlQuery.addFilter(queryFilter.toString(), "");
 		
 		ClientResponse clientResponse =riSearchService.post("query", sparqlQuery.generateQuery());
-		
+		/*
 		List<Result> resultList = null;
 		JAXBTransform jaxbTransform = new JAXBTransform();
 		try {
@@ -940,7 +919,36 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		catch (JAXBException e) {
 			LOGGER.info("Exception doing transform", e);
 		}
-		
+		*/
+		List<Result> resultList = getSparqlResultList(clientResponse);
+		return resultList;
+	}
+	
+	/**
+	 * getSparqlResultList
+	 *
+	 * Transforms a Sparql response to a result list
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.17		28/08/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param clientResponse
+	 * @return
+	 */
+	private List<Result> getSparqlResultList(ClientResponse clientResponse) {
+		List<Result> resultList = null;
+		JAXBTransform jaxbTransform = new JAXBTransform();
+		try {
+			Sparql sparqlResult = (Sparql)jaxbTransform.unmarshalStream(clientResponse.getEntityInputStream(), Sparql.class);
+			if (sparqlResult != null && sparqlResult.getResults() != null && sparqlResult.getResults().getResults() != null) {
+				resultList = sparqlResult.getResults().getResults();
+			}
+		}
+		catch (JAXBException e) {
+			LOGGER.info("Exception doing transform", e);
+		}
 		return resultList;
 	}
 }
