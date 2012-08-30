@@ -59,6 +59,8 @@
 		</sec:authorize>
 	</anu:box>
 	<jsp:include page="listrelated.jsp" />
+	
+	<!-- Bag Summary Begin -->
 	<c:if test="${not empty it.bagSummary}">
 		<anu:boxheader text="<a href='/DataCommons/rest/upload/bag/${it.fedoraObject.object_id}'>Files</a>" />
 		<c:if test="${it.itemType == 'Collection'}">
@@ -67,4 +69,5 @@
 			</anu:box>
 		</c:if>
 	</c:if>
+	<!-- Bag Summary End -->
 </anu:content>

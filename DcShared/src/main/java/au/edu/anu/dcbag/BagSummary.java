@@ -13,6 +13,11 @@ public class BagSummary
 	public BagSummary(Bag bag)
 	{
 		this.bag = bag;
+		
+		// Read bag properties file.
+		BagFile bagPropsTxtFile = bag.getBagFile(BagPropsTxt.FILEPATH);
+		if (bagPropsTxtFile != null)
+			this.bagPropsTxt = new BagPropsTxt(BagPropsTxt.FILEPATH, bagPropsTxtFile, bag.getBagItTxt().getCharacterEncoding());
 	}
 	
 	public String getFriendlySize()
@@ -32,14 +37,6 @@ public class BagSummary
 	
 	public DataSource getDataSource()
 	{
-		// Read the Bag properties file.
-		if (bagPropsTxt == null)
-		{
-			BagFile bagPropsTxtFile = bag.getBagFile(BagPropsTxt.FILEPATH);
-			if (bagPropsTxtFile != null)
-				this.bagPropsTxt = new BagPropsTxt(BagPropsTxt.FILEPATH, bagPropsTxtFile, bag.getBagItTxt().getCharacterEncoding());
-		}
-		
 		// If the Bag properites file exists, read the data source. If data source not specified, set GENERAL.
 		DataSource dataSource = null;
 		if (this.bagPropsTxt != null)
@@ -47,7 +44,7 @@ public class BagSummary
 			String value = bagPropsTxt.get(Key.DATASOURCE.toString());
 			if (value == null || value.length() == 0)
 				dataSource = DataSource.GENERAL;
-			dataSource = DataSource.valueOf(value);
+			dataSource = DataSource.getValueOf(value);
 		}
 		
 		return dataSource;

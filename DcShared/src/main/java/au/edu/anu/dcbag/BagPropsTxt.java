@@ -1,5 +1,7 @@
 package au.edu.anu.dcbag;
 
+import java.text.MessageFormat;
+
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.utilities.namevalue.impl.AbstractNameValueMapListBagFile;
 
@@ -43,6 +45,17 @@ public class BagPropsTxt extends AbstractNameValueMapListBagFile
 		{
 			return this.value;
 		}
+		
+		public static DataSource getValueOf(String value)
+		{
+			if (value.toLowerCase().equals(INSTRUMENT.toString()))
+				return INSTRUMENT;
+			else if (value.toLowerCase().equals(GENERAL.toString()))
+				return GENERAL;
+			else
+				throw new IllegalArgumentException(MessageFormat.format("Invalid DataSource type {0}.", value));
+		}
+		
 	}
 
 	public BagPropsTxt(String filepath, String encoding)

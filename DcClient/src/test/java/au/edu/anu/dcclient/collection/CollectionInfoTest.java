@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.text.MessageFormat;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -52,20 +54,32 @@ public class CollectionInfoTest
 		{
 			collInfo = new CollectionInfo(collInfoFile);
 
-			for (String key : collInfo.keySet())
+			for (String key : collInfo.getCreateCollMap().keySet())
 			{
 				LOGGER.info("Key: {}", key);
-				for (String value : collInfo.get(key))
+				for (String value : collInfo.getCreateCollMap().get(key))
 					LOGGER.info("\tValue: {}", value);
 			}
 			
-			assertTrue(collInfo.containsKey("Key1"));
-			assertTrue(collInfo.containsKey("Key2"));
-			assertTrue(collInfo.containsKey("Key3"));
+			assertTrue(collInfo.getCreateCollMap().containsKey("Key1"));
+			assertTrue(collInfo.getCreateCollMap().containsKey("Key2"));
+			assertTrue(collInfo.getCreateCollMap().containsKey("Key3"));
 
-			assertEquals(3, collInfo.size());
-			assertEquals(2, collInfo.get("Key1").size());
-			assertTrue(collInfo.get("Key3").get(0).equals("value with = symbol"));
+			assertEquals(3, collInfo.getCreateCollMap().size());
+			assertEquals(2, collInfo.getCreateCollMap().get("Key1").size());
+			assertTrue(collInfo.getCreateCollMap().get("Key3").get(0).equals("value with = symbol"));
+			
+			// Check relationship set.
+			Set<String[]> relSet = collInfo.getRelationSet();
+			assertEquals(2, relSet.size());
+			for (String[] rel : relSet)
+			{
+				LOGGER.info("Relationship: {}-{}", rel[0], rel[1]);
+				if (rel[0].equals("isOutputOf"))
+					assertEquals("test:1", rel[1]);
+				if (rel[0].equals("isPartOf"))
+					assertEquals("test:2", rel[1]);
+			}
 		}
 		catch (IOException e)
 		{

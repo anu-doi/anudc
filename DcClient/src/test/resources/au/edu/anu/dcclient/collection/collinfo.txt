@@ -5,3 +5,5 @@ Key2 = value 2.1
 Key3 = value with = symbol
 KeyWithoutVal=
 =ValueWithoutKey
+relation=isOutputOf,test:1
+relation=isPartOf,test:2

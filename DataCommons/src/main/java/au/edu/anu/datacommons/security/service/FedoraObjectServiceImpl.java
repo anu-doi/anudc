@@ -319,28 +319,19 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param fedoraObject The item to transform to a display
 	 * @param form Contains the parameters from the request
 	 * @return A response for the web page
+	 * @throws FedoraClientException 
 	 */
-	public String addLink(FedoraObject fedoraObject, Map<String, List<String>> form) {
-		String value = "<html><body>Reference added</body></html>";
+	public void addLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException {
 		String link = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI);
 		FedoraReference reference = new FedoraReference();
-		String referenceType = form.get("linkType").get(0);
-		String referenceItem = form.get("itemId").get(0);
+		String referenceType = linkType;
+		String referenceItem = itemId;
 		reference.setPredicate_(link + referenceType);
 		reference.setObject_(referenceItem);
 		reference.setIsLiteral_(Boolean.FALSE);
-		try {
-			FedoraBroker.addRelationship(fedoraObject.getObject_id(), reference);
-		}
-		catch (Exception e) {
-			LOGGER.error("Exception adding relationship", e);
-			value = "<html><body>Exception adding reference</body></html>";
-		}
-		
-		//TODO update the return for this
-		return value;
+		FedoraBroker.addRelationship(fedoraObject.getObject_id(), reference);
 	}
-
+	
 	/**
 	 * getPage
 	 * 
@@ -374,6 +365,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		try {
 			if (fedoraObject != null)
 			{
+				// Add bag summary to model.
 				if (DcStorage.getInstance().bagExists(fedoraObject.getObject_id()))
 				{
 					try

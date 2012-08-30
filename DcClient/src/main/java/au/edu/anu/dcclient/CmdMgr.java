@@ -65,7 +65,7 @@ public final class CmdMgr
 		OPTIONS.addOption(deleteLocalBag);
 		OPTIONS.addOption(help);
 	}
-	
+
 	private int exitCode = 0;
 	private TaskSummary summary = new TaskSummary();
 
@@ -146,7 +146,7 @@ public final class CmdMgr
 		{
 			StopWatch stopWatch = new StopWatch();
 			stopWatch.start();
-			
+
 			// Read collection details.
 			System.out.println("Reading values from collection file...");
 			CollectionInfo ci = new CollectionInfo(paramFile);
@@ -173,6 +173,8 @@ public final class CmdMgr
 				setDataSource(bag);
 			File bagFile = bag.saveAs(Global.getLocalBagStoreAsFile(), pid, Format.FILESYSTEM);
 			File payloadDir = new File(bagFile, "data/");
+			if (payloadDir.exists())
+				FileUtils.deleteDirectory(payloadDir);
 			payloadDir.mkdirs();
 			System.out.println("Bag initialised.");
 
@@ -211,9 +213,15 @@ public final class CmdMgr
 			System.out.println("Uploading Bag...");
 			ClientResponse resp = uploadTask.call();
 			timeEl.end();
-			if (resp.getClientResponseStatus() != Status.OK)
-				throw new Exception("Unable to upload bag.");
-			bag.close();
+			try
+			{
+				if (resp.getClientResponseStatus() != Status.OK)
+					throw new Exception("Unable to upload bag. " + resp.getEntity(String.class));
+			}
+			finally
+			{
+				bag.close();
+			}
 
 			System.out.println("Bag uploaded successfully.");
 			System.out.println("Time: " + timeEl.getFriendlyElapsed());
@@ -227,12 +235,12 @@ public final class CmdMgr
 				else
 					LOGGER.warn("Unable to delete local bag file.");
 			}
-			
+
 			stopWatch.end();
 			summary.put("Total Time Taken", stopWatch.getFriendlyElapsed());
 			summary.put("Started", new Date(stopWatch.getStartTimeInMs()).toString());
 			summary.put("Ended", new Date(stopWatch.getEndTimeInMs()).toString());
-			
+
 			summary.display();
 			exitCode = 0;
 		}
@@ -413,7 +421,7 @@ public final class CmdMgr
 
 		return sizeInBytes;
 	}
-	
+
 	static long countFilesInDir(File sourceDir)
 	{
 		long numFilesInDir = 0L;

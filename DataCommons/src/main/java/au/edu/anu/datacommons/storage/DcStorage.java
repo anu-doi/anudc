@@ -102,6 +102,7 @@ public class DcStorage
 			}
 			catch (IOException e)
 			{
+				inst = null;
 				LOGGER.error(e.getMessage(), e);
 			}
 		}
@@ -190,7 +191,21 @@ public class DcStorage
 	public void storeBag(String pid, File bagFile) throws DcStorageException
 	{
 		Bag bag = bagFactory.createBag(bagFile, LoadOption.BY_FILES);
-		storeBag(pid, bag);
+		try
+		{
+			storeBag(pid, bag);
+		}
+		finally
+		{
+			try
+			{
+				bag.close();
+			}
+			catch (IOException e)
+			{
+				LOGGER.warn("Unable to close bag.");
+			}
+		}
 	}
 	
 	public void storeBag(String pid, Bag bag) throws DcStorageException
@@ -405,10 +420,6 @@ public class DcStorage
 		if (deleteOriginal)
 		{
 			file.renameTo(targetFile);
-//			if (file.isDirectory())
-//				FileUtils.moveDirectory(file, targetFile);
-//			else
-//				FileUtils.moveFile(file, targetFile);
 		}
 		else
 		{

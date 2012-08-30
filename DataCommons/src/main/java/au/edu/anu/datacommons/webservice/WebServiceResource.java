@@ -39,7 +39,8 @@ public class WebServiceResource
 		Response resp = null;
 		
 		// TODO Implement method.
-		resp = Response.ok("<?xml version=\"1.0\"?>" + "<hello> Hello Jersey" + "</hello>", MediaType.APPLICATION_XML_TYPE).build();
+		
+		resp = Response.ok("<?xml version=\"1.0\"?>" + "<SomeXmlTag>Hello World" + "</SomeXmlTag>", MediaType.APPLICATION_XML_TYPE).build();
 		return resp;
 	}
 	

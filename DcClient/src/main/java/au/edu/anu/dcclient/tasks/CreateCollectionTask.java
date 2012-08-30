@@ -3,9 +3,11 @@ package au.edu.anu.dcclient.tasks;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URI;
+import java.text.MessageFormat;
 import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.http.protocol.HttpService;
@@ -17,6 +19,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import au.edu.anu.dcclient.Global;
 import au.edu.anu.dcclient.collection.CollectionInfo;
@@ -38,21 +41,36 @@ public class CreateCollectionTask extends AbstractDcBagTask<String>
 	public String call() throws Exception
 	{
 		String createdPid = null;
-		
+
 		if (collInfo.getPid() == null)
 		{
 			// The parameter file doesn't contain a pid, create an object and store the pid of newly created object in parameter file.
 			stopWatch.start();
 			try
 			{
-				WebResource webResource = client.resource(UriBuilder.fromUri(createUri).queryParam("layout", "def:display").queryParam("tmplt", "tmplt:1").build());
+				WebResource webResource = client.resource(UriBuilder.fromUri(createUri).queryParam("layout", "def:display").queryParam("tmplt", "tmplt:1")
+						.build());
 				ClientResponse response = webResource.accept(MediaType.TEXT_PLAIN_TYPE).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-						.header("User-Agent", "BagIt Library Parallel Fetcher").post(ClientResponse.class, collInfo);
+						.post(ClientResponse.class, collInfo.getCreateCollMap());
 				if (response.getClientResponseStatus() != Status.CREATED)
 					throw new Exception("Unable to create a collection. Server returned HTTP " + response.getStatus());
 				createdPid = response.getEntity(String.class);
 				collInfo.setPid(createdPid);
 				LOGGER.info("Created object with pid: {}", createdPid);
+				
+				// Add relations
+				webResource = client.resource(UriBuilder.fromUri(Global.getAddLinkUri()).path(collInfo.getPid()).build());
+				for (String[] rel : collInfo.getRelationSet())
+				{
+					MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
+					formData.add("linkType", rel[0]);
+					formData.add("itemId", rel[1]);
+					response = webResource.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).accept(MediaType.TEXT_PLAIN_TYPE).post(ClientResponse.class, formData);
+					if (response.getClientResponseStatus() == Status.OK)
+						LOGGER.info(MessageFormat.format("Created {0} relationship with {1}.", rel[0], rel[1]));
+					else
+						LOGGER.error(MessageFormat.format("Unable to set {0} relation with {1}.", rel[0], rel[1]));
+				}
 			}
 			finally
 			{
@@ -65,7 +83,6 @@ public class CreateCollectionTask extends AbstractDcBagTask<String>
 			// Sync the collection details.
 			// TODO Implement syncing.
 		}
-		
 
 		return createdPid;
 	}

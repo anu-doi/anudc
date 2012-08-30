@@ -1,12 +1,14 @@
 package au.edu.anu.datacommons.services;
 
 import java.net.URI;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -33,6 +35,7 @@ import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
+import com.yourmediashelf.fedora.client.FedoraClientException;
 
 /**
  * DisplayResource
@@ -368,10 +371,55 @@ public class DisplayResource
 	@Produces(MediaType.TEXT_HTML)
 	public String addLink(@PathParam("item") String item, @Context HttpServletRequest request)
 	{
+		String value;
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
-		String value = fedoraObjectService.addLink(fedoraObject, form);
+		try
+		{
+			fedoraObjectService.addLink(fedoraObject, form.get("linkType").get(0), form.get("itemId").get(0));
+			value = "<html><body>Reference added</body></html>";
+		}
+		catch (FedoraClientException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			value = "<html><body>Exception adding reference</body></html>";
+		}
 		return value;
 	}
 
+	@POST
+	@Path("/addLink/{pid}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response addLinkAsText(@PathParam("pid") String relPid, @FormParam("linkType") String linkType, @FormParam("itemId") String itemId)
+	{
+		Response resp = null;
+		FedoraObject fedoraObject = fedoraObjectService.getItemByName(relPid);
+		try
+		{
+			if (fedoraObject == null)
+				throw new IllegalArgumentException(MessageFormat.format("No object exists for the pid {0}", relPid));
+			if (linkType == null || linkType.length() == 0)
+				throw new IllegalArgumentException("linkType not provided.");
+			if (itemId == null || itemId.length() == 0)
+				throw new IllegalArgumentException("itemId not provided.");
+			String nsPrefix = "info:fedora/";
+			if (!itemId.toLowerCase().startsWith(nsPrefix))
+				itemId = MessageFormat.format("{0}{1}", nsPrefix, itemId);
+			fedoraObjectService.addLink(fedoraObject, linkType, itemId);
+			resp = Response.ok("OK", MediaType.TEXT_PLAIN_TYPE).build();
+		}
+		catch (IllegalArgumentException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().build();
+		}
+		catch (FedoraClientException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().build();
+		}
+		return resp;
+	}
 }
