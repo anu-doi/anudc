@@ -368,7 +368,7 @@ public final class DcStorage
 			public void run()
 			{
 				byte[] buffer = new byte[1048576];
-				ZipOutputStream zipOutStream = new ZipOutputStream(sink, Charset.forName("UTF-8"));
+				ZipOutputStream zipOutStream = new ZipOutputStream(sink);
 
 				try
 				{
