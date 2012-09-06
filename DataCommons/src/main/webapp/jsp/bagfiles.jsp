@@ -7,12 +7,13 @@
 	respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
 	<link href="http://styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="<c:url value='/js/bagfiles.js' />"></script>
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
 
 <c:choose>
-	<c:when test="${it.downloadables != null}">
+	<c:when test="${it.bagSummary != null}">
 		<!-- Display list of files -->
 
 		<anu:content layout="doublewide" title="Bag Files">
@@ -20,7 +21,15 @@
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
 
-			<table class="small">
+			<div id="tabs" class="pagetabs-nav">
+				<ul>
+					<li><a href="#" class="pagetabs-select" onclick="return tabSelect(this, '#files')">Files</a></li>
+					<li><a href="#" onclick="return tabSelect(this, '#info')">Archive Info</a></li>
+					<li><a href="#" onclick="return tabSelect(this, '')">External References</a></li>
+				</ul>
+			</div>
+
+			<table class="small w-doublewide" id="files">
 				<tr>
 					<th>File</th>
 					<th>Format</th>
@@ -30,7 +39,7 @@
 					<th>Virus</th>
 					<th>Expand</th>
 				</tr>
-				<c:forEach var="iFile" items="${it.downloadables}">
+				<c:forEach var="iFile" items="${it.bagSummary.fileSummaryMap}">
 					<tr>
 						<td><a href="<c:url value='${it.dlBaseUri}${iFile.key.filepath}' />">${iFile.key.filepath}</a></td>
 						<c:choose>
@@ -49,7 +58,7 @@
 						<td onclick="jQuery('#${iFile.value.md5}').slideToggle()"><a href="#" onclick="return false">Expand</a></td>
 					</tr>
 					<tr id="<c:out value='${iFile.value.md5}' />" style="display: none;">
-						<td colspan="6">
+						<td colspan="7">
 							<table class=small>
 								<c:forEach var="iProperty" items="${iFile.value.metadata}">
 									<tr>
@@ -61,6 +70,18 @@
 								</c:forEach>
 							</table>
 						</td>
+					</tr>
+				</c:forEach>
+				<tr class="bg-uni50 text-center">
+					<td colspan="7"><a href="${it.downloadAsZipUrl}">Download all as Zip</a></td>
+				</tr>
+			</table>
+
+			<table class="small w-doublewide" id="info" style="display: none;">
+				<c:forEach var="iEntry" items="${it.bagInfoTxt}">
+					<tr>
+						<th><c:out value="${iEntry.key}" /></th>
+						<td><c:out value="${iEntry.value}" /></td>
 					</tr>
 				</c:forEach>
 			</table>

@@ -682,15 +682,16 @@ public class CollectionRequestService
 
 			// Create HashMap downloadables with a link for each item to be downloaded.
 			HashMap<String, String> downloadables = new HashMap<String, String>();
+			UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream")
+					.queryParam("dropboxAccessCode", dropboxAccessCode).queryParam("p", password);
 			for (CollectionRequestItem reqItem : dropbox.getCollectionRequest().getItems())
 			{
-				UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream")
-						.queryParam("dropboxAccessCode", dropboxAccessCode).queryParam("p", password);
 				URI fileDlUri = uriBuilder.build(dropbox.getCollectionRequest().getPid(), reqItem.getItem());
 				LOGGER.debug("Adding URI {} to downloadables", fileDlUri.toString());
 				downloadables.put(reqItem.getItem(), fileDlUri.toString());
 			}
 			model.put("downloadables", downloadables);
+			model.put("downloadAsZipUrl", uriBuilder.build(dropbox.getCollectionRequest().getPid(), "zip"));
 
 			// Fetch List.
 			DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), DcBag.convertToDiskSafe(dropbox.getCollectionRequest().getPid())),

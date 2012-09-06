@@ -9,11 +9,6 @@ public class DcStorageException extends Exception
 		super();
 	}
 
-	public DcStorageException(String message, Throwable cause)
-	{
-		super(message, cause);
-	}
-
 	public DcStorageException(String message)
 	{
 		super(message);
@@ -22,6 +17,11 @@ public class DcStorageException extends Exception
 	public DcStorageException(Throwable cause)
 	{
 		super(cause);
+	}
+
+	public DcStorageException(String message, Throwable cause)
+	{
+		super(message, cause);
 	}
 	
 }

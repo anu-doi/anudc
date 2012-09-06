@@ -62,10 +62,10 @@ public class FileSummary
 		}
 
 		// Virus scan results.
-		BagFile virusScanTxt = bag.getBagFile(VirusScanTxt.VIRUSSCAN_FILEPATH);
+		BagFile virusScanTxt = bag.getBagFile(VirusScanTxt.FILEPATH);
 		if (virusScanTxt != null)
 		{
-			VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.VIRUSSCAN_FILEPATH, virusScanTxt, bag.getBagItTxt().getCharacterEncoding());
+			VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.FILEPATH, virusScanTxt, bag.getBagItTxt().getCharacterEncoding());
 			String scanResultStr = vs.get(bf.getFilepath());
 			if (scanResultStr == null || scanResultStr.length() == 0)
 			{

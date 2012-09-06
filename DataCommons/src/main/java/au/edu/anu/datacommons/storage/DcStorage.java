@@ -1,59 +1,58 @@
 package au.edu.anu.datacommons.storage;
 
+import gov.loc.repository.bagit.Bag;
+import gov.loc.repository.bagit.BagFactory;
+import gov.loc.repository.bagit.BagFactory.LoadOption;
+import gov.loc.repository.bagit.BagFile;
+import gov.loc.repository.bagit.Manifest;
+import gov.loc.repository.bagit.ManifestHelper;
+import gov.loc.repository.bagit.transformer.Completer;
+import gov.loc.repository.bagit.transformer.impl.ChainingCompleter;
+import gov.loc.repository.bagit.transformer.impl.DefaultCompleter;
+import gov.loc.repository.bagit.transformer.impl.TagManifestCompleter;
+import gov.loc.repository.bagit.utilities.SimpleResult;
+import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.tika.io.IOUtils;
-import org.apache.xml.security.algorithms.Algorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.yourmediashelf.fedora.client.FedoraClientException;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.dcbag.BagPropsTxt.DataSource;
-import au.edu.anu.dcbag.BagPropsTxt;
 import au.edu.anu.dcbag.BagSummary;
-import au.edu.anu.dcbag.DcBagException;
 import au.edu.anu.dcbag.FileSummaryMap;
 
-import gov.loc.repository.bagit.Bag;
-import gov.loc.repository.bagit.BagFactory;
-import gov.loc.repository.bagit.BagFile;
-import gov.loc.repository.bagit.Manifest;
-import gov.loc.repository.bagit.ManifestHelper;
-import gov.loc.repository.bagit.BagFactory.LoadOption;
-import gov.loc.repository.bagit.transfer.BagTransferException;
-import gov.loc.repository.bagit.transformer.Completer;
-import gov.loc.repository.bagit.transformer.impl.ChainingCompleter;
-import gov.loc.repository.bagit.transformer.impl.DefaultCompleter;
-import gov.loc.repository.bagit.transformer.impl.TagManifestCompleter;
-import gov.loc.repository.bagit.utilities.MessageDigestHelper;
-import gov.loc.repository.bagit.utilities.SimpleResult;
-import gov.loc.repository.bagit.writer.Writer;
-import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
+import com.yourmediashelf.fedora.client.FedoraClientException;
 
-public class DcStorage
+public final class DcStorage
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorage.class);
 
 	private static Set<Manifest.Algorithm> algorithms;
 	private static DcStorage inst = null;
 	private static Set<String> lockedPids = Collections.synchronizedSet(new HashSet<String>());
-	private static File bagsDir;
+	private static File bagsDir = null;
 	private static Completer preSaveCompleter;
 	private static Completer postSaveCompleter;
 	private static FileSystemWriter writer;
@@ -61,11 +60,6 @@ public class DcStorage
 	public static final BagFactory bagFactory = new BagFactory();
 
 	protected DcStorage() throws IOException
-	{
-		this(null);
-	}
-	
-	protected DcStorage(File storageDir) throws IOException
 	{
 		// Algorithms for manifest files.
 		algorithms = new HashSet<Manifest.Algorithm>();
@@ -77,22 +71,21 @@ public class DcStorage
 
 		// Bag Writer
 		writer = new FileSystemWriter(bagFactory);
-		
-		// Set storage location
-		if (storageDir != null)
-			bagsDir = storageDir;
-		else
+
+		// Set storage location if not set already.
+		if (bagsDir == null)
 			bagsDir = GlobalProps.getBagsDirAsFile();
 
 		// If the directory specified doesn't exist, create it.
 		if (!bagsDir.exists())
 		{
 			if (!bagsDir.mkdirs())
-				throw new IOException(MessageFormat.format("Unable to create {0}. Check permissions.", bagsDir.getAbsolutePath()));;
+				throw new IOException(MessageFormat.format("Unable to create {0}. Check permissions.", bagsDir.getAbsolutePath()));
+			;
 		}
 	}
 
-	public static DcStorage getInstance()
+	public static synchronized DcStorage getInstance()
 	{
 		if (inst == null)
 		{
@@ -108,6 +101,15 @@ public class DcStorage
 		}
 		return inst;
 	}
+	
+	public static void setLocation(File newBagsDir)
+	{
+		if (inst == null)
+			bagsDir = newBagsDir;
+		else
+			throw new RuntimeException("Can't change storage location after instantiation.");
+	}
+	
 
 	public void addFileToBag(String pid, String filename, String fileUrl) throws DcStorageException
 	{
@@ -122,7 +124,7 @@ public class DcStorage
 			throw dce;
 		}
 	}
-	
+
 	public void addFileToBag(String pid, String filename, URL fileUrl) throws DcStorageException
 	{
 		File tempFile = null;
@@ -134,9 +136,9 @@ public class DcStorage
 			if (!tempFile.renameTo(tempRenamedFile))
 				throw new IOException(MessageFormat.format("Unable to rename {0} to {1}.", tempFile.getAbsolutePath(), tempRenamedFile.getAbsolutePath()));
 
-			LOGGER.debug("Saving {} as {}...", fileUrl.toString(), tempFile.getAbsolutePath());
-			FileUtils.copyURLToFile(fileUrl, tempFile);
-			addFileToBag(pid, tempFile);
+			LOGGER.debug("Saving {} as {}...", fileUrl.toString(), tempRenamedFile.getAbsolutePath());
+			FileUtils.copyURLToFile(fileUrl, tempRenamedFile);
+			addFileToBag(pid, tempRenamedFile);
 		}
 		catch (IOException e)
 		{
@@ -153,19 +155,22 @@ public class DcStorage
 				FileUtils.deleteQuietly(tempRenamedFile);
 		}
 	}
-	
+
 	public void addFileToBag(String pid, File file) throws DcStorageException
 	{
 		// TODO Lock Pid
-		
-		Bag bag = getBag(pid);
-		if (bag == null)
-			bag = createBlankBag(pid);
 
 		try
 		{
-			archiveBag(bag, false);
-			bag = getBag(pid);
+			Bag bag = getBag(pid);
+			if (bag == null)
+				bag = createBlankBag(pid);
+			else
+			{
+				archiveBag(bag, false);
+				// Reload bag instance because now it points to the archived bag.
+				bag = getBag(pid);
+			}
 			bag.addFileToPayload(file);
 			bag = bag.makeComplete(preSaveCompleter);
 			writeBag(bag, pid);
@@ -180,10 +185,10 @@ public class DcStorage
 				LOGGER.warn(e.getMessage(), e);
 			}
 		}
-		catch (IOException e1)
+		catch (IOException e)
 		{
-			DcStorageException dce = new DcStorageException(e1);
-			LOGGER.error(e1.getMessage(), dce);
+			DcStorageException dce = new DcStorageException(e);
+			LOGGER.error(e.getMessage(), dce);
 			throw dce;
 		}
 	}
@@ -207,7 +212,7 @@ public class DcStorage
 			}
 		}
 	}
-	
+
 	public void storeBag(String pid, Bag bag) throws DcStorageException
 	{
 		// Verify the bag.
@@ -221,7 +226,7 @@ public class DcStorage
 
 		if (!bag.getBagInfoTxt().getExternalIdentifier().equals(pid))
 			throw new DcStorageException("Bag received is not for Pid: " + pid);
-		
+
 		Bag curBag = getBag(pid);
 		if (curBag != null)
 		{
@@ -248,13 +253,13 @@ public class DcStorage
 				}
 			}
 		}
-		
+
 		// Complete the bag.
 		bag = bag.makeComplete(preSaveCompleter);
 		bag = writeBag(bag, pid);
 		bag = bag.makeComplete(postSaveCompleter);
 		bag = writeBag(bag, pid);
-		
+
 		// Update FILE0 datastream.
 		try
 		{
@@ -262,10 +267,9 @@ public class DcStorage
 		}
 		catch (FedoraClientException e)
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.warn(e.getMessage(), e);
 		}
-		
+
 		try
 		{
 			bag.close();
@@ -275,10 +279,31 @@ public class DcStorage
 			LOGGER.warn(e.getMessage(), e);
 		}
 	}
-	
+
 	public boolean bagExists(String pid)
 	{
 		return (getBag(pid) != null);
+	}
+	
+	public boolean fileExistsInBag(String pid, String filepath) throws DcStorageException
+	{
+		Bag bag = getBag(pid);
+		if (bag == null)
+			throw new DcStorageException(MessageFormat.format("Bag doesn't exist for Pid {0}.", pid));
+
+		Collection<BagFile> plFiles = bag.getPayload();
+		boolean fileExists = false;
+		// Iterate through each file in payload file list and compare the filename.
+		for (BagFile file : plFiles)
+		{
+			if (file.getFilepath().equalsIgnoreCase(filepath))
+			{
+				fileExists = true;
+				break;
+			}
+		}
+		
+		return fileExists;
 	}
 
 	public Bag getBag(String pid)
@@ -290,7 +315,7 @@ public class DcStorage
 			File possibleBagFile = new File(bagsDir, convertToDiskSafe(pid) + Bag.Format.values()[i].extension);
 			if (possibleBagFile.exists())
 			{
-				LOGGER.debug("Bag found for pid {} at {}", pid, possibleBagFile.getAbsolutePath());
+				LOGGER.debug("Bag for pid {} at {}", pid, possibleBagFile.getAbsolutePath());
 				bag = bagFactory.createBag(possibleBagFile, LoadOption.BY_MANIFESTS);
 				break;
 			}
@@ -299,7 +324,7 @@ public class DcStorage
 			LOGGER.debug("Bag not found for pid {}.", pid);
 		return bag;
 	}
-	
+
 	public BagSummary getBagSummary(String pid) throws DcStorageException
 	{
 		Bag bag = getBag(pid);
@@ -308,7 +333,7 @@ public class DcStorage
 		BagSummary bagSummary = new BagSummary(bag);
 		return bagSummary;
 	}
-	
+
 	public FileSummaryMap getFileSummaryMap(String pid) throws DcStorageException
 	{
 		Bag bag = getBag(pid);
@@ -317,7 +342,7 @@ public class DcStorage
 		FileSummaryMap fsMap = new FileSummaryMap(bag);
 		return fsMap;
 	}
-	
+
 	public InputStream getFileStream(String pid, String filePath) throws DcStorageException
 	{
 		Bag bag = getBag(pid);
@@ -328,6 +353,58 @@ public class DcStorage
 			throw new DcStorageException("File not found within bag.");
 		InputStream fileStream = file.newInputStream();
 		return fileStream;
+	}
+
+	public InputStream getFilesAsZipStream(String pid, final Set<String> fileSet) throws IOException
+	{
+		final PipedOutputStream sink = new PipedOutputStream();
+		final Bag bag = getBag(pid);
+		PipedInputStream zipInStream = new PipedInputStream(sink);
+
+		// Writing PipedOutputStream needs to happen in a separate thread to prevent deadlock.
+		Runnable zipWriter = new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				byte[] buffer = new byte[1048576];
+				ZipOutputStream zipOutStream = new ZipOutputStream(sink, Charset.forName("UTF-8"));
+
+				try
+				{
+					for (String filePath : fileSet)
+					{
+						ZipEntry zipEntry = new ZipEntry(filePath);
+						BagFile bagFile = bag.getBagFile(filePath);
+						if (bagFile != null)
+						{
+							InputStream bagFileInStream = null;
+							bagFileInStream = bag.getBagFile(filePath).newInputStream();
+							zipOutStream.putNextEntry(zipEntry);
+							for (int numBytesRead = bagFileInStream.read(buffer); numBytesRead != -1; numBytesRead = bagFileInStream.read(buffer))
+							{
+								zipOutStream.write(buffer, 0, numBytesRead);
+							}
+							IOUtils.closeQuietly(bagFileInStream);
+							zipOutStream.closeEntry();
+							zipOutStream.flush();
+						}
+					}
+				}
+				catch (IOException e)
+				{
+					IOUtils.closeQuietly(zipOutStream);
+					zipOutStream = null;
+				}
+				finally
+				{
+					IOUtils.closeQuietly(zipOutStream);
+				}
+			}
+		};
+
+		new Thread(zipWriter).start();
+		return zipInStream;
 	}
 
 	private void updateDatastream(String pid) throws FedoraClientException
@@ -341,39 +418,39 @@ public class DcStorage
 		BagSummary newBagSummary = new BagSummary(newBag);
 		if (newBagSummary.getDataSource() == DataSource.INSTRUMENT)
 		{
-//			// Verify the integrity of tagmanifest.
-//			Manifest tagManifest = bag.getTagManifest(BAGS_ALGORITHM);
-//			List<Manifest> payloadManifestList = bag.getPayloadManifests();
-//			
-//			for (Manifest iPlManifest : payloadManifestList)
-//			{
-//				if (tagManifest.containsKey(iPlManifest.getFilepath()))
-//				{
-//					String hashInManifest = tagManifest.get(iPlManifest.getFilepath());
-//					if (!MessageDigestHelper.fixityMatches(iPlManifest.newInputStream(), iPlManifest.getAlgorithm(), hashInManifest))
-//					{
-//						LOGGER.error("Payload manifest hash invalid.");
-//						throw new DcBagException("Payload manifest hash invalid.");
-//					}
-//				}
-//			}
-//
-//			if (getBagProperty(BagPropsTxt.FIELD_DATASOURCE).equals(DataSource.INSTRUMENT.toString()))
-//			{
-//				// Hash check files in payload manifest.
-//				Set<Entry<String, String>> plManifestFiles = bag.getPayloadManifest(BAGS_ALGORITHM).entrySet();
-//				for (Entry<String, String> iEntry : plManifestFiles)
-//				{
-//					BagFile iFile = bag.getBagFile(iEntry.getKey());
-//
-//					// Check if file exists. Then check its hash value matches the one in the manifest.
-//					if (iFile == null || !iFile.exists())
-//						throw new DcBagException("Bag doesn't contain file " + iFile.getFilepath());
-//					if (!MessageDigestHelper.fixityMatches(iFile.newInputStream(), BAGS_ALGORITHM, iEntry.getValue()))
-//						throw new DcBagException("Bag contains modified existing files.");
-//				}
-//			}
-			
+			//			// Verify the integrity of tagmanifest.
+			//			Manifest tagManifest = bag.getTagManifest(BAGS_ALGORITHM);
+			//			List<Manifest> payloadManifestList = bag.getPayloadManifests();
+			//			
+			//			for (Manifest iPlManifest : payloadManifestList)
+			//			{
+			//				if (tagManifest.containsKey(iPlManifest.getFilepath()))
+			//				{
+			//					String hashInManifest = tagManifest.get(iPlManifest.getFilepath());
+			//					if (!MessageDigestHelper.fixityMatches(iPlManifest.newInputStream(), iPlManifest.getAlgorithm(), hashInManifest))
+			//					{
+			//						LOGGER.error("Payload manifest hash invalid.");
+			//						throw new DcBagException("Payload manifest hash invalid.");
+			//					}
+			//				}
+			//			}
+			//
+			//			if (getBagProperty(BagPropsTxt.FIELD_DATASOURCE).equals(DataSource.INSTRUMENT.toString()))
+			//			{
+			//				// Hash check files in payload manifest.
+			//				Set<Entry<String, String>> plManifestFiles = bag.getPayloadManifest(BAGS_ALGORITHM).entrySet();
+			//				for (Entry<String, String> iEntry : plManifestFiles)
+			//				{
+			//					BagFile iFile = bag.getBagFile(iEntry.getKey());
+			//
+			//					// Check if file exists. Then check its hash value matches the one in the manifest.
+			//					if (iFile == null || !iFile.exists())
+			//						throw new DcBagException("Bag doesn't contain file " + iFile.getFilepath());
+			//					if (!MessageDigestHelper.fixityMatches(iFile.newInputStream(), BAGS_ALGORITHM, iEntry.getValue()))
+			//						throw new DcBagException("Bag contains modified existing files.");
+			//				}
+			//			}
+
 			List<Manifest> oldPlManifests = oldBag.getPayloadManifests();
 			List<Manifest> newPlManifests = newBag.getPayloadManifests();
 			for (Manifest iOldPlManifest : oldPlManifests)
@@ -391,7 +468,7 @@ public class DcStorage
 								LOGGER.error("New bag doesn't contain payload file: {}", iOldPlFile);
 								throw new DcStorageException("New bag doesn't contain file: " + iOldPlFile);
 							}
-		
+
 							// Hashes for current payload files should match the hashes for the same files in the new bag.
 							if (!iOldPlManifest.get(iOldPlFile).equals(iNewPlManifest.get(iOldPlFile)))
 							{
@@ -429,7 +506,7 @@ public class DcStorage
 				FileUtils.copyFile(file, targetFile, true);
 		}
 	}
-	
+
 	private Bag createBlankBag(String pid)
 	{
 		Bag bag = bagFactory.createBag();

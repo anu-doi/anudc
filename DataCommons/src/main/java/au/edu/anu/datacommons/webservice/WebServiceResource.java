@@ -24,12 +24,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import au.edu.anu.datacommons.storage.DcStorage;
+import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Util;
 
 @Path("/ws")
 public class WebServiceResource
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebServiceResource.class);
+	private static final DcStorage dcStorage = DcStorage.getInstance();
 	
 	@GET
 	@Consumes(MediaType.APPLICATION_XML)
@@ -56,25 +59,36 @@ public class WebServiceResource
 		try
 		{
 			respDoc = xmlAsDoc(xmlResp);
+			String pid = xmlDoc.getElementsByTagName("dcrequest").item(0).getAttributes().getNamedItem("pid").getNodeValue();
 			NodeList filesToDownload = xmlDoc.getElementsByTagName("file");
 			for (int i = 0; i < filesToDownload.getLength(); i++)
 			{
+				// Extract the details required from the XML doc.
 				String fileUrl = filesToDownload.item(i).getTextContent();
-				LOGGER.debug(MessageFormat.format("Downloading {0}...", fileUrl));
-				File tempFile = File.createTempFile("Test", null);
-				FileUtils.copyURLToFile(new URL(fileUrl), tempFile);
-				LOGGER.debug(MessageFormat.format("Saved {0}.", tempFile));
+				String filename = filesToDownload.item(i).getAttributes().getNamedItem("name").getNodeValue();
+				dcStorage.addFileToBag(pid, filename, fileUrl);
 			}
 			resp = Response.ok(respDoc, MediaType.APPLICATION_XML_TYPE).build();
 		}
 		catch (ParserConfigurationException e)
 		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().build();
 		}
 		catch (SAXException e)
 		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().build();
 		}
 		catch (IOException e)
 		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().build();
+		}
+		catch (DcStorageException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().build();
 		}
 		
 		return resp;

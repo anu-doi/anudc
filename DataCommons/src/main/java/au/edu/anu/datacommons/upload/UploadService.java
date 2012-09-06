@@ -1,35 +1,27 @@
 package au.edu.anu.datacommons.upload;
 
 import gov.loc.repository.bagit.Bag;
-import gov.loc.repository.bagit.Bag.Format;
-import gov.loc.repository.bagit.BagFactory;
-import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.Manifest.Algorithm;
-import gov.loc.repository.bagit.transfer.BagTransferException;
-import gov.loc.repository.bagit.transformer.Completer;
-import gov.loc.repository.bagit.transformer.impl.ChainingCompleter;
-import gov.loc.repository.bagit.transformer.impl.DefaultCompleter;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -41,6 +33,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -48,9 +41,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.PropertyException;
-import javax.xml.namespace.QName;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
@@ -58,27 +49,22 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.collectionrequest.CollectionDropbox;
+import au.edu.anu.datacommons.collectionrequest.CollectionRequestItem;
 import au.edu.anu.datacommons.collectionrequest.PageMessages;
 import au.edu.anu.datacommons.collectionrequest.PageMessages.MessageType;
-import au.edu.anu.datacommons.data.db.dao.AccessLogRecordDAO;
 import au.edu.anu.datacommons.data.db.dao.AccessLogRecordDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAO;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
-import au.edu.anu.datacommons.data.db.dao.UsersDAO;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Users;
@@ -86,12 +72,9 @@ import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.AccessLogRecord;
 import au.edu.anu.datacommons.storage.DcStorage;
-import au.edu.anu.datacommons.storage.DcStorageCompleter;
 import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Util;
-import au.edu.anu.dcbag.DcBag;
-import au.edu.anu.dcbag.FileSummary;
-import au.edu.anu.dcbag.fido.PronomFormat;
+import au.edu.anu.dcbag.BagSummary;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
@@ -118,7 +101,6 @@ public class UploadService
 	private static final String UPLOAD_JSP = "/upload.jsp";
 	private static final String BAGFILES_JSP = "/bagfiles.jsp";
 	private static final String FILE_DS_PREFIX = "FILE";
-	private static final Completer DC_COMPLETER = new ChainingCompleter(new DefaultCompleter(new BagFactory()), new DcStorageCompleter());
 	private static final DcStorage dcStorage = DcStorage.getInstance();
 
 	/**
@@ -208,7 +190,7 @@ public class UploadService
 			}
 
 			// Check if the properties file '[pid].properties' already exists. If yes, merge the new one with the existing one.
-			File dsPropFile = new File(GlobalProps.getUploadDirAsFile(), DcBag.convertToDiskSafe(uploadProps.getProperty("pid")) + ".properties");
+			File dsPropFile = new File(GlobalProps.getUploadDirAsFile(), DcStorage.convertToDiskSafe(uploadProps.getProperty("pid")) + ".properties");
 			if (dsPropFile.exists())
 			{
 				Properties existingProps = new Properties();
@@ -257,83 +239,52 @@ public class UploadService
 		Properties uploadProps = new Properties();
 		Response resp = null;
 		AccessLogRecord accessRec = null;
+		UriBuilder redirUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class);
 		try
 		{
 			// Read properties file [Pid].properties.
-			uploadProps.load(new BufferedInputStream(new FileInputStream(new File(GlobalProps.getUploadDirAsFile(), DcBag.convertToDiskSafe(pid)
+			uploadProps.load(new BufferedInputStream(new FileInputStream(new File(GlobalProps.getUploadDirAsFile(), DcStorage.convertToDiskSafe(pid)
 					+ ".properties"))));
 
-			// Create a new Bag.
-			pid = uploadProps.getProperty("pid");
-			if (!Util.isNotEmpty(pid))
-				throw new Exception("Missing Pid value.");
-			File curBagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
+			// Check the pid in the URL against the one in the properties file.
+			if (!pid.equalsIgnoreCase(uploadProps.getProperty("pid")))
+				throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
 
 			// Create access log.
-			if (curBagFile == null)
-				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.CREATE);
-			else
+			if (dcStorage.bagExists(pid))
 				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.UPDATE);
+			else
+				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.CREATE);
 
-			DcBag dcBag = new DcBag(pid);
-
-			// Add the files to the bag.
+			// Add files to bag.
 			String filename;
 			for (int i = 0; (filename = uploadProps.getProperty("file" + i)) != null; i++)
 			{
 				LOGGER.debug("Adding file {} to Bag {}.", filename, pid);
-				dcBag.addFileToPayload(new File(new File(GlobalProps.getUploadDirAsFile(), DcBag.convertToDiskSafe(pid)), filename));
+				dcStorage.addFileToBag(pid, new File(new File(GlobalProps.getUploadDirAsFile(), DcStorage.convertToDiskSafe(pid)), filename));
 			}
 
 			// Add URLs to Fetch file.
-			for (int i = 0; uploadProps.containsKey("url" + i); i++)
-			{
-				dcBag.addFetchEntry(uploadProps.getProperty("url" + i), 0L, uploadProps.getProperty("url" + i));
-				LOGGER.debug("Added URL {} to bag's fetch file.", uploadProps.getProperty("url" + i));
-			}
+			//			for (int i = 0; uploadProps.containsKey("url" + i); i++)
+			//			{
+			//				dcBag.addFetchEntry(uploadProps.getProperty("url" + i), 0L, uploadProps.getProperty("url" + i));
+			//				LOGGER.debug("Added URL {} to bag's fetch file.", uploadProps.getProperty("url" + i));
+			//			}
 
 			// Save the bag.
-			dcBag.makeComplete(DC_COMPLETER);
-			dcBag.saveAs(GlobalProps.getBagsDirAsFile(), pid, Format.FILESYSTEM);
 			// Create a log record for the activity performed.
 			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessRec);
-			resp = Response.temporaryRedirect(UriBuilder.fromPath("/upload").queryParam("smsg", "Upload Successful.").build()).build();
-			// resp = Response.temporaryRedirect(UriBuilder.fromResource(UploadService.class)..queryParam("smsg", "Upload Successful.").build()).build();
+			resp = Response.temporaryRedirect(
+					redirUri.path(UploadService.class, "doGetBagFileListingAsHtml").queryParam("smsg", "Upload Successful.").build(pid)).build();
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("Unable to bag file", e);
-			resp = Response.temporaryRedirect(UriBuilder.fromPath("/upload").queryParam("emsg", "Upload Unsuccessful. Unable to bag file.").build()).build();
+			resp = Response.temporaryRedirect(
+					redirUri.path(UploadService.class, "doGetAsHtml").queryParam("pid", pid).queryParam("emsg", "Upload Unsuccessful. Unable to bag file.")
+							.build()).build();
 		}
 
-		return resp;
-	}
-
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("files/{pid}")
-	public Response doGetFilesInBagAsJson(@PathParam("pid") String pid)
-	{
-		DcBag dcBag = null;
-		Response resp = null;
-
-		dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), DcBag.convertToDiskSafe(pid)), LoadOption.BY_MANIFESTS);
-		JSONArray filenames = new JSONArray();
-
-		for (Entry<String, String> iEntry : dcBag.getPayloadFileList())
-		{
-			try
-			{
-				JSONObject obj = new JSONObject();
-				obj.put("name", iEntry.getKey());				// Key is filename, value is Hash value.
-				filenames.put(obj);
-			}
-			catch (JSONException e)
-			{
-				LOGGER.debug("Unable to add file to JSON Object: " + iEntry.getKey());
-			}
-		}
-		resp = Response.ok(filenames.toString(), MediaType.APPLICATION_JSON_TYPE).build();
 		return resp;
 	}
 
@@ -345,22 +296,25 @@ public class UploadService
 	{
 		Response resp = null;
 		Map<String, Object> model = new HashMap<String, Object>();
-		
+
 		// Check if user's got read access to fedora object.
 		FedoraObject fo = getFedoraObjectReadAccess(pid);
 		model.put("fo", fo);
-		
+
 		Bag bag = dcStorage.getBag(pid);
 		if (bag == null)
 			throw new NotFoundException("Bag not found for " + pid);
 
-		Map<BagFile, FileSummary> downloadables;
+		BagSummary bagSummary;
 		try
 		{
-			downloadables = dcStorage.getFileSummaryMap(pid);
-			model.put("downloadables", downloadables);
-			model.put("dlBaseUri", UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream2")
-					.build(pid, "").toString());
+			bagSummary = dcStorage.getBagSummary(pid);
+			model.put("bagSummary", bagSummary);
+			model.put("bagInfoTxt", bagSummary.getBagInfoTxt().entrySet());
+			UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class)
+					.path(UploadService.class, "doGetFileInBagAsOctetStream2");
+			model.put("dlBaseUri", uriBuilder.build(pid, "").toString());
+			model.put("downloadAsZipUrl", uriBuilder.build(pid, "zip").toString());
 		}
 		catch (DcStorageException e)
 		{
@@ -368,7 +322,7 @@ public class UploadService
 			PageMessages messages = new PageMessages();
 			messages.add(MessageType.ERROR, e.getMessage(), model);
 		}
-		
+
 		resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
 		return resp;
 	}
@@ -380,23 +334,32 @@ public class UploadService
 			@PathParam("fileInBag") String filename, @QueryParam("dropboxAccessCode") Long dropboxAccessCode, @QueryParam("p") String password)
 	{
 		Response resp = null;
-	
+
 		LOGGER.trace("pid: {}, filename: {}", pid, filename);
-	
+
 		// Get dropbox requesting file.
 		DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
 		CollectionDropbox dropbox = dropboxDAO.getSingleByAccessCode(dropboxAccessCode);
 		Users requestor = dropbox.getCollectionRequest().getRequestor();
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
-	
+
 		// If dropbox is valid and the requestor of the collection request is the one accessing it, return file as octet stream.
 		if (dropbox.isValid(password) && requestor.getUsername().equals(username))
 		{
 			LOGGER.info("Dropbox details valid. ID: {}, Access Code: {}. Returning file requested.", dropbox.getId().toString(), dropbox.getAccessCode()
 					.toString());
-			resp = getBagFileOctetStreamResp(pid, filename);
 			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
 					AccessLogRecord.Operation.READ));
+			if (filename.equalsIgnoreCase("zip"))
+			{
+				Set<String> fileSet = new HashSet<String>();
+				Set<CollectionRequestItem> items = dropbox.getCollectionRequest().getItems();
+				for (CollectionRequestItem item : items)
+					fileSet.add(item.getItem());
+				resp = getBagFilesAsZip(pid, fileSet, "Collection.zip");
+			}
+			else
+				resp = getBagFileOctetStreamResp(pid, filename);
 		}
 		else
 		{
@@ -404,7 +367,7 @@ public class UploadService
 					.getAccessCode().toString());
 			resp = Response.status(Status.FORBIDDEN).build();
 		}
-	
+
 		return resp;
 	}
 
@@ -416,55 +379,24 @@ public class UploadService
 			@PathParam("fileInBag") String fileInBag)
 	{
 		LOGGER.trace("pid: {}, filename: {}", pid, fileInBag);
+		Response resp = null;
 		// Check for read access.
 		getFedoraObjectReadAccess(pid);
 		// Create a log record.
 		new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
 				AccessLogRecord.Operation.READ));
-		return getBagFileOctetStreamResp(pid, fileInBag);
-	}
+		if (fileInBag.equals("zip"))
+		{
+			Set<String> fileSet = new HashSet<String>();
+			Bag bag = dcStorage.getBag(pid);
+			Collection<BagFile> bagFiles = bag.getPayload();
+			for (BagFile iFile : bagFiles)
+				fileSet.add(iFile.getFilepath());
+			resp = getBagFilesAsZip(pid, fileSet, "Collection.zip");
+		}
+		else
+			resp = getBagFileOctetStreamResp(pid, fileInBag);
 
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("bag/{pid}")
-	@Deprecated
-	public Response doGetBagInfoAsJson(@PathParam("pid") String pid)
-	{
-		LOGGER.warn("In doGetBagInfoAsJson. This method should not be called anymore.");
-		Response resp = null;
-		JSONObject bagInfoJson = new JSONObject();
-		File bagFile = DcBag.getBagFile(GlobalProps.getBagsDirAsFile(), pid);
-		if (bagFile == null)
-		{
-			LOGGER.warn(MessageFormat.format("Bag for {0} doesn't exist.", pid));
-			throw new NotFoundException(MessageFormat.format("Bag for {0} doesn't exist.", pid));
-		}
-
-		// Bag Info Txt
-		DcBag dcBag = new DcBag(bagFile, LoadOption.BY_MANIFESTS);
-		JSONObject bagInfoTxtJson = new JSONObject();
-		for (Entry<String, String> entry : dcBag.getBagInfoTxt().entrySet())
-		{
-			try
-			{
-				bagInfoTxtJson.put(entry.getKey(), entry.getValue());
-			}
-			catch (JSONException e)
-			{
-				// Do nothing.
-			}
-		}
-		try
-		{
-			bagInfoJson.put(dcBag.getBag().getBagConstants().getBagInfoTxt(), bagInfoTxtJson);
-		}
-		catch (JSONException e)
-		{
-			// Do nothing.
-		}
-		dcBag.close();
-		resp = Response.ok(bagInfoJson.toString(), MediaType.APPLICATION_JSON_TYPE).build();
-		LOGGER.debug("Returning JSON string {}", bagInfoJson.toString());
 		return resp;
 	}
 
@@ -492,7 +424,7 @@ public class UploadService
 			{
 				LOGGER.info("A bag exists for {}. Replacing it with the file uploaded...", pid);
 				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.UPDATE);
-				
+
 			}
 			else
 			{
@@ -589,9 +521,9 @@ public class UploadService
 			is = dcStorage.getFileStream(pid, fileInBag);
 			ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 			// Add filename, MD5 and file size to response header.
-			respBuilder = respBuilder.header("Content-Disposition", "attachment;filename=\"" + getFilenameFromPath(fileInBag) + "\"");
+			respBuilder = respBuilder.header("Content-Disposition", MessageFormat.format("attachment; filename=\"{0}\"", getFilenameFromPath(fileInBag)));
 			respBuilder = respBuilder.header("Content-MD5", bag.getChecksums(fileInBag).get(Algorithm.MD5));
-			respBuilder = respBuilder.header("Content-Length", bag.getBagFile(fileInBag).getSize());				
+			respBuilder = respBuilder.header("Content-Length", bag.getBagFile(fileInBag).getSize());
 			resp = respBuilder.build();
 		}
 		catch (DcStorageException e)
@@ -599,7 +531,27 @@ public class UploadService
 			LOGGER.error(e.getMessage(), e);
 			throw new NotFoundException(e.getMessage());
 		}
-		
+
+		return resp;
+	}
+
+	private Response getBagFilesAsZip(String pid, Set<String> fileSet, String zipFilename)
+	{
+		Response resp = null;
+		InputStream zipStream;
+		try
+		{
+			zipStream = dcStorage.getFilesAsZipStream(pid, fileSet);
+			ResponseBuilder respBuilder = Response.ok(zipStream, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+			respBuilder.header("Content-Disposition", MessageFormat.format("attachment; filename=\"{0}\"", zipFilename));
+			resp = respBuilder.build();
+		}
+		catch (IOException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			throw new NotFoundException(e.getMessage());
+		}
+
 		return resp;
 	}
 
@@ -705,7 +657,7 @@ public class UploadService
 
 		try
 		{
-			File pidDir = new File(GlobalProps.getUploadDirAsFile(), DcBag.convertToDiskSafe(pid));
+			File pidDir = new File(GlobalProps.getUploadDirAsFile(), DcStorage.convertToDiskSafe(pid));
 			if (!pidDir.exists())
 				pidDir.mkdir();
 			File fileOnServer = new File(pidDir, serverFilename);

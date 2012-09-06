@@ -26,12 +26,6 @@
 			</p>
 		</fieldset>
 		<fieldset>
-			<p>
-				<label for="idLabel">Label: </label>
-				<input class="text" type="text" name="Label" size="40" />
-			</p>
-		</fieldset>
-		<fieldset>
 			<legend>
 				URL References
 				<input type="button" onclick="cloneUrlFields(this.parentNode.parentNode)" value=" Add URL " />

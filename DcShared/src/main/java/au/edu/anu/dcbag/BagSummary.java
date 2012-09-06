@@ -4,11 +4,14 @@ import au.edu.anu.dcbag.BagPropsTxt.DataSource;
 import au.edu.anu.dcbag.BagPropsTxt.Key;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFile;
+import gov.loc.repository.bagit.BagInfoTxt;
 
 public class BagSummary
 {
 	private final Bag bag;
 	private BagPropsTxt bagPropsTxt = null;
+	private FileSummaryMap fsMap = null;
+	private BagInfoTxt bagInfoTxt = null;
 	
 	public BagSummary(Bag bag)
 	{
@@ -18,6 +21,12 @@ public class BagSummary
 		BagFile bagPropsTxtFile = bag.getBagFile(BagPropsTxt.FILEPATH);
 		if (bagPropsTxtFile != null)
 			this.bagPropsTxt = new BagPropsTxt(BagPropsTxt.FILEPATH, bagPropsTxtFile, bag.getBagItTxt().getCharacterEncoding());
+		
+		// File summary map.
+		this.fsMap = new FileSummaryMap(this.bag);
+		
+		// Bag Info Txt
+		this.bagInfoTxt = bag.getBagInfoTxt();
 	}
 	
 	public String getFriendlySize()
@@ -48,5 +57,15 @@ public class BagSummary
 		}
 		
 		return dataSource;
+	}
+	
+	public FileSummaryMap getFileSummaryMap()
+	{
+		return fsMap;
+	}
+
+	public BagInfoTxt getBagInfoTxt()
+	{
+		return bagInfoTxt;
 	}
 }

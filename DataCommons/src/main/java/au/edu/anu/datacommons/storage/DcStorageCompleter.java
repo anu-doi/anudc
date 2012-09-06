@@ -94,11 +94,11 @@ public class DcStorageCompleter implements Completer
 	private void handleAvScan(Bag bag)
 	{
 		VirusScanTxt vsTxt;
-		BagFile avStatusFile = bag.getBagFile(VirusScanTxt.VIRUSSCAN_FILEPATH);
+		BagFile avStatusFile = bag.getBagFile(VirusScanTxt.FILEPATH);
 		if (avStatusFile == null)
-			vsTxt = new VirusScanTxt(VirusScanTxt.VIRUSSCAN_FILEPATH, bag.getBagItTxt().getCharacterEncoding());
+			vsTxt = new VirusScanTxt(VirusScanTxt.FILEPATH, bag.getBagItTxt().getCharacterEncoding());
 		else
-			vsTxt = new VirusScanTxt(VirusScanTxt.VIRUSSCAN_FILEPATH, avStatusFile, bag.getBagItTxt().getCharacterEncoding());
+			vsTxt = new VirusScanTxt(VirusScanTxt.FILEPATH, avStatusFile, bag.getBagItTxt().getCharacterEncoding());
 
 		// Get scan result for each payload file.
 		vsTxt.clear();
