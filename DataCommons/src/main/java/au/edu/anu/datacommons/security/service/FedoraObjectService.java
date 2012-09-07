@@ -6,6 +6,8 @@ import java.util.Map;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import com.yourmediashelf.fedora.client.FedoraClientException;
+
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.xml.sparql.Result;
@@ -167,8 +169,9 @@ public interface FedoraObjectService {
 	 * @param fedoraObject The item to transform to a display
 	 * @param form Contains the parameters from the request
 	 * @return A response for the web page
+	 * @throws FedoraClientException 
 	 */
-	public String addLink(FedoraObject fedoraObject, Map<String, List<String>> form);
+	public void addLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException;
 	
 	/**
 	 * getPublishers

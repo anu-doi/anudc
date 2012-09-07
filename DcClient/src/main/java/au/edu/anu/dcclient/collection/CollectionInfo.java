@@ -11,7 +11,9 @@ import java.io.InputStreamReader;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
 
@@ -22,19 +24,20 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
-public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap<String, String>
+public class CollectionInfo
 {
-	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(CollectionInfo.class);
 	private static final String NEWLINE = System.getProperty("line.separator");
 
 	private File sourceFile;
 	private File filesDir = null;
 	private String pid = null;
+	
+	private MultivaluedMap<String, String> createCollMap = new MultivaluedMapImpl();
+	private Set<String[]> relationSet = new HashSet<String[]>();  
 
 	public CollectionInfo(File sourceFile) throws IOException
 	{
-		super();
 		if (!sourceFile.isFile())
 			throw new IOException(MessageFormat.format("{0} is not a file.", sourceFile.getAbsolutePath()));
 		if (!sourceFile.canRead())
@@ -53,14 +56,14 @@ public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap
 
 	public void setPid(String pid) throws IOException
 	{
-		if (this.containsKey("pid"))
+		if (createCollMap.containsKey("pid"))
 		{
 			LOGGER.warn("Pid already exists. Leaving Pid unchanged.");
 			return;
 		}
 		
 		this.pid = pid;
-		super.add("pid", pid);
+		createCollMap.add("pid", pid);
 		
 		// Write pid to collection info file.
 		FileWriter writer = null;
@@ -73,12 +76,21 @@ public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap
 		{
 			IOUtils.closeQuietly(writer);
 		}
-
 	}
 
 	public File getFilesDir()
 	{
 		return filesDir;
+	}
+
+	public MultivaluedMap<String, String> getCreateCollMap()
+	{
+		return createCollMap;
+	}
+
+	public Set<String[]> getRelationSet()
+	{
+		return relationSet;
 	}
 
 	private void readMap(File sourceFile) throws IOException
@@ -129,8 +141,14 @@ public class CollectionInfo extends MultivaluedMapImpl implements MultivaluedMap
 					this.pid = value;
 					continue;
 				}
+				
+				if (key.equalsIgnoreCase("relation"))
+				{
+					relationSet.add(value.split(",", 2));
+					continue;
+				}
 
-				this.add(key, value);
+				createCollMap.add(key, value);
 			}
 		}
 		finally

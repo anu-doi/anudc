@@ -39,7 +39,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.dcbag.DcBagProps.DataSource;
+import au.edu.anu.dcbag.BagPropsTxt.DataSource;
 import au.edu.anu.dcbag.fido.PronomFormat;
 
 public class DcBag implements ProgressListenable
@@ -281,19 +281,19 @@ public class DcBag implements ProgressListenable
 		return this.bag.getBagInfoTxt().getExternalIdentifier();
 	}
 
-	public DcBagProps getBagPropertyFile()
+	public BagPropsTxt getBagPropertyFile()
 	{
-		BagFile dcBagPropFile = this.bag.getBagFile(DcBagProps.DCPROPS_FILEPATH);
+		BagFile dcBagPropFile = this.bag.getBagFile(BagPropsTxt.FILEPATH);
 		if (dcBagPropFile == null)
 			return null;
 		else
-			return new DcBagProps(DcBagProps.DCPROPS_FILEPATH, dcBagPropFile, this.bag.getBagItTxt().getCharacterEncoding());
+			return new BagPropsTxt(BagPropsTxt.FILEPATH, dcBagPropFile, this.bag.getBagItTxt().getCharacterEncoding());
 	}
 
 	public String getBagProperty(String key)
 	{
 		String value = null;
-		DcBagProps bagProps = getBagPropertyFile();
+		BagPropsTxt bagProps = getBagPropertyFile();
 		if (bagProps != null)
 			value = bagProps.get(key);
 		return value;
@@ -301,19 +301,19 @@ public class DcBag implements ProgressListenable
 
 	public void setBagProperty(String key, String value)
 	{
-		DcBagProps dcBagProps;
+		BagPropsTxt dcBagProps;
 		// Check if the dc-props.txt file already exists. If not, then create it and add to bag.
 		dcBagProps = getBagPropertyFile();
 		if (dcBagProps == null)
 		{
-			dcBagProps = new DcBagProps(DcBagProps.DCPROPS_FILEPATH, bag.getBagItTxt().getCharacterEncoding());
+			dcBagProps = new BagPropsTxt(BagPropsTxt.FILEPATH, bag.getBagItTxt().getCharacterEncoding());
 		}
 
 		// If the key doesn't already exist, add it, else update it.
 		dcBagProps.put(key, value);
 		String checksum = MessageDigestHelper.generateFixity(dcBagProps.newInputStream(), BAGS_ALGORITHM);
 		bag.putBagFile(dcBagProps);
-		bag.getTagManifest(BAGS_ALGORITHM).put(DcBagProps.DCPROPS_FILEPATH, checksum);
+		bag.getTagManifest(BAGS_ALGORITHM).put(BagPropsTxt.FILEPATH, checksum);
 	}
 
 	public void makeComplete()
@@ -324,26 +324,6 @@ public class DcBag implements ProgressListenable
 	public void makeComplete(Completer c)
 	{
 		this.bag = bag.makeComplete(c);
-	}
-
-	public PronomFormatsTxt getPronomFormatsTxt()
-	{
-		BagFile pronomFormatsTxt = this.bag.getBagFile(PronomFormatsTxt.PRONOMFORMATS_FILEPATH);
-		if (pronomFormatsTxt != null)
-			return new PronomFormatsTxt(PronomFormatsTxt.PRONOMFORMATS_FILEPATH, pronomFormatsTxt, this.bag.getBagItTxt().getCharacterEncoding());
-		else
-			return null;
-	}
-
-	public PronomFormat getPronomFormat(BagFile bagFile)
-	{
-		return getPronomFormat(bagFile.getFilepath());
-	}
-
-	public PronomFormat getPronomFormat(String filePath)
-	{
-		PronomFormatsTxt pTxt = getPronomFormatsTxt();
-		return new PronomFormat(pTxt.get(filePath));
 	}
 
 	public static String convertToDiskSafe(String source)
@@ -385,8 +365,8 @@ public class DcBag implements ProgressListenable
 
 	public void customValidate() throws DcBagException
 	{
-		if (getBagProperty(DcBagProps.FIELD_DATASOURCE) != null
-				&& getBagProperty(DcBagProps.FIELD_DATASOURCE).equals(DcBagProps.DataSource.INSTRUMENT.toString()))
+		if (getBagProperty(BagPropsTxt.FIELD_DATASOURCE) != null
+				&& getBagProperty(BagPropsTxt.FIELD_DATASOURCE).equals(BagPropsTxt.DataSource.INSTRUMENT.toString()))
 		{
 			// Verify the integrity of tagmanifest.
 			Manifest tagManifest = bag.getTagManifest(BAGS_ALGORITHM);
@@ -405,7 +385,7 @@ public class DcBag implements ProgressListenable
 				}
 			}
 
-			if (getBagProperty(DcBagProps.FIELD_DATASOURCE).equals(DataSource.INSTRUMENT.toString()))
+			if (getBagProperty(BagPropsTxt.FIELD_DATASOURCE).equals(DataSource.INSTRUMENT.toString()))
 			{
 				// Hash check files in payload manifest.
 				Set<Entry<String, String>> plManifestFiles = bag.getPayloadManifest(BAGS_ALGORITHM).entrySet();
@@ -426,8 +406,8 @@ public class DcBag implements ProgressListenable
 	public void replaceWith(File newBagFile, boolean deleteOrig) throws DcBagException, IOException
 	{
 		// If data source is instrument then verify payload files.
-		if (getBagProperty(DcBagProps.FIELD_DATASOURCE) != null
-				&& getBagProperty(DcBagProps.FIELD_DATASOURCE).equals(DcBagProps.DataSource.INSTRUMENT.toString()))
+		if (getBagProperty(BagPropsTxt.FIELD_DATASOURCE) != null
+				&& getBagProperty(BagPropsTxt.FIELD_DATASOURCE).equals(BagPropsTxt.DataSource.INSTRUMENT.toString()))
 		{
 			Manifest curPlManifest = bag.getPayloadManifest(BAGS_ALGORITHM);
 
@@ -490,7 +470,7 @@ public class DcBag implements ProgressListenable
 	{
 		Map<BagFile, FileSummary> fsMap = new HashMap<BagFile, FileSummary>();
 		for (BagFile iBagFile : this.bag.getPayload())
-			fsMap.put(iBagFile, new FileSummary(this, iBagFile));
+			fsMap.put(iBagFile, new FileSummary(this.bag, iBagFile));
 
 		return fsMap;
 	}

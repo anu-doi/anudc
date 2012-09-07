@@ -35,7 +35,7 @@ public class PronomFormat
 	
 	public PronomFormat(Bag bag, BagFile bf)
 	{
-		BagFile pronomFormatsTxt = bag.getBagFile(PronomFormatsTxt.PRONOMFORMATS_FILEPATH);
+		BagFile pronomFormatsTxt = bag.getBagFile(PronomFormatsTxt.FILEPATH);
 		if (pronomFormatsTxt != null)
 		{
 			PronomFormatsTxt tagFile = new PronomFormatsTxt(pronomFormatsTxt.getFilepath(), pronomFormatsTxt, bag.getBagItTxt().getCharacterEncoding());
@@ -48,7 +48,7 @@ public class PronomFormat
 	
 	private void parseFidoStr(String fidoStr)
 	{
-		if (fidoStr == null || fidoStr.equals(""))
+		if (fidoStr == null || fidoStr.length() == 0)
 		{
 			sourceStr = "";
 			matchStatus = MatchStatus.KO;

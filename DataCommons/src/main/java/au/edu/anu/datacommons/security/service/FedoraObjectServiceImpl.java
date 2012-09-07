@@ -39,6 +39,8 @@ import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.acl.PermissionService;
+import au.edu.anu.datacommons.storage.DcStorage;
+import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.sparql.Result;
@@ -47,6 +49,7 @@ import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.JAXBTransform;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
+import au.edu.anu.dcbag.BagSummary;
 import au.edu.anu.dcbag.DcBag;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -316,28 +319,19 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param fedoraObject The item to transform to a display
 	 * @param form Contains the parameters from the request
 	 * @return A response for the web page
+	 * @throws FedoraClientException 
 	 */
-	public String addLink(FedoraObject fedoraObject, Map<String, List<String>> form) {
-		String value = "<html><body>Reference added</body></html>";
+	public void addLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException {
 		String link = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI);
 		FedoraReference reference = new FedoraReference();
-		String referenceType = form.get("linkType").get(0);
-		String referenceItem = form.get("itemId").get(0);
+		String referenceType = linkType;
+		String referenceItem = itemId;
 		reference.setPredicate_(link + referenceType);
 		reference.setObject_(referenceItem);
 		reference.setIsLiteral_(Boolean.FALSE);
-		try {
-			FedoraBroker.addRelationship(fedoraObject.getObject_id(), reference);
-		}
-		catch (Exception e) {
-			LOGGER.error("Exception adding relationship", e);
-			value = "<html><body>Exception adding reference</body></html>";
-		}
-		
-		//TODO update the return for this
-		return value;
+		FedoraBroker.addRelationship(fedoraObject.getObject_id(), reference);
 	}
-
+	
 	/**
 	 * getPage
 	 * 
@@ -369,19 +363,19 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		values.put("topage", "/page.jsp");
 		ViewTransform viewTransform = new ViewTransform();
 		try {
-			if (fedoraObject != null) {
-				// Update this section if we want to have a full list of files
-				List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(fedoraObject.getObject_id());
-				for (DatastreamType dsType : datastreamList) {
-					if (dsType.getDsid().equals("FILE0") )
+			if (fedoraObject != null)
+			{
+				// Add bag summary to model.
+				if (DcStorage.getInstance().bagExists(fedoraObject.getObject_id()))
+				{
+					try
 					{
-						DcBag dcBag = new DcBag(GlobalProps.getBagsDirAsFile(), fedoraObject.getObject_id(), LoadOption.BY_MANIFESTS);
-						if (dcBag != null)
-						{
-							values.put("fileCount", dcBag.getPayloadFileList().size());
-							values.put("bagSizeStr", dcBag.getBagInfoTxt().getBagSize());
-						}
-						break;
+						BagSummary bagSummary = DcStorage.getInstance().getBagSummary(fedoraObject.getObject_id());
+						values.put("bagSummary", bagSummary);
+					}
+					catch (DcStorageException e)
+					{
+						LOGGER.error(e.getMessage(), e);
 					}
 				}
 			}

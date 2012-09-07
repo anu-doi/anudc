@@ -6,20 +6,17 @@ import gov.loc.repository.bagit.utilities.namevalue.impl.AbstractNameValueBagFil
 public class VirusScanTxt extends AbstractNameValueBagFile
 {
 	private static final String TYPE = "VirusScan";
-	public static final String VIRUSSCAN_FILEPATH = "virus-scan.txt";
-	
+	public static final String FILEPATH = "virus-scan.txt";
 	
 	public VirusScanTxt(String filepath, BagFile bagFile, String encoding)
 	{
 		super(filepath, bagFile, encoding);
 	}
 
-
 	public VirusScanTxt(String filepath, String encoding)
 	{
 		super(filepath, encoding);
 	}
-
 
 	@Override
 	public String getType()

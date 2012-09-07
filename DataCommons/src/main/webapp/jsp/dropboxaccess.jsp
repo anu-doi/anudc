@@ -60,6 +60,10 @@
 					</c:forEach>
 				</table>
 			</c:if>
+			
+			<c:if test="${it.downloadAsZipUrl != null}">
+				<a href="<c:url value='${it.downloadAsZipUrl}' />">Download all files as Zip</a>
+			</c:if>
 
 			<c:if test="${it.fetchables != null}">
 				<table>

@@ -18,11 +18,18 @@ import java.net.URI;
 
 import javax.ws.rs.core.MediaType;
 
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.storage.DcStorage;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -35,7 +42,12 @@ import com.sun.jersey.test.framework.spi.container.TestContainer;
 public class UploadServiceTest extends JerseyTest
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UploadServiceTest.class);
-	private static BagFactory bf;
+	private static DcStorage dcStorage;
+	
+	private WebResource webResource;
+	
+	@ClassRule
+	public static final TemporaryFolder tempDir = new TemporaryFolder();
 
 	public UploadServiceTest()
 	{
@@ -43,120 +55,41 @@ public class UploadServiceTest extends JerseyTest
 	}
 
 	@BeforeClass
-	public static void oneTimeSetUp()
+	public static void setUpBeforeClass() throws Exception
 	{
-		bf = new BagFactory();
-	}
-
-	@Ignore
-	public void testDoPostBag() throws IOException
-	{
-		// Load a Bag.
-		Bag bag = createDummyBag();
-		assertNotNull("Bag is null.", bag);
-
-		bag.getBagInfoTxt().addExternalIdentifier("test:4");
-		bag = bag.makeComplete();
-		assertTrue("Bag incomplete.", bag.verifyComplete().isSuccess());
-		assertTrue("Bag invalid.", bag.verifyValid().isSuccess());
-
-		ZipWriter zipWriter = new ZipWriter(bf);
-		zipWriter.setCompressionLevel(ZipWriter.DEFAULT_COMPRESSION_LEVEL);
-
-		Writer writer = zipWriter;
-		// File tempFile = File.createTempFile("DcTemp", "");
-		bag = writer.write(bag, bag.getFile());
-		// tempFile.renameTo(bag.getFile());
-
-		// Post the zip file to Upload service.
-		WebResource webResource = resource();
-		FormDataMultiPart fdmp = new FormDataMultiPart();
-		fdmp.bodyPart(new FileDataBodyPart("file", bag.getFile(), MediaType.APPLICATION_OCTET_STREAM_TYPE));
-
-		ClientResponse response = webResource.path("upload").path("bag").path("test:4").type(MediaType.MULTIPART_FORM_DATA_TYPE)
-				.post(ClientResponse.class, fdmp);
-		assertEquals("HTTP Status should be 200.", 200, response.getStatus());
-		LOGGER.info(String.valueOf(response.getStatus()));
-
-		// Clean up
-		bag.close();
-		bag.getFile().delete();
-	}
-
-	@Ignore
-	public void testDoGetBag() throws IOException
-	{
-		// System.in.read();
-		WebResource webResource = resource();
-		ClientResponse response = webResource.path("upload").path("bag").path("test:5").path("data").path("DcTest226622472490795340")
-				.type(MediaType.APPLICATION_OCTET_STREAM_TYPE).get(ClientResponse.class);
-		LOGGER.info("HTTP status: " + response.getStatus());
-		// System.in.read();
+		File bagsDir = tempDir.newFolder();
+		LOGGER.info("Setting DcStorage location as: {}", bagsDir.getAbsolutePath());
+		DcStorage.setLocation(bagsDir);
+		dcStorage = DcStorage.getInstance();
 	}
 	
-	@Test
-	public void testServerStartup() throws IOException
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception
 	{
-		System.in.read();
+	}
+
+	@Before
+	public void setUp() throws Exception
+	{
+		webResource = resource().path("ws");
+	}
+
+	@After
+	public void tearDown() throws Exception
+	{
+	}
+
+	@Test()
+	public void testDoGetAsHtml()
+	{
+		ClientResponse resp = webResource.get(ClientResponse.class);
+		LOGGER.debug("HTTP Response: {}", resp.getStatus());
+		assertEquals(404, resp.getStatus());
 	}
 	
-	private Bag createDummyBag() throws IOException
+	private void failOnException(Throwable e)
 	{
-		File payloadFile1 = File.createTempFile("DcTest", "");
-		long payloadFile1Size = 1 * 1024 * 1024;
-		File payloadFile2 = File.createTempFile("DcTest", "");
-		long payloadFile2Size = 2 * 1024 * 1024;
-
-		writeFile(payloadFile1, payloadFile1Size);
-		assertEquals("Payload File 1 not of expected size.", payloadFile1Size, payloadFile1.length());
-		writeFile(payloadFile2, payloadFile2Size);
-		assertEquals("Payload File 2 not of expected size.", payloadFile2Size, payloadFile2.length());
-
-		File bagFile = File.createTempFile("DcTest", "");
-		bagFile.renameTo(new File(bagFile.getParent(), "Bag.zip"));
-		bagFile = new File(bagFile.getParent(), "Bag.zip");
-
-		Bag bag = bf.createBag();
-		bag.addFileToPayload(payloadFile1);
-		bag.addFileToPayload(payloadFile2);
-		bag = bag.makeComplete();
-
-		assertTrue("Bag is not valid.", bag.verifyValid().isSuccess());
-
-		ZipWriter zipWriter = new ZipWriter(bf);
-		zipWriter.setCompressionLevel(ZipWriter.DEFAULT_COMPRESSION_LEVEL);
-		bag = bag.write(zipWriter, bagFile);
-
-		// Clean up.
-		payloadFile1.delete();
-		payloadFile2.delete();
-
-		return bag;
-	}
-	
-	private void writeFile(File file, long size) throws IOException
-	{
-		byte[] buffer = new byte[8192];
-		BufferedOutputStream os = null;
-		try
-		{
-			os = new BufferedOutputStream(new FileOutputStream(file));
-			LOGGER.info("Writing file {} of size {}...", file.getAbsolutePath(), size);
-			for (long i = 0; i < size / buffer.length; i++)
-			{
-				for (int j = 0; j < buffer.length; j++)
-				{
-					Double randomDbl = (Math.random() * 255D);
-					buffer[j] = randomDbl.byteValue();
-				}
-				os.write(buffer);
-			}
-			LOGGER.info("File written.");
-		}
-		finally
-		{
-			if (os != null)
-				os.close();
-		}
+		LOGGER.error(e.getMessage(), e);
+		fail(e.getMessage());
 	}
 }

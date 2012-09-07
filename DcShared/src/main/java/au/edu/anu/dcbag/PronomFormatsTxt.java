@@ -7,7 +7,7 @@ import gov.loc.repository.bagit.utilities.namevalue.impl.AbstractNameValueBagFil
 public class PronomFormatsTxt extends AbstractNameValueBagFile
 {
 	private static final String TYPE = "PronomFormats";
-	public static final String PRONOMFORMATS_FILEPATH = "pronom-formats.txt";
+	public static final String FILEPATH = "pronom-formats.txt";
 
 	public PronomFormatsTxt(String filepath, BagFile bagFile, String encoding)
 	{
@@ -23,10 +23,5 @@ public class PronomFormatsTxt extends AbstractNameValueBagFile
 	public String getType()
 	{
 		return TYPE;
-	}
-	
-	public PronomFormat getPronomFormat(BagFile bagFile)
-	{
-		return new PronomFormat(get(bagFile.getFilepath()));
 	}
 }

@@ -33,7 +33,6 @@ public class FileExplorer extends JPanel
 	private DefaultMutableTreeNode root = new DefaultMutableTreeNode();
 	private DefaultMutableTreeNode node;
 	private PopupMenu pMenu = new PopupMenu();
-	private GhostDragImg ghostImg = new GhostDragImg();
 
 	public FileExplorer()
 	{

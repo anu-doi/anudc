@@ -124,4 +124,9 @@ public abstract class Global
 	{
 		return UriBuilder.fromUri(getAppServerUriAsString()).path(globalProperties.getProperty("app.server.userInfoUri")).build();
 	}
+	
+	public static URI getAddLinkUri()
+	{
+		return UriBuilder.fromUri(getAppServerUriAsString()).path(globalProperties.getProperty("app.server.addLinkUri")).build();
+	}
 }
