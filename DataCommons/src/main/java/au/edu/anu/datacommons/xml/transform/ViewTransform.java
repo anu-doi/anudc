@@ -90,6 +90,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.13		26/07/2012	Genevieve Turner (GT)	Updated to add visibility of review changes
  * 0.14		02/08/2012	Genevieve Turner (GT)	Updated to unescape html characters when saving
  * 0.15		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
+ * 0.16		31/08/2012	Genevieve Turner (GT)	Removed the retrieval of option lists
  * </pre>
  * 
  */
@@ -133,6 +134,7 @@ public class ViewTransform
 	 * 0.8		28/05/2012	Genevieve Turner (GT)	Updated for retrieving data from the database
 	 * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to allow the display of the object type
 	 * 0.13		26/07/2012	Genevieve Turner (GT)	Updated to add visibility of review changes
+	 * 0.16		31/08/2012	Genevieve Turner (GT)	Removed the retrieval of option lists
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -264,13 +266,13 @@ public class ViewTransform
 		}
 		
 		try {
-			Document options = getOptionsXML();
+		/*	Document options = getOptionsXML();
 			if (options != null) {
 				parameters.put("options", options);
 			}
 			else {
 				LOGGER.info("Options are null");
-			}
+			}*/
 			String result = transform(xmlStream, xslStream, parameters);
 			values.put("page", result);
 		}

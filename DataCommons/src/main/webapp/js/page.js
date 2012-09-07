@@ -23,6 +23,7 @@ jQuery(document).ready(function()
 {
 	jQuery(function(){
 		jQuery('#anzforSubject2').combobox();
+		jQuery('#anzseoSubject2').combobox();
 	});
 
 	jQuery.validator.setDefaults({
@@ -34,6 +35,7 @@ jQuery(document).ready(function()
 		//jQuery("select[multiple='multiple'] option").attr("selected", "true");
 		
 		jQuery("#anzforSubject option").attr("selected", "true");
+		jQuery("#anzseoSubject option").attr("selected", "true");
 		return jQuery('#form').validate().form();
 	});
 	

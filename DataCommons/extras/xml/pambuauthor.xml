@@ -6,13 +6,20 @@
 		readonly="readonly" saveType="single"/>
 	<item defaultValue="author" editPerm="admin" fieldType="TextField" label="Party Type" name="subType"
 		readonly="readonly" saveType="single"/>
-	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required">
-		<option value="" label="-No Value Selected-" />
-		<option value="1" label="Administrator" />
+	<item name="ownerGroup" label="Group Affiliation" fieldType="Combobox" saveType="single" class="required" tab="general">
+		<tooltip>Please choose the group the collection is affiliated with</tooltip>
 	</item>
-	<item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"/>
-	<item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"/>
-	<item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single"/>
+	<item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single">
+		<tooltip>The name or title of the person/group.</tooltip>
+	</item>
+	<item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single">
+		<tooltip>A brief title of the person/group</tooltip>
+	</item>
+	<item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single">
+		<tooltip>An alternative title for the person/group</tooltip>
+	</item>
 	<item fieldType="TextField" label="Author ID" name="externalId" saveType="single" />
-	<item fieldType="TextArea" label="Brief Description" name="briefDesc" saveType="single" />
+	<item fieldType="TextArea" label="Brief Description" name="briefDesc" saveType="single">
+		<tooltip>A brief description about the person/group</tooltip>
+	</item>
 </template>

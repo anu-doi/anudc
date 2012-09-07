@@ -1,9 +1,8 @@
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+		xmlns:options="xalan://au.edu.anu.datacommons.xml.transform.SelectExtension">
 	<xsl:param name="data" />
 	<xsl:param name="fieldName" />
-	<xsl:param name="options" />
 	<xsl:variable name="mData" select="$data" />
-	<xsl:variable name="mOptions" select="$options" />
 	<xsl:template match="/">
 		<xsl:if test="$fieldName != ''">
 			<xsl:for-each select="template/item[@name=$fieldName]">
@@ -37,7 +36,12 @@
 					<xsl:when test="@fieldType = 'TableVertical'">
 						<xsl:call-template name="Table" />
 					</xsl:when>
-				</xsl:choose>	
+					<xsl:when test="@fieldType = 'RadioButton'">
+						<xsl:call-template name="RadioButton">
+							<xsl:with-param name="mValue"><xsl:value-of select="$mData/data/*[name() = $fieldName]" /></xsl:with-param>
+						</xsl:call-template>
+					</xsl:when>
+				</xsl:choose>
 			</xsl:for-each>
 		</xsl:if>
 	</xsl:template>
@@ -96,60 +100,40 @@
 		<xsl:param name="mValue" />
 		<xsl:variable name="mName" select="@name" />
 		<select name="{@name}">
-			<xsl:choose>
-				<xsl:when test="$options != '' and $mOptions/options/*[name() = $mName]">
-					<option value="">
-						- No Value Selected -
-					</option>
-					<xsl:for-each select="$mOptions/options/*[name() = $mName]">
-						<option value="{id}">
-							<xsl:value-of select="name" />
-						</option>
-					</xsl:for-each>
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:for-each select="option">
-						<option value="{@value}">
-							<xsl:if test="$mValue = @value">
-								<xsl:attribute name="selected" />
-							</xsl:if>
-							<xsl:value-of select="@label" />
-						</option>
-					</xsl:for-each>
-				</xsl:otherwise>
-			</xsl:choose>
+			<option value="">
+				- No Value Selected -
+			</option>
+			<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option, $mValue)"/>
 		</select>
+	</xsl:template>
+	
+	<xsl:template name="RadioButton">
+		<xsl:param name="mValue" />
+		<xsl:variable name="mName" select="@name" />
+		<xsl:for-each select="option">
+			<input type="radio" name="{$mName}" value="{@value}">
+				<xsl:if test="@value = $mValue">
+					<xsl:attribute name="checked">checked</xsl:attribute>
+				</xsl:if>
+			</input>
+			<xsl:value-of select="@label" />
+			<br/>
+		</xsl:for-each>
 	</xsl:template>
 	
 	<xsl:template name="ComboBoxMulti">
 		<xsl:param name="mValue" />
 		<xsl:variable name="mName" select="@name" />
+		<xsl:variable name="item" select="." />
 		<select id="{@name}2">
-			<xsl:choose>
-				<xsl:when test="$options != '' and $mOptions/options/*[name() = $mName]">
-					<option value="">
-						- No Value Selected -
-					</option>
-					<xsl:for-each select="$mOptions/options/*[name() = $mName]">
-						<option value="{id}">
-							<xsl:value-of select="name" />
-						</option>
-					</xsl:for-each>
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:for-each select="option">
-						<option value="{@value}">
-							<xsl:value-of select="@label" />
-						</option>
-					</xsl:for-each>
-				</xsl:otherwise>
-			</xsl:choose>
+			<option value=""></option>
+			<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option)"/>
 		</select>
 		<select id="{@name}" name="{@name}" class="{@class}" multiple="multiple">
 			<xsl:for-each select="$mData/data/*[name() = $mName]">
 				<xsl:variable name="mCurrText" select="text()" />
 				<option value="{$mCurrText}">
-					<xsl:value-of select="$mOptions/options/*[name() = $mName][id=$mCurrText]/name" />
+					<xsl:value-of select="options:getOptionValue(name(), $item/option, $mCurrText)"/>
 				</option>
 			</xsl:for-each>
 		</select>
