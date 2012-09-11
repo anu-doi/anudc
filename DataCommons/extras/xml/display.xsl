@@ -38,7 +38,7 @@
 												</xsl:when>
 												<xsl:otherwise>
 													<xsl:for-each select="$mData/data/*[name() = $name]">
-														<xsl:value-of disable-output-escaping="yes" select="text()" /><br />
+														<xsl:value-of disable-output-escaping="yes" select="options:replaceNewlineWithBr(text())" /><br />
 													</xsl:for-each>
 												</xsl:otherwise>
 											</xsl:choose>
@@ -68,7 +68,7 @@
 													</xsl:when>
 													<xsl:otherwise>
 														<xsl:for-each select="$mModifiedData/data/*[name() = $name]">
-															<xsl:value-of disable-output-escaping="yes" select="text()" /><br />
+															<xsl:value-of disable-output-escaping="yes" select="options:replaceNewlineWithBr(text())" /><br />
 														</xsl:for-each>
 													</xsl:otherwise>
 												</xsl:choose>

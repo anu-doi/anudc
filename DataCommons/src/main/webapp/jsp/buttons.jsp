@@ -28,21 +28,21 @@
 					<c:param name="tmplt" value="${param.tmplt}" />
 					<c:param name="layout" value="${param.layout}" />
 				</c:url>
-				<c:if test="${it.itemType == 'Collection'}">
-					<c:url value="/rest/upload" var="uploadLink">
-						<c:param name="pid" value="${it.fedoraObject.object_id}" />
-					</c:url>
-				</c:if>
 				<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">
 					<p>
 						<input type="button" id="editButton" name="editButton" value="Edit Metadata" onclick="window.location='${editLink}'" />
 					</p>
 				</sec:accesscontrollist>
 				<c:if test="${it.itemType == 'Collection'}">
-					<p>
-						<input type="button" id="uploadButton" name="uploadButton" value="Upload Files" onclick="window.location='${uploadLink}'" />
-					</p>
-
+					<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">
+						<c:url value="/rest/upload" var="uploadLink">
+							<c:param name="pid" value="${it.fedoraObject.object_id}" />
+						</c:url>
+						<p>
+							<input type="button" id="uploadButton" name="uploadButton" value="Upload Files" onclick="window.location='${uploadLink}'" />
+						</p>
+					</sec:accesscontrollist>
+				
 					<sec:accesscontrollist hasPermission="REVIEW,PUBLISH" domainObject="${it.fedoraObject}">
 						<c:url value="/rest/collreq/question" var="questionLink">
 							<c:param name="pid" value="${it.fedoraObject.object_id}" />

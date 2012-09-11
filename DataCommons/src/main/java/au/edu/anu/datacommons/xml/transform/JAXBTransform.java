@@ -13,6 +13,12 @@ import javax.xml.bind.Unmarshaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.xml.data.Data;
+import au.edu.anu.datacommons.xml.dc.DublinCore;
+import au.edu.anu.datacommons.xml.other.OptionList;
+import au.edu.anu.datacommons.xml.sparql.Sparql;
+import au.edu.anu.datacommons.xml.template.Template;
+
 /**
  * JAXBTransform
  * 
@@ -23,21 +29,48 @@ import org.slf4j.LoggerFactory;
  * JUnit coverage:
  * JAXBTransformTest
  * 
+ * <pre>
  * Version	Date		Developer			Description
  * 0.1		19/03/2012	Genevieve Turner	Initial build
  * 0.2		23/03/2012	Genevieve Turner	Updated to allow for properties in the marshaller
- * 
+ * 0.3		11/09/2012	Genevieve Turner	Updated to only initialise the jaxb context once
+ * </pre>
  */
 public class JAXBTransform {
 	static final Logger LOGGER = LoggerFactory.getLogger(JAXBTransform.class);
+	private JAXBContext jaxbContext_;
+	
+	/**
+	 * getJAXBContext
+	 *
+	 * Initialise the JAXBContext
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		11/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.3		11/09/2012	Genevieve Turner	Updated to only initialise the jaxb context once
+	 * </pre>
+	 * 
+	 * @return
+	 * @throws JAXBException
+	 */
+	private JAXBContext getJAXBContext() throws JAXBException {
+		if (jaxbContext_ == null) {
+			jaxbContext_ = JAXBContext.newInstance(Data.class, Template.class, DublinCore.class, Sparql.class, OptionList.class);
+		}
+		return jaxbContext_;
+	}
 	
 	/**
 	 * unmarshalStream
 	 * 
 	 * Unmarshal the given InputStream into the type of the given class
 	 * 
+	 * <pre>
 	 * Version	Date		Developer			Description
 	 * 0.1		19/03/2012	Genevieve Turner	Initial build
+	 * 0.3		11/09/2012	Genevieve Turner	Updated to only initialise the jaxb context once
+	 * </pre>
 	 * 
 	 * @param transformStream The stream to  transform
 	 * @param classToBeBound The class type to transform
@@ -46,7 +79,7 @@ public class JAXBTransform {
 	 */
 	public Object unmarshalStream(InputStream transformStream, Class classToBeBound)
 			throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(classToBeBound);
+		JAXBContext jaxbContext = getJAXBContext();
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 		return unmarshaller.unmarshal(transformStream);
 	}
@@ -56,8 +89,11 @@ public class JAXBTransform {
 	 * 
 	 * Marshal the given object into the given writer.
 	 * 
+	 * <pre>
 	 * Version	Date		Developer			Description
 	 * 0.1		19/03/2012	Genevieve Turner	Initial build
+	 * 0.3		11/09/2012	Genevieve Turner	Updated to only initialise the jaxb context once
+	 * </pre>
 	 * 
 	 * @param out The stream to marshal the object in to
 	 * @param object The object to marshal
@@ -74,9 +110,12 @@ public class JAXBTransform {
 	 * 
 	 * Marshal the given object into the given writer.
 	 * 
+	 * <pre>
 	 * Version	Date		Developer			Description
 	 * 0.1		19/03/2012	Genevieve Turner	Initial build
 	 * 0.2		23/03/2012	Genevieve Turner	Updated to allow for properties in the marshaller
+	 * 0.3		11/09/2012	Genevieve Turner	Updated to only initialise the jaxb context once
+	 * </pre>
 	 * 
 	 * @param out The stream to marshal the object in to
 	 * @param object The object to marshal
@@ -86,7 +125,7 @@ public class JAXBTransform {
 	 */
 	public void marshalStream(Writer out, Object object, Class classToBeBound, Map<String, Object> properties)
 			throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(classToBeBound);
+		JAXBContext jaxbContext = getJAXBContext();
 		Marshaller marshaller = jaxbContext.createMarshaller();
 		if (properties != null) {
 			for (Entry<String, Object> property : properties.entrySet()) {

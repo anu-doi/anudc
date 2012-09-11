@@ -10,7 +10,6 @@
 	<tab name="related" label="Related Information" order="7" />
 	<item defaultValue="Activity" editPerm="admin" fieldType="TextField" label="Type" name="type" readonly="readonly" saveType="single" tab="general" />
 	<item fieldType="Combobox" label="Activity Type" name="subType" saveType="single" class="required" tab="general">
-		<option label="-No Value Selected-" value=""/>
 		<option label="Project" value="project"/>
 		<option label="Program" value="program"/>
 		<option label="Course" value="course"/>

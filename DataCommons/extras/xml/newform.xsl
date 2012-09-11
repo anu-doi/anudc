@@ -97,13 +97,18 @@
 	</xsl:template>
 	
 	<xsl:template name="Label">
-		<label for="{@name}" title="{tooltip}">
+		<label for="{@name}">
 			<xsl:value-of select="@label" />
 			<xsl:if test="contains(@class,'required')">
 				<b style="color:red;">*</b>
 			</xsl:if>
 		</label>
 		<br/>
+		<xsl:if test="tooltip">
+			<div class="small">
+				<xsl:value-of disable-output-escaping="yes" select="options:replaceNewlineWithBr(tooltip)" />
+			</div>
+		</xsl:if>
 	</xsl:template>
 	
 	<xsl:template name="TextField">
