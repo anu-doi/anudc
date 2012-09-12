@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+		xmlns:options="xalan://au.edu.anu.datacommons.xml.transform.SelectExtension">
 	<xsl:param name="data" />
 	<xsl:param name="modifiedData" />
-	<xsl:param name="options" />
 	<xsl:variable name="mData" select="$data" />
 	<xsl:variable name="mModifiedData" select="$modifiedData" />
-	<xsl:variable name="mOptions" select="$options" />
 	
 	<xsl:template match="/">
 		<xsl:if test="$data != null"></xsl:if>
@@ -32,14 +31,14 @@
 														<xsl:with-param name="tableVal" select="$mData" />
 													</xsl:call-template>
 												</xsl:when>
-												<xsl:when test="@fieldType='Combobox' or @fieldType='ComboBoxMulti'">
+												<xsl:when test="@fieldType='Combobox' or @fieldType='ComboBoxMulti' or @fieldType='RadioButton'">
 													<xsl:call-template name="Combobox">
 														<xsl:with-param name="comboVal" select="$mData" />
 													</xsl:call-template>
 												</xsl:when>
 												<xsl:otherwise>
 													<xsl:for-each select="$mData/data/*[name() = $name]">
-														<xsl:value-of disable-output-escaping="yes" select="text()" /><br />
+														<xsl:value-of disable-output-escaping="yes" select="options:replaceNewlineWithBr(text())" /><br />
 													</xsl:for-each>
 												</xsl:otherwise>
 											</xsl:choose>
@@ -62,14 +61,14 @@
 															<xsl:with-param name="tableVal" select="$mModifiedData" />
 														</xsl:call-template>
 													</xsl:when>
-													<xsl:when test="@fieldType='Combobox' or @fieldType='ComboBoxMulti'">
+													<xsl:when test="@fieldType='Combobox' or @fieldType='ComboBoxMulti' or @fieldType='RadioButton'">
 														<xsl:call-template name="Combobox">
 															<xsl:with-param name="comboVal" select="$mModifiedData" />
 														</xsl:call-template>
 													</xsl:when>
 													<xsl:otherwise>
 														<xsl:for-each select="$mModifiedData/data/*[name() = $name]">
-															<xsl:value-of disable-output-escaping="yes" select="text()" /><br />
+															<xsl:value-of disable-output-escaping="yes" select="options:replaceNewlineWithBr(text())" /><br />
 														</xsl:for-each>
 													</xsl:otherwise>
 												</xsl:choose>
@@ -90,20 +89,9 @@
 	
 	<xsl:template name="Combobox">
 		<xsl:param name="comboVal" />
-		<xsl:variable name="something" select="." />
-		<xsl:for-each select="$comboVal/data/*[name() = $something/@name]">
-			<xsl:variable name="comboContent" select="." />
-			<xsl:choose>
-				<xsl:when test="$mOptions/options/*[name() = $something/@name]">
-					<xsl:value-of select="$mOptions/options/*[name() = $something/@name][id = $comboContent/text()]/name" />
-				</xsl:when>
-				<xsl:when test="$something/option[@value = $comboContent/text()]">
-					<xsl:value-of select="$something/option[@value = $comboContent/text()]/@label" />
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:value-of disable-output-escaping="yes" select="text()" /><br />
-				</xsl:otherwise>
-			</xsl:choose>
+		<xsl:variable name="item" select="." />
+		<xsl:for-each select="$comboVal/data/*[name() = $item/@name]">
+			<xsl:value-of select="options:getOptionValue(name(), $item/option, text())"/>
 			<br />
 		</xsl:for-each>
 	</xsl:template>

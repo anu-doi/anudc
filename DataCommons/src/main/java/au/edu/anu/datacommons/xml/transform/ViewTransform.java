@@ -90,6 +90,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.13		26/07/2012	Genevieve Turner (GT)	Updated to add visibility of review changes
  * 0.14		02/08/2012	Genevieve Turner (GT)	Updated to unescape html characters when saving
  * 0.15		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
+ * 0.16		31/08/2012	Genevieve Turner (GT)	Removed the retrieval of option lists
  * </pre>
  * 
  */
@@ -133,6 +134,7 @@ public class ViewTransform
 	 * 0.8		28/05/2012	Genevieve Turner (GT)	Updated for retrieving data from the database
 	 * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to allow the display of the object type
 	 * 0.13		26/07/2012	Genevieve Turner (GT)	Updated to add visibility of review changes
+	 * 0.16		31/08/2012	Genevieve Turner (GT)	Removed the retrieval of option lists
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
@@ -264,13 +266,6 @@ public class ViewTransform
 		}
 		
 		try {
-			Document options = getOptionsXML();
-			if (options != null) {
-				parameters.put("options", options);
-			}
-			else {
-				LOGGER.info("Options are null");
-			}
 			String result = transform(xmlStream, xslStream, parameters);
 			values.put("page", result);
 		}
@@ -278,57 +273,6 @@ public class ViewTransform
 			LOGGER.error("Exception transforming page", e);
 		}
 		return values;
-	}
-	
-	/**
-	 * getOptionsXML
-	 * 
-	 * Gets an xml representation of of options for select boxes.
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.8		28/05/2012	Genevieve Turner (GT)	Updated for retrieving data from the database
-	 * 0.11		22/06/2012	Genevieve Turner (GT)	Updated to add anzfor subjects to be retrieved from the database
-	 * </pre>
-	 * 
-	 * @return Returns an xml document that contains values for drop down lists
-	 */
-	public Document getOptionsXML() {
-		Document doc = null;
-		try {
-			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-		}
-		catch (ParserConfigurationException e) {
-			LOGGER.error("Error creating document", e);
-		}
-		OptionList optionList = new OptionList();
-		GroupService groupService = new GroupServiceImpl();
-		List<Groups> groups = groupService.getCreateGroups();
-		if (groups.size() > 0) {
-			optionList.getGroups().addAll(groups);
-		}
-		
-		//TODO could make this an automatic grab from the template?
-		List<String> fieldNames = new ArrayList<String>();
-		fieldNames.add("anzforSubject");
-		
-		SelectCodeDAO selectCodeDAO = new SelectCodeDAOImpl(SelectCode.class);
-		List<SelectCode> selectCodes = selectCodeDAO.getOptionsByNames(fieldNames);
-		
-		if (selectCodes.size() > 0) {
-			optionList.getSelectCodes().addAll(selectCodes);
-		}
-		
-		try {
-			JAXBContext jaxbContext = JAXBContext.newInstance(OptionList.class);
-			Marshaller marshaller = jaxbContext.createMarshaller();
-			marshaller.marshal(optionList, doc);
-			LOGGER.trace(Util.getXmlAsString(doc));
-		}
-		catch(JAXBException e) {
-			LOGGER.error("Exception transforming document", e);
-		}
-		return doc;
 	}
 	
 	/**

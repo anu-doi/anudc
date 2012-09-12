@@ -15,13 +15,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.ws.WebServiceException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,10 +30,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
+import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.util.Util;
 
-import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
@@ -53,6 +54,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
  * 0.6		28/06/2012	Rahul Khanna (RK)		Fixed failure condition
  * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
+ * 0.8		11/09/2012	Genevieve Turner (GT)	Updated to reject creation of groups when the user does not have permissions
  * </pre>
  */
 @Component
@@ -67,6 +69,9 @@ public class DisplayResource
 
 	@Resource(name = "fedoraObjectServiceImpl")
 	private FedoraObjectService fedoraObjectService;
+
+	@Resource(name = "groupServiceImpl")
+	private GroupService groupService;
 
 	/**
 	 * getItem
@@ -145,6 +150,7 @@ public class DisplayResource
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
 	 * 0.6		28/06/2012	Rahul Khanna (RK)		Fixed failure condition
 	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
+	 * 0.8		11/09/2012	Genevieve Turner (GT)	Updated to reject creation of groups when the user does not have permissions
 	 * </pre>
 	 * 
 	 * @param layout
@@ -166,7 +172,25 @@ public class DisplayResource
 			@Context HttpServletRequest request)
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
-
+		if (form.get("ownerGroup").size() > 0) {
+			String ownerGroup = form.get("ownerGroup").get(0);
+			Long ownerGroupId = new Long(ownerGroup);
+			List<Groups> groups = groupService.getCreateGroups();
+			boolean groupFound = false;
+			for (Groups group : groups) {
+				if (group.getId().equals(ownerGroupId)) {
+					groupFound = true;
+					break;
+				}
+			}
+			if (groupFound == false) {
+				throw new WebApplicationException(Response.status(400).entity("You do not have permissions to create with this group").build());
+			}
+		}
+		else {
+			throw new WebApplicationException(Response.status(400).entity("Now Group selected").build());
+		}
+		
 		FedoraObject fedoraObject = fedoraObjectService.saveNew(layout, tmplt, form);
 		UriBuilder uriBuilder = null;
 		if (fedoraObject == null || !Util.isNotEmpty(fedoraObject.getObject_id()))

@@ -3,11 +3,13 @@
 	<briefDesc>Template for creating services</briefDesc>
 	<tab name="general" label="General" order="1" />
 	<tab name="description" label="Description" order="2" />
-	<tab name="contact" label="Contact" tooltip="Information about contact(s)" order="4" />
+	<tab name="contact" label="Contact" order="4">
+		<tooltip>Information about contact(s)</tooltip>
+	</tab>
 	<item defaultValue="Service" editPerm="admin" fieldType="TextField" label="Type" name="type"
 		readonly="readonly" saveType="single" tab="general"/>
 	<item fieldType="Combobox" label="Service Type" name="subType" saveType="single" class="required" tab="general">
-		<option value="" label="-No Value Selected-" />
+		<tooltip>Create: produces a new data object representing existing phenomona in the world, including physical reality and user input. An instrument creates data&#xA;Generate: procues a new data object out of mathematical formulae and parameters, rather than capturing and representing existing data in the world. A simulator generates data. (The simulation is the generated data.) A random number generator generates data.&#xA;Report: Presents existing data in ta summary form. A visualisation reports on data.&#xA;Annotate: Links an annotation to a data object, or part thereof.&#xA;Transform: Changes a data object into a new data object, with a distinct format. An analysis tool creates a new data object out of data (either raw data, or other analyses).&#xA;Assemble: Builds a new data object instance composed of exsiting data objects. A survey generation tool creates a survey form out of user input and templates.&#xA;OAI-PMH Harvest: Open Archives Initiative Protocol for Metadata Harvesting. See also http://www.openarchives.org/&#xA;Search service over HTTP. RFC2626.&#xA;OpenSearch search - a collection of technologies that allow publishing of search results in a format suitable for syndication and aggregation.&#xA;SRU search: SRU is a standard XML-focused search protocol for Internet search queries based on Z39.50 semantics.&#xA;z39.50 search - the International Standard, ISO 23950: Information Retrieval (Z39.50): Application Service Definition and Protocol Specification, (also ANSI/NISO Z39.50). The standard specifies a client/server-based protocol for searching and retrieving information from remove databases.&#xA;ATOM syndication - an XML-based Web content and metadata syndication format. http://tools.ietf.org/html/rfc4287&#xA;RSS feed - a family of web feed formats that are specified using XML.</tooltip>
 		<option label="Create" value="create"/>
 		<option label="Generate" value="generate"/>
 		<option label="Annotate" value="annotate"/>
@@ -23,27 +25,42 @@
 		<option label="ATOM syndication" value="syndicate-atom" />
 		<option label="RSS feed" value="syndicate-rss" />
 	</item>
-	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required" tab="general">
-		<option value="" label="-No Value Selected-" />
-		<option value="1" label="Administrator" />
+	<item name="ownerGroup" label="Group Affiliation" fieldType="Combobox" saveType="single" class="required" tab="general">
+		<tooltip>Please choose the group the collection is affiliated with</tooltip>
 	</item>
-	<item class="required" fieldType="TextField" label="Title" maxLength="80" name="name" saveType="single" tab="general"/>
-	<item fieldType="TextField" label="Abbreviated Title" maxLength="255" name="abbrName" saveType="single" tab="general"/>
-	<item fieldType="TextField" label="Alternate Title" maxLength="255" name="altName" saveType="single" tab="general"/>
-	<item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description"/>
-	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description"/>
+	<item class="required" fieldType="TextField" label="Title" maxLength="80" name="name" saveType="single" tab="general">
+		<tooltip>Enter the name of the service&#xA;&#xA;For example:&#xA;The Australian National University Supercomputer Facility</tooltip>
+	</item>
+	<item fieldType="TextField" label="Abbreviated Title" maxLength="255" name="abbrName" saveType="single" tab="general">
+		<tooltip>If there is an abbreviated name used for the service include it here&#xA;&#xA;For example:&#xA;ANUSF</tooltip>
+	</item>
+	<item fieldType="TextField" label="Alternate Title" maxLength="255" name="altName" saveType="single" tab="general">
+		<tooltip>If there is an alternative title for the service, please include it here</tooltip>
+	</item>
+	<item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description">
+		<tooltip>A brief summary about the service</tooltip>
+	</item>
+	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description">
+		<tooltip>A description that is as rich as possible.</tooltip>
+	</item>
 	<item class="required email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple" tab="contact"/>
 	<item fieldType="TextArea" label="Contact Address" name="postalAddress" saveType="single" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Contact Phone Number" name="phone" saveType="multiple" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Contact Fax Number" name="fax" saveType="multiple" tab="contact"/>
 	<item fieldType="Combobox" label="Delivery Method" name="deliveryMethod" saveType="single" class="required">
-		<option value="" label="-No Value Selected-" />
+		<tooltip>Web service: according to the W3C, "a software system designed to support interoperable machine-to-machine interaction over a network. It has an interface described in a machine-processable format".&#xA;Software: all services provided by software other than as web services; users interact with these through a user interface or on a local system. This includese Unix applications, PC/Mac applications, and software access through a browser.&#xA;Offline service: a service not provided through computers or the internet. Instruments such as beamlines and microscopes are normally modelled as offline services.&#xA;Workflow: a service that orchestrates other services. Kepler workflows, which script how various instruments and computational tools interact to deliver an output, are an example of a workflow.</tooltip>
 		<option label="Offline" value="offline"/>
 		<option label="Software" value="software"/>
 		<option label="Web Service" value="webservice"/>
 		<option label="Workflow" value="workflow"/>
 	</item>
-	<item fieldType="TextFieldMulti" label="Access URL" name="websiteAddress" saveType="multiple"/>
-	<item fieldType="TextField" label="Service Website" name="relatedURL" saveType="single"/>
-	<item fieldType="TextField" label="Access Policy Website" name="accessPolicy" saveType="single"/>
+	<item fieldType="TextFieldMulti" label="Access URL" name="websiteAddress" saveType="multiple">
+		<tooltip>The url to access the service.</tooltip>
+	</item>
+	<item fieldType="TextField" label="Service Website" name="relatedURL" saveType="single">
+		<tooltip>A link to a website associated with information about the service</tooltip>
+	</item>
+	<item fieldType="TextField" label="Access Policy Website" name="accessPolicy" saveType="single">
+		<tooltip>A link to a website that contains the access policy for the service</tooltip>
+	</item>
 </template>

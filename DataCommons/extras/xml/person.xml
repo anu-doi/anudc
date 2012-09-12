@@ -3,15 +3,16 @@
 	<briefDesc>Template for creating people</briefDesc>
 	<tab name="general" label="General" order="1" />
 	<tab name="description" label="Description" order="2" />
-	<tab name="contact" label="Contact" tooltip="Information about contact(s)" order="4" />
-	<tab name="subject" label="Subject" order="5" />
+	<tab name="contact" label="Contact" order="3">
+		<tooltip>Information about contact(s)</tooltip>
+	</tab>
+	<tab name="subject" label="Subject" order="4" />
 	<item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type"
 		readonly="readonly" saveType="single" tab="general"/>
 	<item defaultValue="person" editPerm="admin" fieldType="TextField" label="Party Type" name="subType"
 		readonly="readonly" saveType="single" tab="general"/>
-	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required" tab="general">
-		<option value="" label="-No Value Selected-" />
-		<option value="1" label="Administrator" />
+	<item name="ownerGroup" label="Group Affiliation" fieldType="Combobox" saveType="single" class="required" tab="general">
+		<tooltip>Please choose the group the collection is affiliated with</tooltip>
 	</item>
 	<item fieldType="TextField" label="Title" name="title" saveType="single" tab="general" />
 	<item fieldType="TextField" label="Given Name" name="givenName" saveType="single" tab="general" />
@@ -26,16 +27,27 @@
 	<item fieldType="TextField" label="Abbreviated Surname" name="abbrLastName" saveType="single" tab="general" />
 	<item fieldType="TextField" label="Abbreviated Suffixes" name="abbrSuffix" saveType="single" tab="general" />
 	<item fieldType="TextField" label="Uni ID" name="uid" saveType="single" tab="general"/>
-	<item fieldType="TextField" label="NLA Identifier" name="nlaIdentifier" saveType="single" tab="general"/>
-	<item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description"/>
-	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description"/>
+	<item fieldType="TextField" label="NLA Identifier" name="nlaIdentifier" saveType="single" tab="general">
+		<tooltip>Please include the individuals National Library of Australia Identifier if it exists.  You can find these at the Trove website http://trove.nla.gov.au/</tooltip>
+	</item>
+	<item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description">
+		<tooltip>A brief description about the individual, this can include what work is being performed for The Australian National University</tooltip>
+	</item>
+	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description">
+		<tooltip>A longer description of the individual. This may include a biography of the person.</tooltip>
+	</item>
 	<item class="required email" fieldType="TextFieldMulti" label="Email Address" name="email" saveType="multiple" tab="contact"/>
 	<item fieldType="TextArea" label="Postal Address" name="postalAddress" saveType="single" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Phone Number" name="phone" saveType="multiple" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Fax Number" name="fax" saveType="multiple" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Website Address" name="websiteAddress" saveType="multiple" tab="contact"/>
-	<item name="anzforSubject" label="ANZSRC-FOR Subject" fieldType="ComboBoxMulti" saveType="multiple" class="required" tab="subject">
-		<option value="" label="-No Value Selected-" />
+	<item name="anzforSubject" label="Fields of Research" fieldType="ComboBoxMulti" saveType="multiple" class="required" tab="subject">
+		<tooltip>Include Fields of Research terms and corresponding classification codes to be associated with the person being described. The Fields of Research Classfication can be found at the following URL.&#xA;&#xA;http://www.arc.gov.au/applicants/codes.htm#FOR</tooltip>
 	</item>
-	<item fieldType="TextFieldMulti" label="Other Subject" name="locSubject" saveType="multiple" tab="subject"/>
+	<item name="anzseoSubject" label="Socio-Economic Objective" fieldType="ComboBoxMulti" saveType="multiple" tab="subject">
+		<tooltip>Include terms and corresponding classification codes to be assocaited with the resource being described. Information on the Socio-Economic Objectives Classication Codes can be found at the following URL.&#xA;&#xA;http://www.arc.gov.au/applicants/codes.htm#SEO</tooltip>
+	</item>
+	<item name="locSubject" label="Keywords" fieldType="TextFieldMulti" saveType="multiple" tab="subject">
+		<tooltip>Record keywords describing the data. 5-10 keywords will normally be sufficient. The keywords must be specific enough for researchers with similar interests to find your data.&#xA;&#xA;If you need assistance in selecting keywords, there are many thesauri that may be helpful. Please use one appropriate to your discipline. If you are unable to identify a discipline specific classification scheme, you may wish to use the Library of Congress Classification scheme available at http://www.loc.gov/catdir/cpso/lcco/</tooltip>
+	</item>
 </template>

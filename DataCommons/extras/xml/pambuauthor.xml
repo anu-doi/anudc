@@ -2,17 +2,26 @@
 <template>
 	<name>PAMBU Author Template</name>
 	<briefDesc>Template for creating PAMBU Authors</briefDesc>
+	<tab name="general" label="General" order="1" />
+	<tab name="description" label="Description" order="2" />
 	<item defaultValue="Party" editPerm="admin" fieldType="TextField" label="Type" name="type"
-		readonly="readonly" saveType="single"/>
+		readonly="readonly" saveType="single" tab="general"/>
 	<item defaultValue="author" editPerm="admin" fieldType="TextField" label="Party Type" name="subType"
-		readonly="readonly" saveType="single"/>
-	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required">
-		<option value="" label="-No Value Selected-" />
-		<option value="1" label="Administrator" />
+		readonly="readonly" saveType="single" tab="general"/>
+	<item name="ownerGroup" label="Group Affiliation" fieldType="Combobox" saveType="single" class="required" tab="general">
+		<tooltip>Please choose the group the collection is affiliated with</tooltip>
 	</item>
-	<item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single"/>
-	<item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single"/>
-	<item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single"/>
-	<item fieldType="TextField" label="Author ID" name="externalId" saveType="single" />
-	<item fieldType="TextArea" label="Brief Description" name="briefDesc" saveType="single" />
+	<item class="required" fieldType="TextField" label="Name" maxLength="80" name="name" saveType="single" tab="general">
+		<tooltip>The name or title of the person/group.</tooltip>
+	</item>
+	<item fieldType="TextField" label="Abbreviated Name" maxLength="255" name="abbrName" saveType="single" tab="general">
+		<tooltip>A brief title of the person/group</tooltip>
+	</item>
+	<item fieldType="TextField" label="Alternate Name" maxLength="255" name="altName" saveType="single" tab="general">
+		<tooltip>An alternative title for the person/group</tooltip>
+	</item>
+	<item fieldType="TextField" label="Author ID" name="externalId" saveType="single" tab="general" />
+	<item fieldType="TextArea" label="Brief Description" name="briefDesc" saveType="single" tab="description">
+		<tooltip>A brief description about the person/group</tooltip>
+	</item>
 </template>

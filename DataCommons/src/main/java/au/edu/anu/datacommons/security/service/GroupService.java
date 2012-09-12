@@ -22,6 +22,7 @@ import au.edu.anu.datacommons.data.db.model.Groups;
  * 0.2		13/06/2012	Genevieve Turner (GT)	Updated filter permissions
  * 0.3		20/06/2012	Genevieve Turner (GT)	Created a select all groups that filters out those for which the user has create permissions
  * 0.4		20/08/2012	Genevieve Turner (GT)	Added a method that determines whether the user has permissions to modify groups
+ * 0.5		11/09/2012	Genevieve turner (GT)	Updated edit permissions for retrieving the create groups
  * </pre>
  * 
  */	
@@ -50,12 +51,13 @@ public interface GroupService {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * 0.2		20/06/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		20/06/2012	Genevieve Turner (GT)	Initial
+	 * 0.5		11/09/2012	Genevieve Turner (GT)	Updated permissions
 	 * </pre>
 	 * 
 	 * @return A list of groups the user has permissions to create objects in
 	 */
-	@PostFilter("hasPermission(filterObject,'CREATE') or hasPermission(filterObject,'ADMINISTRATION')")
+	@PostFilter("hasPermission(filterObject,'CREATE') or hasPermission(filterObject,'WRITE') or hasPermission(filterObject,'ADMINISTRATION')")
 	public List<Groups> getCreateGroups();
 	
 	/**

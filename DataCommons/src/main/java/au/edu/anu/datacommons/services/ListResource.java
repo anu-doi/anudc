@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -49,6 +50,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.2		14/05/2012	Genevieve Turner (GT)	Updated to include a JSON search for items
  * 0.3		08/06/2012	Genevieve Turner (GT)	Updated for changes to post
  * 0.4		14/06/2012	Genevieve Turner (GT)	Updated for new templates to search solr
+ * 0.5		11/09/2012	Genevieve Turner (GT)	Added sorting so that templates are sorted in the order they are created
  * </pre>
  * 
  */
@@ -70,6 +72,7 @@ public class ListResource {
 	 * Version	Date		Developer				Description
 	 * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
 	 * 0.3		08/06/2012	Genevieve Turner (GT)	Updated for changes to post
+	 * 0.5		11/09/2012	Genevieve Turner (GT)	Added sorting so that templates are sorted in the order they are created
 	 * </pre>
 	 * 
 	 * Returns a list of templates 
@@ -94,6 +97,7 @@ public class ListResource {
 		for (String field : splitReturnFields) {
 			solrQuery.addField("template." + field);
 		}
+		solrQuery.addSortField("id", ORDER.asc);
 
 		Map<String, Object> model = new HashMap<String, Object>();
 
@@ -101,7 +105,6 @@ public class ListResource {
 			QueryResponse queryResponse = solrServer.query(solrQuery);
 
 			SolrDocumentList resultList = queryResponse.getResults();
-			LOGGER.info("Number of results: {}",resultList.getNumFound());
 			SolrSearchResult solrSearchResult = new SolrSearchResult(resultList);
 			model.put("resultSet", solrSearchResult);
 			response = Response.ok(new Viewable("/listtemplate.jsp", model)).build();
@@ -148,9 +151,7 @@ public class ListResource {
 			sparqlQuery.addFilter(typeFilterString.toString(), "&&");
 			
 			ClientResponse riSearchResponse = riSearchJSONService.post("query", sparqlQuery.generateQuery());
-			LOGGER.info("Return statis is: {}", riSearchResponse.getStatus());
 			String jsonArray = riSearchResponse.getEntity(String.class);
-			LOGGER.info("JSON Response: {}", jsonArray);
 			response = Response.ok(jsonArray, MediaType.APPLICATION_JSON).build();
 		}
 		else {

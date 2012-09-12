@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:datetime="http://exslt.org/dates-and-times">
+<xsl:stylesheet version="2.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:datetime="http://exslt.org/dates-and-times"
+		xmlns:options="xalan://au.edu.anu.datacommons.xml.transform.SelectExtension">
 	<xsl:param name="item" />
 	<xsl:param name="tmplt" />
 	<xsl:param name="data" />
-	<xsl:param name="options" />
 	<xsl:variable name="mData" select="$data" />
-	<xsl:variable name="mOptions" select="$options" />
 	
 	<xsl:template match="/">
 		<xsl:if test="$data != null"></xsl:if>
@@ -23,7 +22,7 @@
 								<xsl:if test="position() = 1">
 									<xsl:attribute name="class">pagetabs-select</xsl:attribute>
 								</xsl:if>
-								<a href="#{@name}" id="tab-{@name}" title="{@tooltip}"><xsl:value-of select="@label" /></a>
+								<a href="#{@name}" id="tab-{@name}"><xsl:attribute name="title"><xsl:value-of disable-output-escaping="yes" select="tooltip"></xsl:value-of></xsl:attribute><xsl:value-of select="@label" /></a>
 							</li>
 						</xsl:for-each>
 						
@@ -89,18 +88,27 @@
 					<xsl:call-template name="Label" />
 					<xsl:call-template name="Table" />
 				</xsl:when>
+				<xsl:when test="@fieldType='RadioButton'">
+					<xsl:call-template name="Label" />
+					<xsl:call-template name="RadioButton" />
+				</xsl:when>
 			</xsl:choose>
 		</div>
 	</xsl:template>
 	
 	<xsl:template name="Label">
-		<label for="{@name}" title="{@tooltip}">
+		<label for="{@name}">
 			<xsl:value-of select="@label" />
 			<xsl:if test="contains(@class,'required')">
 				<b style="color:red;">*</b>
 			</xsl:if>
 		</label>
 		<br/>
+		<xsl:if test="tooltip">
+			<div class="small">
+				<xsl:value-of disable-output-escaping="yes" select="options:replaceNewlineWithBr(tooltip)" />
+			</div>
+		</xsl:if>
 	</xsl:template>
 	
 	<xsl:template name="TextField">
@@ -143,50 +151,18 @@
 	<xsl:template name="ComboBox">
 		<xsl:variable name="mName" select="@name" />
 		<select id="{@name}" name="{@name}" class="{@class}">
-			<xsl:choose>
-				<xsl:when test="$options != '' and $mOptions/options/*[name() = $mName]">
-					<option value="">
-						- No Value Selected -
-					</option>
-					<xsl:for-each select="$mOptions/options/*[name() = $mName]">
-						<option value="{id}">
-							<xsl:value-of select="name" />
-						</option>
-					</xsl:for-each>
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:for-each select="option">
-						<option value="{@value}">
-							<xsl:value-of select="@label" />
-						</option>
-					</xsl:for-each>
-				</xsl:otherwise>
-			</xsl:choose>
+			<option value="">
+				- No Value Selected -
+			</option>
+			<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option)"/>
 		</select>
 	</xsl:template>
 	
 	<xsl:template name="ComboBoxMulti">
 		<xsl:variable name="mName" select="@name" />
 		<select id="{@name}2">
-			<xsl:choose>
-				<xsl:when test="$options != '' and $mOptions/options/*[name() = $mName]">
-					<option value="">
-						- No Value Selected -
-					</option>
-					<xsl:for-each select="$mOptions/options/*[name() = $mName]">
-						<option value="{id}">
-							<xsl:value-of select="name" />
-						</option>
-					</xsl:for-each>
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:for-each select="option">
-						<option value="{@value}">
-							<xsl:value-of select="@label" />
-						</option>
-					</xsl:for-each>
-				</xsl:otherwise>
-			</xsl:choose>
+			<option value=""></option>
+			<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option)"/>
 		</select>
 		<br />
 		<select id="{@name}" name="{@name}" class="{@class}" multiple="multiple">
@@ -194,6 +170,14 @@
 		</select>
 		<br />
 		<input type="button" value="Remove Selected" onClick="removeSelected('{@name}')" />
+	</xsl:template>
+	
+	<xsl:template name="RadioButton">
+		<xsl:variable name="mName" select="@name" />
+		<xsl:for-each select="option">
+			<input type="radio" name="{$mName}" value="{@value}" /><xsl:value-of select="@label" />
+			<br/>
+		</xsl:for-each>
 	</xsl:template>
 	
 	<xsl:template name="Table">

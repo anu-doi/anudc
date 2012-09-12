@@ -1,4 +1,7 @@
 select {
+	width: 170px;
+}
+.field select {
 	width:250px;
 }
 label.error {

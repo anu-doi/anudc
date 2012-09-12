@@ -3,40 +3,66 @@
 	<briefDesc>Template for creating activities</briefDesc>
 	<tab name="general" label="General" order="1" />
 	<tab name="description" label="Description" order="2" />
-	<tab name="contact" label="Contact" tooltip="Information about contact(s)" order="4" />
+	<tab name="contact" label="Contact" order="4">
+		<tooltip>Information about contact(s)</tooltip>
+	</tab>
 	<tab name="subject" label="Subject" order="5" />
-	<tab name="publications" label="Publications" order="7" />
+	<tab name="related" label="Related Information" order="7" />
 	<item defaultValue="Activity" editPerm="admin" fieldType="TextField" label="Type" name="type" readonly="readonly" saveType="single" tab="general" />
 	<item fieldType="Combobox" label="Activity Type" name="subType" saveType="single" class="required" tab="general">
-		<option label="-No Value Selected-" value=""/>
 		<option label="Project" value="project"/>
 		<option label="Program" value="program"/>
 		<option label="Course" value="course"/>
 		<option label="Award" value="award"/>
 		<option label="Event" value="event"/>
 	</item>
-	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required" tab="general">
-		<option value="" label="-No Value Selected-" />
-		<option value="1" label="Administrator" />
+	<item name="ownerGroup" label="Group Affiliation" fieldType="Combobox" saveType="single" class="required" tab="general">
+		<tooltip>Please choose the group the collection is affiliated with</tooltip>
 	</item>
-	<item class="required" fieldType="TextField" label="Title" maxLength="80" name="name" saveType="single" tab="general"/>
-	<item fieldType="TextField" label="Abbreviated Title" maxLength="255" name="abbrName" saveType="single" tab="general"/>
-	<item fieldType="TextField" label="Alternate Title" maxLength="255" name="altName" saveType="single" tab="general"/>
+	<item class="required" fieldType="TextField" label="Title" maxLength="80" name="name" saveType="single" tab="general">
+		<tooltip>Enter the name of the research project</tooltip>
+	</item>
+	<item fieldType="TextField" label="Abbreviated Title" maxLength="255" name="abbrName" saveType="single" tab="general">
+		<tooltip>Please include a brief title if your title is very long</tooltip>
+	</item>
+	<item fieldType="TextField" label="Alternate Title" maxLength="255" name="altName" saveType="single" tab="general">
+		<tooltip>If there is an alternative title for your activity, please include it here</tooltip>
+	</item>
 	<item fieldType="TextField" label="ARC Grant Number" name="arcNumber" saveType="single" tab="general" />
-	<item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description"/>
-	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description"/>
+	<item fieldType="TextFieldMulti" label="Funding Body" name="fundingBody" saveType="single" tab="general">
+		<tooltip>Enter the name of the research funding body(ies) if applicable.</tooltip>
+	</item>
+	
+	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000" class="required"  tab="description">
+		<tooltip>A brief summary about the project</tooltip>
+	</item>
+	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" maxLength="4000"  tab="description">
+		<tooltip>The description should be as rich as possible. If applicable, include: the scope; details of what is being studied or recorded; methodologies used, information about any instruments that were used to produce and/or collect the data; relevant standards used; conditions under which the study or research occured or the data was collected, etc&#xA;If there were any problems or other issues with methods used to produce and/or collect the data, please include those as well.</tooltip>
+	</item>
 	<item class="required email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple" tab="contact"/>
 	<item fieldType="TextArea" label="Contact Address" name="postalAddress" saveType="single" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Contact Phone Number" name="phone" saveType="multiple" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Contact Fax Number" name="fax" saveType="multiple" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Website Address" name="websiteAddress" saveType="multiple" tab="contact"/>
-	<item name="anzforSubject" label="ANZSRC-FOR Subject" fieldType="ComboBoxMulti" saveType="multiple" class="required" tab="subject">
-		<option value="" label="-No Value Selected-" />
+	<item name="anzforSubject" label="Fields of Research" fieldType="ComboBoxMulti" saveType="multiple" class="required" tab="subject">
+		<tooltip>Include Fields of Research terms and corresponding classification codes to be associated with the resource being described. The Fields of Research Classfication can be found at the following URL.&#xA;&#xA;http://www.arc.gov.au/applicants/codes.htm#FOR</tooltip>
 	</item>
-	<item fieldType="TextFieldMulti" label="Other Subject" name="locSubject" saveType="multiple" tab="subject"/>
-	<item fieldType="TableVertical" label="Publications" name="publication" saveType="table" tab="publications">
+	<item name="anzseoSubject" label="Socio-Economic Objective" fieldType="ComboBoxMulti" saveType="multiple" tab="subject">
+		<tooltip>Include terms and corresponding classification codes to be associated with the resource being described. Information on the Socio-Economic Objectives Classication Codes can be found at the following URL.&#xA;&#xA;http://www.arc.gov.au/applicants/codes.htm#SEO</tooltip>
+	</item>
+	<item name="locSubject" label="Keywords" fieldType="TextFieldMulti" saveType="multiple" tab="subject">
+		<tooltip>Record keywords describing the data. 5-10 keywords will normally be sufficient. The keywords must be specific enough for researchers with similar interests to find your data.&#xA;&#xA;If you need assistance in selecting keywords, there are many thesauri that may be helpful. Please use one appropriate to your discipline. If you are unable to identify a discipline specific classification scheme, you may wish to use the Library of Congress Classification scheme available at http://www.loc.gov/catdir/cpso/lcco/</tooltip>
+	</item>
+	<item name="anztoaSubject" label="Type of Research Activity" fieldType="Combobox" saveType="single" tab="subject">
+		<tooltip>If appropriate, assign a research activity classficiation. There are four set values that can be assigned. Please choose one.</tooltip>
+		<option value="ed" label="Experimental development" />
+		<option value="ar" label="Applied Research" />
+		<option value="sbr" label="Strategic basic research" />
+		<option value="pbr" label="Pure basic research" />
+	</item>
+	<item fieldType="TableVertical" label="Publications" name="publication" saveType="table" tab="related">
+		<tooltip>If appropriate, please include information about any publications that relate to the activity/project&#xA;For example:&#xA;Identifier Type: International Standard Serial Number&#xA;Identifier Value: 0278-7393&#xA;Publication Reference: Heathcote, A. (2003) Item recognition memory and the ROC. Journal of Experimental Psychology: Learning, Memory and Cognition, 29, 1210-1230.</tooltip>
 		<column name="pubType" label="Identifier Type" fieldType="Combobox">
-			<option value="" label="-No Value Selected-" />
 			<option value="ark" label="ARK Persistent Identifier Scheme" />
 			<option value="doi" label="Digital Object Identifier" />
 			<option value="ean13" label="International Article Number" />
@@ -54,5 +80,10 @@
 		</column>
 		<column fieldType="TextField" label="Identifier Value" name="pubValue"/>
 		<column fieldType="TextArea" label="Publication Reference" name="pubTitle"/>
+	</item>
+	<item name="relatedWebsites" label="Related Websites" fieldType="Table" saveType="table" tab="related">
+		<tooltip>If appropriate, please include a URL and Notes for any websites that relate to the resourrce being described. For example:&#xA;&#xA;URL: http://anusf.anu.edu.au/index.php&#xA;&#xA;Title: ANU Supercomputing Facility</tooltip>
+		<column name="relatedWebURL" label="URL" fieldType="TextField" />
+		<column name="relatedWebTitle" label="Title" fieldType="TextField" />
 	</item>
 </template>
