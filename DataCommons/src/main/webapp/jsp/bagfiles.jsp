@@ -25,7 +25,7 @@
 				<ul>
 					<li><a href="#" class="pagetabs-select" onclick="return tabSelect(this, '#files')">Files</a></li>
 					<li><a href="#" onclick="return tabSelect(this, '#info')">Archive Info</a></li>
-					<li><a href="#" onclick="return tabSelect(this, '')">External References</a></li>
+					<li><a href="#" onclick="return tabSelect(this, '#extRefs')">External References</a></li>
 				</ul>
 			</div>
 
@@ -85,6 +85,17 @@
 					</tr>
 				</c:forEach>
 			</table>
+
+			<div class="small w-doublewide" id="extRefs" style="display: none;">
+				<!-- External relations -->
+				<c:if test="${not empty it.extRefsTxt}">
+					<ul>
+						<c:forEach var="iEntry" items="${it.extRefsTxt}">
+							<li><a href="${iEntry.value}"><c:out value='${iEntry.value}' /></a></li>
+						</c:forEach>
+					</ul>
+				</c:if>
+			</div>
 		</anu:content>
 	</c:when>
 </c:choose>

@@ -1,0 +1,42 @@
+#	Sample Information for a collection
+#	Data for a collection can be entered in a "key=value" format.
+#
+
+#	The following keys go towards creating the collection/dataset. Change these as required.
+#	The following keys are mandatory.
+name=Name of the collection
+anzforSubject=0105
+briefDesc=Brief Description
+fullDesc=Full Description
+ownerGroup=1
+email=someone@anu.edu.au
+
+#	The following keys are optional.
+abbrName=
+accessRights=
+altName=
+covAreaType=
+covAreaValue=
+dateFrom=
+dateTo=
+fax=
+licence=
+locSubject=
+phone=
+postalAddress=
+pubTitle=
+pubType=
+pubValue=
+rightsStatement=
+significanceStatement=
+subType=dataset
+type=Collection
+websiteAddress=
+
+#	'relation' key specifies the relationship with another item. Multiple relation keys can be specified.
+relation=isOutputOf,test:53
+
+#	'files.dir' specifies the location of the files to be uploaded against the item in question.
+files.dir=C:\DVD1
+
+#	The key 'pid' will be added to this parameter file with the pid of the newly created item as its value. E.g. pid=test:123

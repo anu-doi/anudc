@@ -10,9 +10,12 @@ import gov.loc.repository.bagit.transformer.Completer;
 import gov.loc.repository.bagit.transformer.impl.ChainingCompleter;
 import gov.loc.repository.bagit.transformer.impl.DefaultCompleter;
 import gov.loc.repository.bagit.transformer.impl.TagManifestCompleter;
+import gov.loc.repository.bagit.transformer.impl.UpdateCompleter;
+import gov.loc.repository.bagit.transformer.impl.UpdatePayloadOxumCompleter;
 import gov.loc.repository.bagit.utilities.SimpleResult;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +26,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -32,6 +36,9 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import javax.mail.internet.MimeUtility;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.tika.io.IOUtils;
 import org.slf4j.Logger;
@@ -39,9 +46,12 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.BagPropsTxt.DataSource;
 import au.edu.anu.dcbag.BagSummary;
+import au.edu.anu.dcbag.ExtRefsTxt;
 import au.edu.anu.dcbag.FileSummaryMap;
+import au.edu.anu.dcbag.VirusScanTxt;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
@@ -53,6 +63,7 @@ public final class DcStorage
 	private static DcStorage inst = null;
 	private static Set<String> lockedPids = Collections.synchronizedSet(new HashSet<String>());
 	private static File bagsDir = null;
+	private static Completer tagFilesCompleter;
 	private static Completer preSaveCompleter;
 	private static Completer postSaveCompleter;
 	private static FileSystemWriter writer;
@@ -68,7 +79,8 @@ public final class DcStorage
 		// Bag Completers.
 		preSaveCompleter = new ChainingCompleter(new DefaultCompleter(bagFactory));
 		postSaveCompleter = new ChainingCompleter(new DcStorageCompleter(), new TagManifestCompleter(bagFactory));
-
+		tagFilesCompleter = new ChainingCompleter(new TagManifestCompleter(bagFactory), new UpdatePayloadOxumCompleter(bagFactory));
+		
 		// Bag Writer
 		writer = new FileSystemWriter(bagFactory);
 
@@ -81,7 +93,6 @@ public final class DcStorage
 		{
 			if (!bagsDir.mkdirs())
 				throw new IOException(MessageFormat.format("Unable to create {0}. Check permissions.", bagsDir.getAbsolutePath()));
-			;
 		}
 	}
 
@@ -101,7 +112,7 @@ public final class DcStorage
 		}
 		return inst;
 	}
-	
+
 	public static void setLocation(File newBagsDir)
 	{
 		if (inst == null)
@@ -109,7 +120,6 @@ public final class DcStorage
 		else
 			throw new RuntimeException("Can't change storage location after instantiation.");
 	}
-	
 
 	public void addFileToBag(String pid, String filename, String fileUrl) throws DcStorageException
 	{
@@ -193,6 +203,49 @@ public final class DcStorage
 		}
 	}
 
+	public void addExtRef(String pid, String url) throws DcStorageException
+	{
+		Bag bag = null;
+		try
+		{
+			bag = getBag(pid);
+			if (bag == null)
+				throw new DcStorageException(MessageFormat.format("No bag exists for pid {0}", pid));
+
+			BagFile extRefsFile = bag.getBagFile(ExtRefsTxt.FILEPATH);
+			// If file doesn't exist, create it.
+			ExtRefsTxt extRefsTxt;
+			if (extRefsFile == null)
+				extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, bag.getBagItTxt().getCharacterEncoding());
+			else
+				extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, extRefsFile, bag.getBagItTxt().getCharacterEncoding());
+
+			// Convert the URL to Base64 string to be used as a key. Urls have ':' which cannot be present in keys. Encoding the url makes the key unique ensuring
+			// each url appears only once.
+			byte[] base64EncodedUrl = Base64.encodeBase64(url.getBytes());
+			extRefsTxt.put(new String(base64EncodedUrl), url);
+			bag.putBagFile(extRefsTxt);
+			bag = bag.makeComplete(tagFilesCompleter);
+			
+			// Write the bag.
+			bag = writeBag(bag, pid);
+		}
+		finally
+		{
+			if (bag != null)
+			{
+				try
+				{
+					bag.close();
+				}
+				catch (IOException e)
+				{
+					LOGGER.warn(e.getMessage(), e);
+				}
+			}
+		}
+	}
+	
 	public void storeBag(String pid, File bagFile) throws DcStorageException
 	{
 		Bag bag = bagFactory.createBag(bagFile, LoadOption.BY_FILES);
@@ -284,26 +337,15 @@ public final class DcStorage
 	{
 		return (getBag(pid) != null);
 	}
-	
+
 	public boolean fileExistsInBag(String pid, String filepath) throws DcStorageException
 	{
 		Bag bag = getBag(pid);
 		if (bag == null)
 			throw new DcStorageException(MessageFormat.format("Bag doesn't exist for Pid {0}.", pid));
 
-		Collection<BagFile> plFiles = bag.getPayload();
-		boolean fileExists = false;
-		// Iterate through each file in payload file list and compare the filename.
-		for (BagFile file : plFiles)
-		{
-			if (file.getFilepath().equalsIgnoreCase(filepath))
-			{
-				fileExists = true;
-				break;
-			}
-		}
-		
-		return fileExists;
+		BagFile bFile = bag.getBagFile(filepath);
+		return (bFile != null);
 	}
 
 	public Bag getBag(String pid)

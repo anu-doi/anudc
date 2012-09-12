@@ -12,6 +12,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +47,8 @@ public class GetInfoTaskTest extends AbstractDcBagTaskTest
 	{
 	}
 
-	@Test
-	public void testCall() throws InterruptedException, ExecutionException
+	@Ignore
+	public void testGetInfoTask() throws InterruptedException, ExecutionException
 	{
 		Authenticator.setDefault(new DcAuthenticator("rahul.khanna@anu.edu.au", "user"));
 		ExecutorService execSvc = Executors.newFixedThreadPool(1);

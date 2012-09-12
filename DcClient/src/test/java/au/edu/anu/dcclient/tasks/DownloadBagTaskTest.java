@@ -30,6 +30,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -64,8 +65,8 @@ public class DownloadBagTaskTest extends AbstractDcBagTaskTest
 		super.tearDown();
 	}
 
-	@Test
-	public void testCall() throws InterruptedException, ExecutionException
+	@Ignore
+	public void testDownloadBagTask() throws InterruptedException, ExecutionException
 	{
 		DownloadBagTask task = new DownloadBagTask(Global.getBagUploadUri(), "test:1", tempFolder.getRoot());
 		ExecutorService execSvc = Executors.newFixedThreadPool(1);

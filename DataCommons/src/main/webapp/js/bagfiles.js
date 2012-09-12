@@ -6,6 +6,7 @@ function tabSelect(el, containerId)
 	// Hide containers for tabs.
 	jQuery('#info').hide();
 	jQuery('#files').hide();
+	jQuery('#extRefs').hide();
 
 	// Show the container corresponding to the tab selected.
 	jQuery(containerId).show();

@@ -323,7 +323,7 @@ public class ViewTransform
 			JAXBContext jaxbContext = JAXBContext.newInstance(OptionList.class);
 			Marshaller marshaller = jaxbContext.createMarshaller();
 			marshaller.marshal(optionList, doc);
-			LOGGER.debug(Util.getXmlAsString(doc));
+			LOGGER.trace(Util.getXmlAsString(doc));
 		}
 		catch(JAXBException e) {
 			LOGGER.error("Exception transforming document", e);

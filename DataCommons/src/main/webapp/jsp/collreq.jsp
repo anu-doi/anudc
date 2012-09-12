@@ -44,9 +44,10 @@
 					<label>Status</label>
 					<c:out value="${it.collReq.lastStatus.status}" />
 				</p>
-				<hr />
 				<!-- Answers -->
-				<p>
+				<c:if test="${not empty it.collReq.answers}">
+					<p>
+					<hr />
 					<c:forEach var="answer" items="${it.collReq.answers}">
 						<div onclick="jQuery(this).next('div').slideToggle()" class="box-header" style="cursor: pointer">
 							<c:out value="${answer.question.questionText}" />
@@ -55,27 +56,27 @@
 							<c:out value="${answer.answer}" />
 						</div>
 					</c:forEach>
-				</p>
-				<hr />
-				<p>
-					<!-- Files for approval -->
-				<ul>
-					<c:forEach var="iFile" items="${it.downloadables}">
-						<li><input type="checkbox" name="file" value="${iFile.key.filepath}"
-												<c:forEach items="${it.collReq.items}" var="iCurItem">
-							<c:if test="${iCurItem.item == iFile.key.filepath}">
-								checked="checked"
-							</c:if>
-						</c:forEach>
-						
-						/>
-						<c:out value="${iFile.key.filepath} (${iFile.value.friendlySize})" />
-						</li>
-					</c:forEach>
-				</ul>
-				</p>
-				<hr />
+					</p>
+				</c:if>
 				<sec:accesscontrollist hasPermission="REVIEW" domainObject="${it.collReq.fedoraObject}">
+					<c:if test="${not empty it.downloadables}">
+						<hr />
+						<p>
+							<!-- Files for approval -->
+						<ul>
+							<c:forEach var="iFile" items="${it.downloadables}">
+								<li><input type="checkbox" name="file" value="${iFile.key.filepath}"
+										<c:forEach items="${it.collReq.items}" var="iCurItem">
+								<c:if test="${iCurItem.item == iFile.key.filepath}">
+									checked="checked"
+								</c:if>
+							</c:forEach> />
+									<c:out value="${iFile.key.filepath} (${iFile.value.friendlySize})" /></li>
+							</c:forEach>
+						</ul>
+						</p>
+					</c:if>
+					<hr />
 					<h2>Update Status</h2>
 					<p>
 						<label>Status</label> <select name="status">
