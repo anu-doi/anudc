@@ -97,12 +97,14 @@
 	</xsl:template>
 	
 	<xsl:template name="Label">
+		<strong>
 		<label for="{@name}">
 			<xsl:value-of select="@label" />
 			<xsl:if test="contains(@class,'required')">
 				<b style="color:red;">*</b>
 			</xsl:if>
 		</label>
+		</strong>
 		<br/>
 		<xsl:if test="tooltip">
 			<div class="small">
