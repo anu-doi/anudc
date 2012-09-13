@@ -35,6 +35,7 @@ import au.edu.anu.datacommons.security.CustomUser;
  * 0.3		17/05/2012	Genevieve Turner (GT)	Renamed loadCustomUser to createUserDetails 
  * 0.4		17/05/2012	Geneiveve Turner (GT)	Updated to insert user into database when they log in 
  * 0.5		23/05/2012	Genevieve Turner (GT)	Updated for display name
+ * 0.6		13/09/2012	Genevieve Turner (GT)	Updated so that it does not matter if the user logs in via upper or lowercase DCO-168
  * </pre>
  * 
  */
@@ -56,6 +57,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 * 0.1		29/03/2012	Genevieve Turner (GT)	Added
 	 * 0.2		16/05/2012	Genevieve Turner (GT)	Updated to use a custom user
 	 * 0.3		17/05/2012	Genevieve Turner (GT)	Updated to use createUserDetails function
+	 * 0.6		13/09/2012	Genevieve Turner (GT)	Updated so that it does not matter if the user logs in via upper or lowercase DCO-168
 	 * </pre>
 	 * 
 	 * @param username The username of the person logging in
@@ -63,6 +65,8 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 */
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		username = username.toLowerCase();
+		
 		Set<GrantedAuthority> dbAuthsSet = new HashSet<GrantedAuthority>();
 		
 		if (enableAuthorities) {
