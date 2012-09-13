@@ -178,7 +178,7 @@ public class CollectionDropbox
 		calendar.add(Calendar.DATE, 30);
 		this.expiry = calendar.getTime();
 		this.accessCode = Math.round(Math.random() * (double) Long.MAX_VALUE);
-		this.accessPassword = Util.generatePassword(Integer.parseInt(GlobalProps.getProperty(GlobalProps.PROP_DROPBOX_PASSWORDLENGTH)));
+		this.accessPassword = Util.generateRandomString(Integer.parseInt(GlobalProps.getProperty(GlobalProps.PROP_DROPBOX_PASSWORDLENGTH)));
 	}
 
 	public void addAccessLogEntry(CollectionDropboxAccessLog accessLogEntry)

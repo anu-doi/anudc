@@ -12,6 +12,7 @@ public class BagSummary
 	private BagPropsTxt bagPropsTxt = null;
 	private FileSummaryMap fsMap = null;
 	private BagInfoTxt bagInfoTxt = null;
+	private ExtRefsTxt extRefsTxt = null;
 	
 	public BagSummary(Bag bag)
 	{
@@ -27,6 +28,11 @@ public class BagSummary
 		
 		// Bag Info Txt
 		this.bagInfoTxt = bag.getBagInfoTxt();
+		
+		// External references
+		BagFile extRefsFile = bag.getBagFile(ExtRefsTxt.FILEPATH);
+		if (extRefsFile != null)
+			this.extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, extRefsFile, bag.getBagItTxt().getCharacterEncoding());
 	}
 	
 	public String getFriendlySize()
@@ -67,5 +73,10 @@ public class BagSummary
 	public BagInfoTxt getBagInfoTxt()
 	{
 		return bagInfoTxt;
+	}
+
+	public ExtRefsTxt getExtRefsTxt()
+	{
+		return extRefsTxt;
 	}
 }

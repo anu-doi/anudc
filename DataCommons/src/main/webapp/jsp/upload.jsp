@@ -17,6 +17,7 @@
 	<jsp:include page="/jsp/statusmessages.jsp">
 		<jsp:param value="${it}" name="it" />
 	</jsp:include>
+	
 	<form class="anuform" name="uploadForm" id="idUploadForm" enctype="multipart/form-data" method="post" action="<c:url value='/rest/upload' />">
 		<fieldset>
 			<legend>Fedora Object</legend>
@@ -36,6 +37,9 @@
 				<input type="button" onclick="removeElement(this.parentNode)" value=" Remove URL " hidden="hidden" />
 			</p>
 		</fieldset>
+		<p class="text-right">
+			<input type="submit" value="Submit URL References only" />
+		</p>
 		<input type="hidden" name="state" value="A" />
 		<input type="hidden" name="cg" value="E" />
 		<sec:authorize access="isAuthenticated()">

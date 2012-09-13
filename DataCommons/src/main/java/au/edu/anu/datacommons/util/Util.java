@@ -161,7 +161,7 @@ public final class Util
 	 * 
 	 * @return Password as String.
 	 */
-	public static String generatePassword(int length)
+	public static String generateRandomString(int length)
 	{
 		Random rand = new Random();
 		StringBuilder password = new StringBuilder();

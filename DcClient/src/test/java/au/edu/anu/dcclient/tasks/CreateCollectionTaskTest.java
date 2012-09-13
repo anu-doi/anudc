@@ -13,6 +13,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,8 +49,8 @@ public class CreateCollectionTaskTest extends AbstractDcBagTaskTest
 		super.tearDown();
 	}
 
-	@Test
-	public void testCall() throws Exception
+	@Ignore
+	public void testCreateCollectionTask() throws Exception
 	{
 		CollectionInfo ci = new CollectionInfo(new File(this.getClass().getResource("collinfotest.properties").toURI()));
 		CreateCollectionTask createCollTask = new CreateCollectionTask(ci, Global.getCreateUri());

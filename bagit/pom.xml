@@ -1,14 +1,20 @@
-<project>
+<project
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<groupId>gov.loc</groupId>
 	<artifactId>bagit</artifactId>
 	<packaging>jar</packaging>
+
 	<name>BagIt Implementation</name>
 	<version>4.3</version>
 	<description>A software library that supports the creation,
 		manipulation, and validation of bags according to the BagIt
 		specification.</description>
 	<url>http://loc-xferutils.sourceforge.net</url>
+
 	<licenses>
 		<license>
 			<name>Public Domain</name>
@@ -16,10 +22,12 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
+
 	<scm>
 		<connection>Not public</connection>
 		<url>Not public</url>
 	</scm>
+
 	<properties>
 		<bagit.version>0.97</bagit.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
