@@ -18,6 +18,7 @@
  * 0.1		26/03/2012	Genevieve Turner	Created function
  * 0.2		02/07/2012	Genevieve Turner	Updated submission function as validation was not correctly occuring
  * 0.3		15/08/2012	Genevieve Turner	Updated to make validation work correctly with the changes to using tabs (added validator.setDefaults function)
+ * 0.4		13/09/2012	Genevieve Turner	Now clears fields when a value is selected.
  */
 jQuery(document).ready(function()
 {
@@ -84,6 +85,8 @@ jQuery(document).ready(function()
 								var key = ui.item.option.value;
 								var value = ui.item.option.text;
 								jQuery(selectId).append(jQuery('<option>', { value : key }).text(value));
+								jQuery(".ui-combobox input").val("");
+								return false;
 							}
 							else {
 								self._trigger("selected", event, {
