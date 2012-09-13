@@ -280,6 +280,8 @@ public class PambuSearchResource {
 		if ("long".equals(value)) {
 			solrQuery.addField("published.briefDesc");
 			solrQuery.addField("published.fullDesc");
+			solrQuery.addField("published.holdingType");
+			solrQuery.addField("published.reelList");
 		}
 	}
 	

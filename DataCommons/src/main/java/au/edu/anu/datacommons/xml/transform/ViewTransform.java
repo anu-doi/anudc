@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -38,24 +37,17 @@ import org.xml.sax.SAXException;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
-import au.edu.anu.datacommons.data.db.dao.SelectCodeDAO;
-import au.edu.anu.datacommons.data.db.dao.SelectCodeDAOImpl;
 import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
-import au.edu.anu.datacommons.data.db.model.Groups;
-import au.edu.anu.datacommons.data.db.model.SelectCode;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.CustomUser;
-import au.edu.anu.datacommons.security.service.GroupService;
-import au.edu.anu.datacommons.security.service.GroupServiceImpl;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.data.Data;
 import au.edu.anu.datacommons.xml.data.DataItem;
 import au.edu.anu.datacommons.xml.dc.DublinCore;
 import au.edu.anu.datacommons.xml.dc.DublinCoreConstants;
-import au.edu.anu.datacommons.xml.other.OptionList;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.template.TemplateColumn;
 import au.edu.anu.datacommons.xml.template.TemplateItem;
@@ -91,6 +83,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.14		02/08/2012	Genevieve Turner (GT)	Updated to unescape html characters when saving
  * 0.15		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
  * 0.16		31/08/2012	Genevieve Turner (GT)	Removed the retrieval of option lists
+ * 0.17		13/09/2012	Genevieve Turner (GT)	Added setting of tmplt id to fedora object
  * </pre>
  * 
  */
@@ -619,6 +612,7 @@ public class ViewTransform
 	 * 0.6		14/05/2012	Genevieve Turner (GT)	Updated to retrieve the pid namespace from a global property
 	 * 0.10		20/06/2012	Genevieve Turner (GT)	Updated to perform additions to the audit object table
 	 * 0.15		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated
+	 * 0.17		13/09/2012	Genevieve Turner (GT)	Added setting of tmplt id to fedora object
 	 * </pre>
 	 * 
 	 * @param tmplt The id of the template
@@ -713,6 +707,7 @@ public class ViewTransform
 			//TODO Update so this is not a hard coded value
 			fedoraObject.setGroup_id(new Long(group_id));
 			fedoraObject.setPublished(Boolean.FALSE);
+			fedoraObject.setTmplt_id(tmplt);
 
 			FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
 			fedoraObjectDAO.create(fedoraObject);

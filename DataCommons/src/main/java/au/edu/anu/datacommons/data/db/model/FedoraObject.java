@@ -43,6 +43,7 @@ public class FedoraObject {
 	private String object_id;
 	private Long group_id;
 	private Boolean published;
+	private String tmplt_id;
 	private List<PublishLocation> publishedLocations;
 	private ReviewReady reviewReady;
 	private PublishReady publishReady;
@@ -182,6 +183,38 @@ public class FedoraObject {
 	 */
 	public void setPublished(Boolean published) {
 		this.published = published;
+	}
+
+	/**
+	 * getTmplt_id
+	 *
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		13/09/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return the tmplt_id
+	 */
+	public String getTmplt_id() {
+		return tmplt_id;
+	}
+
+	/**
+	 * setTmplt_id
+	 *
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		13/09/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param tmplt_id the tmplt_id to set
+	 */
+	public void setTmplt_id(String tmplt_id) {
+		this.tmplt_id = tmplt_id;
 	}
 
 	@ManyToMany(fetch=FetchType.EAGER)

@@ -1,6 +1,7 @@
 <%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 
 <anu:header id="226" title="Microfilm catalogue - PAMBU - ANU" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
@@ -12,7 +13,7 @@
 <jsp:include page="pambuheader.jsp" />
 <anu:content layout="doublewide">
 	<anu:breadcrumbs>
-		<c:url value="/rest/search/pambu" var="catalogueLink" />
+		<c:url value="/rest/pambu/search" var="catalogueLink" />
 		<anu:crumb title="Catalogue search" href='${catalogueLink}' />
 		<anu:crumb title="Search Result" />
 	</anu:breadcrumbs>
@@ -51,6 +52,24 @@
 					</c:if>
 					<c:if test="${not empty row['published.fullDesc']}">
 						${row['published.fullDesc'][0]}<br />
+					</c:if>
+					<c:if test="${row['published.reelList'][0] == 'yes'}">
+						<c:choose>
+							<c:when test="${row['published.holdingType'][0] == 'doc'}">
+								<c:set var="docrtf" value="http://asiapacific.anu.edu.au/pambu/reels/docs/DOC${fn:substring(row['published.serialNum'][0], 8, 20)}.rtf" />
+								<a href="${docrtf}">${row['published.serialNum'][0]} RTF</a>
+								<br/>
+								<c:set var="docpdf" value="http://asiapacific.anu.edu.au/pambu/reels/docs/DOC${fn:substring(row['published.serialNum'][0], 8, 20)}.PDF" />
+								<a href="${docpdf}">${row['published.serialNum'][0]} PDF</a>
+							</c:when>
+							<c:when test="${row['published.holdingType'][0] == 'ms'}">
+								<c:set var="msrft" value="http://asiapacific.anu.edu.au/pambu/reels/manuscripts/PMB${fn:substring(row['published.serialNum'][0], 4, 20)}.rtf" />
+								<a href="${msrft}" >${row['published.serialNum'][0]} RTF</a><br/>
+								<c:set var="mspdf" value="http://asiapacific.anu.edu.au/pambu/reels/manuscripts/PMB${fn:substring(row['published.serialNum'][0], 4, 20)}.PDF" />
+								<a href="${mspdf}">${row['published.serialNum'][0]} PDF</a>
+								<br />
+							</c:when>
+						</c:choose>
 					</c:if>
 				</td>
 			</tr>
