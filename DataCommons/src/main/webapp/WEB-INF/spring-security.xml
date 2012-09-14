@@ -17,6 +17,7 @@
 		
 		<security:form-login
 			login-page="/login"
+			authentication-success-handler-ref="authenticationSuccessHandler"
 			authentication-failure-url="/login?error=true" />
 		
 		<security:logout
@@ -65,10 +66,14 @@
 			</bean>
 		</property>
 		<property name="authenticationSuccessHandler">
-			<bean class="org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler">
+			<bean class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
 				<property name="defaultTargetUrl" value="/" />
 			</bean>
 		</property>
+	</bean>
+	
+	<bean id="authenticationSuccessHandler" class="au.edu.anu.datacommons.security.CustomSuccessHandler">
+		<property name="defaultTargetUrl" value="/" />
 	</bean>
 	
 	<bean id="casProcessingFilterEntryPoint" class="org.springframework.security.cas.web.CasAuthenticationEntryPoint">

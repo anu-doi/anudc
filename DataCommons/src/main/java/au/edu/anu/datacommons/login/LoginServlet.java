@@ -11,6 +11,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.web.PortResolver;
+import org.springframework.security.web.PortResolverImpl;
+import org.springframework.security.web.WebAttributes;
+import org.springframework.security.web.savedrequest.DefaultSavedRequest;
+import org.springframework.security.web.savedrequest.SavedRequest;
+
+import au.edu.anu.datacommons.util.Util;
 
 /**
  * Servlet implementation class LoginServlet
@@ -48,6 +55,7 @@ public class LoginServlet extends HttpServlet
 	 * Version	Date		Developer				Description
 	 * 0.1		19/03/2012	Rahul Khanna (RK)		Initial build
 	 * 0.2		26/04/2012	Genevieve Turner (GT)	Updated for changes to security
+	 * 0.3		13/09/2012	Genevieve Turner (GT)	Updated to allow redirect to original url when login page is selected
 	 * </pre>
 	 * 
 	 * @param request a HttpServletRequest object that contains the request the client has made of the servlet
@@ -64,7 +72,16 @@ public class LoginServlet extends HttpServlet
 			request.setAttribute("error", "You have entered an invalid username or password");
 		}
 		else {
-			request.setAttribute("error", "");
+			request.removeAttribute("error");
+			SavedRequest savedRequest = (SavedRequest) request.getSession().getAttribute(WebAttributes.SAVED_REQUEST);
+			if (savedRequest == null) {
+				String referer = request.getHeader("Referer");
+				if (Util.isNotEmpty(referer)) {
+					PortResolver portResolver = new PortResolverImpl();
+					DefaultSavedRequest savedRequestToSet = new DefaultSavedRequest (request, portResolver);
+					request.getSession().setAttribute(WebAttributes.SAVED_REQUEST, savedRequestToSet);
+				}
+			}
 		}
 		
 		RequestDispatcher requestDispatcher = request.getRequestDispatcher("jsp/login.jsp");
