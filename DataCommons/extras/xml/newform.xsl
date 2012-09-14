@@ -19,9 +19,6 @@
 						<xsl:for-each select="template/tab">
 							<xsl:sort select="@order" data-type="number" order="ascending" />
 							<li>
-								<xsl:if test="position() = 1">
-									<xsl:attribute name="class">pagetabs-select</xsl:attribute>
-								</xsl:if>
 								<a href="#{@name}" id="tab-{@name}"><xsl:attribute name="title"><xsl:value-of disable-output-escaping="yes" select="tooltip"></xsl:value-of></xsl:attribute><xsl:value-of select="@label" /></a>
 							</li>
 						</xsl:for-each>

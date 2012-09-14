@@ -11,6 +11,7 @@
  * 0.3		26/03/2012	Genevieve Turner	Removed existing functions for adding/removing rows and changed to use jQuery
  * 0.4		07/05/2012	Genevieve Turner	Removed add link functionality from global.js
  * 0.5		20/06/2012	Genevieve Turner	Added remove selected function
+ * 0.6		14/09/2012	Genevieve Turner	Updated tab selection code
  */
 
 /**
@@ -23,17 +24,19 @@ jQuery(document).ready(function()
 {
 	jQuery("#editSubmit").attr("disabled", "disabled");
 	
+	jQuery("#tabs li a:first").addClass('pagetabs-select');
+	
 	// Load the selected tab when it has been clicked.
 	jQuery("#tabs li").click(function() {
-		jQuery("#tabs li").removeClass('pagetabs-select');
-		jQuery(this).addClass('pagetabs-select');
+		jQuery("#tabs a").removeClass('pagetabs-select');
+		jQuery(this).find("a").addClass('pagetabs-select');
 		jQuery(".tab-content").hide();
 		var selected_tab = jQuery(this).find("a").attr("href");
 		jQuery(selected_tab).fadeIn();
 		return false;
 	});
-	jQuery("#tabs li.pagetabs-select").each(function(key,value) {
-		var selected_tab = jQuery(value).find("a").attr("href");
+	jQuery("#tabs a.pagetabs-select").each(function(key,value) {
+		var selected_tab = jQuery(value).attr("href");
 		jQuery(selected_tab).fadeIn();
 	});
 });
