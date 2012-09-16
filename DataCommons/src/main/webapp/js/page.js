@@ -1,5 +1,5 @@
 /**
- * global.js
+ * page.js
  * 
  * Australian National University Data Commons
  * 
@@ -19,6 +19,7 @@
  * 0.2		02/07/2012	Genevieve Turner	Updated submission function as validation was not correctly occuring
  * 0.3		15/08/2012	Genevieve Turner	Updated to make validation work correctly with the changes to using tabs (added validator.setDefaults function)
  * 0.4		13/09/2012	Genevieve Turner	Now clears fields when a value is selected.
+ * 0.5		17/09/2012	Genevieve Turner	Addeds a span with an error image
  */
 jQuery(document).ready(function()
 {
@@ -28,7 +29,19 @@ jQuery(document).ready(function()
 	});
 
 	jQuery.validator.setDefaults({
-		ignore: ""
+		ignore: "",
+		showErrors: function(errorMap, errorList) {
+			this.defaultShowErrors();
+			jQuery('.pagetabs-nav span').remove();
+			jQuery(".tab-content").each(function() {
+				var errorCount = jQuery(this).find(".error").size();
+				var labelErrorCount = jQuery(this).find("label.error").size();
+				if ((errorCount - labelErrorCount) > 0) {
+					var span = jQuery("<span title='" + (errorCount - labelErrorCount) + " field(s) require further attention'> <img src='/DataCommons/images/error.png' /></span>");
+					jQuery('#tab-' + this.id).append(span);
+				}
+			});
+		}
 	});
 	
 	jQuery("#form").submit(function() {
