@@ -26,6 +26,8 @@ import org.springframework.stereotype.Service;
 
 import au.edu.anu.datacommons.data.db.dao.AclSidDAO;
 import au.edu.anu.datacommons.data.db.dao.AclSidDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.GenericDAO;
+import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.AclSid;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
@@ -45,6 +47,7 @@ import au.edu.anu.datacommons.util.Util;
  * Version	Date		Developer				Description
  * 0.1		20/08/2012	Genevieve Turner (GT)	Initial
  * 0.2		28/08/2012	Genevieve Turner (GT)	Updates to fix an exception if there is no acl_sid row for the user
+ * 0.3		17/09/2012	Genevieve Turner (GT)	Added methods around getting a list of groups the user has create permissions on 
  * </pre>
  *
  */
@@ -53,7 +56,6 @@ public class PermissionService {
 	static final Logger LOGGER = LoggerFactory.getLogger(PermissionService.class);
 	
 	@Resource(name="aclService")
-	//JdbcMutableAclService aclService;
 	MutableAclService aclService;
 	
 	/**
@@ -65,6 +67,7 @@ public class PermissionService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		20/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.3		17/09/2012	Genevieve Turner (GT)	Updated to use the getAuthenticatedSidList method
 	 * </pre>
 	 * 
 	 * @param clazz The class type to get permissions for
@@ -74,7 +77,6 @@ public class PermissionService {
 	 */
 	public List<Permission> getListOfPermission(Class clazz, Long id, String username) {
 		ObjectIdentity objectIdentity = new ObjectIdentityImpl(clazz, id);
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		
 		// Get the uers permissions
 		List<Sid> sidList = new ArrayList<Sid>();
@@ -84,15 +86,7 @@ public class PermissionService {
 			sidList.add(sid);
 		}
 		else {
-			Sid sid = new PrincipalSid(authentication.getName());
-			sidList.add(sid);
-			
-			Iterator<GrantedAuthority> it = authentication.getAuthorities().iterator();
-			while (it.hasNext()) {
-				GrantedAuthority auth = it.next();
-				Sid authSid = new GrantedAuthoritySid(auth.getAuthority());
-				sidList.add(authSid);
-			}
+			sidList.addAll(getAuthenticatedSidList());
 		}
 		List<Permission> permissionList = new ArrayList<Permission>();
 		Acl acl = null;
@@ -181,13 +175,107 @@ public class PermissionService {
 			acl = aclService.readAclById(objectIdentity, sidList);
 			
 			hasPermission = acl.isGranted(CustomACLPermission.getPermissionList(), sidList, false);
-			
-			LOGGER.info("After is granted");
 		}
 		catch (NotFoundException e) {
-			LOGGER.info("User doesn't have permissions");
+			LOGGER.debug("User doesn't have permissions");
 		}
 		return hasPermission;
+	}
+	
+	/**
+	 * getCreatePermissions
+	 *
+	 * This method has been created as the Spring Security post filters do not appear to work
+	 * when they are not accessed via Servlet/REST.  We need to see where the user can create groups
+	 * for the XSL transformation which is not being called via the Servlet.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		17/09/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return A list of groups the logged in user has create permissions for
+	 */
+	public List<Groups> getCreatePermissions() {
+		GenericDAO<Groups, Long> groupsDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
+		List<Groups> groups = groupsDAO.getAll();
+		
+		List<Sid> sidList = getAuthenticatedSidList();
+		
+		List<Groups> createGroups = new ArrayList<Groups>();
+
+		List<Permission> permissionList = new ArrayList<Permission>();
+		permissionList.add(CustomACLPermission.WRITE);
+		permissionList.add(CustomACLPermission.ADMINISTRATION);
+		for (Groups group : groups) {
+			if (checkGroup(group, permissionList, sidList)) {
+				createGroups.add(group);
+			}
+		}
+		
+		return createGroups;
+	}
+
+	/**
+	 * checkGroup
+	 *
+	 * Check the permissions on a group
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		17/09/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param group The group to check the permission for
+	 * @param permission The list of permissions to check
+	 * @param sidList The list of sids to check
+	 * @return
+	 */
+	private boolean checkGroup(Groups group, List<Permission> permissionList, List<Sid> sidList) {
+		ObjectIdentity objectIdentity = new ObjectIdentityImpl(Groups.class, group.getId());
+		
+		boolean hasPermission = false;
+		Acl acl = null;
+		
+		try {
+			acl = aclService.readAclById(objectIdentity);
+			hasPermission = acl.isGranted(permissionList, sidList, false);
+		}
+		catch(NotFoundException e) {
+			LOGGER.info("User does not have permissions for {}", group.getGroup_name());
+		}
+		
+		return hasPermission;
+	}
+	
+	/**
+	 * getAuthenticatedSidList
+	 *
+	 * Get a list of sids associated with the authenticated user.  i.e. The sid for the user
+	 * and the sid(s) for the users granted authorities.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		17/09/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 */
+	private List<Sid> getAuthenticatedSidList() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		
+		List<Sid> sidList = new ArrayList<Sid>();
+		Sid sid = new PrincipalSid(authentication.getName());
+		sidList.add(sid);
+		
+		Iterator<GrantedAuthority> it = authentication.getAuthorities().iterator();
+		while (it.hasNext()) {
+			GrantedAuthority auth = it.next();
+			Sid authSid = new GrantedAuthoritySid(auth.getAuthority());
+			sidList.add(authSid);
+		}
+		
+		return sidList;
 	}
 	
 	/**

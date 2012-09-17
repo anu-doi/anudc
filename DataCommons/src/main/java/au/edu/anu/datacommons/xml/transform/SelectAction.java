@@ -8,8 +8,9 @@ import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowire;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -18,8 +19,8 @@ import au.edu.anu.datacommons.data.db.dao.SelectCodeDAO;
 import au.edu.anu.datacommons.data.db.dao.SelectCodeDAOImpl;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.SelectCode;
-import au.edu.anu.datacommons.security.service.GroupService;
-import au.edu.anu.datacommons.security.service.GroupServiceImpl;
+import au.edu.anu.datacommons.security.acl.PermissionService;
+import au.edu.anu.datacommons.util.AppContext;
 
 /**
  * SelectAction
@@ -34,9 +35,11 @@ import au.edu.anu.datacommons.security.service.GroupServiceImpl;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		11/09/2012	Genevieve Turner (GT)	Initial
+ * 0.2		17/09/2012	Genevieve Turner (GT)	Updates to how the ownerGroups are retrieved
  * </pre>
  *
  */
+@Configurable(autowire=Autowire.BY_NAME)
 public class SelectAction {
 	static final Logger LOGGER = LoggerFactory.getLogger(SelectAction.class);
 	
@@ -76,14 +79,18 @@ public class SelectAction {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		11/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		17/09/2012	Genevieve Turner (GT)	Updates to how the ownerGroups are retrieved
 	 * </pre>
 	 *
 	 */
 	private void getGroups() {
-		ApplicationContext ctx = new AnnotationConfigApplicationContext(GroupServiceImpl.class);
-		GroupService groupService = ctx.getBean(GroupServiceImpl.class);
+		ApplicationContext testCtx = AppContext.getApplicationContext();
+		PermissionService service = (PermissionService) testCtx.getBean("permissionService");
 		
-		List<Groups> groups = groupService.getCreateGroups();
+		// It would have been preferable to get the groups from the group service however
+		// there are issues with the post filter and this class not being used via a Servlet call
+		List<Groups> groups = service.getCreatePermissions();
+		
 		for (Groups group : groups) {
 			codes_.put(group.getId().toString(), group.getGroup_name());
 		}

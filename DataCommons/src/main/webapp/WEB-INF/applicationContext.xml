@@ -18,6 +18,8 @@
 	
 	<context:component-scan base-package="au.edu.anu.datacommons" />
 	
+	<bean id="contextApplicationContextProvider" class="au.edu.anu.datacommons.util.ApplicationContextProvider" />
+	
 	<bean id="riSearchService" class="au.edu.anu.datacommons.search.ExternalPoster">
 		<property name="username" value="${fedora.username}" />
 		<property name="password" value="${fedora.password}" />

@@ -7,7 +7,7 @@
 			/WEB-INF/spring-database.xml
 			/WEB-INF/spring-security.xml
 			/WEB-INF/applicationContext.xml
-		</param-value>
+     </param-value>
   </context-param>
   <context-param>
     <param-name>webAppRootKey</param-name>
@@ -24,7 +24,7 @@
 				au.edu.anu.datacommons.upload;
 				au.edu.anu.datacommons.pambu;
 				au.edu.anu.datacommons.webservice
-				</param-value>
+      </param-value>
     </init-param>
     <init-param>
       <param-name>com.sun.jersey.config.property.JSPTemplatesBasePath</param-name>
