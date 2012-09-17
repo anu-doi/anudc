@@ -318,7 +318,6 @@ public class PermissionService {
 			for (int i = entries.size()-1; i >= 0; i--) {
 				AccessControlEntry entry = entries.get(i);
 				if (entry.getSid().equals(sid)) {
-					LOGGER.info("Is same sid");
 					groupAcl.deleteAce(i);
 				}
 			}

@@ -77,6 +77,7 @@ import com.sun.jersey.api.view.Viewable;
  * Version	Date		Developer				Description
  * 0.1		20/08/2012	Genevieve Turner (GT)	Initial
  * 0.2		27/08/2012	Genevieve Turner (GT)	Updates for adding 
+ * 0.3		17/09/2012	Genevieve Turner (GT)	Fixed issue with updateUserPermissions
  * </pre>
  *
  */
@@ -187,6 +188,7 @@ public class UserResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		20/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		17/09/2012	Genevieve Turner (GT)	Fixed an issue with the return result not being in the json format
 	 * </pre>
 	 * 
 	 * @param id The id of the group to update the permissions for
@@ -211,7 +213,7 @@ public class UserResource {
 			}
 		}
 		permissionService.saveUserPermissions(id, username, permissions);
-		return "Permission Updated";
+		return "{\"response\": \"Permission Updated\"}";
 	}
 	
 	/**

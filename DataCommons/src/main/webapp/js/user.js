@@ -17,6 +17,7 @@
  * 0.1		20/08/2012	Genevieve Turner	Initial
  */
 jQuery("#groups").live('click', function() {
+	jQuery("#message").html('');
 	jQuery(".chk_perm").attr('checked', false);
 	var value = jQuery("#groups").val();
 	var url =  "/DataCommons/rest/user/permissions/" + value;
@@ -46,6 +47,7 @@ jQuery("#groups").live('click', function() {
  * 0.1		20/08/2012	Genevieve Turner	Initial
  */
 jQuery("#findPeople").live('click', function() {
+	jQuery("#message").html('');
 	jQuery("#updateGroups").css('display','none');
 	jQuery.ajax({
 		url: "/DataCommons/rest/user/find",
@@ -89,6 +91,7 @@ jQuery("#findPeople").live('click', function() {
 jQuery("input[name='username']").live('click', function() {
 	jQuery(".chk_perm").attr('checked',false);
 	jQuery("#updateGroups").css('display','block');
+	jQuery("#message").html('');
 	var selGroup = jQuery("#groups").val();
 	if (selGroup) {
 		jQuery("#groups").click();
@@ -102,6 +105,7 @@ jQuery("input[name='username']").live('click', function() {
  * 0.1		20/08/2012	Genevieve Turner	Initial
  */
 jQuery("#updatePerm").live('click', function(){
+	console.log('in update permissions');
 	var value = jQuery("#groups").val();
 	var url = "/DataCommons/rest/user/permissions/" + value;
 	var username = jQuery("input[name='username']:checked").val();
@@ -117,8 +121,11 @@ jQuery("#updatePerm").live('click', function(){
 			username: username,
 			group_perm: permissions,
 		},
-		success: function(data) {
-			console.log('successful');
+		success: function(data,textStatus,jqXHR) {
+			jQuery("#message").append("<label class='msg-info'>User permissions updated</label>");
+		},
+		error: function(jqXHR, textStatus, errorThrown) {
+			jQuery("#message").append("<label class='msg-error'>Error updating user permissions</label>");
 		}
 	});
 });
