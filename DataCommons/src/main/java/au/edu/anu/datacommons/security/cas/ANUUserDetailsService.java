@@ -36,6 +36,7 @@ import au.edu.anu.datacommons.security.CustomUser;
  * 0.4		17/05/2012	Geneiveve Turner (GT)	Updated to insert user into database when they log in 
  * 0.5		23/05/2012	Genevieve Turner (GT)	Updated for display name
  * 0.6		13/09/2012	Genevieve Turner (GT)	Updated so that it does not matter if the user logs in via upper or lowercase DCO-168
+ * 0.7		19/09/2012	Genevieve Turner (GT)	Updates so that the display name is not null when it is a new user logging in
  * </pre>
  * 
  */
@@ -103,6 +104,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 * 0.3		17/05/2012	Genevieve Turner (GT)	Renamed from loadCustomUser to createUserDetails
 	 * 0.4		17/05/2012	Genevieve Turner (GT)	Updated to insert user into database when they log in
 	 * 0.5		23/05/2012	Genevieve Turner (GT)	Updated for display name
+	 * 0.7		19/09/2012	Genevieve Turner (GT)	Updates so that the display name is not null when it is a new user logging in
 	 * </pre>
 	 * 
 	 * @param username The username of the person logging in
@@ -116,7 +118,6 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 		CustomUser user = null;
 		if (users != null) {
 			LOGGER.info("displayName: {})", users.getDisplayName());
-			user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authorities, users.getId(), users.getDisplayName());
 		}
 		else {
 			Users newUser = new Users();
@@ -125,10 +126,10 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 			newUser.setEnabled(Boolean.TRUE);
 			newUser.setUser_type(new Long(1));
 			usersDAO.create(newUser);
-
-			LOGGER.info("New User displayName: {})", newUser.getDisplayName());
-			user = new CustomUser(newUser.getUsername(), newUser.getPassword(), true, true, true, true, authorities, newUser.getId(), newUser.getDisplayName());
+			users = usersDAO.getSingleById(newUser.getId());
+			LOGGER.info("New User displayName: {})", users.getDisplayName());
 		}
+		user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authorities, users.getId(), users.getDisplayName());
 		return user;
 	}
 
