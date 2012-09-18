@@ -29,5 +29,5 @@
 	</c:if>
 <c:out escapeXml="false" value="${it.page}" />
 
-<input type="hidden" readonly="readonly" name="itemType" value="${it.itemType}" />
+<input type="hidden" readonly="readonly" name="itemType" id="itemType" value="${it.itemType}" />
 </anu:content>

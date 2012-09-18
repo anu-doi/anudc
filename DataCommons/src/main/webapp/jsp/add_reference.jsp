@@ -17,8 +17,8 @@
 			
 			<form id="formAddLink" method="post" onsubmit="return false;"  action="">
 				<p>
-					<label for="itemType">Item Type</label>
-					<select id="itemType" name="itemType">
+					<label for="linkItemType">Item Type</label>
+					<select id="linkItemType" name="itemType">
 						<option value="Activity">Activity</option>
 						<option value="Collection">Collection</option>
 						<option value="Party">Party</option>

@@ -1,6 +1,7 @@
 package au.edu.anu.datacommons.services;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -8,6 +9,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -24,6 +26,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
+import au.edu.anu.datacommons.data.db.dao.LinkRelationDAO;
+import au.edu.anu.datacommons.data.db.dao.LinkRelationDAOImpl;
+import au.edu.anu.datacommons.data.db.model.LinkRelation;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
@@ -51,6 +56,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.3		08/06/2012	Genevieve Turner (GT)	Updated for changes to post
  * 0.4		14/06/2012	Genevieve Turner (GT)	Updated for new templates to search solr
  * 0.5		11/09/2012	Genevieve Turner (GT)	Added sorting so that templates are sorted in the order they are created
+ * 0.6		19/09/2012	Genevieve Turner (GT)	Added listing of relationship types
  * </pre>
  * 
  */
@@ -158,5 +164,39 @@ public class ListResource {
 			response = Response.ok("", MediaType.APPLICATION_JSON).build();
 		}
 		return response;
+	}
+	
+	/**
+	 * getRelationTypes
+	 *
+	 * Retrieves the available relationship types given the two categories for relationships
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.6		19/09/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param category1 The category type of the item to retrieve to
+	 * @param category2 The type of the item for which you want to relate the object to
+	 * @return A value/description pairs for use in the drop down list
+	 */
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("relation_types")
+	public Response getRelationTypes(@QueryParam("cat1") String category1, @QueryParam("cat2") String category2) {
+		if (!Util.isNotEmpty(category1) || !Util.isNotEmpty(category2)) {
+			throw new WebApplicationException(Response.status(400).entity("Missing a category").build());
+		}
+		
+		LinkRelationDAO linkRelationDAO = new LinkRelationDAOImpl(LinkRelation.class);
+		List<LinkRelation> linkRelations = linkRelationDAO.getRelations(category1, category2);
+		HashMap<String, String> relations = new HashMap<String, String>();
+
+		for (LinkRelation relation : linkRelations) {
+			relations.put(relation.getId().getLink_type().getCode(), 
+					relation.getId().getLink_type().getDescription());
+		}
+		
+		return Response.ok().entity(relations).build();
 	}
 }
