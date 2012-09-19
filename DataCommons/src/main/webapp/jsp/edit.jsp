@@ -17,7 +17,7 @@
 		</select>
 	</p>
 	
-	<form id="form" method="post" action="" action="">
+	<form id="form" method="post" action="">
 		<div id="extraFields">
 			
 		</div>

@@ -49,6 +49,14 @@
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>
   <filter>
+  	<filter-name>CharsetFilter</filter-name>
+  	<filter-class>au.edu.anu.datacommons.util.CharsetFilter</filter-class>
+  	<init-param>
+  		<param-name>requestEncoding</param-name>
+  		<param-value>UTF-8</param-value>
+  	</init-param>
+  </filter>
+  <filter>
     <filter-name>CAS Single Sign Out Filter</filter-name>
     <filter-class>org.jasig.cas.client.session.SingleSignOutFilter</filter-class>
   </filter>
@@ -56,6 +64,10 @@
     <filter-name>springSecurityFilterChain</filter-name>
     <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
   </filter>
+  <filter-mapping>
+  	<filter-name>CharsetFilter</filter-name>
+  	<url-pattern>/*</url-pattern>
+  </filter-mapping>
   <filter-mapping>
     <filter-name>CAS Single Sign Out Filter</filter-name>
     <url-pattern>/*</url-pattern>
