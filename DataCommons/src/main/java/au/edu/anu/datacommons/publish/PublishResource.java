@@ -11,9 +11,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.Response.Status;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +47,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
  * 0.2		08/06/2012	Genevieve Turner (GT)	Fixed issue with an exception when publish button is clicked and no optiosn have been selected
  * 0.3		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
+ * 0.4		19/09/2012	Genevieve Turner (GT)	Updated to redirect to the display page after publishing
  * </pre>
  * 
  */
@@ -96,6 +100,7 @@ public class PublishResource {
 	 * 0.1		15/05/2012	Genevieve Turner (GT)	Initial
 	 * 0.2		08/06/2012	Genevieve Turner (GT)	Fixed issue with an exception when publish button is clicked and no optiosn have been selected
 	 * 0.3		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
+	 * 0.4		19/09/2012	Genevieve Turner (GT)	Updated to redirect to the display page
 	 * </pre>
 	 * 
 	 * @param item The item to publish
@@ -106,7 +111,8 @@ public class PublishResource {
 	@Path("{item}")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response savePublishers(@PathParam("item") String item, @Context HttpServletRequest request) {
+	public Response savePublishers(@PathParam("item") String item, @QueryParam("layout") String layout, 
+			@QueryParam("tmplt") String tmplt, @Context HttpServletRequest request) {
 		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
 		
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
@@ -123,8 +129,10 @@ public class PublishResource {
 		model.put("publishLocations", publishLocations);
 		model.put("message", message);
 		
-		Viewable viewable = new Viewable("/publish.jsp", model);
-		
-		return Response.ok(viewable).build();
+		UriBuilder uriBuilder = UriBuilder.fromPath("/display/edit").path(item).queryParam("layout", layout);
+		if (Util.isNotEmpty(tmplt)) {
+			uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
+		}
+		return Response.seeOther(uriBuilder.build()).build();
 	}
 }
