@@ -6,8 +6,26 @@ import javax.persistence.Embeddable;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+/**
+ * LinkRelationPK
+ * 
+ * Australian National University Data Commons
+ * 
+ * Primary key for the link_relation table
+ *
+ * JUnit Coverage:
+ * None
+ * 
+ * <pre>
+ * Version	Date		Developer				Description
+ * 0.1		19/09/2012	Genevieve Turner (GT)	Initial
+ * </pre>
+ *
+ */
 @Embeddable
 public class LinkRelationPK implements Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	private String category1;
 	private String category2;
 	private LinkType link_type;
@@ -15,11 +33,11 @@ public class LinkRelationPK implements Serializable {
 	/**
 	 * getCategory1
 	 *
-	 * Placeholder
+	 * Get the first category
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		18/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		18/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the category1
@@ -31,11 +49,11 @@ public class LinkRelationPK implements Serializable {
 	/**
 	 * setCategory1
 	 *
-	 * Placeholder
+	 * Set the first category
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		18/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		18/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param category1 the category1 to set
@@ -47,11 +65,11 @@ public class LinkRelationPK implements Serializable {
 	/**
 	 * getCategory2
 	 *
-	 * Placeholder
+	 * Get the second category
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		18/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		18/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the category2
@@ -63,11 +81,11 @@ public class LinkRelationPK implements Serializable {
 	/**
 	 * setCategory2
 	 *
-	 * Placeholder
+	 * Set the second category
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		18/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		18/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param category2 the category2 to set
@@ -79,11 +97,11 @@ public class LinkRelationPK implements Serializable {
 	/**
 	 * getLink_type
 	 *
-	 * Placeholder
+	 * Get the link type
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		18/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		18/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the link_type
@@ -97,11 +115,11 @@ public class LinkRelationPK implements Serializable {
 	/**
 	 * setLink_type
 	 *
-	 * Placeholder
+	 * Set the link type
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		18/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		18/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param link_type the link_type to set
@@ -110,10 +128,37 @@ public class LinkRelationPK implements Serializable {
 		this.link_type = link_type;
 	}
 	
+	/**
+	 * hashCode
+	 * 
+	 * Overrides the hashCode method
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		19/09/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return The hash code
+	 * @see java.lang.Object#hashCode()
+	 */
 	public int hashCode() {
 		return (int) category1.hashCode() + category2.hashCode() + link_type.hashCode();
 	}
 	
+	/**
+	 * equals
+	 * 
+	 * Overrides the equals method
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		19/09/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param obj The object to compare
+	 * @return Whether the objects are equal
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
 	public boolean equals(Object obj) {
 		if (obj == this) {
 			return true;

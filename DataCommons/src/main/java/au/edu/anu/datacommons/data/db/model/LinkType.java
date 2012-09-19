@@ -7,6 +7,22 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * LinkType
+ * 
+ * Australian National University Data Commons
+ * 
+ * Entity class for the link_type table
+ *
+ * JUnit Coverage:
+ * None
+ * 
+ * <pre>
+ * Version	Date		Developer				Description
+ * 0.1		19/09/2012	Genevieve Turner (GT)	Initial
+ * </pre>
+ *
+ */
 @Entity
 @Table(name="link_type")
 public class LinkType {
@@ -17,11 +33,11 @@ public class LinkType {
 	/**
 	 * getId
 	 *
-	 * Placeholder
+	 * Get the id
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		18/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		18/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the id
@@ -35,11 +51,11 @@ public class LinkType {
 	/**
 	 * setId
 	 *
-	 * Placeholder
+	 * Set the id
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		18/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		18/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param id the id to set
@@ -51,11 +67,11 @@ public class LinkType {
 	/**
 	 * getCode
 	 *
-	 * Placeholder
+	 * Get the code
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		18/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		18/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the code
@@ -68,11 +84,11 @@ public class LinkType {
 	/**
 	 * setCode
 	 *
-	 * Placeholder
+	 * Set the code
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		18/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		18/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param code the code to set
@@ -84,11 +100,11 @@ public class LinkType {
 	/**
 	 * getDescription
 	 *
-	 * Placeholder
+	 * Get the description
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		18/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		18/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the description
@@ -101,11 +117,11 @@ public class LinkType {
 	/**
 	 * setDescription
 	 *
-	 * Placeholder
+	 * Set the description
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		18/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		18/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param description the description to set
@@ -113,6 +129,4 @@ public class LinkType {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	
-	
 }
