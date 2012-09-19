@@ -1,12 +1,9 @@
 package au.edu.anu.datacommons.security.service;
 
-import gov.loc.repository.bagit.BagFactory.LoadOption;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.annotation.Resource;
 import javax.ws.rs.WebApplicationException;
@@ -44,17 +41,14 @@ import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.sparql.Result;
-import au.edu.anu.datacommons.xml.sparql.ResultItem;
 import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.JAXBTransform;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
 import au.edu.anu.dcbag.BagSummary;
-import au.edu.anu.dcbag.DcBag;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.access.DatastreamType;
 
 /**
  * FedoraObjectServiceImpl
@@ -86,6 +80,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.15		20/08/2012	Genevieve Turner (GT)	Updated to use permissionService rather than aclService
  * 0.16		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
  * 0.17		28/08/2012	Genevieve Turner (GT)	Added the display of reverse links
+ * 0.18		19/09/2012	Genevieve Turner (GT)	Updated to add a row to the audit log table for review statuses
  * </pre>
  * 
  */
@@ -683,6 +678,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.18		19/09/2012	Genevieve Turner (GT)	Updated to add a row to the audit log table
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to set as ready for review
@@ -710,7 +706,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		reviewReadyDAO.create(reviewReady);
 		
 		removeReviewReject(fedoraObject);
-		
+		saveAuditReviewLog(fedoraObject, "REVIEW_READY", null);
 	}
 	
 	/**
@@ -721,6 +717,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.18		19/09/2012	Genevieve Turner (GT)	Updated to add a row to the audit log table
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to set as ready for publish
@@ -746,7 +743,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		removeReviewReady(fedoraObject);
 		removeReviewReject(fedoraObject);
 		setReviewXML(fedoraObject.getObject_id());
-		
+		saveAuditReviewLog(fedoraObject, "PUBLISH_READY", null);
 	}
 	
 	/**
@@ -757,6 +754,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.13		25/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.18		19/09/2012	Genevieve Turner (GT)	Updated to add a row to the audit log table
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to set to rejected
@@ -784,6 +782,37 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		removePublishReady(fedoraObject);
 		
 		setReviewXML(fedoraObject.getObject_id());
+		saveAuditReviewLog(fedoraObject, "REVIEW_REJECT", reasons.get(0));
+	}
+	
+	/**
+	 * saveAuditReviewLog
+	 *
+	 * Set the audit log values for the review functionality
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.18		19/09/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The object to place an audit row on
+	 * @param log_type The type of audit row
+	 * @param message A message (if any) about the review/rejection
+	 */
+	public void saveAuditReviewLog(FedoraObject fedoraObject, String log_type, String message) {
+		CustomUser customUser = (CustomUser)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		
+		AuditObject auditObject = new AuditObject();
+		auditObject.setLog_date(new java.util.Date());
+		auditObject.setLog_type(log_type);
+		auditObject.setObject_id(fedoraObject.getId());
+		auditObject.setUser_id(customUser.getId());
+		if (Util.isNotEmpty(message)) {
+			auditObject.setAfter(message);
+		}
+		
+		GenericDAO<AuditObject,Long> auditDao = new GenericDAOImpl<AuditObject,Long>(AuditObject.class);
+		auditDao.create(auditObject);
 	}
 	
 	/**
