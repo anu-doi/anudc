@@ -139,7 +139,8 @@ public class ViewTransform
 	 * @return Returns a map containing the page information and what type the object is
 	 * @throws FedoraClientException
 	 */
-	public Map<String, Object> getPage (String layout, String template, FedoraObject fedoraObject, String fieldName, boolean editMode, boolean publishedMode) throws FedoraClientException
+	public Map<String, Object> getPage(String layout, String template, FedoraObject fedoraObject, String fieldName, boolean editMode, boolean publishedMode)
+			throws FedoraClientException
 	{
 		Map<String, Object> values = new HashMap<String, Object>();
 		LOGGER.debug("In getPage");

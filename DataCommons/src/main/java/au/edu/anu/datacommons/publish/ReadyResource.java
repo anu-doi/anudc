@@ -76,7 +76,7 @@ public class ReadyResource {
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response readyForReview(@PathParam("id") String pid, @QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt) {
-		FedoraObject fedoraObject = fedoraObjectService.getItemByName(pid);
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 		fedoraObjectService.setReadyForReview(fedoraObject);
 		
 		return buildDisplayResponse(pid, layout, tmplt);
@@ -103,7 +103,7 @@ public class ReadyResource {
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response rejectReview(@PathParam("id") String pid, @QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @Context HttpServletRequest request) {
-		FedoraObject fedoraObject = fedoraObjectService.getItemByName(pid);
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 		
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		List<String> reasons = form.get("rejectReason");
@@ -133,7 +133,7 @@ public class ReadyResource {
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response readyForPublish(@PathParam("id") String pid, @QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt) {
-		FedoraObject fedoraObject = fedoraObjectService.getItemByName(pid);
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 		fedoraObjectService.setReadyForPublish(fedoraObject);
 		
 		return buildDisplayResponse(pid, layout, tmplt);

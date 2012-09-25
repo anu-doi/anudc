@@ -261,7 +261,7 @@ public class CollectionRequestService
 		try
 		{
 			Users user = new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
-			FedoraObject fedoraObject = fedoraObjectService.getItemByName(pid);
+			FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 			CollectionRequest newCollReq = new CollectionRequest(pid, user, request.getRemoteAddr(), fedoraObject);
 
 			// Get a list of questions assigned to the Pid.

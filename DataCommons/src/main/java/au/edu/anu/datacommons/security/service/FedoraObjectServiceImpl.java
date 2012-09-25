@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
@@ -21,6 +22,7 @@ import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.data.db.model.PublishReady;
 import au.edu.anu.datacommons.data.db.model.ReviewReady;
@@ -40,6 +42,9 @@ import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
+import au.edu.anu.datacommons.webservice.bindings.Activity;
+import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
+import au.edu.anu.datacommons.webservice.bindings.Request;
 import au.edu.anu.datacommons.xml.sparql.Result;
 import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
@@ -88,6 +93,9 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 public class FedoraObjectServiceImpl implements FedoraObjectService {
 	static final Logger LOGGER = LoggerFactory.getLogger(FedoraObjectServiceImpl.class);
 
+	@Resource(name = "groupServiceImpl")
+	private GroupService groupService;
+	
 	@Resource(name="riSearchService")
 	ExternalPoster riSearchService;
 	
@@ -108,7 +116,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param id The fedora object pid
 	 * @return Returns the FedoraObject of the given pid
 	 */
-	public FedoraObject getItemByName(String pid) {
+	public FedoraObject getItemByPid(String pid) {
 		LOGGER.debug("Retrieving object for: {}", pid);
 		String decodedpid = null;
 		decodedpid = Util.decodeUrlEncoded(pid);
@@ -176,21 +184,53 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param tmplt The template that determines the fields on the screen
 	 * @param form Contains the parameters from the request
 	 * @return Returns the viewable for the jsp file to pick up.
+	 * @throws JAXBException 
+	 * @throws FedoraClientException 
 	 */
-	public FedoraObject saveNew(String layout, String tmplt, Map<String, List<String>> form) {
+	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form) throws FedoraClientException, JAXBException
+	{
 		FedoraObject fedoraObject = null;
 		ViewTransform viewTransform = new ViewTransform();
-		try {
-			fedoraObject = viewTransform.saveData(tmplt, null, form);
-			permissionService.saveObjectPermissions(fedoraObject);
+		
+		// Check if an owner's group is specified and the user's got access to it.
+		if (form.get("ownerGroup").size() > 0) {
+			String ownerGroup = form.get("ownerGroup").get(0);
+			Long ownerGroupId = new Long(ownerGroup);
+			List<Groups> groups = groupService.getCreateGroups();
+			boolean groupFound = false;
+			for (Groups group : groups) {
+				if (group.getId().equals(ownerGroupId)) {
+					groupFound = true;
+					break;
+				}
+			}
+			if (groupFound == false) {
+				throw new AccessDeniedException("You do not have permissions to create in this group");
+			}
 		}
-		catch (JAXBException e) {
-			LOGGER.error("Exception transforming jaxb", e);
-		}
-		catch (FedoraClientException e) {
-			LOGGER.error("Exception creating/retrieving objects", e);
+		else {
+			throw new IllegalArgumentException("No group selected");
 		}
 		
+		fedoraObject = viewTransform.saveData(tmplt, null, form);
+		permissionService.saveObjectPermissions(fedoraObject);
+		
+		return fedoraObject;
+	}
+	
+	/**
+	 * Passes the template name and datamap to saveNew.
+	 * 
+	 * @param item
+	 *            FedoraItem created from XML input.
+	 * @return FedoraObject created/updated.
+	 * @throws JAXBException 
+	 * @throws FedoraClientException 
+	 */
+	public FedoraObject saveNew(FedoraItem item) throws FedoraClientException, JAXBException
+	{
+		FedoraObject fedoraObject = null;
+		fedoraObject = this.saveNew(item.getTemplate(), item.generateDataMap());
 		return fedoraObject;
 	}
 
@@ -278,7 +318,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param form The form fields of the screen
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String layout, String tmplt, Map<String, List<String>> form) {
+	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String tmplt, Map<String, List<String>> form) {
 		Map<String, Object> values = new HashMap<String, Object>();
 		ViewTransform viewTransform = new ViewTransform();
 		try {
@@ -299,6 +339,14 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 		
 		return values;
+	}
+	
+	public FedoraObject saveEdit(FedoraItem item) throws FedoraClientException, JAXBException
+	{
+		ViewTransform viewTransform = new ViewTransform();
+		FedoraObject fo = this.getItemByPid(item.getPid());
+		fo = viewTransform.saveData(item.getTemplate(), fo, item.generateDataMap());
+		return fo;
 	}
 	
 	/**

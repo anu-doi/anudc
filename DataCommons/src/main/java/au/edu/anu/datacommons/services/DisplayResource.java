@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,7 +99,7 @@ public class DisplayResource
 	@Produces(MediaType.TEXT_HTML)
 	public Response getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item)
 	{
-		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		Map<String, Object> values = fedoraObjectService.getViewPage(fedoraObject, layout, tmplt);
 
 		Viewable viewable = new Viewable((String) values.remove("topage"), values);
@@ -172,36 +173,26 @@ public class DisplayResource
 			@Context HttpServletRequest request)
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
-		if (form.get("ownerGroup").size() > 0) {
-			String ownerGroup = form.get("ownerGroup").get(0);
-			Long ownerGroupId = new Long(ownerGroup);
-			List<Groups> groups = groupService.getCreateGroups();
-			boolean groupFound = false;
-			for (Groups group : groups) {
-				if (group.getId().equals(ownerGroupId)) {
-					groupFound = true;
-					break;
-				}
-			}
-			if (groupFound == false) {
-				throw new WebApplicationException(Response.status(400).entity("You do not have permissions to create with this group").build());
-			}
+		FedoraObject fedoraObject;
+		Response resp;
+		try
+		{
+			fedoraObject = fedoraObjectService.saveNew(tmplt, form);
+			UriBuilder redirUri = UriBuilder.fromPath("/display").path(fedoraObject.getObject_id()).queryParam("layout", layout).queryParam("tmplt", tmplt);
+			resp = Response.seeOther(redirUri.build()).build();
 		}
-		else {
-			throw new WebApplicationException(Response.status(400).entity("Now Group selected").build());
+		catch (FedoraClientException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+		catch (JAXBException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
 		
-		FedoraObject fedoraObject = fedoraObjectService.saveNew(layout, tmplt, form);
-		UriBuilder uriBuilder = null;
-		if (fedoraObject == null || !Util.isNotEmpty(fedoraObject.getObject_id()))
-		{
-			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-		}
-		else
-		{
-			uriBuilder = UriBuilder.fromPath("/display").path(fedoraObject.getObject_id()).queryParam("layout", layout).queryParam("tmplt", tmplt);
-		}
-		return Response.seeOther(uriBuilder.build()).build();
+		return resp;
 	}
 
 	/**
@@ -236,17 +227,27 @@ public class DisplayResource
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		LOGGER.debug("Saving Fedora Object... layout: {}, tmplt: {}, form: {}", new Object[] { layout, tmplt, form.toString() });
-		FedoraObject fedoraObject = fedoraObjectService.saveNew(layout, tmplt, form);
+		FedoraObject fedoraObject;
 		Response resp = null;
-		if (fedoraObject == null || !Util.isNotEmpty(fedoraObject.getObject_id()))
-			resp = Response.serverError().build();
-		else
+		try
 		{
+			fedoraObject = fedoraObjectService.saveNew(tmplt, form);
 			LOGGER.info("Created fedora object {}. Returning HTTP 301 response.", fedoraObject.getObject_id());
 			URI createdUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(DisplayResource.class).path(DisplayResource.class, "getItem")
 					.build(fedoraObject.getObject_id());
 			resp = Response.created(createdUri).entity(fedoraObject.getObject_id()).build();
 		}
+		catch (FedoraClientException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+		catch (JAXBException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+		
 		return resp;
 	}
 
@@ -282,7 +283,7 @@ public class DisplayResource
 		LOGGER.info("PID: {}", item);
 		LOGGER.info("Template: x{}x", tmplt);
 		LOGGER.info("Layout: x{}x", layout);
-		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		String fields = fedoraObjectService.getEditItem(fedoraObject, layout, tmplt, fieldName);
 		return fields;
 	}
@@ -312,7 +313,7 @@ public class DisplayResource
 	@Produces(MediaType.TEXT_HTML)
 	public Response editItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item)
 	{
-		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		Map<String, Object> values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt);
 		Viewable viewable = new Viewable((String) values.remove("topage"), values);
 
@@ -335,7 +336,7 @@ public class DisplayResource
 	 *            The layout to use with display (i.e. the xsl stylesheet)
 	 * @param tmplt
 	 *            The template that determines the fields on the screen
-	 * @param item
+	 * @param pid
 	 *            The item to retrieve data for
 	 * @param form
 	 *            Form data that has been posted
@@ -346,15 +347,15 @@ public class DisplayResource
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.TEXT_HTML)
-	public Response editChangeItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item,
+	public Response editChangeItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String pid,
 			@Context HttpServletRequest request)
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
-		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 
 		LOGGER.info("tmplt: {}", tmplt);
 
-		Map<String, Object> values = fedoraObjectService.saveEdit(fedoraObject, layout, tmplt, form);
+		Map<String, Object> values = fedoraObjectService.saveEdit(fedoraObject, tmplt, form);
 		UriBuilder uriBuilder = null;
 		if (values.containsKey("error"))
 		{
@@ -362,7 +363,7 @@ public class DisplayResource
 		}
 		else
 		{
-			uriBuilder = UriBuilder.fromPath("/display/edit").path(item).queryParam("layout", layout);
+			uriBuilder = UriBuilder.fromPath("/display/edit").path(pid).queryParam("layout", layout);
 			if (Util.isNotEmpty(tmplt))
 			{
 				uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
@@ -397,7 +398,7 @@ public class DisplayResource
 	{
 		String value;
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
-		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		try
 		{
 			fedoraObjectService.addLink(fedoraObject, form.get("linkType").get(0), form.get("itemId").get(0));
@@ -419,7 +420,7 @@ public class DisplayResource
 	public Response addLinkAsText(@PathParam("pid") String relPid, @FormParam("linkType") String linkType, @FormParam("itemId") String itemId)
 	{
 		Response resp = null;
-		FedoraObject fedoraObject = fedoraObjectService.getItemByName(relPid);
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(relPid);
 		try
 		{
 			if (fedoraObject == null)

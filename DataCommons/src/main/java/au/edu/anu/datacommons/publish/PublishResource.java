@@ -113,7 +113,7 @@ public class PublishResource {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response savePublishers(@PathParam("item") String item, @QueryParam("layout") String layout, 
 			@QueryParam("tmplt") String tmplt, @Context HttpServletRequest request) {
-		FedoraObject fedoraObject = fedoraObjectService.getItemByName(item);
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		List<String> publishers = form.get("publish");

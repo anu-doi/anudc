@@ -35,5 +35,6 @@ public class TaskSummary extends LinkedHashMap<String, String>
 		dispStream.println("---------------------");
 		dispStream.println("DcClient Task Summary");
 		dispStream.println("---------------------");
+		dispStream.println();
 	}
 }

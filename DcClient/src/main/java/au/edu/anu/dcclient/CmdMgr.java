@@ -178,64 +178,66 @@ public final class CmdMgr
 			payloadDir.mkdirs();
 			System.out.println("Bag initialised.");
 
-			// Copy files.
-			long sourceDirSizeInBytes = getDirSizeInBytes(ci.getFilesDir());
-			long numFiles = countFilesInDir(ci.getFilesDir());
-			System.out.println(MessageFormat.format("Copying {3} files ({2}) from {0} to {1}...", ci.getFilesDir().getAbsolutePath(),
-					payloadDir.getAbsolutePath(), FileUtils.byteCountToDisplaySize(sourceDirSizeInBytes), numFiles));
-			summary.put("Data", MessageFormat.format("{0} files, {1}.", numFiles, FileUtils.byteCountToDisplaySize(sourceDirSizeInBytes)));
-			summary.put("Files Location", ci.getFilesDir().getAbsolutePath());
-			FileUtils.copyDirectory(ci.getFilesDir(), payloadDir, true);
-			System.out.println("Copying complete.");
-
-			// Save bag.
-			System.out.println("Saving bag...");
-			bag = new DcBag(Global.getLocalBagStoreAsFile(), pid, LoadOption.BY_FILES);
-			if (cmdLine.hasOption('i'))
-				setDataSource(bag);
-			SaveBagTask saveTask = new SaveBagTask(bag);
-			saveTask.call();
-			System.out.println("Bag saved. Verifying its integrity...");
-
-			// Verify bag.
-			VerifyBagTask verifyTask = new VerifyBagTask(bag);
-			SimpleResult result = verifyTask.call();
-			if (!result.isSuccess())
-				throw new Exception("Verification failed.");
-
-			System.out.println("Verification complete. Bag is valid.");
-
-			// Upload Bag.
-			UploadBagTask uploadTask = new UploadBagTask(bag, Global.getBagUploadUri());
-			// uploadTask.addProgressListener(new ConsoleProgressListener());
-			StopWatch timeEl = new StopWatch();
-			timeEl.start();
-			System.out.println("Uploading Bag...");
-			ClientResponse resp = uploadTask.call();
-			timeEl.end();
-			try
+			if (ci.getFilesDir() != null)
 			{
-				if (resp.getClientResponseStatus() != Status.OK)
-					throw new Exception("Unable to upload bag. " + resp.getEntity(String.class));
-			}
-			finally
-			{
-				bag.close();
-			}
+				// Copy files.
+				long sourceDirSizeInBytes = getDirSizeInBytes(ci.getFilesDir());
+				long numFiles = countFilesInDir(ci.getFilesDir());
+				System.out.println(MessageFormat.format("Copying {3} files ({2}) from {0} to {1}...", ci.getFilesDir().getAbsolutePath(),
+						payloadDir.getAbsolutePath(), FileUtils.byteCountToDisplaySize(sourceDirSizeInBytes), numFiles));
+				summary.put("Data", MessageFormat.format("{0} files, {1}.", numFiles, FileUtils.byteCountToDisplaySize(sourceDirSizeInBytes)));
+				summary.put("Files Location", ci.getFilesDir().getAbsolutePath());
+				FileUtils.copyDirectory(ci.getFilesDir(), payloadDir, true);
+				System.out.println("Copying complete.");
 
-			System.out.println("Bag uploaded successfully.");
-			System.out.println("Time: " + timeEl.getFriendlyElapsed());
+				// Save bag.
+				System.out.println("Saving bag...");
+				bag = new DcBag(Global.getLocalBagStoreAsFile(), pid, LoadOption.BY_FILES);
+				if (cmdLine.hasOption('i'))
+					setDataSource(bag);
+				SaveBagTask saveTask = new SaveBagTask(bag);
+				saveTask.call();
+				System.out.println("Bag saved. Verifying its integrity...");
 
-			// Delete local bag if -x in command line.
-			if (cmdLine.hasOption('x'))
-			{
-				System.out.println(MessageFormat.format("Deleting local bag stored at {0}...", bag.getFile().getAbsolutePath()));
-				if (FileUtils.deleteQuietly(bagFile))
-					System.out.println("Local bag deleted.");
-				else
-					LOGGER.warn("Unable to delete local bag file.");
+				// Verify bag.
+				VerifyBagTask verifyTask = new VerifyBagTask(bag);
+				SimpleResult result = verifyTask.call();
+				if (!result.isSuccess())
+					throw new Exception("Verification failed.");
+
+				System.out.println("Verification complete. Bag is valid.");
+
+				// Upload Bag.
+				UploadBagTask uploadTask = new UploadBagTask(bag, Global.getBagUploadUri());
+				// uploadTask.addProgressListener(new ConsoleProgressListener());
+				StopWatch timeEl = new StopWatch();
+				timeEl.start();
+				System.out.println("Uploading Bag...");
+				ClientResponse resp = uploadTask.call();
+				timeEl.end();
+				try
+				{
+					if (resp.getClientResponseStatus() != Status.OK)
+						throw new Exception("Unable to upload bag. " + resp.getEntity(String.class));
+				}
+				finally
+				{
+					bag.close();
+				}
+
+				System.out.println("Bag uploaded successfully.");
+				System.out.println("Time: " + timeEl.getFriendlyElapsed());
+
+				// Delete local bag if -x in command line.
+				if (cmdLine.hasOption('x'))
+				{
+					System.out.println(MessageFormat.format("Deleting local bag stored at {0}...", bag.getFile().getAbsolutePath()));
+					if (FileUtils.deleteQuietly(bagFile))
+						System.out.println("Local bag deleted.");
+					else
+						LOGGER.warn("Unable to delete local bag file.");
+				}
 			}
-
 			stopWatch.end();
 			summary.put("Total Time Taken", stopWatch.getFriendlyElapsed());
 			summary.put("Started", new Date(stopWatch.getStartTimeInMs()).toString());
