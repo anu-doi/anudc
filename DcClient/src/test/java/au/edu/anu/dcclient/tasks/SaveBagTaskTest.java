@@ -1,19 +1,16 @@
 package au.edu.anu.dcclient.tasks;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import gov.loc.repository.bagit.Bag.Format;
+import gov.loc.repository.bagit.BagFactory.LoadOption;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import gov.loc.repository.bagit.Bag.Format;
-import gov.loc.repository.bagit.BagFactory.LoadOption;
-import gov.loc.repository.bagit.ProgressListener;
 
 import org.junit.After;
 import org.junit.AfterClass;

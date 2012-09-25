@@ -3,6 +3,8 @@ package au.edu.anu.datacommons.security.service;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.bind.JAXBException;
+
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -10,6 +12,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
 import au.edu.anu.datacommons.xml.sparql.Result;
 
 /**
@@ -50,7 +53,7 @@ public interface FedoraObjectService {
 	 * @param id The fedora object pid
 	 * @return Returns the FedoraObject of the given pid
 	 */
-	public FedoraObject getItemByName(String pid);
+	public FedoraObject getItemByPid(String pid);
 	
 	/**
 	 * getViewPage
@@ -98,8 +101,12 @@ public interface FedoraObjectService {
 	 * @param tmplt The template that determines the fields on the screen
 	 * @param form Contains the parameters from the request
 	 * @return Returns the viewable for the jsp file to pick up.
+	 * @throws JAXBException 
+	 * @throws FedoraClientException 
 	 */
-	public FedoraObject saveNew(String layout, String tmplt, Map<String, List<String>> form);
+	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form) throws FedoraClientException, JAXBException;
+	
+	public FedoraObject saveNew(FedoraItem item) throws FedoraClientException, JAXBException;
 	
 	/**
 	 * getEditPage
@@ -152,9 +159,21 @@ public interface FedoraObjectService {
 	 * @param tmplt The template that determines the fields on the screen
 	 * @param form Contains the parameters from the request
 	 * @return Returns the viewable for the jsp file to pick up
+	 * @throws JAXBException 
+	 * @throws FedoraClientException 
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
-	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String layout, String tmplt, Map<String, List<String>> form);
+	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String tmplt, Map<String, List<String>> form);
+	
+	/**
+	 * Updates an existing Fedora object with new values.
+	 * 
+	 * @param item
+	 * @return
+	 * @throws FedoraClientException
+	 * @throws JAXBException
+	 */
+	public FedoraObject saveEdit(FedoraItem item) throws FedoraClientException, JAXBException;
 	
 	/**
 	 * addLink
