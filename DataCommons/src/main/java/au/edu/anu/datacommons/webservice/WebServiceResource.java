@@ -9,6 +9,7 @@ import java.net.URL;
 import java.text.MessageFormat;
 
 import javax.annotation.Resource;
+import javax.jws.WebService;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -87,7 +88,8 @@ public class WebServiceResource
 
 		try
 		{
-			context = JAXBContext.newInstance("au.edu.anu.datacommons.webservice.bindings");
+			ClassLoader cl = WebServiceResource.class.getClassLoader();
+			context = JAXBContext.newInstance("au.edu.anu.datacommons.webservice.bindings", cl);
 			um = context.createUnmarshaller();
 		}
 		catch (JAXBException e)

@@ -53,7 +53,8 @@ public class RequestTest
 	@Before
 	public void setUp() throws Exception
 	{
-		context = JAXBContext.newInstance("au.edu.anu.datacommons.webservice.bindings");
+		ClassLoader cl = this.getClass().getClassLoader();
+		context = JAXBContext.newInstance("au.edu.anu.datacommons.webservice.bindings", cl);
 		introspector = context.createJAXBIntrospector();
 		m = context.createMarshaller();
 		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
