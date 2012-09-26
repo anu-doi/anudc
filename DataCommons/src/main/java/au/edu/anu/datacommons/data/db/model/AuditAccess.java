@@ -9,6 +9,22 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * AuditAccess
+ * 
+ * Australian National University Data Commons
+ * 
+ * Entity for audit_access table
+ *
+ * JUnit Coverage:
+ * None
+ * 
+ * <pre>
+ * Version	Date		Developer				Description
+ * 0.1		24/09/2012	Genevieve Turner (GT)	Initial
+ * </pre>
+ *
+ */
 @Entity
 @Table(name="audit_access")
 public class AuditAccess {
@@ -27,7 +43,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the id
@@ -45,7 +61,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param id the id to set
@@ -61,7 +77,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the accessDate
@@ -78,7 +94,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param accessDate the accessDate to set
@@ -94,7 +110,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the ipAddress
@@ -111,7 +127,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param ipAddress the ipAddress to set
@@ -127,7 +143,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the url
@@ -144,7 +160,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param url the url to set
@@ -160,7 +176,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the method
@@ -177,7 +193,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param method the method to set
@@ -193,7 +209,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the pid
@@ -210,7 +226,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param pid the pid to set
@@ -226,7 +242,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return the username
@@ -243,7 +259,7 @@ public class AuditAccess {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		24/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param username the username to set

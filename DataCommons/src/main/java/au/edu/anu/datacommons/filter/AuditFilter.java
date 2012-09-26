@@ -37,6 +37,7 @@ import au.edu.anu.datacommons.util.Util;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		25/09/2012	Genevieve Turner (GT)	Initial
+ * 0.2		26/09/2012	Genevieve Turner (GT)	Fixed an issue if the url is encoded
  * </pre>
  *
  */
@@ -52,6 +53,7 @@ public class AuditFilter implements Filter {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		25/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		26/09/2012	Genevieve Turner (GT)	Fixed an issue if the url is encoded
 	 * </pre>
 	 * 
 	 * @see javax.servlet.Filter#destroy()
@@ -104,7 +106,7 @@ public class AuditFilter implements Filter {
 				auditAccess.setUsername(principal.toString());
 			}
 			
-			Matcher m = pattern.matcher(requestURL.toString());
+			Matcher m = pattern.matcher(Util.decodeUrlEncoded(requestURL.toString()));
 			if (m.find()) {
 				auditAccess.setPid(m.group(1));
 			}
