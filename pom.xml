@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>au.edu.anu.datacommons</groupId>
-	<artifactId>DataCommons</artifactId>
+	<artifactId>anudc</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 

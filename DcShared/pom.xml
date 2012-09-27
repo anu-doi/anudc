@@ -9,7 +9,7 @@
 
 	<parent>
 		<groupId>au.edu.anu.datacommons</groupId>
-		<artifactId>DataCommons</artifactId>
+		<artifactId>anudc</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
