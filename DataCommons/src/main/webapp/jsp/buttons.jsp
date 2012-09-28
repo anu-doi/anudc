@@ -24,6 +24,13 @@
 				</sec:authorize>
 			</c:if>
 			<sec:authorize access="hasRole('ROLE_ANU_USER')">
+				<sec:accesscontrollist hasPermission="ADMINISTRATION" domainObject="${it.fedoraObject}">
+					<c:url value="/rest/report" var="reportLink">
+						<c:param name="pid" value="${it.fedoraObject.object_id}" />
+					</c:url>
+					<p>
+						<input type="button" id="reportButton" name="reportButton" value="Get Report" onclick="window.location='${reportLink}'" />
+					</p>
 				<c:url value="/rest/display/edit/${it.fedoraObject.object_id}" var="editLink">
 					<c:param name="tmplt" value="${param.tmplt}" />
 					<c:param name="layout" value="${param.layout}" />
@@ -32,6 +39,7 @@
 					<p>
 						<input type="button" id="editButton" name="editButton" value="Edit Metadata" onclick="window.location='${editLink}'" />
 					</p>
+				</sec:accesscontrollist>
 				</sec:accesscontrollist>
 				<c:if test="${it.itemType == 'Collection'}">
 					<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">

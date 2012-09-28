@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="testreport" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="ffa73553-7195-4bb0-8d14-43166964c6a0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="param1" class="java.lang.String">
+		<defaultValueExpression><![CDATA["PUBLISH"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="pid" class="java.lang.String">
+		<defaultValueExpression><![CDATA["test:96"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select audit_object.log_date, audit_object.log_type, users.username, audit_object.before, audit_object.after
+from fedora_object, audit_object, users
+where fedora_object.pid = $P{pid}
+and fedora_object.id = audit_object.object_id
+and audit_object.log_type = $P{param1}
+and audit_object.user_id = users.id
+order by audit_object.log_date;]]>
+	</queryString>
+	<field name="log_date" class="java.sql.Timestamp"/>
+	<field name="log_type" class="java.lang.String"/>
+	<field name="username" class="java.lang.String"/>
+	<field name="before" class="java.lang.String"/>
+	<field name="after" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="41" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="00e3a07d-6c7e-4574-9694-0f94566c60bc" x="0" y="0" width="100" height="20"/>
+				<textElement/>
+				<text><![CDATA[Records]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="75e94877-6618-4414-8880-78ecdf3505c2" x="24" y="20" width="76" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{pid}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="323c36ed-0ed4-452e-a643-5bbd7f5512d7" x="0" y="20" width="24" height="20"/>
+				<textElement/>
+				<text><![CDATA[ID]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="3c5cc3fc-de65-4746-998f-35ea538aa7ef" x="143" y="20" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{param1}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="795c05f5-779f-4819-b13e-fe46e3b730bd" x="100" y="20" width="43" height="20"/>
+				<textElement/>
+				<text><![CDATA[Status]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="c0c880d9-e661-4ad9-b62f-241aac23f9dc" x="0" y="40" width="554" height="1"/>
+			</line>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="40" splitType="Stretch">
+			<textField>
+				<reportElement uuid="96c6f516-f611-42a2-bbbf-db38376f3ecc" x="0" y="20" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{log_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1816a599-1a2f-46cb-95b7-3b86f23cee4c" x="100" y="20" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{log_type}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="b8ad0983-7257-425b-a1d4-e62fb8564615" x="0" y="0" width="100" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Action Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="4c5b1e71-7bd6-4cf8-bd21-bf8707d569dc" x="100" y="0" width="100" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Action Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="dfb1d3b1-419c-49ef-b5ce-d7507b5f7326" x="200" y="0" width="100" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[User Login ID]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="64bf697c-dade-4a98-a600-afe0bc6b018c" x="200" y="20" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{username}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="23" splitType="Stretch">
+			<printWhenExpression><![CDATA[$F{before} == null ? false : true]]></printWhenExpression>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="987b5ac9-e276-4a0c-9177-756369558378" x="66" y="3" width="488" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{before}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="65113ddf-dec3-4555-a062-50552e466744" x="0" y="3" width="66" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Before]]></text>
+			</staticText>
+		</band>
+		<band height="20" splitType="Stretch">
+			<printWhenExpression><![CDATA[$F{after} == null ? false : true]]></printWhenExpression>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="305d7063-cffb-4edd-814b-d0685b94be4a" stretchType="RelativeToBandHeight" x="68" y="0" width="488" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{after}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="51968524-0552-4f00-9eb3-b1d3620bb7ba" x="0" y="0" width="66" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[After]]></text>
+			</staticText>
+		</band>
+		<band height="5">
+			<line>
+				<reportElement uuid="933a4c9c-9b06-4920-946a-bb8be3340f07" x="0" y="4" width="554" height="1"/>
+			</line>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

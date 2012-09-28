@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_dropbox" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="e95be799-9884-4eef-b8e1-16ee63537cb8">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="pid" class="java.lang.String">
+		<defaultValueExpression><![CDATA["test:96"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select collection_dropbox_access_logs.timestamp, collection_dropbox_access_logs.ip_address, users.username
+from collection_requests, collection_dropboxes, collection_dropbox_access_logs, users
+where collection_requests.pid = $P{pid}
+and collection_requests.id = collection_dropboxes.request_fk
+and collection_dropboxes.id = collection_dropbox_access_logs.dropbox_fk
+and collection_requests.requestor_fk = users.id;]]>
+	</queryString>
+	<field name="timestamp" class="java.sql.Timestamp"/>
+	<field name="ip_address" class="java.lang.String"/>
+	<field name="username" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="46" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="199a96e2-249e-4ac9-b7de-a68b37956fc8" x="0" y="0" width="554" height="46"/>
+				<textElement>
+					<font size="30"/>
+				</textElement>
+				<text><![CDATA[Dropbox Report]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="21" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="45342ee8-23a6-4728-a2c1-cb5db334a472" x="0" y="0" width="29" height="20"/>
+				<textElement/>
+				<text><![CDATA[ID]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="f1887e38-7a0c-410e-8746-2137aeecc682" x="29" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{pid}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="7eacdd33-d883-40fe-8bef-4eb0301cd0b7" x="0" y="20" width="554" height="1"/>
+			</line>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="27" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="3d069402-9faf-4538-96a7-beb5b16954c8" x="0" y="0" width="100" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Access Date/Time]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="1da4bd80-1396-4b97-acfb-40ce9e5c21be" x="100" y="0" width="100" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[User Login ID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="cc77a34b-eceb-48cb-862c-acca63d7713e" x="200" y="0" width="100" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[IP Address]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="52b907d2-b6af-4958-8b58-4d00bf96208c" x="0" y="20" width="554" height="1"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement uuid="459f0c89-f668-424e-bf03-5c2c03fda871" x="0" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{timestamp}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b33bda61-2621-4952-a996-96ea6a736229" x="100" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{username}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="d5853863-cab6-4d90-a9e0-d2735232356b" x="200" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{ip_address}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="testreport" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="ffa73553-7195-4bb0-8d14-43166964c6a0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="param1" class="java.lang.String">
+		<defaultValueExpression><![CDATA["PUBLISH"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="pid" class="java.lang.String">
+		<defaultValueExpression><![CDATA["test:96"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select audit_object.log_date
+	, audit_object.log_type
+	, users.username
+	, null as ip_address
+	, audit_object.before
+	, audit_object.after
+	, null as url
+from fedora_object, audit_object, users
+where fedora_object.pid = $P{pid}
+and fedora_object.id = audit_object.object_id
+and audit_object.user_id = users.id
+UNION
+select access_date as log_date
+	, method as log_type
+	, username
+	, ip_address as ip_address
+	, null as before
+	, null as after
+	, url
+from audit_access
+where pid = $P{pid}
+UNION
+select collection_dropbox_access_logs.timestamp as log_date
+	, 'DOWNLOAD' as log_type
+	, users.username
+	, collection_dropbox_access_logs.ip_address as ip_address
+	, null as before
+	, null as after
+	, null as url
+from collection_requests, collection_dropboxes, collection_dropbox_access_logs, users
+where collection_requests.pid = $P{pid}
+and collection_requests.id = collection_dropboxes.request_fk
+and collection_dropboxes.id = collection_dropbox_access_logs.dropbox_fk
+and collection_requests.requestor_fk = users.id
+order by log_date;]]>
+	</queryString>
+	<field name="log_date" class="java.sql.Timestamp"/>
+	<field name="log_type" class="java.lang.String"/>
+	<field name="username" class="java.lang.String"/>
+	<field name="ip_address" class="java.lang.String"/>
+	<field name="before" class="java.lang.String"/>
+	<field name="after" class="java.lang.String"/>
+	<field name="url" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="43" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="00e3a07d-6c7e-4574-9694-0f94566c60bc" x="0" y="0" width="100" height="20"/>
+				<textElement/>
+				<text><![CDATA[Records]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="75e94877-6618-4414-8880-78ecdf3505c2" x="68" y="20" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{pid}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="323c36ed-0ed4-452e-a643-5bbd7f5512d7" x="0" y="20" width="68" height="20"/>
+				<textElement/>
+				<text><![CDATA[ID]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="8c4f8879-3f3a-417d-a425-be84c32cfc85" x="0" y="40" width="554" height="3"/>
+			</line>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="40" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="96c6f516-f611-42a2-bbbf-db38376f3ecc" x="0" y="20" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{log_date}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="1816a599-1a2f-46cb-95b7-3b86f23cee4c" x="100" y="20" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{log_type}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="b8ad0983-7257-425b-a1d4-e62fb8564615" x="0" y="0" width="100" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Action Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="4c5b1e71-7bd6-4cf8-bd21-bf8707d569dc" x="100" y="0" width="100" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Action Type]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="dfb1d3b1-419c-49ef-b5ce-d7507b5f7326" x="284" y="0" width="100" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[User Login ID]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="d933445a-bbab-47b6-b731-d320a27e0341" x="284" y="20" width="270" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{username}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="f145c158-c3c8-4d9d-a72c-41bfa03b65fd" x="200" y="0" width="84" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[IP Address]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="fe0eeceb-c49e-4c13-8be7-96bd3740be49" x="200" y="20" width="84" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{ip_address}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="23" splitType="Stretch">
+			<printWhenExpression><![CDATA[$F{before} == null ? false : true]]></printWhenExpression>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="987b5ac9-e276-4a0c-9177-756369558378" x="66" y="3" width="488" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{before}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="65113ddf-dec3-4555-a062-50552e466744" x="0" y="3" width="66" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Before]]></text>
+			</staticText>
+		</band>
+		<band height="20" splitType="Stretch">
+			<printWhenExpression><![CDATA[$F{after} == null ? false : true]]></printWhenExpression>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="305d7063-cffb-4edd-814b-d0685b94be4a" stretchType="RelativeToBandHeight" x="68" y="0" width="488" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{after}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="51968524-0552-4f00-9eb3-b1d3620bb7ba" x="0" y="0" width="66" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[After]]></text>
+			</staticText>
+		</band>
+		<band height="20">
+			<printWhenExpression><![CDATA[$F{url} == null ? false : true]]></printWhenExpression>
+			<staticText>
+				<reportElement uuid="29907926-5c3f-4ccc-8675-7e47146f8c75" x="0" y="0" width="66" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[URL]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="40115a8b-2398-4e72-8b98-35d9458af34b" x="68" y="0" width="486" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{url}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="5">
+			<line>
+				<reportElement uuid="8a92a3ee-d7a2-4e66-8f8a-b6a53bd57c05" x="0" y="4" width="556" height="1"/>
+			</line>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

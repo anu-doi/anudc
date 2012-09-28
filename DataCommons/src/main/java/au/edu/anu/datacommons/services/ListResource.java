@@ -57,6 +57,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.4		14/06/2012	Genevieve Turner (GT)	Updated for new templates to search solr
  * 0.5		11/09/2012	Genevieve Turner (GT)	Added sorting so that templates are sorted in the order they are created
  * 0.6		19/09/2012	Genevieve Turner (GT)	Added listing of relationship types
+ * 0.7		28/09/2012	Genevieve Turner (GT)	Updated so that type is not necessary
  * </pre>
  * 
  */
@@ -132,6 +133,7 @@ public class ListResource {
 	 * Version	Date		Developer				Description
 	 * 0.2		14/05/2012	Genevieve Turner (GT)	Initial
 	 * 0.3		08/06/2012	Genevieve Turner (GT)	Updated for changes to post
+	 * 0.7		28/09/2012	Genevieve Turner (GT)	Updated so that type is not necessary
 	 * </pre>
 	 * 
 	 * @param title Part of the title to search for
@@ -153,8 +155,10 @@ public class ListResource {
 			sparqlQuery.addTriple("?item", "<dc:type>", "?type", false);
 			String titleFilterString = "regex(str(?title), '" + title + "', 'i')";
 			sparqlQuery.addFilter(titleFilterString, "");
-			String typeFilterString = "regex(str(?type), '" + type +"', 'i')";
-			sparqlQuery.addFilter(typeFilterString.toString(), "&&");
+			if (Util.isNotEmpty(type)) {
+				String typeFilterString = "regex(str(?type), '" + type +"', 'i')";
+				sparqlQuery.addFilter(typeFilterString.toString(), "&&");
+			}
 			
 			ClientResponse riSearchResponse = riSearchJSONService.post("query", sparqlQuery.generateQuery());
 			String jsonArray = riSearchResponse.getEntity(String.class);

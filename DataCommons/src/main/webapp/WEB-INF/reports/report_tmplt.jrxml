@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report_tmplt" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="6c68983e-7105-4833-9e61-3dbe2096be3d">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="sub_rpt" class="java.lang.String">
+		<defaultValueExpression><![CDATA["testreport.jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="param1" class="java.lang.String">
+		<defaultValueExpression><![CDATA["MODIFIED"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="baseURL" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C:/WorkSpace/Software/ireport/reports/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="pid" class="java.lang.String">
+		<defaultValueExpression><![CDATA["test:96"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select 1 as test;]]>
+	</queryString>
+	<field name="test" class="java.lang.Integer"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="44" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="5813785e-c7d2-4601-9db2-bb6bfd2f317b" x="0" y="0" width="555" height="44"/>
+				<textElement textAlignment="Center">
+					<font size="30"/>
+				</textElement>
+				<text><![CDATA[ANU Data Commons]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="10" splitType="Stretch">
+			<subreport>
+				<reportElement uuid="0f3fa8c0-40c8-49a4-b811-08798d5e01d3" x="1" y="0" width="554" height="10" isPrintWhenDetailOverflows="true"/>
+				<subreportParameter name="param1">
+					<subreportParameterExpression><![CDATA[$P{param1}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="pid">
+					<subreportParameterExpression><![CDATA[$P{pid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{baseURL} + $P{sub_rpt}]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="24" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="81d9e3ae-167d-4a28-9210-9f7435c6e0ad" x="0" y="4" width="555" height="20"/>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[End of Document]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="0cfd9849-3491-4401-8a4c-099e2b9a4133" x="1" y="0" width="554" height="1"/>
+			</line>
+		</band>
+	</summary>
+</jasperReport>
