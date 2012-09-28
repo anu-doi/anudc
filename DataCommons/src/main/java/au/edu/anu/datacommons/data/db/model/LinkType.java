@@ -20,6 +20,7 @@ import javax.persistence.Table;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		19/09/2012	Genevieve Turner (GT)	Initial
+ * 0.2		27/09/2012	Genevieve Turner (GT)	Added reverse column
  * </pre>
  *
  */
@@ -29,6 +30,7 @@ public class LinkType {
 	private Long id;
 	private String code;
 	private String description;
+	private String reverse;
 	
 	/**
 	 * getId
@@ -128,5 +130,38 @@ public class LinkType {
 	 */
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	/**
+	 * getReverse
+	 *
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/09/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return the reverse
+	 */
+	@Column(name="reverse")
+	public String getReverse() {
+		return reverse;
+	}
+
+	/**
+	 * setReverse
+	 *
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		27/09/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param reverse the reverse to set
+	 */
+	public void setReverse(String reverse) {
+		this.reverse = reverse;
 	}
 }

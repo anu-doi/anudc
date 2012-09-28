@@ -20,9 +20,12 @@ import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.LinkTypeDAO;
+import au.edu.anu.datacommons.data.db.dao.LinkTypeDAOImpl;
 import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
+import au.edu.anu.datacommons.data.db.model.LinkType;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.data.db.model.PublishReady;
 import au.edu.anu.datacommons.data.db.model.ReviewReady;
@@ -42,9 +45,7 @@ import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
-import au.edu.anu.datacommons.webservice.bindings.Activity;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
-import au.edu.anu.datacommons.webservice.bindings.Request;
 import au.edu.anu.datacommons.xml.sparql.Result;
 import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
@@ -86,6 +87,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.16		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
  * 0.17		28/08/2012	Genevieve Turner (GT)	Added the display of reverse links
  * 0.18		19/09/2012	Genevieve Turner (GT)	Updated to add a row to the audit log table for review statuses
+ * 0.19		27/09/2012	Genevieve Turner (GT)	Updated to generate reverse links
  * </pre>
  * 
  */
@@ -357,6 +359,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.19		27/09/2012	Genevieve Turner (GT)	Updated to generate reverse links
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to transform to a display
@@ -366,6 +369,13 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 */
 	public void addLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException {
 		String link = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI);
+		
+		LinkTypeDAO linkTypeDAO = new LinkTypeDAOImpl(LinkType.class);
+		LinkType linkTypeRecord = linkTypeDAO.getByCode(linkType);
+		if (null == linkTypeRecord) {
+			throw new WebApplicationException(Response.status(400).entity("Invalid relation type").build());
+		}
+		
 		FedoraReference reference = new FedoraReference();
 		String referenceType = linkType;
 		String referenceItem = itemId;
@@ -373,6 +383,15 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		reference.setObject_(referenceItem);
 		reference.setIsLiteral_(Boolean.FALSE);
 		FedoraBroker.addRelationship(fedoraObject.getObject_id(), reference);
+		
+		if (referenceItem.startsWith("info:fedora/")) {
+			String referenceItemID = referenceItem.substring(12);
+			FedoraReference reverseReference = new FedoraReference();
+			reverseReference.setPredicate_(link + linkTypeRecord.getReverse());
+			reverseReference.setObject_("info:fedora/" + fedoraObject.getObject_id());
+			reverseReference.setIsLiteral_(Boolean.FALSE);
+			FedoraBroker.addRelationship(referenceItemID, reverseReference);
+		}
 	}
 	
 	/**
@@ -467,6 +486,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.3		26/04/2012	Genevieve Turner (GT)	Initial
 	 * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to cater for change to post method in the riSearchService
 	 * 0.17		28/08/2012	Genevieve Turner (GT)	Added the display of reverse links
+	 * 0.19		28/09/2012	Genevieve Turner (GT)	Updated so reverse links are not displayed
 	 * </pre>
 	 * 
 	 * @param fedoraObject The object to retrieve the links for
@@ -479,8 +499,10 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		sparqlQuery.addVar("?title");
 		sparqlQuery.addVar("?predicate");
 		
+		sparqlQuery.addTriple("<info:fedora/" + fedoraObject.getObject_id() +">", "?predicate", "?item", Boolean.FALSE);
+		// GT - 20120928 - Note this code is only commended out as it may be placed back in at a later date.
+		/*
 		StringBuilder tripleString = new StringBuilder();
-		
 		tripleString.append("{ <info:fedora/");
 		tripleString.append(fedoraObject.getObject_id());
 		tripleString.append("> ?predicate ?item . } ");
@@ -490,6 +512,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		tripleString.append("> } ");
 		
 		sparqlQuery.addTripleSet(tripleString.toString());
+		*/
 		sparqlQuery.addTriple("?item", "<dc:title>", "?title", true);
 		String filterString = "regex(str(?predicate), '" + GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI) + "', 'i')";
 		sparqlQuery.addFilter(filterString, "");
