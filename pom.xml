@@ -10,6 +10,7 @@
 	<packaging>pom</packaging>
 
 	<modules>
+		<module>DataCommons</module>
 		<module>DcShared</module>
 		<module>DcClient</module>
 	</modules>
