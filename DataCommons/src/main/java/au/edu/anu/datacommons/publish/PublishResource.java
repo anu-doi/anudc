@@ -16,7 +16,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.Response.Status;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +47,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.2		08/06/2012	Genevieve Turner (GT)	Fixed issue with an exception when publish button is clicked and no optiosn have been selected
  * 0.3		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
  * 0.4		19/09/2012	Genevieve Turner (GT)	Updated to redirect to the display page after publishing
+ * 0.5		27/09/2012	Genevieve Turner (GT)	Updated to redirect to display page rather than edit
  * </pre>
  * 
  */
@@ -101,6 +101,7 @@ public class PublishResource {
 	 * 0.2		08/06/2012	Genevieve Turner (GT)	Fixed issue with an exception when publish button is clicked and no optiosn have been selected
 	 * 0.3		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * 0.4		19/09/2012	Genevieve Turner (GT)	Updated to redirect to the display page
+	 * 0.5		27/09/2012	Genevieve Turner (GT)	Updated to redirect to display page rather than edit
 	 * </pre>
 	 * 
 	 * @param item The item to publish
@@ -129,7 +130,7 @@ public class PublishResource {
 		model.put("publishLocations", publishLocations);
 		model.put("message", message);
 		
-		UriBuilder uriBuilder = UriBuilder.fromPath("/display/edit").path(item).queryParam("layout", layout);
+		UriBuilder uriBuilder = UriBuilder.fromPath("/display").path(item).queryParam("layout", layout);
 		if (Util.isNotEmpty(tmplt)) {
 			uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
 		}
