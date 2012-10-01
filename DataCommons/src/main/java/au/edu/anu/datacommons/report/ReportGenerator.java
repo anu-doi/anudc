@@ -2,8 +2,10 @@ package au.edu.anu.datacommons.report;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.sql.Connection;
@@ -12,11 +14,14 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExporterParameter;
+import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperRunManager;
@@ -31,6 +36,7 @@ import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.Report;
 import au.edu.anu.datacommons.data.db.model.ReportParam;
+import au.edu.anu.datacommons.util.ExtensionFileFilter;
 import au.edu.anu.datacommons.util.Util;
 
 /**
@@ -46,13 +52,16 @@ import au.edu.anu.datacommons.util.Util;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		27/09/2012	Genevieve Turner (GT)	Initial
+ * 0.2		02/10/2012	Genevieve Turner (GT)	Moved the recompile reports functionality to this class
  * </pre>
  *
  */
 public class ReportGenerator {
 	static final Logger LOGGER = LoggerFactory.getLogger(ReportGenerator.class);
 	
-	private static final String reportPath = "/WEB-INF/reports/";
+	private static final String REPORT_PATH = "/WEB-INF/reports/";
+	private static final String JASPER_UNCOMPILED_EXTENSION = "jrxml";
+	private static final String JASPER_COMPILED_EXTENSION = "jasper";
 	
 	private String filePath;
 	private Map<String, Object> params;
@@ -73,13 +82,13 @@ public class ReportGenerator {
 	public ReportGenerator(HttpServletRequest request, String serverPath) {
 		String reportParam = request.getParameter("report");
 		Long reportId = Long.valueOf(reportParam);
-		filePath = serverPath + reportPath + "report_tmplt.jasper";
+		filePath = serverPath + REPORT_PATH + "report_tmplt.jasper";
 		
 		GenericDAO<Report, Long> reportDAO = new GenericDAOImpl<Report, Long>(Report.class);
 		Report report = reportDAO.getSingleById(reportId);
 		
 		params = new HashMap<String, Object>();
-		params.put("baseURL", serverPath + reportPath);
+		params.put("baseURL", serverPath + REPORT_PATH);
 		if (Util.isNotEmpty(report.getSubReport())) {
 			params.put("sub_rpt", report.getSubReport());
 		}
@@ -209,5 +218,68 @@ public class ReportGenerator {
 		Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
 		
 		return conn;
+	}
+	
+	/**
+	 * reloadReports
+	 *
+	 * Recompile the reports
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		02/10/2012	Genevieve Turner(GT)	Initial - Moved from ReportResource class
+	 * </pre>
+	 * 
+	 * @param context The servlet context information
+	 */
+	public static void reloadReports(ServletContext context) {
+		String reportPath = context.getRealPath(REPORT_PATH);
+		File file = new File(reportPath);
+		if (!file.exists()) {
+			LOGGER.error("Report path does not exist: {}", file.getAbsolutePath());
+			throw new WebApplicationException(Response.status(500).entity("Report path does not exist").build());
+		}
+		File[] files = file.listFiles(new ExtensionFileFilter(JASPER_UNCOMPILED_EXTENSION));
+		for (File jrxmlFile : files) {
+			String outputFilename = String.format("%s.%s", stripExtension(jrxmlFile.getAbsolutePath()), JASPER_COMPILED_EXTENSION);
+			LOGGER.info(outputFilename);
+			File outputFile = new File(outputFilename);
+			try {
+				InputStream is = new FileInputStream(jrxmlFile);
+				OutputStream os = new FileOutputStream(outputFile);
+				try {
+					JasperCompileManager.compileReportToStream(is, os);
+				}
+				catch(JRException e) {
+					LOGGER.error("Exception compiling report: {}", jrxmlFile.getName(), e);
+				}
+				is.close();
+				os.close();
+			}
+			catch (IOException e) {
+				throw new WebApplicationException(Response.status(500).entity("Error reloading reports").build());
+			}
+		}
+	}
+	
+	/**
+	 * stripExtension
+	 *
+	 * Strip the extension from a file name
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		2/10/2012	Genevieve Turner(GT)	Initial - Moved from ReportResource class
+	 * </pre>
+	 * 
+	 * @param filename The filename to strip
+	 * @return The striped filename
+	 */
+	private static String stripExtension(String filename) {
+		int index = filename.lastIndexOf(".");
+		if (index == -1) {
+			return filename;
+		}
+		return filename.substring(0, index);
 	}
 }
