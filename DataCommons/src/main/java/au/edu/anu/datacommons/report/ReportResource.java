@@ -3,6 +3,7 @@ package au.edu.anu.datacommons.report;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -18,8 +19,12 @@ import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Component;
 
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.view.Viewable;
@@ -37,12 +42,19 @@ import com.sun.jersey.api.view.Viewable;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		27/09/2012	Genevieve Turner (GT)	Initial
+ * 0.2		02/10/2012	Genevieve Turner (GT)	MOved reload of reports functionality to ReportGenerator class
+ * 0.3		02/10/2012	Genevieve Turner (GT)	Updated to verify the user has permissions to execute a report prior to generating the report
  * </pre>
  *
  */
+@Component
+@Scope("request")
 @Path("/report")
 public class ReportResource {
 	static final Logger LOGGER = LoggerFactory.getLogger(ReportResource.class);
+
+	@Resource(name = "fedoraObjectServiceImpl")
+	private FedoraObjectService fedoraObjectService;
 	
 	/**
 	 * getReportPage
@@ -76,16 +88,22 @@ public class ReportResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		27/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.3		02/10/2012	Genevieve Turner (GT)	Updated to verify the user has permissions to execute a report prior to generating the report
 	 * </pre>
 	 * 
-	 * @param context
-	 * @param request
+	 * @param context The context information
+	 * @param request The request information
 	 * @return
 	 */
 	@POST
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response getReport(@Context ServletContext context, @Context HttpServletRequest request) {
 		ReportGenerator report = new ReportGenerator(request, context.getRealPath("/"));
+		String pid = request.getParameter("pid");
+		if (Util.isNotEmpty(pid)) {
+			FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
+			fedoraObjectService.hasReportPermission(fedoraObject);
+		}
 		Response response = null;
 		try {
 			String format = request.getParameter("format");

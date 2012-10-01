@@ -36,6 +36,7 @@ import au.edu.anu.datacommons.xml.sparql.Result;
  * 0.6		25/07/2012	Genevieve Turner (GT)	Added information for review processing
  * 0.7		01/08/2012	Genevieve Turner (GT)	Added retrieval of information for fedora objects
  * 0.8		03/08/2012	Genevieve Turner (GT)	Fixed issue with permissions
+ * 0.9		02/10/2012	Genevieve Turner (GT)	Updated to verify report permissions
  * </pre>
  * 
  */
@@ -333,4 +334,19 @@ public interface FedoraObjectService {
 	 * @return Information about the given list of fedora objects.
 	 */
 	public List<Result> getListInformation(List<FedoraObject> fedoraObjects);
+	
+	/**
+	 * hasReportPermission
+	 *
+	 * Verifies that the user has permission to review the report
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.9		02/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedora object to verify
+	 */
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'ADMINISTRATION')")
+	public void hasReportPermission(FedoraObject fedoraObject);
 }

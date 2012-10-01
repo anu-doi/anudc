@@ -1045,4 +1045,21 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 		return resultList;
 	}
+	
+	/**
+	 * hasReportPermission
+	 * 
+	 * Verifies that the user has permission to review the report
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.20		02/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedora object to verify
+	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#hasReportPermission(au.edu.anu.datacommons.data.db.model.FedoraObject)
+	 */
+	public void hasReportPermission(FedoraObject fedoraObject) {
+		// do nothing
+	}
 }

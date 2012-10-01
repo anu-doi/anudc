@@ -63,8 +63,8 @@ public class ReportGenerator {
 	private static final String JASPER_UNCOMPILED_EXTENSION = "jrxml";
 	private static final String JASPER_COMPILED_EXTENSION = "jasper";
 	
-	private String filePath;
-	private Map<String, Object> params;
+	private String filePath_;
+	private Map<String, Object> params_;
 	
 	/**
 	 * Constructor
@@ -82,23 +82,23 @@ public class ReportGenerator {
 	public ReportGenerator(HttpServletRequest request, String serverPath) {
 		String reportParam = request.getParameter("report");
 		Long reportId = Long.valueOf(reportParam);
-		filePath = serverPath + REPORT_PATH + "report_tmplt.jasper";
+		filePath_ = serverPath + REPORT_PATH + "report_tmplt.jasper";
 		
 		GenericDAO<Report, Long> reportDAO = new GenericDAOImpl<Report, Long>(Report.class);
 		Report report = reportDAO.getSingleById(reportId);
 		
-		params = new HashMap<String, Object>();
-		params.put("baseURL", serverPath + REPORT_PATH);
+		params_ = new HashMap<String, Object>();
+		params_.put("baseURL", serverPath + REPORT_PATH);
 		if (Util.isNotEmpty(report.getSubReport())) {
-			params.put("sub_rpt", report.getSubReport());
+			params_.put("sub_rpt", report.getSubReport());
 		}
 		for (ReportParam rptParam : report.getReportParams()) {
 			if (Util.isNotEmpty(rptParam.getRequestParam())) {
 				String value = request.getParameter(rptParam.getRequestParam());
-				params.put(rptParam.getParamName(), value);
+				params_.put(rptParam.getParamName(), value);
 			}
 			else {
-				params.put(rptParam.getParamName(), rptParam.getDefaultValue());
+				params_.put(rptParam.getParamName(), rptParam.getDefaultValue());
 			}
 		}
 	}
@@ -150,9 +150,9 @@ public class ReportGenerator {
 	 * @throws ClassNotFoundException
 	 */
 	private Response generatePDF() throws JRException, SQLException, IOException, ClassNotFoundException {
-		InputStream inputStream = new FileInputStream(new File(filePath));
+		InputStream inputStream = new FileInputStream(new File(filePath_));
 		
-		byte[] bytes = JasperRunManager.runReportToPdf(inputStream, params, getConnection());
+		byte[] bytes = JasperRunManager.runReportToPdf(inputStream, params_, getConnection());
 		return Response.ok(bytes).type("application/pdf").build();
 	}
 	
@@ -173,9 +173,9 @@ public class ReportGenerator {
 	 * @throws ClassNotFoundException
 	 */
 	private Response generateHTML() throws JRException, SQLException, IOException, ClassNotFoundException {
-		InputStream inputStream = new FileInputStream(new File(filePath));
+		InputStream inputStream = new FileInputStream(new File(filePath_));
 		Writer writer = new StringWriter();
-		JasperPrint jasperPrint = JasperFillManager.fillReport(inputStream, params, getConnection());
+		JasperPrint jasperPrint = JasperFillManager.fillReport(inputStream, params_, getConnection());
 		
 		JRHtmlExporter htmlExporter = new JRHtmlExporter();
 		
