@@ -9,6 +9,7 @@
 	<parameter name="pid" class="java.lang.String">
 		<defaultValueExpression><![CDATA["test:96"]]></defaultValueExpression>
 	</parameter>
+	<parameter name="name" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[select audit_object.log_date
 	, audit_object.log_type
@@ -63,22 +64,38 @@ order by log_date;]]>
 		<band height="43" splitType="Stretch">
 			<staticText>
 				<reportElement uuid="00e3a07d-6c7e-4574-9694-0f94566c60bc" x="0" y="0" width="100" height="20"/>
-				<textElement/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
 				<text><![CDATA[Records]]></text>
 			</staticText>
 			<textField>
-				<reportElement uuid="75e94877-6618-4414-8880-78ecdf3505c2" x="68" y="20" width="100" height="20"/>
+				<reportElement uuid="75e94877-6618-4414-8880-78ecdf3505c2" x="23" y="20" width="77" height="20"/>
 				<textElement/>
 				<textFieldExpression><![CDATA[$P{pid}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="323c36ed-0ed4-452e-a643-5bbd7f5512d7" x="0" y="20" width="68" height="20"/>
-				<textElement/>
+				<reportElement uuid="323c36ed-0ed4-452e-a643-5bbd7f5512d7" x="0" y="20" width="23" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
 				<text><![CDATA[ID]]></text>
 			</staticText>
 			<line>
 				<reportElement uuid="8c4f8879-3f3a-417d-a425-be84c32cfc85" x="0" y="40" width="554" height="3"/>
 			</line>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="9882199c-0288-4833-a2af-07ad6bdbbc27" x="136" y="20" width="418" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$P{name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="96fe464b-b7b1-4b02-85f3-41bf291eed6c" x="100" y="20" width="36" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Title]]></text>
+			</staticText>
 		</band>
 	</pageHeader>
 	<columnHeader>

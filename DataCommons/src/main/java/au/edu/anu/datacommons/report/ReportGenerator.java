@@ -28,6 +28,12 @@ import net.sf.jasperreports.engine.JasperRunManager;
 import net.sf.jasperreports.engine.export.JRHtmlExporter;
 import net.sf.jasperreports.engine.export.JRHtmlExporterParameter;
 
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +42,8 @@ import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.Report;
 import au.edu.anu.datacommons.data.db.model.ReportParam;
+import au.edu.anu.datacommons.data.solr.SolrManager;
+import au.edu.anu.datacommons.data.solr.SolrUtils;
 import au.edu.anu.datacommons.util.ExtensionFileFilter;
 import au.edu.anu.datacommons.util.Util;
 
@@ -53,6 +61,7 @@ import au.edu.anu.datacommons.util.Util;
  * Version	Date		Developer				Description
  * 0.1		27/09/2012	Genevieve Turner (GT)	Initial
  * 0.2		02/10/2012	Genevieve Turner (GT)	Moved the recompile reports functionality to this class
+ * 0.3		03/10/2012	Genevieve Turner (GT)	Added the retrieval of the reports object name
  * </pre>
  *
  */
@@ -74,6 +83,7 @@ public class ReportGenerator {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		27/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.3		03/10/2012	Genevieve Turner (GT)	Added the retrieval of the reports object name
 	 * </pre>
 	 * 
 	 * @param request the http request information
@@ -93,7 +103,16 @@ public class ReportGenerator {
 			params_.put("sub_rpt", report.getSubReport());
 		}
 		for (ReportParam rptParam : report.getReportParams()) {
-			if (Util.isNotEmpty(rptParam.getRequestParam())) {
+			if ("name".equals(rptParam.getParamName())) {
+				String pid = request.getParameter("pid");
+				if (Util.isNotEmpty(pid)) {
+					String name = getReportName(pid);
+					if (Util.isNotEmpty(name)) {
+						params_.put("name", name);
+					}
+				}
+			}
+			else if (Util.isNotEmpty(rptParam.getRequestParam())) {
 				String value = request.getParameter(rptParam.getRequestParam());
 				params_.put(rptParam.getParamName(), value);
 			}
@@ -281,5 +300,43 @@ public class ReportGenerator {
 			return filename;
 		}
 		return filename.substring(0, index);
+	}
+	
+	/**
+	 * getReportName
+	 *
+	 * Retrieves the name of the record associated with the pid
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		03/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param pid
+	 * @return
+	 */
+	private String getReportName(String pid) {
+		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		
+		String escapedPid = SolrUtils.escapeSpecialCharacters(pid);
+		SolrQuery solrQuery = new SolrQuery();
+		solrQuery.setQuery("id:" + escapedPid);
+		solrQuery.addField("id");
+		solrQuery.addField("unpublished.name");
+		String name = null;
+		try {
+			QueryResponse queryResponse = solrServer.query(solrQuery);
+			SolrDocumentList resultList = queryResponse.getResults();
+			if (resultList.getNumFound() > 0) {
+				SolrDocument doc = resultList.get(0);
+				name = (String) doc.getFirstValue("unpublished.name");
+			}
+		}
+		catch (SolrServerException e) {
+			LOGGER.error("Error executing query", e);
+			throw new WebApplicationException(500);
+		}
+		
+		return name;
 	}
 }
