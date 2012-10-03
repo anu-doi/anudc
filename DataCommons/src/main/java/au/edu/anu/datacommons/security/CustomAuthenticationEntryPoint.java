@@ -58,7 +58,8 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException authenticationException) throws IOException, ServletException {
 		// Add auth header if the request is from bagit.
-		if (request.getHeader("User-Agent").equals("BagIt Library Parallel Fetcher"))
+		String userAgent = request.getHeader("User-Agent");
+		if (userAgent == null || userAgent.length() == 0 || userAgent.equals("BagIt Library Parallel Fetcher"))
 		{
 			response.addHeader("WWW-Authenticate", "Basic realm=\"Spring Security Application\"");
 			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");

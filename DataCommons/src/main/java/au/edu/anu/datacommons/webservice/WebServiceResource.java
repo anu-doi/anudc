@@ -36,6 +36,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
@@ -45,6 +46,7 @@ import org.xml.sax.SAXException;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
+import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
@@ -196,12 +198,14 @@ public class WebServiceResource
 				{
 					if (activity.generateDataMap().size() > 0)
 					{
+						getFedoraObjectWriteAccess(activity.getPid());
 						// Pid exists, update the object.
 						FedoraObject fo = fedoraObjectService.saveEdit(activity);
 						respRootElement.appendChild(createElement(respDoc, "status", fo.getObject_id(), new String[] {"action", "updated"}));
 					}
 					else
 					{
+						getFedoraObjectReadAccess(activity.getPid());
 						// No fields specified, return object details.
 						InputStream dataStream = null;
 						try
@@ -311,4 +315,30 @@ public class WebServiceResource
 		return writer.toString();
 	}
 
+	@PostAuthorize("hasPermission(returnObject, 'READ')")
+	private FedoraObject getFedoraObjectReadAccess(String pid)
+	{
+		return getFedoraObject(pid);
+	}
+
+	@PostAuthorize("hasPermission(returnObject, 'WRITE')")
+	private FedoraObject getFedoraObjectWriteAccess(String pid)
+	{
+		return getFedoraObject(pid);
+	}
+	
+	private FedoraObject getFedoraObject(String pid)
+	{
+		LOGGER.debug("Retrieving object for: {}", pid);
+		String decodedpid = null;
+		decodedpid = Util.decodeUrlEncoded(pid);
+		if (decodedpid == null)
+		{
+			return null;
+		}
+		LOGGER.debug("Decoded pid: {}", decodedpid);
+		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
+		FedoraObject fo = (FedoraObject) object.getSingleByName(decodedpid);
+		return fo;
+	}
 }
