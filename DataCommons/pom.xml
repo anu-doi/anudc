@@ -19,8 +19,10 @@
 	</parent>
 
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>3.0.5.RELEASE</spring.version>
 		<jasperreports.version>4.7.0</jasperreports.version>
+		<jersey.version>1.13</jersey.version>
 	</properties>
 
 	<repositories>
