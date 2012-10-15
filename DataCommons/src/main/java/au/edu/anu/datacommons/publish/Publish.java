@@ -1,5 +1,7 @@
 package au.edu.anu.datacommons.publish;
 
+import java.util.List;
+
 /**
  * GenericPublish
  * 
@@ -14,6 +16,7 @@ package au.edu.anu.datacommons.publish;
  * Version	Date		Developer				Description
  * 0.1		15/05/2012	Genevieve Turner (GT)	Initial build
  * 0.2		08/06/2012	Genevieve Turner (GT)	Renamed to Publish from GenericPublish
+ * 0.3		15/10/2012	Genevieve Turner (GT)	Added checkValidity function
  * </pre>
  * 
  */
@@ -46,4 +49,19 @@ public interface Publish {
 	 * @param pid The id of the object to unpublish
 	 */
 	public void unpublish(String pid, String publishCode);
+	
+	/**
+	 * checkValidity
+	 *
+	 * Checks the validity of the object
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		15/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param pid The pid to check validity for
+	 * @return A list of validation error messages
+	 */
+	public List<String> checkValidity(String pid);
 }

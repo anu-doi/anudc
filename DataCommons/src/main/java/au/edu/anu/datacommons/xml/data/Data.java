@@ -96,4 +96,26 @@ public class Data {
 		}
 		return removedItems;
 	}
+	
+	/**
+	 * hasElement
+	 * 
+	 * Checks if there is an element with the specified name
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.3		15/10/2012	Genevieve Turner (GT)	Initial
+	 * </pre>
+	 * 
+	 * @param localpart The name of the fields to check if it exists
+	 */
+	public boolean hasElement(String localpart) {
+		for (int i = items_.size() - 1; i >= 0; i--) {
+			DataItem item = items_.get(i);
+			if (item.getName().equals(localpart)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

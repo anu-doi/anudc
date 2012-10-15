@@ -33,7 +33,10 @@
 	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required" tab="general">
 		<tooltip>Please choose the group the collection is affiliated with</tooltip>
 	</item>
-	<item name="holdingType" label="PAMBU Holding Type" fieldType="Combobox" saveType="single" class="required" tab="general">
+	<item name="doi" label="DOI - Digitan Object Identifier" fieldType="TextField" saveType="single" tab="general">
+		<tooltip>The Digital Object Identifier for this record.<br/>Please note that if this does not already exist a DOI will be created when the record is published</tooltip>
+	</item>
+	<item name="holdingType" label="PAMBU Holding Type" fieldType="Combobox" saveType="single" class="needed" tab="general">
 		<option value="ms" label="Manuscript Series" />
 		<option value="doc" label="Printed Document Series" />
 	</item>
@@ -56,18 +59,18 @@
 	<item name="significanceStatement" label="Significance Statement" fieldType="TextArea" saveType="single" maxLength="4000" tab="description">
 		<tooltip>What is significant about this dataset. For example:&#xA;&#xA;The first Australian full talking film.</tooltip>
 	</item>
-	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000" class="required"  tab="description">
+	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000" class="needed"  tab="description">
 		<tooltip>A brief summary about the data</tooltip>
 	</item>
 	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" maxLength="4000"  tab="description">
 		<tooltip>The description should be as rich as possible. If applicable, include: the scope; details of what is being studied or recorded; methodologies used, information about any instruments that were used to produce and/or collect the data; relevant standards used; conditions under which the study or research occured or the data was collected, etc&#xA;If there were any problems or other issues with methods used to produce and/or collect the data, please include those as well.</tooltip>
 	</item>
-	<item name="email" label="Contact Email" fieldType="TextFieldMulti" saveType="multiple" class="required email" tab="people" />
+	<item name="email" label="Contact Email" fieldType="TextFieldMulti" saveType="multiple" class="needed email" tab="people" />
 	<item name="postalAddress" label="Contact Address" fieldType="TextArea" saveType="single" tab="people" />
 	<item name="phone" label="Contact Phone Number" fieldType="TextFieldMulti" saveType="multiple" tab="people" />
 	<item name="fax" label="Contact Fax Number" fieldType="TextFieldMulti"  saveType="multiple" tab="people" />
 	<item name="websiteAddress" label="Website Address" fieldType="TextFieldMulti" saveType="multiple" tab="people" />
-	<item name="anzforSubject" label="Fields of Research" fieldType="ComboBoxMulti" saveType="multiple" class="required" tab="subject">
+	<item name="anzforSubject" label="Fields of Research" fieldType="ComboBoxMulti" saveType="multiple" class="needed" tab="subject">
 		<tooltip>Include Fields of Research terms and corresponding classification codes to be assocaited with the resource being described. The Fields of Research Classfication can be found at the following URL.&#xA;&#xA;http://www.arc.gov.au/applicants/codes.htm#FOR</tooltip>
 	</item>
 	<item name="anzseoSubject" label="Socio-Economic Objective" fieldType="ComboBoxMulti" saveType="multiple" tab="subject">
@@ -107,22 +110,14 @@
 		</column>
 		<column name="covAreaValue" fieldType="TextField" />
 	</item>
-	<item name="fullCitationType" label="Citation Format Type" fieldType="Combobox" saveType="single" tab="description">
-		<option value="Harvard" label="Harvard" />
-		<option value="APA" label="American Psychological Association" />
-		<option value="MLA" label="Modern Language Association of America" />
-		<option value="Vancouver" label="Vancouver" />
-		<option value="IEEE" label="Institute of Electrical and Electronic Engineers" />
-		<option value="CSE" label="Council of Science Editors" />
-		<option value="Chicago" label="Chicago Manual of Style" />
-		<option value="AMA" label="American Medical Association" />
-		<option value="AGPS-AGIMO" label="Australian Style Manual" />
-		<option value="AGLC" label="Australian Guide to Legal Citation" />
-		<option value="ACS" label="American Chemical Society" />
-		<option value="Datacite" label="International Data Citation" />
+	<item name="citationYear" label="Year of data publication" fieldType="TextField" saveType="single" tab="description">
+		<tooltip>The year the data was first published for citation purposes. If this field is not populated when publishing it will default to the year it is published in ANU Data Commons</tooltip>
 	</item>
-	<item name="fullCitation" label="Citation" fieldType="TextArea" saveType="single" tab="description">
-		<tooltip>How to cite the contents of this dataset/collection</tooltip>
+	<item name="citationCreator" label="Creator for Citation" fieldType="TextField" saveType="single" tab="description">
+		<tooltip>The creator of the data for citation purposes. Defaults to 'The Australian National University'. For example:&#xA;&#xA;Smith, G., Jones, J.&#xA;Australian Phenomics Facility&#xA;Research School of Earth Sciences, The Australian National University</tooltip>
+	</item>
+	<item name="citationPublisher" label="Publisher for Citation" fieldType="TextField" saveType="single" tab="description">
+		<tooltip>The publisher of the data.  Defaults to 'The Australian National University Data Commons'. For example:&#xA;&#xA;Australian Data Archive&#xA;Incorporated Research Institutions for Seismology</tooltip>
 	</item>
 	<item name="publication" label="Publications" fieldType="TableVertical" saveType="table" tab="description">
 		<tooltip>If appropriate, please include information about any publications that relate to the collection/dataset&#xA;For example:&#xA;Identifier Type: International Standard Serial Number&#xA;Identifier Value: 0278-7393&#xA;Publication Reference: Heathcote, A. (2003) Item recognition memory and the ROC. Journal of Experimental Psychology: Learning, Memory and Cognition, 29, 1210-1230.</tooltip>

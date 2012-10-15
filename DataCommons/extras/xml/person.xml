@@ -16,7 +16,7 @@
 	</item>
 	<item fieldType="TextField" label="Title" name="title" saveType="single" tab="general" />
 	<item fieldType="TextField" label="Given Name" name="givenName" saveType="single" tab="general" />
-	<item fieldType="TextField" label="Surname" name="lastName" saveType="single" tab="general" />
+	<item class="required" fieldType="TextField" label="Surname" name="lastName" saveType="single" tab="general" />
 	<item fieldType="TextField" label="suffix" name="Suffixes" saveType="single" tab="general" />
 	<item fieldType="TextField" label="Alternate Title" name="altTitle" saveType="single" tab="general" />
 	<item fieldType="TextField" label="Alternate Given Name" name="altGivenName" saveType="single" tab="general" />
@@ -30,18 +30,20 @@
 	<item fieldType="TextField" label="NLA Identifier" name="nlaIdentifier" saveType="single" tab="general">
 		<tooltip>Please include the individuals National Library of Australia Identifier if it exists.  You can find these at the Trove website http://trove.nla.gov.au/</tooltip>
 	</item>
-	<item class="required" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description">
+	<item class="date" fieldType="TextField" label="Birth Year/Date" name="existenceStart" saveType="single" tab="general" />
+	<item class="date" fieldType="TextField" label="Death Year/Date" name="existenceEnd" saveType="single" tab="general" />
+	<item class="needed" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description">
 		<tooltip>A brief description about the individual, this can include what work is being performed for The Australian National University</tooltip>
 	</item>
 	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description">
 		<tooltip>A longer description of the individual. This may include a biography of the person.</tooltip>
 	</item>
-	<item class="required email" fieldType="TextFieldMulti" label="Email Address" name="email" saveType="multiple" tab="contact"/>
+	<item class="needed email" fieldType="TextFieldMulti" label="Email Address" name="email" saveType="multiple" tab="contact"/>
 	<item fieldType="TextArea" label="Postal Address" name="postalAddress" saveType="single" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Phone Number" name="phone" saveType="multiple" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Fax Number" name="fax" saveType="multiple" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Website Address" name="websiteAddress" saveType="multiple" tab="contact"/>
-	<item name="anzforSubject" label="Fields of Research" fieldType="ComboBoxMulti" saveType="multiple" class="required" tab="subject">
+	<item name="anzforSubject" label="Fields of Research" fieldType="ComboBoxMulti" saveType="multiple" class="needed" tab="subject">
 		<tooltip>Include Fields of Research terms and corresponding classification codes to be associated with the person being described. The Fields of Research Classfication can be found at the following URL.&#xA;&#xA;http://www.arc.gov.au/applicants/codes.htm#FOR</tooltip>
 	</item>
 	<item name="anzseoSubject" label="Socio-Economic Objective" fieldType="ComboBoxMulti" saveType="multiple" tab="subject">

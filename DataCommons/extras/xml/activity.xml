@@ -32,19 +32,24 @@
 	<item fieldType="TextFieldMulti" label="Funding Body" name="fundingBody" saveType="single" tab="general">
 		<tooltip>Enter the name of the research funding body(ies) if applicable.</tooltip>
 	</item>
-	
-	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000" class="required"  tab="description">
+	<item class="date" fieldType="TextField" label="Date activity began" name="existenceStart" saveType="single" tab="general">
+		<tooltip>Date/Year the project/program/course/award/event began</tooltip>
+	</item>
+	<item class="date" fieldType="TextField" label="Date the activity ended" name="existenceEnd" saveType="single" tab="general">
+		<tooltip>Date/Year the project/program/course/award/event ended</tooltip>
+	</item>
+	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000" class="needed"  tab="description">
 		<tooltip>A brief summary about the project</tooltip>
 	</item>
 	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" maxLength="4000"  tab="description">
 		<tooltip>The description should be as rich as possible. If applicable, include: the scope; details of what is being studied or recorded; methodologies used, information about any instruments that were used to produce and/or collect the data; relevant standards used; conditions under which the study or research occured or the data was collected, etc&#xA;If there were any problems or other issues with methods used to produce and/or collect the data, please include those as well.</tooltip>
 	</item>
-	<item class="required email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple" tab="contact"/>
+	<item class="needed email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple" tab="contact"/>
 	<item fieldType="TextArea" label="Contact Address" name="postalAddress" saveType="single" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Contact Phone Number" name="phone" saveType="multiple" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Contact Fax Number" name="fax" saveType="multiple" tab="contact"/>
 	<item fieldType="TextFieldMulti" label="Website Address" name="websiteAddress" saveType="multiple" tab="contact"/>
-	<item name="anzforSubject" label="Fields of Research" fieldType="ComboBoxMulti" saveType="multiple" class="required" tab="subject">
+	<item name="anzforSubject" label="Fields of Research" fieldType="ComboBoxMulti" saveType="multiple" class="needed" tab="subject">
 		<tooltip>Include Fields of Research terms and corresponding classification codes to be associated with the resource being described. The Fields of Research Classfication can be found at the following URL.&#xA;&#xA;http://www.arc.gov.au/applicants/codes.htm#FOR</tooltip>
 	</item>
 	<item name="anzseoSubject" label="Socio-Economic Objective" fieldType="ComboBoxMulti" saveType="multiple" tab="subject">

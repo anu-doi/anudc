@@ -12,6 +12,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -135,5 +136,71 @@ public class PublishResource {
 			uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
 		}
 		return Response.seeOther(uriBuilder.build()).build();
+	}
+	
+	/**
+	 * getValidationCheckScreen
+	 *
+	 * Retrieve the validation page.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		15/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param item The item to check validation on
+	 * @return The validation page
+	 */
+	@GET
+	@Path("validate/{item}")
+	public Response getValidationCheckScreen(@PathParam("item") String item) {
+		List<PublishLocation> publishLocations = fedoraObjectService.getPublishers();
+		
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("publishLocations", publishLocations);
+		
+		Viewable viewable = new Viewable("/validate.jsp", model);
+		
+		return Response.ok(viewable).build();
+	}
+	
+	/**
+	 * validateItem
+	 *
+	 * Check the  validation and verify the page
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		15/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param item The item to check validation on
+	 * @param request The request information
+	 * @return The validation reponse page
+	 */
+	@POST
+	@Path("validate/{item}")
+	public Response validateItem(@PathParam("item") String item, @Context HttpServletRequest request) {
+		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
+		List<String> publishers = form.get("publish");
+
+		Map<String, Object> model = new HashMap<String, Object>();
+		
+		if (publishers.size() > 0) {
+			FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
+			List<String> messages = fedoraObjectService.validatePublishLocation(fedoraObject, publishers);
+			model.put("validateMessages", messages);
+		}
+		else {
+			throw new WebApplicationException(Response.status(400).entity("No publish location specified").build());
+		}
+		
+		List<PublishLocation> publishLocations = fedoraObjectService.getPublishers();
+		
+		model.put("publishLocations", publishLocations);
+		
+		Viewable viewable = new Viewable("/validate.jsp", model);
+		
+		return Response.ok(viewable).build();
 	}
 }

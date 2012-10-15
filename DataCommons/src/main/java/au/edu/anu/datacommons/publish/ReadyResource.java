@@ -44,6 +44,7 @@ import com.sun.jersey.api.view.Viewable;
  * Version	Date		Developer				Description
  * 0.1		25/07/2012	Genevieve Turner (GT)	Initial
  * 0.2		01/08/2012	Genevieve Turner (GT)	Updated the return values for getting lists of objects in a particular status
+ * 0.3		12/10/2012	Genevieve Turner (GT)	Updated to add a title to the return values
  * </pre>
  *
  */
@@ -148,6 +149,8 @@ public class ReadyResource {
 	 * Version	Date		Developer				Description
 	 * 0.1		25/07/2012	Genevieve Turner(GT)	Initial
 	 * 0.2		01/08/2012	Genevieve Turner (GT)	Updated the return values for getting lists of objects in a particular status
+	 * 0.3		12/10/2012	Genevieve Turner (GT)	Updated to add a title to the return values
+	 * 0.4		15/10/2012	Genevieve Turner (GT)	Added title to return fields
 	 * </pre>
 	 * 
 	 * @return The html response
@@ -163,6 +166,7 @@ public class ReadyResource {
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("itemList", reviewReadyList);
 		values.put("resultList", results);
+		values.put("title", "Ready for Review");
 		
 		Viewable viewable = new Viewable("/status_lists.jsp", values);
 		return Response.ok(viewable).build();
@@ -177,6 +181,8 @@ public class ReadyResource {
 	 * Version	Date		Developer				Description
 	 * 0.1		25/07/2012	Genevieve Turner(GT)	Initial
 	 * 0.2		01/08/2012	Genevieve Turner (GT)	Updated the return values for getting lists of objects in a particular status
+	 * 0.3		12/10/2012	Genevieve Turner (GT)	Updated to add a title to the return values
+	 * 0.4		15/10/2012	Genevieve Turner (GT)	Added title to return fields
 	 * </pre>
 	 * 
 	 * @return The html response
@@ -192,6 +198,7 @@ public class ReadyResource {
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("itemList", rejectedList);
 		values.put("resultList", results);
+		values.put("title", "Rejected");
 		
 		Viewable viewable = new Viewable("/status_lists.jsp", values);
 		return Response.ok(viewable).build();
@@ -206,6 +213,8 @@ public class ReadyResource {
 	 * Version	Date		Developer				Description
 	 * 0.1		25/07/2012	Genevieve Turner(GT)	Initial
 	 * 0.2		01/08/2012	Genevieve Turner (GT)	Updated the return values for getting lists of objects in a particular status
+	 * 0.3		12/10/2012	Genevieve Turner (GT)	Updated to add a title to the return values
+	 * 0.4		15/10/2012	Genevieve Turner (GT)	Added title to return fields
 	 * </pre>
 	 * 
 	 * @return The html response
@@ -221,6 +230,7 @@ public class ReadyResource {
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("itemList", publishReadyList);
 		values.put("resultList", results);
+		values.put("title", "Ready for Publish");
 		
 		Viewable viewable = new Viewable("/status_lists.jsp", values);
 		return Response.ok(viewable).build();

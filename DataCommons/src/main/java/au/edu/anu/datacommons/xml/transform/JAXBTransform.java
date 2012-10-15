@@ -13,6 +13,7 @@ import javax.xml.bind.Unmarshaller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.ands.xml.RegistryObjects;
 import au.edu.anu.datacommons.xml.data.Data;
 import au.edu.anu.datacommons.xml.dc.DublinCore;
 import au.edu.anu.datacommons.xml.other.OptionList;
@@ -47,8 +48,9 @@ public class JAXBTransform {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		11/09/2012	Genevieve Turner(GT)	Initial
-	 * 0.3		11/09/2012	Genevieve Turner	Updated to only initialise the jaxb context once
+	 * 0.2		11/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.3		11/09/2012	Genevieve Turner (GT)	Updated to only initialise the jaxb context once
+	 * 0.4		15/10/2012	Genevieve Turner (GT)	Added RegistryObjects.class
 	 * </pre>
 	 * 
 	 * @return
@@ -56,7 +58,7 @@ public class JAXBTransform {
 	 */
 	private JAXBContext getJAXBContext() throws JAXBException {
 		if (jaxbContext_ == null) {
-			jaxbContext_ = JAXBContext.newInstance(Data.class, Template.class, DublinCore.class, Sparql.class, OptionList.class);
+			jaxbContext_ = JAXBContext.newInstance(Data.class, Template.class, DublinCore.class, Sparql.class, OptionList.class, RegistryObjects.class);
 		}
 		return jaxbContext_;
 	}

@@ -614,6 +614,7 @@ public class ViewTransform
 	 * 0.10		20/06/2012	Genevieve Turner (GT)	Updated to perform additions to the audit object table
 	 * 0.15		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated
 	 * 0.17		13/09/2012	Genevieve Turner (GT)	Added setting of tmplt id to fedora object
+	 * 0.18		15/10/2012	Genevieve Turner (GT)	Moved some of the functionality into separate methods for reusability
 	 * </pre>
 	 * 
 	 * @param tmplt The id of the template
@@ -625,24 +626,20 @@ public class ViewTransform
 	 */
 	public FedoraObject saveData (String tmplt, FedoraObject fedoraObject, Map<String, List<String>> form) 
 			throws FedoraClientException, JAXBException {
-		InputStream templateStream = null;
-		if (fedoraObject == null) {
-			templateStream = getXMLInputStream(tmplt, null);
-		}
-		else {
-			templateStream = getXMLInputStream(tmplt, fedoraObject);
+		//Put the data in a map otherwise it is null in this function
+		Map<String, Object> map = new HashMap<String, Object>();;
+		
+		getTemplateAndData(tmplt, fedoraObject, map);
+		
+		Template template = (Template) map.get("tmplt");
+		Data data = (Data) map.get("data");
+
+		if (template == null) {
+			LOGGER.error("Template is null");
 		}
 		
-		JAXBTransform jaxbTransform = new JAXBTransform();
-		Template template = (Template) jaxbTransform.unmarshalStream(templateStream, Template.class);
-		
-		Data data = null;
-		if (fedoraObject != null) {
-			InputStream dataStream = getInputStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
-			data = (Data) jaxbTransform.unmarshalStream(dataStream, Data.class);
-		}
-		else {
-			data = new Data();
+		if (data == null) {
+			LOGGER.error("Data is null");
 		}
 		
 		Map<String, TemplateItem> templateItemMap = createItemMap (template);
@@ -659,6 +656,120 @@ public class ViewTransform
 				}
 			}
 		}
+		
+		fedoraObject = saveFields(tmplt, fedoraObject, form, data);
+		
+		processedValues_.clear();
+		
+		return fedoraObject;
+	}
+	
+	/**
+	 * setDefaultPublishData
+	 *
+	 * Save default publish data if it does not already exists. i.e. if it does not exist
+	 * save the data with defaults.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		15/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param tmplt The template currently used
+	 * @param fedoraObject The fedora object to save to
+	 * @param form The data to save
+	 * @return The fedora object
+	 * @throws FedoraClientException
+	 * @throws JAXBException
+	 */
+	public FedoraObject setDefaultPublishData (String tmplt, FedoraObject fedoraObject, Map<String, String> form) 
+				throws FedoraClientException, JAXBException {
+		Map<String, Object> map = new HashMap<String, Object>();
+		
+		getTemplateAndData(tmplt, fedoraObject, map);
+		Data data = (Data) map.get("data");
+		
+		for (Entry<String, String> entry : form.entrySet()) {
+			String key = entry.getKey();
+			if (!data.hasElement(key)) {
+				List<String> values = new ArrayList<String>();
+				values.add(entry.getValue());
+				processSingleItem(key, values, data);
+			}
+		}
+		
+		fedoraObject = saveFields(tmplt, fedoraObject, new HashMap<String, List<String>>(), data);
+		
+		return fedoraObject;
+	}
+	
+	/**
+	 * getTemplateAndData
+	 *
+	 * Get the template and data for the record
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		15/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param tmplt The template to retrieve
+	 * @param fedoraObject The fedora object to retrive
+	 * @param map The map to add the template and data to
+	 * @throws FedoraClientException
+	 * @throws JAXBException
+	 */
+	private void getTemplateAndData(String tmplt, FedoraObject fedoraObject, Map<String, Object> map) 
+		throws FedoraClientException, JAXBException {
+
+		InputStream templateStream = null;
+		if (fedoraObject == null) {
+			templateStream = getXMLInputStream(tmplt, null);
+		}
+		else {
+			templateStream = getXMLInputStream(tmplt, fedoraObject);
+		}
+		
+		JAXBTransform jaxbTransform = new JAXBTransform();
+		Template template = (Template) jaxbTransform.unmarshalStream(templateStream, Template.class);
+		Data data = null;
+		if (fedoraObject != null) {
+			InputStream dataStream = getInputStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
+			data = (Data) jaxbTransform.unmarshalStream(dataStream, Data.class);
+		}
+		else {
+			data = new Data();
+		}
+		if (template == null) {
+			LOGGER.error("Template is null in method");
+		}
+		if (data == null) {
+			LOGGER.error("Data is null in method");
+		}
+		map.put("tmplt", template);
+		map.put("data", data);
+	}
+	
+	/**
+	 * saveFields
+	 *
+	 * Save the data
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		15/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param tmplt
+	 * @param fedoraObject
+	 * @param form
+	 * @param data
+	 * @return
+	 * @throws FedoraClientException
+	 * @throws JAXBException
+	 */
+	private FedoraObject saveFields(String tmplt, FedoraObject fedoraObject, Map<String, List<String>> form, Data data) 
+			throws FedoraClientException, JAXBException {
 		//Added because for some types the name is separated fields
 		setName(data);
 		DublinCore dublinCore = getDublinCore(data);
@@ -668,6 +779,8 @@ public class ViewTransform
 		
 		Map<String, Object> properties = new HashMap<String, Object>();
 		properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+		
+		JAXBTransform jaxbTransform = new JAXBTransform();
 		
 		//Marshal the data for saving then create/update the appropriate streams
 		jaxbTransform.marshalStream(sw, data, Data.class, properties);
@@ -705,7 +818,6 @@ public class ViewTransform
 			fedoraObject = new FedoraObject();
 			fedoraObject.setObject_id(item);
 			
-			//TODO Update so this is not a hard coded value
 			fedoraObject.setGroup_id(new Long(group_id));
 			fedoraObject.setPublished(Boolean.FALSE);
 			fedoraObject.setTmplt_id(tmplt);
@@ -727,9 +839,6 @@ public class ViewTransform
 			}
 			saveAuditModifyRow(fedoraObject);
 		}
-		
-		processedValues_.clear();
-		
 		return fedoraObject;
 	}
 	

@@ -3,6 +3,7 @@
 	<xsl:param name="key" />
 	<xsl:param name="external" />
 	<xsl:variable name="anukey">http://anu.edu.au/</xsl:variable>
+	<xsl:variable name="anuidentifier">http://67h5p1s.uds.anu.edu.au:9081/DataCommons/item/</xsl:variable>
 	<xsl:template match="/">
 		<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
@@ -47,6 +48,7 @@
 		</registryObjects>
 	</xsl:template>
 	<xsl:template name="process">
+		<identifier type="uri"><xsl:value-of select="$anuidentifier" /><xsl:value-of select="$key" /></identifier>
 		<xsl:if test="data/arcNumber">
 			<identifier type="arc">http://purl.org/au-research/grants/arc/<xsl:value-of select="data/arcNumber" /></identifier>
 		</xsl:if>
@@ -275,6 +277,16 @@
 				<xsl:value-of select="data/deliveryMethod" />
 			</description>
 		</xsl:if>
+		<xsl:if test="data/existenceStart or data/existenceEnd">
+			<existenceDates>
+				<xsl:if test="data/existenceStart">
+					<startDate dateFormat="W3CDTF"><xsl:value-of select="data/existenceStart" /></startDate>
+				</xsl:if>
+				<xsl:if test="data/existenceEnd">
+					<endDate dateFormat="W3CDTF"><xsl:value-of select="data/existenceEnd" /></endDate>
+				</xsl:if>
+			</existenceDates>
+		</xsl:if>
 		<xsl:if test="data/rightsStatement">
 			<xsl:for-each select="data/rightsStatement">
 				<rights>
@@ -324,6 +336,29 @@
 					<xsl:value-of select="data/relatedURL" />
 				</identifier>
 			</relatedInfo>
+		</xsl:if>
+		<xsl:if test="data/type/text() = 'Collection'">
+			<xsl:if test="data/name">
+				<citationInfo>
+					<fullCitation style="Datacite">
+						<!-- Note the identifier information here is temporary until a DOI is minted -->
+						<xsl:choose>
+							<xsl:when test="data/doi and data/citationYear and data/citationCreator and data/citationPublisher">
+								<xsl:value-of select="data/citationCreator" /> (<xsl:value-of select="data/citationYear" />): <xsl:value-of select="data/name" />, <xsl:value-of select="data/citationPublisher" />, <xsl:value-of select="data/doi" />
+							</xsl:when>
+							<xsl:when test="data/citationYear and data/citationCreator and data/citationPublisher">
+								<xsl:value-of select="data/citationCreator" /> (<xsl:value-of select="data/citationYear" />): <xsl:value-of select="data/name" />, <xsl:value-of select="data/citationPublisher" />, <xsl:value-of select="$anuidentifier" /><xsl:value-of select="$key" />
+							</xsl:when>
+							<xsl:when test="data/doi">
+								The Australian National University (2012): <xsl:value-of select="data/name" />, The Australian National University Data Commons, <xsl:value-of select="data/doi" />
+							</xsl:when>
+							<xsl:otherwise>
+								The Australian National University (2012): <xsl:value-of select="data/name" />, The Australian National University Data Commons, <xsl:value-of select="$anuidentifier" /><xsl:value-of select="$key" />
+							</xsl:otherwise>
+						</xsl:choose>
+					</fullCitation>
+				</citationInfo>
+			</xsl:if>
 		</xsl:if>
 	</xsl:template>
 </xsl:stylesheet>

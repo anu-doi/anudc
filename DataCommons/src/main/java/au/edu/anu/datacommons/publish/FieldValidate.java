@@ -38,6 +38,8 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		17/07/2012	Genevieve Turner (GT)	Initial
+ * 0.2		12/10/2012	Genevieve Turner (GT)	Added label to required fields
+ * 0.3		15/10/2012	Genevieve Turner (GT)	Modified to cater for the 'needed' class
  * </pre>
  *
  */
@@ -107,6 +109,8 @@ public class FieldValidate implements Validate {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		17/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		12/10/2012	Genevieve Turner (GT)	Added label to required fields
+	 * 0.3		15/10/2012	Genevieve Turner (GT)	Modified to cater for the 'needed' class
 	 * </pre>
 	 * 
 	 * @param template
@@ -121,8 +125,8 @@ public class FieldValidate implements Validate {
 				String fieldName = item.getName();
 				List<DataItem> fieldItems = getFieldItems(fieldName, data);
 				for (String validationType : validationTypes) {
-					if ("required".equals(validationType)) {
-						if(!hasRequired(fieldName, fieldItems)) {
+					if ("required".equals(validationType) || "needed".equals(validationType)) {
+						if(!hasRequired(fieldName, fieldItems, item.getLabel())) {
 							isValid = false;
 						}
 					}
@@ -177,17 +181,18 @@ public class FieldValidate implements Validate {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		17/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		12/10/2012	Genevieve Turner (GT)	Added label to required fields
 	 * </pre>
 	 * 
 	 * @param fieldName
 	 * @param items
 	 * @return
 	 */
-	private boolean hasRequired(String fieldName, List<DataItem> items) {
+	private boolean hasRequired(String fieldName, List<DataItem> items, String label) {
 		if (items.size() > 0) {
 			return true;
 		}
-		errorMessages_.add(fieldName + " is required");
+		errorMessages_.add(label + " is required");
 		return false;
 	}
 	
