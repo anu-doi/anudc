@@ -1,13 +1,29 @@
 package au.edu.anu.datacommons.publish;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +32,17 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import au.edu.anu.datacommons.ands.check.ActivityCheck;
+import au.edu.anu.datacommons.ands.check.CollectionCheck;
+import au.edu.anu.datacommons.ands.check.PartyCheck;
+import au.edu.anu.datacommons.ands.check.ServiceCheck;
+import au.edu.anu.datacommons.ands.xml.RegistryObjects;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.util.Constants;
+import au.edu.anu.datacommons.xml.transform.JAXBTransform;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
@@ -176,6 +198,7 @@ public class ANDSValidate implements Validate{
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		17/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		15/10/2012	Genevieve Turner (GT)	Updated to perform RIF-CS validation
 	 * </pre>
 	 * 
 	 * @param pid The pid of the object to check if it is valid
@@ -188,12 +211,17 @@ public class ANDSValidate implements Validate{
 		// Activity
 		
 		boolean isValid = true;
-		if(!hasAssociatedType(pid, "party")) {
+		if(!hasAssociatedType(pid, "party", 2)) {
 			isValid = false;
 		}
-		if(!hasAssociatedType(pid, "activity")) {
+		if(!hasAssociatedType(pid, "activity", 3)) {
 			isValid = false;
 		}
+		boolean validationErrors = xmlValidate(pid, CollectionCheck.class);
+		/*if (!validationErrors) {
+			isValid = false;
+		}*/
+		
 		return isValid;
 	}
 	
@@ -205,6 +233,7 @@ public class ANDSValidate implements Validate{
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		17/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		15/10/2012	Genevieve Turner (GT)	Updated to perform RIF-CS validation
 	 * </pre>
 	 * 
 	 * @param pid The pid of the object to check if it is valid
@@ -218,9 +247,16 @@ public class ANDSValidate implements Validate{
 		// Activity
 		
 		boolean isValid = true;
-		if(!hasAssociatedType(pid, "collection")) {
+		if(!hasAssociatedType(pid, "collection", 2)) {
 			isValid = false;
 		}
+		// Relationship not require but recommended
+		hasAssociatedType(pid,"activity", 3);
+		boolean validationErrors = xmlValidate(pid, PartyCheck.class);
+		/*if (!validationErrors) {
+			isValid = false;
+		}*/
+		
 		return isValid;
 	}
 	
@@ -232,6 +268,7 @@ public class ANDSValidate implements Validate{
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		17/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		15/10/2012	Genevieve Turner (GT)	Updated to perform RIF-CS validation
 	 * </pre>
 	 * 
 	 * @param pid The pid of the object to check if it is valid
@@ -244,12 +281,16 @@ public class ANDSValidate implements Validate{
 		// Collection
 		
 		boolean isValid = true;
-		if(!hasAssociatedType(pid, "collection")) {
+		if(!hasAssociatedType(pid, "collection", 2)) {
 			isValid = false;
 		}
-		if(!hasAssociatedType(pid, "party")) {
+		if(!hasAssociatedType(pid, "party", 3)) {
 			isValid = false;
 		}
+		boolean validationErrors = xmlValidate(pid, ActivityCheck.class);
+		/*if (!validationErrors) {
+			isValid = false;
+		}*/
 
 		return isValid;
 	}
@@ -262,6 +303,7 @@ public class ANDSValidate implements Validate{
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		17/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		15/10/2012	Genevieve Turner (GT)	Updated to perform RIF-CS validation
 	 * </pre>
 	 * 
 	 * @param pid The pid of the object to check if it is valid
@@ -275,9 +317,14 @@ public class ANDSValidate implements Validate{
 		// Party
 		
 		boolean isValid = true;
-		if(!hasAssociatedType(pid, "collection")) {
+		if(!hasAssociatedType(pid, "collection", 2)) {
 			isValid = false;
 		}
+		hasAssociatedType(pid, "party", 3);
+		boolean validationErrors = xmlValidate(pid, ServiceCheck.class);
+		/*if (!validationErrors) {
+			isValid = false;
+		}*/
 
 		return isValid;
 	}
@@ -296,7 +343,7 @@ public class ANDSValidate implements Validate{
 	 * @param type The type of association to check
 	 * @return If there is an associated type
 	 */
-	private boolean hasAssociatedType(String pid, String type) {
+	private boolean hasAssociatedType(String pid, String type, int qualityLevel) {
 		boolean isValid = false;
 		SparqlQuery sparqlQuery = new SparqlQuery();
 		sparqlQuery.addVar("?item");
@@ -354,8 +401,60 @@ public class ANDSValidate implements Validate{
 		}
 		else {
 			LOGGER.info("No Results returned");
-			errorMessages_.add("Link with item type " + type + " is required");
+			errorMessages_.add("Quality Level " + qualityLevel + " - Link with item type " + type);
 			isValid = false;
+		}
+		return isValid;
+	}
+	
+	private boolean xmlValidate(String pid, Class clazz) {
+		boolean isValid = false;
+		try {
+			InputStream xmlStream = FedoraBroker.getDatastreamAsStream(pid, Constants.XML_SOURCE);
+			InputStream xslStream = FedoraBroker.getDatastreamAsStream("def:rif-cs", Constants.XSL_SOURCE);
+		
+			StringWriter sw = new StringWriter();
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Source xmlSource = new StreamSource (xmlStream);
+			Source xslSource = new StreamSource (xslStream);
+			Transformer transformer = transformerFactory.newTransformer(xslSource);
+			transformer.transform(xmlSource, new StreamResult(sw));
+			//transformer.tra
+			LOGGER.info("page: {}", sw.toString());
+			JAXBTransform jaxbTransform = new JAXBTransform();
+			
+			InputStream rifcsStream = new ByteArrayInputStream(sw.toString().getBytes("UTF-8"));
+			RegistryObjects registryObjects = (RegistryObjects) jaxbTransform.unmarshalStream(rifcsStream, RegistryObjects.class);
+			
+			ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+			Validator validator = factory.getValidator();
+			
+			Set<ConstraintViolation<RegistryObjects>> constraintViolations = validator.validate(registryObjects, clazz);
+			
+			if (constraintViolations.size() > 0) {
+				Iterator<ConstraintViolation<RegistryObjects>> it = constraintViolations.iterator();
+				while (it.hasNext()) {
+					ConstraintViolation<RegistryObjects> violation = it.next();
+					//LOGGER.info("Violation: {}", violation.getMessage());
+					errorMessages_.add(violation.getMessage());
+				}
+			}
+			else {
+				isValid = true;
+			}
+			
+		}
+		catch (FedoraClientException e) {
+			LOGGER.error("Exception retrieving stream", e);
+		}
+		catch (TransformerException e) {
+			LOGGER.error("Exception executing transform", e);
+		}
+		catch (UnsupportedEncodingException e) {
+			LOGGER.error("Exception getting string as utf-8", e);
+		}
+		catch (JAXBException e) {
+			LOGGER.error("Exception transforming document to JAXB", e);
 		}
 		return isValid;
 	}

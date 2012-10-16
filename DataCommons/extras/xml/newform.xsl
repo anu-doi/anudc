@@ -100,6 +100,9 @@
 			<xsl:if test="contains(@class,'required')">
 				<b style="color:red;">*</b>
 			</xsl:if>
+			<xsl:if test="contains(@class,'needed')">
+				<b style="color:blue;">*</b>
+			</xsl:if>
 		</label>
 		</strong>
 		<br/>

@@ -1,5 +1,7 @@
 package au.edu.anu.datacommons.publish;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +23,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		08/06/2012	Genevieve Turner (GT)	Initial
+ * 0.2		15/10/2012	Genevieve Turner (GT)	Added checkValidity function
  * </pre>
  *
  */
@@ -77,4 +80,23 @@ public class GenericPublish implements Publish {
 		
 	}
 
+	/**
+	 * checkValidity
+	 * 
+	 * Checks the validity of the object
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		15/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param pid The pid to check validity for
+	 * @return A list of validation error messages
+	 * @see au.edu.anu.datacommons.publish.Publish#checkValidity(java.lang.String)
+	 */
+	public List<String> checkValidity(String pid) {
+		Validate validate = new FieldValidate();
+		validate.isValid(pid);
+		return validate.getErrorMessages();
+	}
 }

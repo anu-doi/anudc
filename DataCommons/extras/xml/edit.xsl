@@ -6,6 +6,11 @@
 	<xsl:template match="/">
 		<xsl:if test="$fieldName != ''">
 			<xsl:for-each select="template/item[@name=$fieldName]">
+				<xsl:value-of select="@label" /> 
+				<xsl:if test="tooltip">
+					<img src="http://styles.anu.edu.au/_anu/images/icons/silk/information.png" alt="information" title="{tooltip}" />
+				</xsl:if>
+				<br/><br/>
 				<xsl:choose>
 					<xsl:when test="@fieldType = 'TextFieldMulti'">
 						<xsl:call-template name="TextFieldMulti" />

@@ -37,6 +37,7 @@ import au.edu.anu.datacommons.xml.sparql.Result;
  * 0.7		01/08/2012	Genevieve Turner (GT)	Added retrieval of information for fedora objects
  * 0.8		03/08/2012	Genevieve Turner (GT)	Fixed issue with permissions
  * 0.9		02/10/2012	Genevieve Turner (GT)	Updated to verify report permissions
+ * 0.10		15/10/2012	Genevieve Turner (GT)	Added validatePublishLocation method
  * </pre>
  * 
  */
@@ -349,4 +350,20 @@ public interface FedoraObjectService {
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'ADMINISTRATION')")
 	public void hasReportPermission(FedoraObject fedoraObject);
+	
+	/**
+	 * validatePublishLocation
+	 * 
+	 * Gets validation messages for the given location
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.10		15/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedoraObject to validate
+	 * @param publishers The publisher(s) to validate
+	 * @return A list of validation error messages
+	 */
+	public List<String> validatePublishLocation(FedoraObject fedoraObject, List<String> publishers);
 }

@@ -104,7 +104,7 @@ jQuery("#itemLinkButton").live('click', function(){
 	jQuery("#itemIdentifier").text('None Selected');
 	jQuery("#itemName").text('None Selected');
 	jQuery("#itemId").val('');
-	jQuery("#nlaId").val('');
+	jQuery("#linkExternal").val('');
 	centrePopup("#popupLink");
 	linkPopupStatus = loadPopup("#popupLink", linkPopupStatus);
 });
@@ -160,8 +160,9 @@ jQuery("#formAddLink").live('submit', function() {
 	var urlStr = "/DataCommons/rest/display/addLink/" + pid;
 	var typeStr = jQuery("#linkType").val();
 	var itemStr = jQuery("#itemId").text();
+	
 	if (itemStr == '' || itemStr == 'None Selected') {
-		itemStr = jQuery("#nlaId").val();
+		itemStr = jQuery("#linkExternal").val();
 	}
 	var dataString = 'linkType=' + typeStr + '&itemId=' + itemStr;
 	jQuery.ajax({

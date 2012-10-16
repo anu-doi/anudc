@@ -1,5 +1,7 @@
 package au.edu.anu.datacommons.publish;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +60,6 @@ public class ANDSPublish extends GenericPublish implements Publish {
 			}
 
 			throw new ValidationException(errorMessage.toString());
-			//throw new ValidationException("Error Publishing to ANDS");
 		}
 		
 		super.publish(pid, publishCode);
@@ -91,5 +92,26 @@ public class ANDSPublish extends GenericPublish implements Publish {
 	public void unpublish(String pid, String publishCode) {
 		//TODO Create information for unpublishing
 		LOGGER.info("unpublishing from ands");
+	}
+
+	/**
+	 * checkValidity
+	 * 
+	 * Checks the validity of the object
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.4		15/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param pid The pid to check validity for
+	 * @return A list of validation error messages
+	 * @see au.edu.anu.datacommons.publish.GenericPublish#checkValidity(java.lang.String)
+	 */
+	@Override
+	public List<String> checkValidity(String pid) {
+		Validate validate = new ANDSValidate();
+		validate.isValid(pid);
+		return validate.getErrorMessages();
 	}
 }

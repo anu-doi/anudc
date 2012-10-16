@@ -88,6 +88,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.17		28/08/2012	Genevieve Turner (GT)	Added the display of reverse links
  * 0.18		19/09/2012	Genevieve Turner (GT)	Updated to add a row to the audit log table for review statuses
  * 0.19		27/09/2012	Genevieve Turner (GT)	Updated to generate reverse links
+ * 0.20		15/10/2012	Genevieve Turner (GT)	Modified/Added some functions surrounding publication
  * </pre>
  * 
  */
@@ -103,6 +104,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	
 	@Resource(name="permissionService")
 	PermissionService permissionService;
+	
 	/**
 	 * getItemByName
 	 * 
@@ -558,6 +560,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to use generic publishing options
 	 * 0.9		20/06/2012	Genevieve Turner (GT)	Updated to add an audit row when an object is published
 	 * 0.13		25/07/2012	Genevieve Turner (GT)	Added removing of ready for review/publish, and rejections
+	 * 0.20		15/10/2012	Genevieve Turner (GT)	Now pass through the fedoraObject to publishing rather than just the pid
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to publish
@@ -569,7 +572,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		StringBuffer message = new StringBuffer();
 		
 		// Set the base publishing information
-		generalPublish(fedoraObject.getObject_id());
+		generalPublish(fedoraObject);
 		
 		for (String publisher : publishers) {
 			Long id = Long.parseLong(publisher);
@@ -620,6 +623,45 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	}
 	
 	/**
+	 * validatePublishLocation
+	 * 
+	 * Gets validation messages for the given location
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.20		15/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedoraObject to validate
+	 * @param publishers The publisher(s) to validate
+	 * @return A list of validation error messages
+	 */
+	public List<String> validatePublishLocation(FedoraObject fedoraObject, List<String> publishers) {
+		GenericDAOImpl<PublishLocation, Long> publishLocationDAO = new GenericDAOImpl<PublishLocation, Long>(PublishLocation.class);
+		List<String> messages = null;
+		
+		for (String publisher : publishers) {
+			Long id = Long.parseLong(publisher);
+			PublishLocation publishLocation = publishLocationDAO.getSingleById(id);
+			LOGGER.debug("Publish class: {}", publishLocation.getExecute_class());
+			try {
+				Publish genericPublish = (Publish) Class.forName(publishLocation.getExecute_class()).newInstance();
+				messages = genericPublish.checkValidity(fedoraObject.getObject_id());
+			}
+			catch (ClassNotFoundException e) {
+				LOGGER.error("Class not found class: " + publishLocation.getExecute_class(), e);
+			}
+			catch (IllegalAccessException e) {
+				LOGGER.error("Illegal acces to class: " + publishLocation.getExecute_class(), e);
+			}
+			catch (InstantiationException e) {
+				LOGGER.error("Error instantiating class: " + publishLocation.getExecute_class(), e);
+			}
+		}
+		return messages;
+	}
+	
+	/**
 	 * generalPublish
 	 * 
 	 * Sets information used by various publishing options.
@@ -629,26 +671,45 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.7		08/06/2012	Genevieve Turner(GT)	Initial
 	 * 0.11		17/07/2012	Genevieve Turner (GT)	Added validation prior to publishing
 	 * 0.13		24/07/2012	Genevieve Turner (GT)	Moved the generating of a list of messages to a util function
+	 * 0.20		15/10/2012	Genevieve Turner (GT)	Added some default values for publishing
 	 * </pre>
 	 * @param pid The pid to set the publishing information for
 	 */
-	private void generalPublish(String pid) {
+	private void generalPublish(FedoraObject fedoraObject) {
 		Validate validate = new FieldValidate();
-		if (!validate.isValid(pid)) {
+		if (!validate.isValid(fedoraObject.getObject_id())) {
 			StringBuffer errorMessages = new StringBuffer();
 			errorMessages.append("Not all required fields have been filled out correctly\n");
 			errorMessages.append(Util.listToStringWithNewline(validate.getErrorMessages()));
 			throw new ValidationException(errorMessages.toString());
 		}
+		//TODO add some default fields and put them in the properties file.
+		Map<String, String> form = new HashMap<String, String>();
+		
+		form.put("citationCreator", "The Australian National University");
+		form.put("citationYear", "2012");
+		form.put("citationPublisher", "The Australian National University Data Commons");
+		
+		ViewTransform viewTransform = new ViewTransform();
+		try {
+			viewTransform.setDefaultPublishData(null, fedoraObject, form);
+		}
+		catch (JAXBException e) {
+			LOGGER.error("Error transforming document for saving publication");
+		}
+		catch (FedoraClientException e) {
+			LOGGER.error("Error saving updates for publication");
+		}
+		
 		FedoraReference fedoraReference = new FedoraReference();
 		fedoraReference.setPredicate_(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_OAIPROVIDER_URL));
-		fedoraReference.setObject_("oai:" + pid);
+		fedoraReference.setObject_("oai:" + fedoraObject.getObject_id());
 		fedoraReference.setIsLiteral_(Boolean.FALSE);
 		
-		String location = String.format("%s/objects/%s/datastreams/XML_SOURCE/content", GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI), pid);
+		String location = String.format("%s/objects/%s/datastreams/XML_SOURCE/content", GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI), fedoraObject.getObject_id());
 		try {
-			FedoraBroker.addDatastreamByReference(pid, Constants.XML_PUBLISHED, "M", "XML Published", location);
-			FedoraBroker.addRelationship(pid, fedoraReference);
+			FedoraBroker.addDatastreamByReference(fedoraObject.getObject_id(), Constants.XML_PUBLISHED, "M", "XML Published", location);
+			FedoraBroker.addRelationship(fedoraObject.getObject_id(), fedoraReference);
 		}
 		catch (FedoraClientException e) {
 			LOGGER.info("Exception publishing to ANU: ", e);

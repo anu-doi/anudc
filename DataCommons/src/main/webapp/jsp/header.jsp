@@ -42,11 +42,16 @@
 		<sec:authorize access="hasRole('ROLE_ANU_USER')">
 			<li><a href="<c:url value='/rest/list/template' />">New</a></li>
 			<li><a href="<c:url value='/rest/upload' />">Upload</a></li>
+			<fmt:bundle basename='global'>
+				<fmt:message var="rejectedTitle" key="review.rejected.title" />
+				<fmt:message var="reviewReadyTitle" key="review.reviewready.title" />
+				<fmt:message var="publishReadyTitle" key="review.publishready.title" />
+			</fmt:bundle>
 			<li><a href="<c:url value='/jsp/review_lists.jsp' />">Review</a>
 				<ul>
-					<li><a href="<c:url value='/rest/ready/list/rejected' />">Rejected</a></li>
-					<li><a href="<c:url value='/rest/ready/list/review' />">Ready for Review</a></li>
-					<li><a href="<c:url value='/rest/ready/list/publish' />">Ready for Publish</a></li>
+					<li><a href="<c:url value='/rest/ready/list/rejected' />">${rejectedTitle}</a></li>
+					<li><a href="<c:url value='/rest/ready/list/review' />">${reviewReadyTitle}</a></li>
+					<li><a href="<c:url value='/rest/ready/list/publish' />">${publishReadyTitle}</a></li>
 				</ul>
 			</li>
 		</sec:authorize>

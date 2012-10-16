@@ -78,6 +78,9 @@ public final class GlobalProps
 	public static final String PROP_EMAIL_DEBUG_SEND = "email.debug.sendmail";
 	public static final String PROP_CAS_SERVER = "cas.server";
 	public static final String PROP_APP_SERVER = "app.server";
+	public static final String PROP_REVIEW_REJECTED_TITLE = "review.rejected.title";
+	public static final String PROP_REVIEW_READY_TITLE = "review.reviewready.title";
+	public static final String PROP_PUBLISH_READY_TITLE = "review.publishready.title";
 
 	static
 	{
