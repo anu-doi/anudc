@@ -1,5 +1,6 @@
 package au.edu.anu.datacommons.webservice.bindings;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,7 +44,7 @@ public class Activity implements FedoraItem
 	private String researchType;
 
 	private List<Publication> publications;
-	private List<Related> related;
+	private List<RelatedWebsites> related;
 
 	// All elements not captured as its own field.
 	private List<Element> nodes;
@@ -282,12 +283,12 @@ public class Activity implements FedoraItem
 	}
 
 	@XmlElement(name = "relatedWebsites")
-	public List<Related> getRelated()
+	public List<RelatedWebsites> getRelated()
 	{
 		return related;
 	}
 
-	public void setRelated(List<Related> related)
+	public void setRelated(List<RelatedWebsites> related)
 	{
 		this.related = related;
 	}
@@ -308,6 +309,7 @@ public class Activity implements FedoraItem
 	{
 		Map<String, List<String>> data = new HashMap<String, List<String>>();
 		
+		data.put("type", Arrays.asList("activity"));
 		if (this.getSubType() != null)
 			data.put("subType", new ArrayList<String>(Arrays.asList(this.getSubType())));
 		if (this.getOwnerGroup() != null)
@@ -320,7 +322,7 @@ public class Activity implements FedoraItem
 			data.put("altName", new ArrayList<String>(Arrays.asList(this.getAltTitle())));
 		if (this.getArcNumber() != null)
 			data.put("arcNumber", new ArrayList<String>(Arrays.asList(this.getArcNumber())));
-		if (this.getBriefDesc() != null)
+		if (this.getFundingBodies() != null && this.getFundingBodies().size() > 0)
 			data.put("fundingBody", this.getFundingBodies());
 
 		if (this.getBriefDesc() != null)
@@ -368,7 +370,7 @@ public class Activity implements FedoraItem
 		{
 			ArrayList<String> relatedWebUrlList = new ArrayList<String>();
 			ArrayList<String> relatedWebTitleList = new ArrayList<String>();
-			for (Related iRelated : this.getRelated())
+			for (RelatedWebsites iRelated : this.getRelated())
 			{
 				relatedWebUrlList.add(iRelated.getRelatedWebUrl());
 				relatedWebTitleList.add(iRelated.getRelatedWebTitle());

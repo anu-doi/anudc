@@ -6,7 +6,6 @@
 
 	<artifactId>DataCommons</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.1-SNAPSHOT</version>
 
 	<name>DataCommons</name>
 	<url>http://maven.apache.org</url>
@@ -295,6 +294,7 @@
 				<version>2.9</version>
 				<configuration>
 					<wtpversion>2.0</wtpversion>
+					<wtpapplicationxml>true</wtpapplicationxml>
 				</configuration>
 			</plugin>
 			<plugin>
