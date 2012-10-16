@@ -15,7 +15,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -31,9 +30,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
-import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
-import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.view.Viewable;
@@ -70,9 +67,6 @@ public class DisplayResource
 
 	@Resource(name = "fedoraObjectServiceImpl")
 	private FedoraObjectService fedoraObjectService;
-
-	@Resource(name = "groupServiceImpl")
-	private GroupService groupService;
 
 	/**
 	 * getItem
@@ -412,12 +406,28 @@ public class DisplayResource
 		return value;
 	}
 
+	/**
+	 * addLinkAsText
+	 *
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		XX/XX/2012	Rahul Khanna (RK)		Initial
+	 * 0.9		16/10/2012	Genevieve Turner(GT)	Fixed an issue with info:fedora being appended
+	 * </pre>
+	 * 
+	 * @param relPid Related pid
+	 * @param linkType The relation type
+	 * @param itemId The related item id
+	 * @return
+	 */
 	@POST
-	@Path("/addLink/{pid}")
+	@Path("/addLink/{item}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.TEXT_PLAIN)
-	public Response addLinkAsText(@PathParam("pid") String relPid, @FormParam("linkType") String linkType, @FormParam("itemId") String itemId)
+	public Response addLinkAsText(@PathParam("item") String relPid, @FormParam("linkType") String linkType, @FormParam("itemId") String itemId)
 	{
 		Response resp = null;
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(relPid);
@@ -430,8 +440,9 @@ public class DisplayResource
 			if (itemId == null || itemId.length() == 0)
 				throw new IllegalArgumentException("itemId not provided.");
 			String nsPrefix = "info:fedora/";
-			if (!itemId.toLowerCase().startsWith(nsPrefix))
+			if (!itemId.toLowerCase().startsWith("http://") && !itemId.toLowerCase().startsWith(nsPrefix)) {
 				itemId = MessageFormat.format("{0}{1}", nsPrefix, itemId);
+			}
 			fedoraObjectService.addLink(fedoraObject, linkType, itemId);
 			resp = Response.ok("OK", MediaType.TEXT_PLAIN_TYPE).build();
 		}

@@ -24,6 +24,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.sparql.Result;
@@ -166,7 +167,7 @@ public class ReadyResource {
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("itemList", reviewReadyList);
 		values.put("resultList", results);
-		values.put("title", "Ready for Review");
+		values.put("title", GlobalProps.getProperty(GlobalProps.PROP_REVIEW_READY_TITLE));
 		
 		Viewable viewable = new Viewable("/status_lists.jsp", values);
 		return Response.ok(viewable).build();
@@ -198,7 +199,7 @@ public class ReadyResource {
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("itemList", rejectedList);
 		values.put("resultList", results);
-		values.put("title", "Rejected");
+		values.put("title", GlobalProps.getProperty(GlobalProps.PROP_REVIEW_REJECTED_TITLE));
 		
 		Viewable viewable = new Viewable("/status_lists.jsp", values);
 		return Response.ok(viewable).build();
@@ -230,7 +231,7 @@ public class ReadyResource {
 		Map<String, Object> values = new HashMap<String, Object>();
 		values.put("itemList", publishReadyList);
 		values.put("resultList", results);
-		values.put("title", "Ready for Publish");
+		values.put("title", GlobalProps.getProperty(GlobalProps.PROP_PUBLISH_READY_TITLE));
 		
 		Viewable viewable = new Viewable("/status_lists.jsp", values);
 		return Response.ok(viewable).build();

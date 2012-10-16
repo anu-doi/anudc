@@ -21,6 +21,7 @@ import com.yourmediashelf.fedora.client.request.Ingest;
 import com.yourmediashelf.fedora.client.request.ListDatastreams;
 import com.yourmediashelf.fedora.client.request.ModifyDatastream;
 import com.yourmediashelf.fedora.client.request.PurgeDatastream;
+import com.yourmediashelf.fedora.client.request.PurgeRelationship;
 import com.yourmediashelf.fedora.client.response.AddDatastreamResponse;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import com.yourmediashelf.fedora.client.response.IngestResponse;
@@ -204,6 +205,13 @@ public class FedoraBroker {
 	public static boolean addRelationship (String pid, FedoraReference reference)
 			throws FedoraClientException {
 		FedoraResponse relResponse = new AddRelationship(pid).predicate(reference.getPredicate_()).object(reference.getObject_()).isLiteral(reference.getIsLiteral_()).execute(fedoraClient_);
+		
+		return true;
+	}
+	
+	public static boolean removeRelationship (String pid, FedoraReference reference)
+			throws FedoraClientException {
+		FedoraResponse relResponse = new PurgeRelationship(pid).predicate(reference.getPredicate_()).object(reference.getObject_()).isLiteral(reference.getIsLiteral_()).execute(fedoraClient_);
 		
 		return true;
 	}

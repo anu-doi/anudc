@@ -66,12 +66,12 @@
 						<option value="addsValueTo">addsValueTo</option>
 					</select>
 				</p>
-				<p>Please either search for an item in ANU Data Commons or provide a NLA Identifier</p>
+				<p>Please either search for an item in ANU Data Commons or provide an External Identifier such as a NLA Identifier or a PURL</p>
 				<p><label for="itemSearch" title="Search for an item to link to from ANU Data Commons">Item Search</label><input type="text" id="itemSearch" name="itemSearch" /></p>
 				<p><label for="itemIdentifier">Item Id</label><div id="itemIdentifier">None Selected</div></p>
 				<p><label for="itemName">Item Name</label><div id="itemName">None Selected</div></p>
 				<p class="hidden"><label for="itemId">Item Full Id</label><div class="hidden" id="itemId">None Selected</div></p>
-				<p><label for="nlaId">NLA Identifier</label><input type="text" id="nlaId" name="nlaId" />
+				<p><label for="linkExternal">External Identifier</label><input type="text" id="linkExternal" name="linkExternal" />
 				<p><input id="btnAddLink" type="submit" value="Submit" /></p>
 			</form>
 		</div>
