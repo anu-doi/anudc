@@ -11,8 +11,18 @@
 		<xsl:variable name="template" select="." />
 		<html>
 			<body>
-				<h1><xsl:value-of select="template/name" /></h1>
-				<form id="form" method="post" action="new?layout=def:display&amp;tmplt={$tmplt}&amp;item={$item}">
+				<xsl:choose>
+					<xsl:when test="$data = ''">
+						<h1><xsl:value-of select="template/name" /></h1>
+					</xsl:when>
+					<xsl:otherwise>
+						<h1><xsl:value-of select="$mData/data/name" /></h1>
+					</xsl:otherwise>
+				</xsl:choose>
+				<form id="form" method="post">
+				<xsl:if test="$data = ''">
+					<xsl:attribute name="action">new?layout=def:display&amp;tmplt=<xsl:value-of select="$tmplt" />&amp;item=<xsl:value-of select="$item" /></xsl:attribute>
+				</xsl:if>
 				<input type="submit" class="right" value="Submit" /><br/>
 				<div id="tabs" class="pagetabs-nav">
 					<ul>
@@ -55,11 +65,14 @@
 	</xsl:template>
 	
 	<xsl:template name="field">
+		<xsl:variable name="mName" select="@name" />
 		<div class="field">
 			<xsl:choose>
 				<xsl:when test="@fieldType='TextField'">
 					<xsl:call-template name="Label" />
-					<xsl:call-template name="TextField" />
+					<xsl:call-template name="TextField">
+						<xsl:with-param name="mValue"><xsl:if test="$data != ''"><xsl:value-of select="$mData/data/*[name() = $mName]" /></xsl:if></xsl:with-param>
+					</xsl:call-template>
 				</xsl:when>
 				<xsl:when test="@fieldType='TextFieldMulti'">
 					<xsl:call-template name="Label" />
@@ -67,11 +80,15 @@
 				</xsl:when>
 				<xsl:when test="@fieldType='TextArea'">
 					<xsl:call-template name="Label" />
-					<xsl:call-template name="TextArea" />
+					<xsl:call-template name="TextArea">
+						<xsl:with-param name="mValue"><xsl:if test="$data != ''"><xsl:value-of select="$mData/data/*[name() = $mName]" /></xsl:if></xsl:with-param>
+					</xsl:call-template>
 				</xsl:when>
 				<xsl:when test="@fieldType='Combobox'">
 					<xsl:call-template name="Label" />
-					<xsl:call-template name="ComboBox" />
+					<xsl:call-template name="ComboBox">
+						<xsl:with-param name="mValue"><xsl:if test="$data != ''"><xsl:value-of select="$mData/data/*[name() = $mName]" /></xsl:if></xsl:with-param>
+					</xsl:call-template>
 				</xsl:when>
 				<xsl:when test="@fieldType='ComboBoxMulti'">
 					<xsl:call-template name="Label" />
@@ -87,7 +104,9 @@
 				</xsl:when>
 				<xsl:when test="@fieldType='RadioButton'">
 					<xsl:call-template name="Label" />
-					<xsl:call-template name="RadioButton" />
+					<xsl:call-template name="RadioButton">
+						<xsl:with-param name="mValue"><xsl:if test="$data != ''"><xsl:value-of select="$mData/data/*[name() = $mName]" /></xsl:if></xsl:with-param>
+					</xsl:call-template>
 				</xsl:when>
 			</xsl:choose>
 		</div>
@@ -114,28 +133,54 @@
 	</xsl:template>
 	
 	<xsl:template name="TextField">
+		<xsl:param name="mValue" />
+		<xsl:variable name="mName" select="@name" />
 		<input type="text" name="{@name}" class="{@class}" maxlength="{@maxLength}">
 			<xsl:if test="@disabled = 'disabled'">
 				<xsl:attribute name="disabled"><xsl:value-of select="@disabled" /></xsl:attribute>
-				<xsl:attribute name="value"><xsl:value-of select="@defaultValue" /></xsl:attribute>
 			</xsl:if>
 			<xsl:if test="@readonly = 'readonly'">
 				<xsl:attribute name="readonly"><xsl:value-of select="@readonly" /></xsl:attribute>
-				<xsl:attribute name="value"><xsl:value-of select="@defaultValue" /></xsl:attribute>
 			</xsl:if>
+			<xsl:choose>
+				<xsl:when test="$data != ''"> 
+					<xsl:attribute name="value"><xsl:value-of select="$mValue" /></xsl:attribute>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:attribute name="value"><xsl:value-of select="@defaultValue" /></xsl:attribute>
+				</xsl:otherwise>
+			</xsl:choose>
 		</input>
 	</xsl:template>
 	
 	<xsl:template name="TextArea">
+		<xsl:param name="mValue" />
+		<xsl:variable name="mName" select="@name" />
 		<textarea name="{@name}" class="{@class}">
-			
+			<xsl:value-of select="$mValue" />
 		</textarea>
 	</xsl:template>
 	
 	<xsl:template name="TextFieldMulti">
+		<xsl:variable name="mName" select="@name" />
 		<input type="button" value="Add Row" onClick="addTableRow('{@name}')" />
 		<table id="{@name}">
 			<xsl:choose>
+				<xsl:when test="$mData/data/*[name() = $mName]">
+					<xsl:variable name="mCurrField" select="." />
+					<xsl:for-each select="$mData/data/*[name() = $mName]">
+						<tr>
+							<td>
+								<input type="text" name="{$mCurrField/@name}" class="{$mCurrField/@class}" maxlength="{$mCurrField/@maxLength}">
+									<xsl:attribute name="value"><xsl:value-of select="text()" /></xsl:attribute>
+								</input>
+							</td>
+							<td>
+								<input type="button" value="Remove" onClick="removeTableRow(this)" />
+							</td>
+						</tr>
+					</xsl:for-each>
+				</xsl:when>
 				<xsl:otherwise>
 					<tr>
 						<td>
@@ -151,38 +196,55 @@
 	</xsl:template>
 	
 	<xsl:template name="ComboBox">
+		<xsl:param name="mValue" />
 		<xsl:variable name="mName" select="@name" />
 		<select id="{@name}" name="{@name}" class="{@class}">
 			<option value="">
 				- No Value Selected -
 			</option>
-			<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option)"/>
+			<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option, $mValue)"/>
 		</select>
 	</xsl:template>
 	
 	<xsl:template name="ComboBoxMulti">
 		<xsl:variable name="mName" select="@name" />
+		<xsl:variable name="mCurrent" select="." />
 		<select id="{@name}2">
 			<option value=""></option>
 			<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option)"/>
 		</select>
 		<br />
 		<select id="{@name}" name="{@name}" class="{@class}" multiple="multiple">
-			
+			<xsl:if test="$data != ''">
+				<xsl:for-each select="$mData/data/*[name() = $mName]">
+					<xsl:variable name="mCurrText" select="text()" />
+					<option value="{$mCurrText}">
+						<xsl:value-of select="options:getOptionValue($mName, $mCurrent/option, $mCurrText)"/>
+					</option>
+				</xsl:for-each>
+			</xsl:if>
 		</select>
 		<br />
 		<input type="button" value="Remove Selected" onClick="removeSelected('{@name}')" />
 	</xsl:template>
 	
 	<xsl:template name="RadioButton">
+		<xsl:param name="mValue" />
 		<xsl:variable name="mName" select="@name" />
 		<xsl:for-each select="option">
-			<input type="radio" name="{$mName}" value="{@value}" /><xsl:value-of select="@label" />
+			<input type="radio" name="{$mName}" value="{@value}">
+				<xsl:if test="@value = $mValue">
+					<xsl:attribute name="checked">checked</xsl:attribute>
+				</xsl:if>
+			</input>
+			<xsl:value-of select="@label" />
 			<br/>
 		</xsl:for-each>
 	</xsl:template>
 	
 	<xsl:template name="Table">
+		<xsl:variable name="mName" select="@name" />
+		<xsl:variable name="mValue" select="." />
 		<input type="button" value="Add Row" onClick="addTableRow('{@name}')" />
 		<table id="{@name}">
 			<thead>
@@ -193,26 +255,62 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr>
-					<xsl:for-each select="column">
-						<td>
-							<xsl:choose>
-								<xsl:when test="@fieldType='TextField'">
-									<xsl:call-template name="TextField" />
-								</xsl:when>
-								<xsl:when test="@fieldType='TextArea'">
-									<xsl:call-template name="TextArea" />
-								</xsl:when>
-								<xsl:when test="@fieldType='Combobox'">
-									<xsl:call-template name="ComboBox" />
-								</xsl:when>
-							</xsl:choose>
-						</td>
-					</xsl:for-each>
-					<td>
-						<input type="button" value="Remove" onClick="removeTableRow(this)" />
-					</td>
-				</tr>
+				<xsl:choose>
+					<xsl:when test="$mData/data/*[name() = $mName]">
+						<xsl:for-each select="$mData/data/*[name() = $mName]">
+							<xsl:variable name="mRow" select="." />
+							<tr>
+								<xsl:for-each select="$mValue/column">
+									<xsl:variable name="mColName" select="@name" />
+									<td>
+									<xsl:choose>
+										<xsl:when test="@fieldType='TextField'">
+											<xsl:call-template name="TextField">
+												<xsl:with-param name="mValue"><xsl:value-of select="$mRow/*[name() = $mColName]" /></xsl:with-param>
+											</xsl:call-template>
+										</xsl:when>
+										<xsl:when test="@fieldType='TextArea'">
+											<xsl:call-template name="TextArea">
+												<xsl:with-param name="mValue"><xsl:value-of select="$mRow/*[name() = $mColName]" /></xsl:with-param>
+											</xsl:call-template>
+										</xsl:when>
+										<xsl:when test="@fieldType='Combobox'">
+											<xsl:call-template name="ComboBox">
+												<xsl:with-param name="mValue"><xsl:value-of select="$mRow/*[name() = $mColName]" /></xsl:with-param>
+											</xsl:call-template>
+										</xsl:when>
+									</xsl:choose>
+									</td>
+								</xsl:for-each>
+								<td>
+									<input type="button" value="Remove" onClick="removeTableRow(this)" />
+								</td>
+							</tr>
+						</xsl:for-each>
+					</xsl:when>
+					<xsl:otherwise>
+						<tr>
+							<xsl:for-each select="column">
+								<td>
+									<xsl:choose>
+										<xsl:when test="@fieldType='TextField'">
+											<xsl:call-template name="TextField" />
+										</xsl:when>
+										<xsl:when test="@fieldType='TextArea'">
+											<xsl:call-template name="TextArea" />
+										</xsl:when>
+										<xsl:when test="@fieldType='Combobox'">
+											<xsl:call-template name="ComboBox" />
+										</xsl:when>
+									</xsl:choose>
+								</td>
+							</xsl:for-each>
+							<td>
+								<input type="button" value="Remove" onClick="removeTableRow(this)" />
+							</td>
+						</tr>
+					</xsl:otherwise>
+				</xsl:choose>
 			</tbody>
 		</table>
 	</xsl:template>
