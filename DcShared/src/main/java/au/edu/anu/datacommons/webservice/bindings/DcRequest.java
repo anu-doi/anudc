@@ -11,11 +11,12 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement
-public class Request
+@XmlRootElement(name = "request")
+public class DcRequest
 {
 	private String methodName;
 	private Activity activity;
+	private Collection collection;
 	
 	@XmlAttribute
 	public String getMethodName()
@@ -37,6 +38,17 @@ public class Request
 	public void setActivity(Activity activity)
 	{
 		this.activity = activity;
+	}
+	
+	@XmlElement
+	public Collection getCollection()
+	{
+		return collection;
+	}
+	
+	public void setCollection(Collection collection)
+	{
+		this.collection = collection;
 	}
 
 	@Override

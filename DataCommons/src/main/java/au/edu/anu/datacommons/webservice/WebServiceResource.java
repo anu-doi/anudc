@@ -39,7 +39,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -55,7 +57,9 @@ import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.webservice.bindings.Activity;
-import au.edu.anu.datacommons.webservice.bindings.Request;
+import au.edu.anu.datacommons.webservice.bindings.Collection;
+import au.edu.anu.datacommons.webservice.bindings.DcRequest;
+import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
 
 @Component
 @Scope("request")
@@ -173,64 +177,58 @@ public class WebServiceResource
 	{
 		Response resp = null;
 		Document respDoc = docBuilder.newDocument();
-		Element respRootElement = respDoc.createElement("response");
-		respDoc.appendChild(respRootElement);
+		respDoc.appendChild(respDoc.createElement("response"));
 
 		LOGGER.trace(getStringFromDoc(xmlDoc));
-		Request req;
+		DcRequest req;
 		try
 		{
-			req = (Request) um.unmarshal(xmlDoc);
+			req = (DcRequest) um.unmarshal(xmlDoc);
 
+			FedoraItem item;
 			if (req.getActivity() != null)
+				item = req.getActivity();
+			else if (req.getCollection() != null)
+				item = req.getCollection();
+			else
+				throw new NullPointerException("No item provided.");
+			
+			if (item.getPid() == null)
 			{
-				Activity activity = req.getActivity();
-				if (activity.getPid() == null)
-				{
-					// If Pid doesn't exist, create the object.
-					FedoraObject fo = fedoraObjectService.saveNew(req.getActivity());
-					String pidCreated = fo.getObject_id();
-					
-					// Create response element.
-					respRootElement.appendChild(createElement(respDoc, "status", pidCreated, new String[] {"action", "created"}));
-				}
-				else
-				{
-					if (activity.generateDataMap().size() > 0)
-					{
-						getFedoraObjectWriteAccess(activity.getPid());
-						// Pid exists, update the object.
-						FedoraObject fo = fedoraObjectService.saveEdit(activity);
-						respRootElement.appendChild(createElement(respDoc, "status", fo.getObject_id(), new String[] {"action", "updated"}));
-					}
-					else
-					{
-						getFedoraObjectReadAccess(activity.getPid());
-						// No fields specified, return object details.
-						InputStream dataStream = null;
-						try
-						{
-							dataStream = FedoraBroker.getDatastreamAsStream(activity.getPid(), Constants.XML_SOURCE);
-							respDoc = docBuilder.parse(dataStream);
-						}
-						finally
-						{
-							IOUtils.closeQuietly(dataStream);
-						}
-					}
-				}
+				// Create
+				Element el = createItem(item, respDoc);
+				respDoc.getDocumentElement().appendChild(el);
 			}
+			else if (item.generateDataMap().size() > 0)
+			{
+				// Update
+				Element el = updateItem(item, respDoc);
+				respDoc.getDocumentElement().appendChild(el);
+			}
+			else
+			{
+				// Query
+				Element el = getDatastream(item, respDoc);
+				respDoc.getDocumentElement().appendChild(el);
+			}
+			
+			if (item instanceof Collection)
+			{
+				// If collection, do extra stuff.
+				// TODO Implement.
+			}
+
+			resp = Response.ok(respDoc).build();
 		}
 		catch (Exception e)
 		{
-			respRootElement.appendChild(createElement(respDoc, "error", e.getMessage()));
+			respDoc.getDocumentElement().appendChild(createElement(respDoc, "error", e.getMessage()));
+			resp = Response.serverError().entity(e.toString()).build();
 		}
-
-		resp = Response.ok(respDoc).build();
 
 		return resp;
 	}
-	
+
 	/**
 	 * Creates an element with a tagName, textContent and pairs of attribute key and value pairs. For example,
 	 * 
@@ -261,7 +259,7 @@ public class WebServiceResource
 		el.setTextContent(textContent);
 		for (String[] attr : attrs)
 			el.setAttribute(attr[0], attr[1]);
-		
+
 		return el;
 	}
 
@@ -326,7 +324,7 @@ public class WebServiceResource
 	{
 		return getFedoraObject(pid);
 	}
-	
+
 	private FedoraObject getFedoraObject(String pid)
 	{
 		LOGGER.debug("Retrieving object for: {}", pid);
@@ -340,5 +338,94 @@ public class WebServiceResource
 		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
 		FedoraObject fo = (FedoraObject) object.getSingleByName(decodedpid);
 		return fo;
+	}
+	
+	private Element createItem(FedoraItem item, Document doc) throws FedoraClientException, JAXBException
+	{
+		FedoraObject fo = fedoraObjectService.saveNew(item);
+		String pidCreated = fo.getObject_id();
+		
+		InputStream dataStream = null;
+		Element el = createElement(doc, "status", "", new String[] { "action", "created" }, new String[] { "pid", pidCreated });
+		try
+		{
+			dataStream = FedoraBroker.getDatastreamAsStream(pidCreated, Constants.XML_SOURCE);
+			el.appendChild(doc.adoptNode(docBuilder.parse(dataStream).getDocumentElement()));
+		}
+		catch (FedoraClientException e)
+		{
+			// Catching exception when datastream can't be read instead of throwing it as the item's been created.
+			LOGGER.warn(e.getMessage(), e);
+		}
+		catch (DOMException e)
+		{
+			LOGGER.warn(e.getMessage(), e);
+		}
+		catch (SAXException e)
+		{
+			LOGGER.warn(e.getMessage(), e);
+		}
+		catch (IOException e)
+		{
+			LOGGER.warn(e.getMessage(), e);
+		}
+		finally
+		{
+			IOUtils.closeQuietly(dataStream);
+		}
+		
+		return el;
+	}
+	
+	private Element updateItem(FedoraItem item, Document doc) throws FedoraClientException, JAXBException
+	{
+		getFedoraObjectWriteAccess(item.getPid());
+		FedoraObject fo = fedoraObjectService.saveEdit(item);
+		Element el = createElement(doc, "status", "", new String[] { "action", "updated" }, new String[] { "pid", fo.getObject_id() });
+		InputStream dataStream = null;
+		try
+		{
+			dataStream = FedoraBroker.getDatastreamAsStream(fo.getObject_id(), Constants.XML_SOURCE);
+			el.appendChild(doc.adoptNode(docBuilder.parse(dataStream).getDocumentElement()));
+		}
+		catch (FedoraClientException e)
+		{
+			// Catching exception when datastream can't be read instead of throwing it as the item's been updated.
+			LOGGER.warn(e.getMessage(), e);
+		}
+		catch (DOMException e)
+		{
+			LOGGER.warn(e.getMessage(), e);
+		}
+		catch (SAXException e)
+		{
+			LOGGER.warn(e.getMessage(), e);
+		}
+		catch (IOException e)
+		{
+			LOGGER.warn(e.getMessage(), e);
+		}
+		finally
+		{
+			IOUtils.closeQuietly(dataStream);
+		}
+		return el;
+	}
+	
+	private Element getDatastream(FedoraItem item, Document doc) throws FedoraClientException, DOMException, SAXException, IOException
+	{
+		getFedoraObjectReadAccess(item.getPid());
+		InputStream dataStream = null;
+		Element el = createElement(doc, "status", "", new String[] {"action", "query"}, new String[] {"pid", item.getPid() });
+		try
+		{
+			dataStream = FedoraBroker.getDatastreamAsStream(item.getPid(), Constants.XML_SOURCE);
+			el.appendChild(doc.adoptNode(docBuilder.parse(dataStream).getDocumentElement()));
+		}
+		finally
+		{
+			IOUtils.closeQuietly(dataStream);
+		}
+		return el;
 	}
 }
