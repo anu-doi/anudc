@@ -166,7 +166,7 @@
 		<input type="button" value="Add Row" onClick="addTableRow('{@name}')" />
 		<table id="{@name}">
 			<xsl:choose>
-				<xsl:when test="$mData/data/*[name() = $mName]">
+				<xsl:when test="$data != '' and $mData/data/*[name() = $mName]">
 					<xsl:variable name="mCurrField" select="." />
 					<xsl:for-each select="$mData/data/*[name() = $mName]">
 						<tr>
@@ -256,7 +256,7 @@
 			</thead>
 			<tbody>
 				<xsl:choose>
-					<xsl:when test="$mData/data/*[name() = $mName]">
+					<xsl:when test="$data != '' and $mData/data/*[name() = $mName]">
 						<xsl:for-each select="$mData/data/*[name() = $mName]">
 							<xsl:variable name="mRow" select="." />
 							<tr>
