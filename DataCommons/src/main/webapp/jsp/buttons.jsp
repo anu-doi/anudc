@@ -33,12 +33,21 @@
 					</p>
 				</sec:accesscontrollist>
 				<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">
-					<c:url value="/rest/display/edit/${it.fedoraObject.object_id}" var="editLink">
+					<c:set var="editBaseURL" value="/rest/display/edit/${it.fedoraObject.object_id}" />
+					<c:url value="${editBaseURL}" var="editLink">
 						<c:param name="tmplt" value="${param.tmplt}" />
 						<c:param name="layout" value="${param.layout}" />
 					</c:url>
+					<c:url value="${editBaseURL}" var="fullEditLink">
+						<c:param name="tmplt" value="${param.tmplt}" />
+						<c:param name="layout" value="${param.layout}" />
+						<c:param name="style" value="full" />
+					</c:url>
 					<p>
 						<input type="button" id="editButton" name="editButton" value="Edit Metadata" onclick="window.location='${editLink}'" />
+					</p>
+					<p>
+						<input type="button" id="fullEditButton" name="fullEditButton" value="Edit Whole Metadata" onclick="window.location='${fullEditLink}'" />
 					</p>
 				</sec:accesscontrollist>
 				<c:if test="${it.itemType == 'Collection'}">

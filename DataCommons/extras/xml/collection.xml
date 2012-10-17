@@ -108,7 +108,7 @@
 			<option value="kmlPolyCoords" label="Keyhol Markup Language co-ordinates defining a polygon" />
 			<option value="dcmiPpoint" label="Spatial Location Information in DCMI Point Notation" />
 		</column>
-		<column name="covAreaValue" fieldType="TextField" />
+		<column name="covAreaValue" label="Location Value" fieldType="TextField" />
 	</item>
 	<item name="citationYear" label="Year of data publication" fieldType="TextField" saveType="single" tab="description">
 		<tooltip>The year the data was first published for citation purposes. If this field is not populated when publishing it will default to the year it is published in ANU Data Commons</tooltip>
@@ -153,16 +153,16 @@
 	</item>
 	<item name="licenceType" label="Licence Type" fieldType="Combobox" saveType="single" tab="rights">
 		<tooltip>Further information on the licence types can be found at http://www.ausgoal.gov.au/the-ausgoal-licence-suite&#xA;&#xA;Attribution - This licence lets others distribute, remix, tweak, and build upon your work, even commercially, as long as they credit you for the original creation. This is the most accomodating of licences offered. Recommended for maximum dissemination and use of licenced materials.&#xA;Attribution-shareAlike - This licence lets others remix, tweak and build upon your work even for commercial purposes, as long as they credit you and licence their new creations under identical terms. This licence is often compared to 'copyleft' free and open source software licences. All new works based on yours will carry the same licence, so any derivatives will also allow commercial use. This is the licence used by Wikipedia, and is recommended for materials that would benefit from incorporating content from Wikipedia and similarly licenced projects.&#xA;Attribution-NoDerivatives - This licence allows for redistribution, commercial and non-commercial, as long as it is passed along unchanged and in whole, with credit to you.&#xA;Attribution-NonCommercial - This licence lets other remix, tweak and build upon your work non-commercially, and although their new works must also acknowledge you and be non-commercial, they don't have to licence their derivative works on the same terms.&#xA;Attribution-NonCommercial-ShareAlike - This licence lets others remix, tweak, and build upon your work non-commercially, as long as they credit you and licence their new creations under the identical terms.&#xA;Attribution-NonCommercial-NoDerivatives - This licence is the most restrictive of AusGoal's six main licences, only allowing others to download your works and share them with others as long as they credit you, but they can't change them in any way or use them commercially.&#xA;General Public Licence - The GNU General Public Licence is a free, copyleft licence for software and other kinds of works. Further information can be found at http://www.gnu.org/copyleft/gpl.html&#xA;AusGoal Restrictive Licence - This licence has been developed specifically for mateiral that may contain personal or other confidential information. It may also be used for other reasons, including material to be licenced under some form of limiting or restrictive condiation (e.g. a time limit on use, or payment arrangements others than an initial once-only fee).</tooltip>
-		<option value="CC-BY" label="Attribution" />
-		<option value="CC-BY-SA" label="Attribution-SharedAlice" />
-		<option value="CC-BY-ND" label="Attribution-NoDervis" />
-		<option value="CC-BY-NC" label="Attribution-NonCommercial" />
-		<option value="CC-BY-NC-SA" label="Attribution-NonCommercial-SharedAlike" />
-		<option value="CC-BY-NC-ND" label="Attribution-NonCommercial-NoDervis" />
-		<option value="GPL" label="GNU General Public Licence" />
-		<option value="AusGoalRestrictive" label="AusGoal Restrictive Licence" />
-		<option value="NoLicence" label="No licence" />
-		<option value="Unknown/Other" label="Unknown licence or record provider defined licence" />
+		<option value="CC-BY" label="CC-BY - Attribution" />
+		<option value="CC-BY-SA" label="CC-BY-SA - Attribution-SharedAlice" />
+		<option value="CC-BY-ND" label="CC-BY-ND - Attribution-NoDervis" />
+		<option value="CC-BY-NC" label="CC-BY-NC - Attribution-NonCommercial" />
+		<option value="CC-BY-NC-SA" label="CC-BY-NC-SA - Attribution-NonCommercial-SharedAlike" />
+		<option value="CC-BY-NC-ND" label="CC-BY-NC-ND - Attribution-NonCommercial-NoDervis" />
+		<option value="GPL" label="GPL - GNU General Public Licence" />
+		<option value="AusGoalRestrictive" label="AusGoalRestrictive - AusGoal Restrictive Licence" />
+		<option value="NoLicence" label="NoLicence - No licence" />
+		<option value="Unknown/Other" label="Unknown/Other - Unknown licence or record provider defined licence" />
 	</item>
 	<item name="licence" label="Licence" fieldType="TextArea" saveType="single" tab="rights">
 		<tooltip>Licence Information</tooltip>

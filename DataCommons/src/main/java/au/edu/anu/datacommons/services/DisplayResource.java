@@ -53,6 +53,8 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.6		28/06/2012	Rahul Khanna (RK)		Fixed failure condition
  * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
  * 0.8		11/09/2012	Genevieve Turner (GT)	Updated to reject creation of groups when the user does not have permissions
+ * 0.9		16/10/2012	Genevieve Turner(GT)	Fixed an issue with info:fedora being appended in linkItemAsText
+ * 0.10		17/10/2012	Genevieve Turner (GT)	Updated to support a full page edit
  * </pre>
  */
 @Component
@@ -274,9 +276,6 @@ public class DisplayResource
 	public String getEditItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item,
 			@PathParam("fieldName") String fieldName)
 	{
-		LOGGER.info("PID: {}", item);
-		LOGGER.info("Template: x{}x", tmplt);
-		LOGGER.info("Layout: x{}x", layout);
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		String fields = fedoraObjectService.getEditItem(fedoraObject, layout, tmplt, fieldName);
 		return fields;
@@ -291,6 +290,7 @@ public class DisplayResource
 	 * Version	Date		Developer				Description
 	 * 0.4		29/03/2012	Genevieve Turner (GT)	Added
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
+	 * 0.10		17/10/2012	Genevieve Turner (GT)	Updated to support a full page edit
 	 * </pre>
 	 * 
 	 * @param layout
@@ -305,10 +305,19 @@ public class DisplayResource
 	@Path("/edit/{item}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Produces(MediaType.TEXT_HTML)
-	public Response editItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item)
+	public Response editItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("style") String style, @PathParam("item") String item)
 	{
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
-		Map<String, Object> values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt);
+		Map<String, Object> values = null;
+		if ("full".equals(style)) {
+			values = fedoraObjectService.getEditPage(fedoraObject, "def:new", tmplt);
+			values.remove("sidepage");
+		}
+		else {
+			values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt);
+		}
+		
+		//Map<String, Object> values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt);
 		Viewable viewable = new Viewable((String) values.remove("topage"), values);
 
 		return Response.ok(viewable).build();
@@ -324,6 +333,7 @@ public class DisplayResource
 	 * 0.4		29/03/2012	Genevieve Turner (GT)	Added
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
 	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
+	 * 0.10		17/10/2012	Genevieve Turner (GT)	Updated to support a full page edit
 	 * </pre>
 	 * 
 	 * @param layout
@@ -341,7 +351,8 @@ public class DisplayResource
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.TEXT_HTML)
-	public Response editChangeItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String pid,
+	public Response editChangeItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, 
+			@QueryParam("style") String style, @PathParam("item") String pid,
 			@Context HttpServletRequest request)
 	{
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
@@ -361,6 +372,9 @@ public class DisplayResource
 			if (Util.isNotEmpty(tmplt))
 			{
 				uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
+			}
+			if (Util.isNotEmpty(style)) {
+				uriBuilder = uriBuilder.queryParam("style", style);
 			}
 		}
 		return Response.seeOther(uriBuilder.build()).build();
