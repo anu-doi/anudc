@@ -284,6 +284,10 @@
 					<groupId>org.bouncycastle</groupId>
 					<artifactId>bctsp-jdk14</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.poi</groupId>
+					<artifactId>poi-ooxml</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 	</dependencies>
