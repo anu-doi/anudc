@@ -70,8 +70,6 @@ public class PhenomicsResource
 			docBuilder = null;
 		}
 
-		client.addFilter(new LoggingFilter());
-
 		try
 		{
 			genericWsProps = new PropertiesFile(new File(Config.DIR, "phenomics-ws/genericws.properties"));

@@ -39,7 +39,6 @@ public class GatewayResource
 
 	static
 	{
-		client.addFilter(new LoggingFilter());
 		try
 		{
 			redirProps = new PropertiesFile(new File(Config.DIR, "gateway-ws/redir.properties"));
