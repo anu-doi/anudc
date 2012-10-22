@@ -13,6 +13,7 @@
  * 0.6		14/08/2012	Genevieve Turner (GT)	Updated link functionality such that it does not display the qualified id
  * 0.7		28/08/2012	Genevieve Turner (GT)	Added amendments for enabling the addition of nla identifiers
  * 0.8		19/09/2012	Genevieve Turner (GT)	Updated to retrieve link types from the database
+ * 0.9		22/10/2012	Genevieve Turner (GT)	Added code for removal and editing of links
  */
 
 /**
@@ -91,6 +92,8 @@ jQuery(document).ready(function() {
 });
 
 var linkPopupStatus = 0;
+var editLinkPopupStatus = 0;
+var editMode = 0;
 
 /**
  * Centre and open the popup
@@ -105,12 +108,220 @@ jQuery("#itemLinkButton").live('click', function(){
 	jQuery("#itemName").text('None Selected');
 	jQuery("#itemId").val('');
 	jQuery("#linkExternal").val('');
+	jQuery("#previousLinkType").val('');
+	editMode = 0;
 	centrePopup("#popupLink");
 	linkPopupStatus = loadPopup("#popupLink", linkPopupStatus);
 });
 
 /**
- * Close the popup when the close button as been clicked
+ * Retrieve the relationships to this object and open a popup with them
+ * 
+ * Version	Date		Developer				Description
+ * 0.9		22/10/2012	Genevieve Turner (GT)	Initial
+ */
+jQuery("#editLinkButton").live('click', function(){
+	getLinks();
+	centrePopup("#popupEditLink");
+	editLinkPopupStatus = loadPopup("#popupEditLink", editLinkPopupStatus);
+});
+
+/**
+ * getLinks
+ * 
+ * Retrieve the links associated with the current object
+ * 
+ * Version	Date		Developer				Description
+ * 0.9		22/10/2012	Genevieve Turner (GT)	Initial
+ */
+function getLinks() {
+	var pathArray = window.location.pathname.split('/');
+	var pid = pathArray[pathArray.length - 1];
+	var urlStr = "/DataCommons/rest/display/getLinks/" + pid;
+	
+	jQuery.ajax({
+		type: "GET",
+		url: urlStr,
+		success: function(data) {
+			var table = jQuery('<table></table>');
+			
+			jQuery.map(data.results, function(item, i) {
+				var row = jQuery('<tr></tr>');
+				var title = getItemTitle(item);
+				row.append(jQuery('<td></td>').text(title));
+				var relation = getRelationshipType(item.predicate);
+				row.append(jQuery('<td></td>').text(relation));
+				var editImg = jQuery('<img/>', {
+					src: 'http://styles.anu.edu.au/_anu/images/icons/silk/pencil.png',
+					title: 'Edit relationship ' + title,
+					click: function(e) {
+						editLink(item, this);
+					}
+				});
+				row.append(jQuery('<td></td>').html(editImg));
+				
+				var deleteImg = jQuery('<img/>', {
+					src: 'http://styles.anu.edu.au/_anu/images/icons/silk/cross.png',
+					title: 'Delete relationship ' + item.title,
+					click: function(e) {
+						deleteLink(item, this);
+					}
+				});
+				row.append(jQuery('<td></td>').html(deleteImg));
+				table.append(row);
+			});
+			jQuery('#editLinkContent').html(table);
+		}
+	});
+}
+
+/**
+ * deleteLink
+ * 
+ * Version	Date		Developer				Description
+ * 0.9		22/10/2012	Genevieve Turner (GT)	Initial
+ * 
+ * @param item The item for which you are deleting the link
+ * @param row The row in the table for which the link is contained
+ */
+function deleteLink(item, row) {
+	var pid = getPid();
+	var relation = getRelationshipType(item.predicate);
+	var urlStr = '/DataCommons/rest/display/removeLink/' + pid;
+	jQuery.ajax({
+		type: "POST",
+		url: urlStr,
+		data: {
+			itemId: item.item
+			,linkType: relation
+		},
+		success: function(data) {
+			if (row) {
+				jQuery(row).closest('tr').remove();
+			}
+		},
+		error: function() {
+			alert('Error removing link');
+		}
+	});
+}
+
+/**
+ * editLink
+ * 
+ * Opens closes the edit link dialog and opens the link item dialog and populates
+ * the dialog with the selected records information
+ * 
+ * Version	Date		Developer				Description
+ * 0.9		22/10/2012	Genevieve Turner (GT)	Initial
+ * 
+ * @param item The item for which you are editing the link
+ * @param row The row in the table for which the link is contained
+ */
+function editLink(item, row) {
+	var title = getItemTitle(item);
+	var relation = getRelationshipType(item.predicate);
+	
+	linkPopupStatus = disablePopup("#popupEditLink", editLinkPopupStatus);
+	jQuery("#linkItemType").val(item.type);
+	jQuery("#linkItemType").trigger('change');
+	var pid = getPidFromInfo(item.item);
+	
+	editMode = 1;
+	centrePopup("#popupLink");
+	linkPopupStatus = loadPopup("#popupLink", linkPopupStatus);
+	
+	if (pid) {
+		jQuery("#itemIdentifier").text(pid);
+		jQuery("#linkExternal").val('');
+		jQuery("#itemName").text(title);
+		jQuery("#itemId").text(item.item);
+	}
+	else {
+		jQuery("#itemIdentifier").text('None Selected');
+		jQuery("#itemName").text('None Selected');
+		jQuery("#linkExternal").val(item.item);
+		jQuery("#itemId").val('');
+	}
+	jQuery("#previousLinkType").val(relation);
+	//Because the possible relationship types are returned after this is set this does not work
+	jQuery("#linkType").val(relation);
+}
+
+/**
+ * getPid
+ * 
+ * Retrieves the pid from the path
+ * 
+ * Version	Date		Developer				Description
+ * 0.9		22/10/2012	Genevieve Turner (GT)	Initial
+ * 
+ * @returns The pid
+ */
+function getPid() {
+	var pathArray = window.location.pathname.split('/');
+	var pid = pathArray[pathArray.length - 1];
+	return pid;
+}
+
+/**
+ * getRelationshipType
+ * 
+ * Removes the namespace from the relationship type
+ * 
+ * Version	Date		Developer				Description
+ * 0.9		22/10/2012	Genevieve Turner (GT)	Initial
+ * 
+ * @param relationship
+ * @returns
+ */
+function getRelationshipType(relationship) {
+	var relation = relationship.substring(26);
+	return relation;
+}
+
+/**
+ * getPidFromInfo
+ * 
+ * Removes the info:fedora from in front of a pid
+ * 
+ * Version	Date		Developer				Description
+ * 0.9		22/10/2012	Genevieve Turner (GT)	Initial
+ * 
+ * @param pid The pid to retrieve
+ * @returns The pid without the info:fedora
+ */
+function getPidFromInfo(pid) {
+	var results = pid.match(/info:fedora\/(.*)/);
+	if (results) {
+		return results[1];
+	}
+}
+
+/**
+ * getItemTitle
+ * 
+ * Gets the items title.
+ * 
+ * Version	Date		Developer				Description
+ * 0.9		22/10/2012	Genevieve Turner (GT)	Initial
+ * 
+ * @param item The item to get the title for
+ * @returns {String} The title
+ */
+function getItemTitle(item) {
+	var title = '';
+	if (item.title) {
+		title = item.title;
+	}
+	else {
+		title = item.item;
+	}
+	return title;
+}
+
+/**
+ * Close the popup when the close button has been clicked
  * 
  * Version	Date		Developer				Description
  * 0.1		07/05/2012	Genevieve Turner (GT)	Initial
@@ -121,6 +332,16 @@ jQuery("#popupLinkClose").live('click', function(){
 });
 
 /**
+ * Close the edit link popup when the close button has been clicked
+ * 
+ * Version	Date		Developer				Description
+ * 0.9		22/10/2012	Genevieve Turner (GT)	Initial
+ */
+jQuery("#popupEditLinkClose").live('click', function(){
+	linkPopupStatus = disablePopup("#popupEditLink", editLinkPopupStatus);
+});
+
+/**
  * Close the popup when the background has been clicked
  * 
  * Version	Date		Developer				Description
@@ -128,7 +349,12 @@ jQuery("#popupLinkClose").live('click', function(){
  * 0.5		24/07/2012	Genevieve Turner (GT)	Moved loadPopup,centrePopup and disablePopup functions to popup.js
  */
 jQuery("#backgroundPopup").live('click', function() {
-	linkPopupStatus = disablePopup("#popupLink", linkPopupStatus);
+	if (linkPopupStatus == 1) {
+		linkPopupStatus = disablePopup("#popupLink", linkPopupStatus);
+	}
+	if (editLinkPopupStatus == 1) {
+		editLinkPopupStatus = disablePopup("#popupEditLink", editLinkPopupStatus);
+	}
 });
 
 /**
@@ -141,6 +367,9 @@ jQuery("#backgroundPopup").live('click', function() {
 jQuery(document).keypress(function(e) {
 	if(e.keyCode==27 && linkPopupStatus==1) {
 		linkPopupStatus = disablePopup("#popupLink", linkPopupStatus);
+	}
+	if(e.keyCode==27 && editLinkPopupStatus==1) {
+		editLinkPopupStatus = disablePopup("#popupEditLink", editLinkPopupStatus);
 	}
 });
 
@@ -155,20 +384,30 @@ jQuery(document).keypress(function(e) {
  * 0.7		28/08/2012	Genevieve Turner (GT)	Added amendments for enabling the addition of nla identifiers
  */
 jQuery("#formAddLink").live('submit', function() {
-	var pathArray = window.location.pathname.split('/');
-	var pid = pathArray[pathArray.length - 1];
-	var urlStr = "/DataCommons/rest/display/addLink/" + pid;
+	var pid = getPid();
+	var urlStr = '';
+	if (editMode == 1) {
+		urlStr = "/DataCommons/rest/display/editLink/" + pid;
+	}
+	else {
+		urlStr = "/DataCommons/rest/display/addLink/" + pid;
+	}
 	var typeStr = jQuery("#linkType").val();
 	var itemStr = jQuery("#itemId").text();
+	var previousTypeStr = jQuery("#previousLinkType").val();
 	
 	if (itemStr == '' || itemStr == 'None Selected') {
 		itemStr = jQuery("#linkExternal").val();
 	}
-	var dataString = 'linkType=' + typeStr + '&itemId=' + itemStr;
+//	var dataString = 'linkType=' + typeStr + '&itemId=' + itemStr;
 	jQuery.ajax({
 		type: "POST",
 		url: urlStr,
-		data: dataString,
+		data: {
+			linkType: typeStr,
+			itemId: itemStr,
+			removeLinkType: previousTypeStr
+		},
 		success: function() {
 			linkPopupStatus = disablePopup("#popupLink", linkPopupStatus);
 		},

@@ -89,6 +89,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.18		19/09/2012	Genevieve Turner (GT)	Updated to add a row to the audit log table for review statuses
  * 0.19		27/09/2012	Genevieve Turner (GT)	Updated to generate reverse links
  * 0.20		15/10/2012	Genevieve Turner (GT)	Modified/Added some functions surrounding publication
+ * 0.21		22/10/2012	Genevieve Turner (GT)	Added link removal and chagned getLinks method to be public
  * </pre>
  * 
  */
@@ -397,6 +398,43 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	}
 	
 	/**
+	 * removeLink
+	 * 
+	 * Remove the specified link with the object
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.21		22/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedoraObject to remove an association with
+	 * @param linkType The relationship type to remove
+	 * @param itemId The item to remove the relationship from
+	 * @throws FedoraClientException
+	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#removeLink(au.edu.anu.datacommons.data.db.model.FedoraObject, java.lang.String, java.lang.String)
+	 */
+	public void removeLink(FedoraObject fedoraObject, String linkType, String itemId)
+			throws FedoraClientException {
+		String link = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI);
+		
+		LinkTypeDAO linkTypeDAO = new LinkTypeDAOImpl(LinkType.class);
+		LinkType linkTypeRecord = linkTypeDAO.getByCode(linkType);
+		if (null == linkTypeRecord) {
+			throw new WebApplicationException(Response.status(400).entity("Invalid relation type").build());
+		}
+		
+		FedoraReference reference = new FedoraReference();
+		String referenceType = linkType;
+		String referenceItem = itemId;
+		
+		reference.setPredicate_(link + referenceType);
+		reference.setObject_(referenceItem);
+		reference.setIsLiteral_(Boolean.FALSE);
+		FedoraBroker.removeRelationship(fedoraObject.getObject_id(), reference);
+		//TODO remove reverse link
+	}
+	
+	/**
 	 * getPage
 	 * 
 	 * Retrieves a page for the given values
@@ -489,17 +527,19 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.7		08/06/2012	Genevieve Turner (GT)	Updated to cater for change to post method in the riSearchService
 	 * 0.17		28/08/2012	Genevieve Turner (GT)	Added the display of reverse links
 	 * 0.19		28/09/2012	Genevieve Turner (GT)	Updated so reverse links are not displayed
+	 * 0.21		22/10/2012	Genevieve Turner (GT)	Made this method public
 	 * </pre>
 	 * 
 	 * @param fedoraObject The object to retrieve the links for
 	 * @return The results of the query
 	 */
-	private List<Result> getLinks(FedoraObject fedoraObject) {
+	public List<Result> getLinks(FedoraObject fedoraObject) {
 		SparqlQuery sparqlQuery = new SparqlQuery();
 		
 		sparqlQuery.addVar("?item");
 		sparqlQuery.addVar("?title");
 		sparqlQuery.addVar("?predicate");
+		sparqlQuery.addVar("?type");
 		
 		sparqlQuery.addTriple("<info:fedora/" + fedoraObject.getObject_id() +">", "?predicate", "?item", Boolean.FALSE);
 		// GT - 20120928 - Note this code is only commended out as it may be placed back in at a later date.
@@ -516,6 +556,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		sparqlQuery.addTripleSet(tripleString.toString());
 		*/
 		sparqlQuery.addTriple("?item", "<dc:title>", "?title", true);
+		sparqlQuery.addTriple("?item", "<dc:type>", "?type", true);
 		String filterString = "regex(str(?predicate), '" + GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI) + "', 'i')";
 		sparqlQuery.addFilter(filterString, "");
 		

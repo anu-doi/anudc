@@ -22,11 +22,35 @@
 	font-size:13px;
 }
 
+#popupEditLink {
+	display:none;
+	position: fixed;
+	height: 400px;
+	width: 400px;
+	background: #FFFFFF;
+	border: 2px solid #cecece;
+	z-index: 2;
+	padding: 12px;
+	font-size: 13px;
+}
+
 #popupLink h1 {
 	text-align: left;
 }
 
 #popupLinkClose {
+	float: right;
+	font-size: 14px;
+	line-height: 14px;
+	right:6px;
+	top:4px;
+	position:abolute;
+	color:#6fa5fd;
+	font-weight:700;
+	display:block;
+}
+
+#popupEditLinkClose {
 	float: right;
 	font-size: 14px;
 	line-height: 14px;
@@ -49,4 +73,15 @@
 
 .hidden {
 	display: none;
+}
+
+#editLinkContent {
+	height: 350px;
+	overflow-y: auto;
+	width: width: 400px;
+}
+
+#editLinkContent table {
+	border-collapse: collapse;
+	width: 383px;
 }

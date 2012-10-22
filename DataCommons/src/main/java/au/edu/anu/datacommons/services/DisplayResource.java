@@ -4,6 +4,7 @@ import java.net.URI;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -15,6 +16,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -23,6 +25,9 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBException;
 
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -32,6 +37,8 @@ import org.springframework.stereotype.Component;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.util.Util;
+import au.edu.anu.datacommons.xml.sparql.Result;
+import au.edu.anu.datacommons.xml.sparql.ResultItem;
 
 import com.sun.jersey.api.view.Viewable;
 import com.yourmediashelf.fedora.client.FedoraClientException;
@@ -55,6 +62,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.8		11/09/2012	Genevieve Turner (GT)	Updated to reject creation of groups when the user does not have permissions
  * 0.9		16/10/2012	Genevieve Turner(GT)	Fixed an issue with info:fedora being appended in linkItemAsText
  * 0.10		17/10/2012	Genevieve Turner (GT)	Updated to support a full page edit
+ * 0.11		22/10/2012	Genevieve Turner (GT)	Updates to allow deletion/edit of relationships
  * </pre>
  */
 @Component
@@ -427,7 +435,7 @@ public class DisplayResource
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		XX/XX/2012	Rahul Khanna (RK)		Initial
+	 * 0.11		XX/XX/2012	Rahul Khanna (RK)		Initial
 	 * 0.9		16/10/2012	Genevieve Turner(GT)	Fixed an issue with info:fedora being appended
 	 * </pre>
 	 * 
@@ -471,5 +479,130 @@ public class DisplayResource
 			resp = Response.serverError().build();
 		}
 		return resp;
+	}
+	
+	/**
+	 * editLink
+	 *
+	 * Edits the link assocated associated with records
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.11		22/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param item The item to edit the links for
+	 * @param linkType The link type to set
+	 * @param removeLinkType The link type to remove
+	 * @param itemId The item to link to (this may be another item in fedora or an external identifying link)
+	 * @return The response
+	 */
+	@POST
+	@Path("/editLink/{item}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.TEXT_PLAIN)
+	public String editLink(@PathParam("item") String item, @FormParam("linkType") String linkType, 
+			@FormParam("removeLinkType") String removeLinkType, @FormParam("itemId") String itemId) {
+		if (linkType == null) {
+			throw new WebApplicationException(Response.status(400).entity("Missing linkType").build());
+		}
+		if (itemId == null) {
+			throw new WebApplicationException(Response.status(400).entity("Missing itemId").build());
+		}
+		
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
+		
+		try {
+			fedoraObjectService.addLink(fedoraObject, linkType, itemId);
+			fedoraObjectService.removeLink(fedoraObject, removeLinkType, itemId);
+		}
+		catch (FedoraClientException e) {
+			LOGGER.error("Exception removing link", e);
+			throw new WebApplicationException(Response.status(500).entity("Exception removing link").build());
+		}
+		
+		return "Referenced Changed";
+	}
+
+	/**
+	 * removeLink
+	 *
+	 * Remove the link associated with an item
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.11		22/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param item The item to edit the links for
+	 * @param linkType The link type to remove
+	 * @param itemId The item to remove the link/relationship with
+	 * @return The response
+	 */
+	@POST
+	@Path("/removeLink/{item}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String removeLink(@PathParam("item") String item, @FormParam("linkType") String linkType, 
+			@FormParam("itemId") String itemId) {
+		//Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
+		if (linkType == null) {
+			throw new WebApplicationException(Response.status(400).entity("Missing linkType").build());
+		}
+		if (itemId == null) {
+			throw new WebApplicationException(Response.status(400).entity("Missing itemId").build());
+		}
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
+		
+		try {
+			fedoraObjectService.removeLink(fedoraObject, linkType, itemId);
+		}
+		catch (FedoraClientException e) {
+			LOGGER.error("Exception removing link", e);
+			throw new WebApplicationException(Response.status(500).entity("Exception removing link").build());
+		}
+		
+		return "Reference Removed";
+	}
+	
+	/**
+	 * getLinks
+	 *
+	 * Retrieves the links
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.11		22/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param item The item to get the links for
+	 * @param request The request called
+	 * @return The response
+	 */
+	@GET
+	@Path("/getLinks/{item}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getLinks(@PathParam("item") String item, @Context HttpServletRequest request) {
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
+		List<Result> resultList = fedoraObjectService.getLinks(fedoraObject);
+		
+		JSONArray resultArray = new JSONArray();
+		JSONObject results = new JSONObject();
+		try {
+			for (Result result : resultList) {
+				JSONObject resultObject = new JSONObject();
+				for (Entry<String, ResultItem> entry : result.getFields().entrySet()) {
+					resultObject.put(entry.getKey(), entry.getValue().getValue());
+				}
+				resultArray.put(resultObject);
+			}
+			results.put("results", resultArray);
+		}
+		catch (JSONException e) {
+			throw new WebApplicationException(Response.status(400).entity("Error creating return").build());
+		}
+		return Response.ok(results).build();
 	}
 }

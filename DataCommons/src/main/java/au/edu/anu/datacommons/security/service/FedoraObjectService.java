@@ -366,4 +366,36 @@ public interface FedoraObjectService {
 	 * @return A list of validation error messages
 	 */
 	public List<String> validatePublishLocation(FedoraObject fedoraObject, List<String> publishers);
+	
+	/**
+	 * getLinks
+	 *
+	 * Get the links associated with the fedora object
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		22/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedoraObject to retrieve links for
+	 * @return A list of links
+	 */
+	public List<Result> getLinks(FedoraObject fedoraObject);
+	
+	/**
+	 * removeLink
+	 *
+	 * Remove the specified link with the object
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		22/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedoraObject to remove an association with
+	 * @param linkType The relationship type to remove
+	 * @param itemId The item to remove the relationship from
+	 * @throws FedoraClientException
+	 */
+	public void removeLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException;
 }

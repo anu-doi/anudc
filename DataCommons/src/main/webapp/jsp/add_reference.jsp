@@ -11,6 +11,7 @@
 	</head>
 	<body>
 		<p><input type="button" id="itemLinkButton" name="itemLinkButton" value="Link to Item" /></p>
+		<p><input type="button" id="editLinkButton" name="editLinkButton" value="Edit Item Links" /></p>
 		<div id="popupLink">
 			<a id="popupLinkClose">x</a>
 			<h1>Add Reference</h1>
@@ -25,6 +26,7 @@
 						<option value="Service">Service</option>
 					</select>
 				</p>
+				<p><input type="hidden" name="previousLinkType" id="previousLinkType" /></p>
 				<p><label for="linkType">Link Type</label>
 					<select id="linkType" name="linkType">
 						<option value="isPartOf">Is Part Of</option>
@@ -70,10 +72,17 @@
 				<p><label for="itemSearch" title="Search for an item to link to from ANU Data Commons">Item Search</label><input type="text" id="itemSearch" name="itemSearch" /></p>
 				<p><label for="itemIdentifier">Item Id</label><div id="itemIdentifier">None Selected</div></p>
 				<p><label for="itemName">Item Name</label><div id="itemName">None Selected</div></p>
-				<p class="hidden"><label for="itemId">Item Full Id</label><div class="hidden" id="itemId">None Selected</div></p>
+				<p><label class="hidden" for="itemId">Item Full Id</label><div class="hidden" id="itemId">None Selected</div></p>
 				<p><label for="linkExternal">External Identifier</label><input type="text" id="linkExternal" name="linkExternal" />
 				<p><input id="btnAddLink" type="submit" value="Submit" /></p>
 			</form>
+		</div>
+		<div id="popupEditLink">
+			<a id="popupEditLinkClose">x</a>
+			<h1>Edit Links</h1>
+			<div id="editLinkContent">
+				Testing
+			</div>
 		</div>
 		<div id="backgroundPopup"></div>
 	</body>
