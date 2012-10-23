@@ -61,8 +61,8 @@
 	<item name="phone" label="Contact Phone Number" fieldType="TextFieldMulti" saveType="multiple" tab="people" />
 	<item name="fax" label="Contact Fax Number" fieldType="TextFieldMulti"  saveType="multiple" tab="people" />
 	<item name="websiteAddress" label="Website Address" fieldType="TextFieldMulti" saveType="multiple" tab="people" />
-	<item name="creator" label="Creators" fieldType="TextFieldMulti" saveType="multiple" tab="people">
-		<tooltip>Please record the names of the persons who created the data.</tooltip>
+	<item name="principalInvestigator" label="Principal Investigator" fieldType="TextField" saveType="single" tab="people">
+		<tooltip>Please record the name of the principal investigator</tooltip>
 	</item>
 	<item name="supervisor" label="Supervisors" fieldType="TextFieldMulti" saveType="multiple" tab="people">
 		<tooltip>Please record the name of the person identified as supervisor in relation to the creation of the data. (Note that this may be  the same as the Primary Contact.)</tooltip>
@@ -113,8 +113,8 @@
 	<item name="citationYear" label="Year of data publication" fieldType="TextField" saveType="single" tab="description">
 		<tooltip>The year the data was first published for citation purposes. If this field is not populated when publishing it will default to the year it is published in ANU Data Commons</tooltip>
 	</item>
-	<item name="citationCreator" label="Creator for Citation" fieldType="TextField" saveType="single" tab="description">
-		<tooltip>The creator of the data for citation purposes. Defaults to 'The Australian National University'. For example:&#xA;&#xA;Smith, G., Jones, J.&#xA;Australian Phenomics Facility&#xA;Research School of Earth Sciences, The Australian National University</tooltip>
+	<item name="citationCreator" label="Creator(s) for Citation" fieldType="TextField" saveType="single" tab="description">
+		<tooltip>The creator(s) of the data for citation purposes. This field indicates who should be considered named in a citation.  Defaults to 'The Australian National University'. For example:&#xA;&#xA;Irino, T; Tada, R&#xA;Geofon operator&#xA;Denhard, Michael</tooltip>
 	</item>
 	<item name="citationPublisher" label="Publisher for Citation" fieldType="TextField" saveType="single" tab="description">
 		<tooltip>The publisher of the data.  Defaults to 'The Australian National University Data Commons'. For example:&#xA;&#xA;Australian Data Archive&#xA;Incorporated Research Institutions for Seismology</tooltip>
@@ -144,6 +144,9 @@
 		<tooltip>If appropriate, please include a URL and Notes for any websites that relate to the resource being described. For example:&#xA;&#xA;URL: http://anusf.anu.edu.au/index.php&#xA;&#xA;Title: ANU Supercomputing Facility</tooltip>
 		<column name="relatedWebURL" label="URL" fieldType="TextField" />
 		<column name="relatedWebTitle" label="Title" fieldType="TextField" />
+	</item>
+	<item name="externalId" label="Other Related Identifiers" fieldType="TextFieldMulti" saveType="multiple" tab="description">
+		<tooltip>Identifiers for systems external to ANU Data Commons</tooltip>
 	</item>
 	<item name="accessRights" label="Access Rights" fieldType="TextArea" saveType="single" tab="rights">
 		<tooltip>Enter a statement about access (or access conditions) to the resource. This will include access restrictions or embargoes based on privacy, security or other policies.&#xA;&#xA;Examples:&#xA;Contact Chief Investigator to negotiate access to the data&#xA;&#xA;Embargoes until 1 year after publication of the research&#xA;&#xA;Open Access allowed (see rights held in and over resource below)</tooltip>
