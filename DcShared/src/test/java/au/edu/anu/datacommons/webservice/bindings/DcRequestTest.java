@@ -260,6 +260,14 @@ public class DcRequestTest
 		coll.setDataExtent("100 files");
 		coll.setDataSize("100 GB");
 		coll.setDataMgmtPlan(Boolean.TRUE);
+		
+		Link file1 = new Link();
+		file1.setUrl("http://online.wsj.com/public/resources/documents/Reprint_Samples.pdf");
+		file1.setFilename("Reprint samples.pdf");
+		Link file2 = new Link();
+		file2.setUrl("http://www.stluciadance.com/prospectus_file/sample.pdf");
+		file2.setRefOnly(Boolean.TRUE);
+		coll.setFileUrlList(Arrays.asList(file1, file2));
 
 		request.setCollection(coll);
 

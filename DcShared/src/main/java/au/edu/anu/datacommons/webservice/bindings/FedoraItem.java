@@ -9,5 +9,11 @@ public interface FedoraItem
 	
 	public String getTemplate();
 	
+	public void setTemplate(String template);
+	
 	public String getPid();
+	
+	public void setPid(String pid);
+	
+	public String getType();
 }

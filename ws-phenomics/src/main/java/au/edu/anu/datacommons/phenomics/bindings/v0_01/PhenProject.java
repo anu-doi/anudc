@@ -2,6 +2,7 @@ package au.edu.anu.datacommons.phenomics.bindings.v0_01;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlType;
@@ -9,9 +10,34 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType
 public class PhenProject
 {
+	private String extId;
+	private String anudcId;
+
 	private String title;
 	private String briefDesc;
 	private List<Strain> strains;
+
+	@XmlAttribute(name = "phid")
+	public String getExtId()
+	{
+		return extId;
+	}
+
+	public void setExtId(String extId)
+	{
+		this.extId = extId;
+	}
+	
+	@XmlAttribute(name = "anudcid")
+	public String getAnudcId()
+	{
+		return anudcId;
+	}
+
+	public void setAnudcId(String anudcId)
+	{
+		this.anudcId = anudcId;
+	}
 
 	@XmlElement(name = "title")
 	public String getTitle()
@@ -35,7 +61,6 @@ public class PhenProject
 		this.briefDesc = briefDesc;
 	}
 
-	@XmlElementWrapper(name = "strains")
 	@XmlElement(name = "strain")
 	public List<Strain> getStrains()
 	{

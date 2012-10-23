@@ -1,9 +1,9 @@
 package au.edu.anu.datacommons.phenomics;
 
+import static java.text.MessageFormat.format;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,24 +37,28 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.ClientResponse.Status;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.WebResource.Builder;
-import com.sun.jersey.api.client.filter.LoggingFilter;
-
 import au.edu.anu.datacommons.config.Config;
 import au.edu.anu.datacommons.config.PropertiesFile;
 import au.edu.anu.datacommons.phenomics.bindings.PhenResponse;
 import au.edu.anu.datacommons.webservice.bindings.DcRequest;
+import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
+
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.ClientResponse.Status;
+import com.sun.jersey.api.client.WebResource.Builder;
+import com.sun.jersey.api.client.filter.ClientFilter;
+import com.sun.jersey.api.client.filter.LoggingFilter;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 @Path("/")
 public class PhenomicsResource
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PhenomicsResource.class);
 	private static final Client client = Client.create();
+	private static final ClientFilter loggingFilter = new LoggingFilter();
 	private static Properties genericWsProps;
+	private static Properties packageLookup;
 
 	private static DocumentBuilder docBuilder;
 
@@ -73,6 +77,15 @@ public class PhenomicsResource
 		try
 		{
 			genericWsProps = new PropertiesFile(new File(Config.DIR, "phenomics-ws/genericws.properties"));
+		}
+		catch (IOException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+		}
+
+		try
+		{
+			packageLookup = new PropertiesFile(new File(Config.DIR, "phenomics-ws/wslookup.properties"));
 		}
 		catch (IOException e)
 		{
@@ -109,34 +122,39 @@ public class PhenomicsResource
 	public Response doPostRequest(Document xmlDoc)
 	{
 		Response resp = null;
-		PhenResponse phenRespDoc = new PhenResponse();
+
+		if (genericWsProps.getProperty("http.logging", "false").equalsIgnoreCase("true"))
+		{
+			if (!client.isFilterPreset(loggingFilter))
+				client.addFilter(loggingFilter);
+		}
+		else
+		{
+			if (client.isFilterPreset(loggingFilter))
+				client.removeFilter(loggingFilter);
+		}
+
+		PhenResponse phenRespElement = new PhenResponse();
+		List<Element> statusElements = new ArrayList<Element>();
 		try
 		{
-			List<Element> statusElements = new ArrayList<Element>();
 			int countSuccess = 0;
+			int countTotalRequests = 0;
 			JAXBContext context = getJaxbContext(xmlDoc);
 			Unmarshaller um = context.createUnmarshaller();
 
 			Processable proc = (Processable) um.unmarshal(xmlDoc);
-			WebResource genericRes = client.resource(UriBuilder.fromPath(genericWsProps.getProperty("dc.baseUrl"))
-					.path(genericWsProps.getProperty("dc.wsPath")).build());
 
-			// Add HTTP headers to the generic service resource object.
-			Builder reqBuilder = genericRes.accept(MediaType.APPLICATION_XML_TYPE);
-			MultivaluedMap<String, String> headersMap = httpHeaders.getRequestHeaders();
-			for (String key : headersMap.keySet())
-			{
-				for (String value : headersMap.get(key))
-					reqBuilder = reqBuilder.header(key, value);
-			}
-			
+			ClientResponse respUserInfo = generateUserInfoBuilder().get(ClientResponse.class);
+			if (respUserInfo.getClientResponseStatus() == Status.UNAUTHORIZED)
+				throw new UnauthorisedException("Invalid username and/or password.");
+
 			// Iterate through each DcRequest object, wrap it in an HTTP request and send to generic service.
-			Map<DcRequest, Map<String, DcRequest>> dcReqs = proc.generateDcRequests();
-			for (Entry<DcRequest, Map<String, DcRequest>> entry : dcReqs.entrySet())
+			Map<DcRequest, Map<String, FedoraItem>> dcReqs = proc.generateDcRequests();
+			countTotalRequests = dcReqs.size();
+			for (DcRequest iDcRequest : dcReqs.keySet())
 			{
-				ClientResponse respFromGenService = reqBuilder.post(ClientResponse.class, entry.getKey());
-				if (respFromGenService.getClientResponseStatus() == Status.OK)
-					countSuccess++;
+				ClientResponse respFromGenService = generateHttpRequestBuilder().post(ClientResponse.class, iDcRequest);
 
 				try
 				{
@@ -145,43 +163,86 @@ public class PhenomicsResource
 					while (n != null && n.getNodeType() != Node.ELEMENT_NODE)
 						n = n.getNextSibling();
 					if (n != null)
-						statusElements.add((Element) n);
+					{
+						Element statusElementFromGenSvc = (Element) n;
+						statusElements.add(statusElementFromGenSvc);
+						String pid = statusElementFromGenSvc.getAttribute("pid");
+						LOGGER.trace("Generic service returned Pid: {}", pid);
+						iDcRequest.getFedoraItem().setPid(pid);
+					}
+
+					// If it reaches this point without exception then the response was a valid XML
+					if (respFromGenService.getClientResponseStatus() == Status.OK)
+						countSuccess++;
 				}
 				catch (IOException e)
 				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					LOGGER.error(e.getMessage());
 				}
 				catch (SAXException e)
 				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					LOGGER.error(e.getMessage());
 				}
 			}
-			
-			phenRespDoc.setNodes(statusElements);
-			if (countSuccess == dcReqs.size())
-				phenRespDoc.setStatus(PhenResponse.Status.SUCCESS);
-			else if (countSuccess == 0)
-				phenRespDoc.setStatus(PhenResponse.Status.FAILURE);
-			else
-				phenRespDoc.setStatus(PhenResponse.Status.PARTIAL);
 
-			resp = Response.ok(phenRespDoc, MediaType.APPLICATION_XML_TYPE).build();
+			// With the items created, generate requests for relations and send to generic request.
+			for (Entry<DcRequest, Map<String, FedoraItem>> dcReqEntry : dcReqs.entrySet())
+			{
+				// If the value is null instead of Map<String, FedoraItem, item doesn't need to be related.
+				if (dcReqEntry.getValue() != null)
+				{
+					for (Entry<String, FedoraItem> relEntry : dcReqEntry.getValue().entrySet())
+					{
+						if (relEntry.getValue().getPid() != null)
+						{
+							String sourcePid = dcReqEntry.getKey().getFedoraItem().getPid();
+							String targetPid = relEntry.getValue().getPid();
+
+							MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
+							formData.add("linkType", relEntry.getKey());
+							formData.add("itemId", targetPid);
+
+							try
+							{
+								ClientResponse respFromGenSvc = generateAddLinkBuilder(sourcePid).post(ClientResponse.class, formData);
+								String respStr = respFromGenSvc.getEntity(String.class);
+								LOGGER.debug("Relation request - HTTP Status {}, body: {}", respFromGenSvc.getStatus(), respStr);
+							}
+							catch (Exception e)
+							{
+								LOGGER.error(format("Unable to set relationship between {0} and {1}", sourcePid, targetPid), e);
+							}
+						}
+					}
+				}
+			}
+
+			if (countSuccess == countTotalRequests)
+				phenRespElement.setStatus(PhenResponse.Status.SUCCESS);
+			else if (countSuccess == 0)
+				phenRespElement.setStatus(PhenResponse.Status.FAILURE);
+			else
+				phenRespElement.setStatus(PhenResponse.Status.PARTIAL);
+
+			resp = Response.ok(phenRespElement, MediaType.APPLICATION_XML_TYPE).build();
 		}
-		catch (JAXBException e)
+		catch (UnauthorisedException e)
+		{
+			LOGGER.error(e.getMessage());
+			phenRespElement.setStatus(PhenResponse.Status.FAILURE);
+			phenRespElement.setMsg(e.getMessage());
+			resp = Response.status(Status.UNAUTHORIZED).entity(phenRespElement).build();
+		}
+		catch (Exception e)
 		{
 			LOGGER.error(e.getMessage(), e);
-			phenRespDoc.setStatus(PhenResponse.Status.FAILURE);
-			phenRespDoc.setMsg(e.toString());
-			resp = Response.serverError().entity(phenRespDoc).build();
+			phenRespElement.setStatus(PhenResponse.Status.FAILURE);
+			phenRespElement.setMsg(e.getMessage());
+			resp = Response.serverError().entity(phenRespElement).build();
 		}
-		catch (IOException e)
+		finally
 		{
-			LOGGER.error(e.getMessage(), e);
-			phenRespDoc.setStatus(PhenResponse.Status.FAILURE);
-			phenRespDoc.setMsg(e.toString());
-			resp = Response.serverError().entity(phenRespDoc).build();
+			phenRespElement.setNodes(statusElements);
 		}
 
 		return resp;
@@ -189,37 +250,59 @@ public class PhenomicsResource
 
 	private JAXBContext getJaxbContext(Document xmlDoc) throws JAXBException, IOException
 	{
-		Properties lookup = getWsLookup();
 		String version = xmlDoc.getDocumentElement().getAttribute("version");
-		if (!lookup.containsKey(version))
+		if (!packageLookup.containsKey(version))
 			throw new JAXBException(MessageFormat.format("Unrecognised schema version - {0}", version));
-		String packageName = lookup.getProperty(version);
+		String packageName = packageLookup.getProperty(version);
 		LOGGER.debug("Using package '{}' for version '{}'", packageName, version);
 		JAXBContext context = JAXBContext.newInstance(packageName);
 		return context;
 	}
 
-	private Properties getWsLookup() throws IOException
+	private Builder generateHttpRequestBuilder()
 	{
-		Properties lookupTbl = new Properties();
-		InputStream fileStream = null;
-		try
+		Builder reqBuilder = client.resource(
+				UriBuilder.fromPath(genericWsProps.getProperty("dc.baseUrl")).path(genericWsProps.getProperty("dc.wsPath")).build()).accept(
+				MediaType.APPLICATION_XML_TYPE);
+		reqBuilder = addHttpHeaders(reqBuilder);
+		return reqBuilder;
+	}
+
+	private Builder generateAddLinkBuilder(String pid)
+	{
+		Builder reqBuilder = client
+				.resource(UriBuilder.fromPath(genericWsProps.getProperty("dc.baseUrl")).path(genericWsProps.getProperty("dc.addLinkPath")).path(pid).build())
+				.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).accept(MediaType.TEXT_PLAIN_TYPE);
+		reqBuilder = addHttpHeaders(reqBuilder);
+		return reqBuilder;
+	}
+
+	private Builder generateUserInfoBuilder()
+	{
+		Builder reqBuilder = client
+				.resource(UriBuilder.fromPath(genericWsProps.getProperty("dc.baseUrl")).path(genericWsProps.getProperty("dc.userInfo")).build())
+				.type(MediaType.TEXT_PLAIN_TYPE).accept(MediaType.TEXT_PLAIN_TYPE);
+		reqBuilder = addHttpHeaders(reqBuilder);
+		return reqBuilder;
+	}
+
+	private Builder addHttpHeaders(Builder b)
+	{
+		MultivaluedMap<String, String> headersMap = httpHeaders.getRequestHeaders();
+		String headersToCopyLine = genericWsProps.getProperty("http.headers");
+		if (headersToCopyLine != null)
 		{
-			File wsLookupFile = new File(Config.DIR, "phenomics-ws/wslookup.properties");
-			fileStream = new FileInputStream(wsLookupFile);
-			lookupTbl.load(fileStream);
-		}
-		finally
-		{
-			try
+			String[] headersToCopy = headersToCopyLine.split(";");
+			for (int i = 0; i < headersToCopy.length; i++)
 			{
-				fileStream.close();
-			}
-			catch (Exception e)
-			{
+				if (headersMap.containsKey(headersToCopy[i]))
+				{
+					for (String value : headersMap.get(headersToCopy[i]))
+						b = b.header(headersToCopy[i], value);
+				}
 			}
 		}
 
-		return lookupTbl;
+		return b;
 	}
 }

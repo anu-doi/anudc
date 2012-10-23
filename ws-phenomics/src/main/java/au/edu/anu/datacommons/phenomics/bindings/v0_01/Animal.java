@@ -4,17 +4,16 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 
-public class Strain
+public class Animal
 {
 	private String extId;
 	private String anudcId;
-	
+
 	private String title;
 	private String briefDesc;
-	private List<Animal> animals;
-
+	private List<Instrument> instruments;
+	
 	@XmlAttribute(name = "phid")
 	public String getExtId()
 	{
@@ -59,14 +58,14 @@ public class Strain
 		this.briefDesc = briefDesc;
 	}
 
-	@XmlElement(name = "animal")
-	public List<Animal> getAnimals()
+	@XmlElement(name = "instrument")
+	public List<Instrument> getInstruments()
 	{
-		return animals;
+		return instruments;
 	}
 
-	public void setAnimals(List<Animal> animals)
+	public void setInstruments(List<Instrument> instruments)
 	{
-		this.animals = animals;
+		this.instruments = instruments;
 	}
 }

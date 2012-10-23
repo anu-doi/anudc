@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 @XmlRootElement(name = "request")
 public class DcRequest
@@ -63,4 +64,17 @@ public class DcRequest
 		return strBuilder.toString();
 	}
 
+	@XmlTransient
+	public FedoraItem getFedoraItem()
+	{
+		FedoraItem item;
+		if (this.activity != null)
+			item = this.activity;
+		else if (this.collection != null)
+			item = this.collection;
+		else
+			throw new NullPointerException("Fedora Item in this collection is null.");
+		
+		return item;
+	}
 }

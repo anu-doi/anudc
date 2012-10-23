@@ -4,16 +4,18 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 
-public class Strain
+import au.edu.anu.datacommons.webservice.bindings.Link;
+
+public class Instrument
 {
 	private String extId;
 	private String anudcId;
 	
 	private String title;
 	private String briefDesc;
-	private List<Animal> animals;
+	
+	private List<Link> fileUrlList;
 
 	@XmlAttribute(name = "phid")
 	public String getExtId()
@@ -59,14 +61,14 @@ public class Strain
 		this.briefDesc = briefDesc;
 	}
 
-	@XmlElement(name = "animal")
-	public List<Animal> getAnimals()
+	@XmlElement(name = "link")
+	public List<Link> getFileUrlList()
 	{
-		return animals;
+		return fileUrlList;
 	}
 
-	public void setAnimals(List<Animal> animals)
+	public void setFileUrlList(List<Link> fileUrlList)
 	{
-		this.animals = animals;
+		this.fileUrlList = fileUrlList;
 	}
 }
