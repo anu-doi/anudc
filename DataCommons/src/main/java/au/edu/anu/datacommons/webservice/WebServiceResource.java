@@ -202,8 +202,8 @@ public class WebServiceResource
 		}
 		catch (Exception e)
 		{
-			respDoc.getDocumentElement().appendChild(createElement(respDoc, "error", e.toString()));
-			resp = Response.serverError().entity(e.toString()).build();
+			respDoc.getDocumentElement().appendChild(createElement(respDoc, "status", "", new String[] {"error", e.getMessage()}));
+			resp = Response.serverError().entity(respDoc).build();
 		}
 
 		return resp;

@@ -4,6 +4,7 @@ import static java.text.MessageFormat.format;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import au.edu.anu.datacommons.config.Config;
@@ -156,9 +158,10 @@ public class PhenomicsResource
 			{
 				ClientResponse respFromGenService = generateHttpRequestBuilder().post(ClientResponse.class, iDcRequest);
 
+				String respStr = respFromGenService.getEntity(String.class);
 				try
 				{
-					Document doc = docBuilder.parse(respFromGenService.getEntityInputStream());
+					Document doc = docBuilder.parse(new InputSource(new StringReader(respStr)));
 					Node n = doc.getDocumentElement().getFirstChild();
 					while (n != null && n.getNodeType() != Node.ELEMENT_NODE)
 						n = n.getNextSibling();
@@ -193,10 +196,10 @@ public class PhenomicsResource
 				{
 					for (Entry<String, FedoraItem> relEntry : dcReqEntry.getValue().entrySet())
 					{
-						if (relEntry.getValue().getPid() != null)
+						String sourcePid = dcReqEntry.getKey().getFedoraItem().getPid();
+						String targetPid = relEntry.getValue().getPid();
+						if (sourcePid != null && targetPid != null)
 						{
-							String sourcePid = dcReqEntry.getKey().getFedoraItem().getPid();
-							String targetPid = relEntry.getValue().getPid();
 
 							MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
 							formData.add("linkType", relEntry.getKey());

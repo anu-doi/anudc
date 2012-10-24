@@ -210,7 +210,7 @@ public final class DcStorage
 		{
 			bag = getBag(pid);
 			if (bag == null)
-				throw new DcStorageException(MessageFormat.format("No bag exists for pid {0}", pid));
+				bag = createBlankBag(pid);
 
 			BagFile extRefsFile = bag.getBagFile(ExtRefsTxt.FILEPATH);
 			// If file doesn't exist, create it.
