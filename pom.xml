@@ -13,8 +13,8 @@
 		<module>DcClient</module>
 		<module>ws-phenomics</module>
 		<module>ws-gateway</module>
-    <module>ws-digitalhumantieis</module>
-  </modules>
+		<module>ws-digitalhumanities</module>
+	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
