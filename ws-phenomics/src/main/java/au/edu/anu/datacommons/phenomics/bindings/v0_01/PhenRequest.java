@@ -90,6 +90,7 @@ public class PhenRequest implements Processable
 		Activity activity = new Activity();
 		if (this.getProject().getAnudcId() != null)
 			activity.setPid(this.getProject().getAnudcId());
+		activity.setExtIds(Arrays.asList(this.getProject().getExtId()));
 		activity.setTitle(this.getProject().getTitle());
 		activity.setBriefDesc(this.getProject().getBriefDesc());
 
@@ -115,6 +116,7 @@ public class PhenRequest implements Processable
 				Collection strainColl = new Collection();
 				if (iStrain.getAnudcId() != null)
 					strainColl.setPid(iStrain.getAnudcId());
+				strainColl.setExtIds(Arrays.asList(iStrain.getExtId()));
 				strainColl.setTitle(iStrain.getTitle());
 				strainColl.setBriefDesc(iStrain.getBriefDesc());
 
@@ -144,6 +146,7 @@ public class PhenRequest implements Processable
 						Collection animalColl = new Collection();
 						if (iAnimal.getAnudcId() != null)
 							animalColl.setPid(iAnimal.getAnudcId());
+						animalColl.setExtIds(Arrays.asList(iAnimal.getExtId()));
 						animalColl.setTitle(iAnimal.getTitle());
 						animalColl.setBriefDesc(iAnimal.getBriefDesc());
 
@@ -172,6 +175,7 @@ public class PhenRequest implements Processable
 								Collection instrumentColl = new Collection();
 								if (iInstr.getAnudcId() != null)
 									instrumentColl.setPid(iInstr.getAnudcId());
+								instrumentColl.setExtIds(Arrays.asList(iInstr.getExtId()));
 								instrumentColl.setTitle(iInstr.getTitle());
 								instrumentColl.setBriefDesc(iInstr.getBriefDesc());
 								instrumentColl.setFileUrlList(iInstr.getFileUrlList());

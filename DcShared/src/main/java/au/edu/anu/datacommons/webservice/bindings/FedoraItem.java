@@ -16,4 +16,8 @@ public interface FedoraItem
 	public void setPid(String pid);
 	
 	public String getType();
+	
+	public String getOwnerGroup();
+	
+	public void setOwnerGroup(String ownerGroup);
 }

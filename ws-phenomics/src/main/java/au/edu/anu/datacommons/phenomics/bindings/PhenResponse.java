@@ -14,7 +14,7 @@ public class PhenResponse
 {
 	private Status status;
 	private String msg;
-	private List<Element> nodes;
+	private List<Element> statusElements;
 	
 	public enum Status
 	{
@@ -57,13 +57,13 @@ public class PhenResponse
 	}
 
 	@XmlAnyElement
-	public List<Element> getNodes()
+	public List<Element> getStatusElements()
 	{
-		return nodes;
+		return statusElements;
 	}
 
-	public void setNodes(List<Element> nodes)
+	public void setNodes(List<Element> statusElements)
 	{
-		this.nodes = nodes;
+		this.statusElements = statusElements;
 	}
 }

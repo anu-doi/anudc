@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -168,6 +169,9 @@ public class PhenomicsResource
 					if (n != null)
 					{
 						Element statusElementFromGenSvc = (Element) n;
+						NodeList extIdElements = statusElementFromGenSvc.getElementsByTagName("externalId");
+						if (extIdElements.getLength() > 0)
+							statusElementFromGenSvc.setAttribute("phid", extIdElements.item(0).getTextContent());
 						statusElements.add(statusElementFromGenSvc);
 						String pid = statusElementFromGenSvc.getAttribute("pid");
 						LOGGER.trace("Generic service returned Pid: {}", pid);

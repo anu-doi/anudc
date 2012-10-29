@@ -38,6 +38,12 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -63,6 +69,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
+import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.cas.ANUUserDetailsService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
@@ -121,7 +128,7 @@ public class WebServiceResource
 		}
 
 	}
-	
+
 	@Context
 	private UriInfo uriInfo;
 	@Context
@@ -137,8 +144,8 @@ public class WebServiceResource
 		Response resp = null;
 
 		// TODO Implement method.
-		
-		resp = Response.ok("Test - Phenomics", MediaType.TEXT_PLAIN_TYPE).build();
+
+		resp = Response.ok("Test - Generic web service", MediaType.TEXT_PLAIN_TYPE).build();
 		return resp;
 	}
 
@@ -159,7 +166,22 @@ public class WebServiceResource
 			req = (DcRequest) um.unmarshal(xmlDoc);
 
 			FedoraItem item = req.getFedoraItem();
-			
+
+			// If a pid's not provided, but external IDs are, search for objects with that external ID. If found use the result's pid.
+			if (item.getPid() == null)
+			{
+				NodeList extIdNodes = xmlDoc.getElementsByTagName("externalId");
+				if (extIdNodes.getLength() > 0)
+				{
+					String pid = "";
+					for (int i = 0; i < extIdNodes.getLength() && pid.length() == 0; i++)
+						pid = getPidFromExtId(extIdNodes.item(i).getTextContent(), item.getType(), item.getOwnerGroup());
+
+					if (pid.length() > 0)
+						item.setPid(pid);
+				}
+			}
+
 			if (item.getPid() == null)
 			{
 				// Create
@@ -178,7 +200,7 @@ public class WebServiceResource
 				Element el = getDatastream(item, respDoc);
 				respDoc.getDocumentElement().appendChild(el);
 			}
-			
+
 			// If collection, add files - download or byRef.
 			if (item instanceof Collection && req.getCollection().getFileUrlList() != null)
 			{
@@ -202,7 +224,7 @@ public class WebServiceResource
 		}
 		catch (Exception e)
 		{
-			respDoc.getDocumentElement().appendChild(createElement(respDoc, "status", "", new String[] {"error", e.getMessage()}));
+			respDoc.getDocumentElement().appendChild(createElement(respDoc, "status", "", new String[] { "error", e.getMessage() }));
 			resp = Response.serverError().entity(respDoc).build();
 		}
 
@@ -319,15 +341,16 @@ public class WebServiceResource
 		FedoraObject fo = (FedoraObject) object.getSingleByName(decodedpid);
 		return fo;
 	}
-	
+
 	private Element createItem(FedoraItem item, Document doc) throws FedoraClientException, JAXBException
 	{
 		FedoraObject fo = fedoraObjectService.saveNew(item);
 		String pidCreated = fo.getObject_id();
 		item.setPid(pidCreated);
-		
+
 		InputStream dataStream = null;
-		Element el = createElement(doc, "status", "", new String[] { "action", "created" }, new String[] { "pid", pidCreated }, new String[] {"type", item.getType()});
+		Element el = createElement(doc, "status", "", new String[] { "action", "created" }, new String[] { "pid", pidCreated },
+				new String[] { "type", item.getType() });
 		try
 		{
 			dataStream = FedoraBroker.getDatastreamAsStream(pidCreated, Constants.XML_SOURCE);
@@ -354,15 +377,15 @@ public class WebServiceResource
 		{
 			IOUtils.closeQuietly(dataStream);
 		}
-		
+
 		return el;
 	}
-	
+
 	private Element updateItem(FedoraItem item, Document doc) throws FedoraClientException, JAXBException
 	{
 		getFedoraObjectWriteAccess(item.getPid());
 		FedoraObject fo = fedoraObjectService.saveEdit(item);
-		Element el = createElement(doc, "status", "", new String[] { "action", "updated" }, new String[] { "pid", fo.getObject_id() });
+		Element el = createElement(doc, "status", "", new String[] { "action", "updated" }, new String[] { "anudcid", fo.getObject_id() });
 		InputStream dataStream = null;
 		try
 		{
@@ -392,12 +415,12 @@ public class WebServiceResource
 		}
 		return el;
 	}
-	
+
 	private Element getDatastream(FedoraItem item, Document doc) throws FedoraClientException, DOMException, SAXException, IOException
 	{
 		getFedoraObjectReadAccess(item.getPid());
 		InputStream dataStream = null;
-		Element el = createElement(doc, "status", "", new String[] {"action", "query"}, new String[] {"pid", item.getPid() });
+		Element el = createElement(doc, "status", "", new String[] { "action", "query" }, new String[] { "pid", item.getPid() });
 		try
 		{
 			dataStream = FedoraBroker.getDatastreamAsStream(item.getPid(), Constants.XML_SOURCE);
@@ -408,5 +431,34 @@ public class WebServiceResource
 			IOUtils.closeQuietly(dataStream);
 		}
 		return el;
+	}
+
+	private String getPidFromExtId(String extId, String type, String ownerGroup)
+	{
+		String pid = "";
+
+		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		SolrQuery solrQuery = new SolrQuery();
+		solrQuery.setQuery("unpublished.externalId:" + extId);
+		solrQuery.addFilterQuery("unpublished.ownerGroup:" + ownerGroup);
+		solrQuery.addFilterQuery("unpublished.type:" + type);
+		solrQuery.addField("id");
+
+		try
+		{
+			QueryResponse queryResponse = solrServer.query(solrQuery);
+			SolrDocumentList resultList = queryResponse.getResults();
+			if (resultList.getNumFound() == 1)
+			{
+				SolrDocument solrDoc = resultList.get(0);
+				pid = (String) solrDoc.get("id");
+			}
+		}
+		catch (SolrServerException e)
+		{
+			pid = "";
+		}
+
+		return pid;
 	}
 }
