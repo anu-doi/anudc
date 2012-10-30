@@ -24,6 +24,7 @@
 			logout-success-url="/jsp/welcome.jsp" />
 		
 		<security:custom-filter ref="casAuthenticationFilter" after="CAS_FILTER"/>
+		<security:custom-filter position="PRE_AUTH_FILTER" ref="tokenFilter" />
 
 	</security:http>
 	
@@ -33,6 +34,7 @@
 		<security:authentication-provider ref="casAuthenticationProvider" />
 	 	<security:authentication-provider ref="ldapAuthProvider" />
 		<security:authentication-provider ref="daoAuthenticationProvider" />
+		<security:authentication-provider ref="preauthAuthProvider" />
 	</security:authentication-manager>
 	
 	<security:ldap-server url="${ldap.uri}" manager-dn="" manager-password="" />
@@ -42,7 +44,22 @@
 	<!-- 	<property name="userDn" value="" /> -->
 		<property name="password" value="password" />
 	</bean>
+
+	<!-- Preauth begin -->
+	<bean id="preauthAuthProvider" class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
+		<property name="preAuthenticatedUserDetailsService">
+			<bean id="userDetailsServiceWrapper" class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
+				<property name="userDetailsService" ref="userService" />
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="tokenFilter" class="au.edu.anu.datacommons.security.tokenauth.TokenHeaderAuthenticationFilter">
+		<property name="authenticationManager" ref="authenticationManager" />
+	</bean>
 	
+	<!-- Preauth end -->
+    
 	<bean id="ldapAuthProvider" class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
 		<constructor-arg>
 			<bean class="org.springframework.security.ldap.authentication.BindAuthenticator">

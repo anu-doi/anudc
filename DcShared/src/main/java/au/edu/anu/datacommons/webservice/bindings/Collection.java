@@ -15,6 +15,7 @@ public class Collection implements FedoraItem
 {
 	private String pid;
 	private String template;
+	private final String type = "collection";
 
 	// General
 	private String title;
@@ -68,7 +69,10 @@ public class Collection implements FedoraItem
 	private String dataExtent;
 	private String dataSize;
 	private Boolean dataMgmtPlan;
-
+	
+	// Data files
+	private List<Link> fileUrlList;
+	
 	// General
 
 	@XmlElement(name = "name")
@@ -513,6 +517,17 @@ public class Collection implements FedoraItem
 		this.dataMgmtPlan = dataMgmtPlan;
 	}
 	
+	@XmlElement(name = "link")
+	public List<Link> getFileUrlList()
+	{
+		return fileUrlList;
+	}
+
+	public void setFileUrlList(List<Link> fileUrlList)
+	{
+		this.fileUrlList = fileUrlList;
+	}
+
 	@Override
 	@XmlAttribute(name = "tmplt")
 	public String getTemplate()
@@ -520,6 +535,7 @@ public class Collection implements FedoraItem
 		return template;
 	}
 	
+	@Override
 	public void setTemplate(String template)
 	{
 		this.template = template;
@@ -532,9 +548,16 @@ public class Collection implements FedoraItem
 		return pid;
 	}
 
+	@Override
 	public void setPid(String pid)
 	{
 		this.pid = pid;
+	}
+	
+	@XmlElement(name = "type")
+	public String getType()
+	{
+		return type;
 	}
 
 	@Override
@@ -542,7 +565,7 @@ public class Collection implements FedoraItem
 	{
 		Map<String, List<String>> data = new HashMap<String, List<String>>();
 		
-		data.put("type", Arrays.asList("collection"));
+		data.put("type", Arrays.asList(this.getType()));
 		if (this.getTitle() != null)
 			data.put("name", new ArrayList<String>(Arrays.asList(this.getTitle())));
 		if (this.getBriefTitle() != null)

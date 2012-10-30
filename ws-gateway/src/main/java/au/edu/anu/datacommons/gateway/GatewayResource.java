@@ -84,13 +84,27 @@ public class GatewayResource
 
 		// Add HTTP headers to the generic service resource object.
 		Builder reqBuilder = redirRes.accept(MediaType.APPLICATION_XML_TYPE);
+		boolean userAgentExists = false;
 		MultivaluedMap<String, String> headersMap = httpHeaders.getRequestHeaders();
 		for (String key : headersMap.keySet())
 		{
 			for (String value : headersMap.get(key))
-				reqBuilder = reqBuilder.header(key, value);
+			{
+				if (!key.equalsIgnoreCase("user-agent"))
+					reqBuilder = reqBuilder.header(key, value);
+				else
+				{
+					// Append 'DataCommons in the user agent so the service can recognize that it's not a request from a web browser.
+					reqBuilder = reqBuilder.header(key, value + " DataCommons");
+					userAgentExists = true;
+				}
+			}
 		}
-
+		
+		// If header doesn't have a user agent key at all, add it.
+		if (!userAgentExists)
+			reqBuilder = reqBuilder.header("user-agent", "DataCommons");
+		
 		ClientResponse respFromRedirRes = reqBuilder.post(ClientResponse.class, xmlDoc);
 
 		// Generate an outbound response object from the inbound response object received from the redirected URL.

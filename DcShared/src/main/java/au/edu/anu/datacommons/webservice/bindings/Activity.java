@@ -18,9 +18,10 @@ import org.w3c.dom.Element;
 public class Activity implements FedoraItem
 {
 	private String pid;
+	private String template;
+	private final String type = "activity";
 
 	private String subType;
-	private String template;
 
 	private String ownerGroup;
 	private String title;
@@ -56,6 +57,7 @@ public class Activity implements FedoraItem
 		return pid;
 	}
 
+	@Override
 	public void setPid(String pid)
 	{
 		this.pid = pid;
@@ -79,6 +81,7 @@ public class Activity implements FedoraItem
 		return template;
 	}
 
+	@Override
 	public void setTemplate(String template)
 	{
 		this.template = template;
@@ -303,13 +306,19 @@ public class Activity implements FedoraItem
 	{
 		this.nodes = nodes;
 	}
+	
+	@XmlElement(name = "type")
+	public String getType()
+	{
+		return type;
+	}
 
 	@Override
 	public Map<String, List<String>> generateDataMap()
 	{
 		Map<String, List<String>> data = new HashMap<String, List<String>>();
 		
-		data.put("type", Arrays.asList("activity"));
+		data.put("type", Arrays.asList(this.getType()));
 		if (this.getSubType() != null)
 			data.put("subType", new ArrayList<String>(Arrays.asList(this.getSubType())));
 		if (this.getOwnerGroup() != null)

@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.List;
 
 import javax.annotation.Resource;
 import javax.jws.WebService;
@@ -15,8 +16,12 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -38,6 +43,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.RememberMeAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -51,6 +63,8 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
+import au.edu.anu.datacommons.security.CustomUser;
+import au.edu.anu.datacommons.security.cas.ANUUserDetailsService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
@@ -60,6 +74,7 @@ import au.edu.anu.datacommons.webservice.bindings.Activity;
 import au.edu.anu.datacommons.webservice.bindings.Collection;
 import au.edu.anu.datacommons.webservice.bindings.DcRequest;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
+import au.edu.anu.datacommons.webservice.bindings.Link;
 
 @Component
 @Scope("request")
@@ -106,68 +121,26 @@ public class WebServiceResource
 		}
 
 	}
+	
+	@Context
+	private UriInfo uriInfo;
+	@Context
+	private Request request;
+	@Context
+	private HttpHeaders httpHeaders;
 
 	@GET
 	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
+	@Produces(MediaType.TEXT_PLAIN)
 	public Response doGetAsXml()
 	{
 		Response resp = null;
 
 		// TODO Implement method.
-
-		resp = Response.ok("<?xml version=\"1.0\"?>" + "<SomeXmlTag>Hello World" + "</SomeXmlTag>", MediaType.APPLICATION_XML_TYPE).build();
-		return resp;
-	}
-
-	/*
-	@POST
-	@Consumes(MediaType.APPLICATION_XML)
-	@Produces(MediaType.APPLICATION_XML)
-	public Response doPostAsXml(Document xmlDoc)
-	{
-		String xmlResp = "<?xml version=\"1.0\"?>\r\n" + "<dcresponse status=\"Item Created\"><pid>test:1</pid></dcresponse>";
-		LOGGER.info("\r\n" + Util.getXmlAsString(xmlDoc));
-		Document respDoc;
-		Response resp = null;
-		try
-		{
-			respDoc = xmlAsDoc(xmlResp);
-			String pid = xmlDoc.getElementsByTagName("dcrequest").item(0).getAttributes().getNamedItem("pid").getNodeValue();
-			NodeList filesToDownload = xmlDoc.getElementsByTagName("file");
-			for (int i = 0; i < filesToDownload.getLength(); i++)
-			{
-				// Extract the details required from the XML doc.
-				String fileUrl = filesToDownload.item(i).getTextContent();
-				String filename = filesToDownload.item(i).getAttributes().getNamedItem("name").getNodeValue();
-				dcStorage.addFileToBag(pid, filename, fileUrl);
-			}
-			resp = Response.ok(respDoc, MediaType.APPLICATION_XML_TYPE).build();
-		}
-		catch (ParserConfigurationException e)
-		{
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.serverError().build();
-		}
-		catch (SAXException e)
-		{
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.serverError().build();
-		}
-		catch (IOException e)
-		{
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.serverError().build();
-		}
-		catch (DcStorageException e)
-		{
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.serverError().build();
-		}
 		
+		resp = Response.ok("Test - Phenomics", MediaType.TEXT_PLAIN_TYPE).build();
 		return resp;
 	}
-	*/
 
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
@@ -185,13 +158,7 @@ public class WebServiceResource
 		{
 			req = (DcRequest) um.unmarshal(xmlDoc);
 
-			FedoraItem item;
-			if (req.getActivity() != null)
-				item = req.getActivity();
-			else if (req.getCollection() != null)
-				item = req.getCollection();
-			else
-				throw new NullPointerException("No item provided.");
+			FedoraItem item = req.getFedoraItem();
 			
 			if (item.getPid() == null)
 			{
@@ -212,18 +179,31 @@ public class WebServiceResource
 				respDoc.getDocumentElement().appendChild(el);
 			}
 			
-			if (item instanceof Collection)
+			// If collection, add files - download or byRef.
+			if (item instanceof Collection && req.getCollection().getFileUrlList() != null)
 			{
-				// If collection, do extra stuff.
-				// TODO Implement.
+				List<Link> fileUrlList = req.getCollection().getFileUrlList();
+				for (Link iLink : fileUrlList)
+				{
+					if (iLink.isRefOnly() == null || iLink.isRefOnly() == Boolean.FALSE)
+					{
+						// Download file hosted at url to bag.
+						dcStorage.addFileToBag(item.getPid(), iLink.getFilename(), iLink.getUrl());
+					}
+					else
+					{
+						// Refer to the url.
+						dcStorage.addExtRef(item.getPid(), iLink.getUrl());
+					}
+				}
 			}
 
 			resp = Response.ok(respDoc).build();
 		}
 		catch (Exception e)
 		{
-			respDoc.getDocumentElement().appendChild(createElement(respDoc, "error", e.getMessage()));
-			resp = Response.serverError().entity(e.toString()).build();
+			respDoc.getDocumentElement().appendChild(createElement(respDoc, "status", "", new String[] {"error", e.getMessage()}));
+			resp = Response.serverError().entity(respDoc).build();
 		}
 
 		return resp;
@@ -344,9 +324,10 @@ public class WebServiceResource
 	{
 		FedoraObject fo = fedoraObjectService.saveNew(item);
 		String pidCreated = fo.getObject_id();
+		item.setPid(pidCreated);
 		
 		InputStream dataStream = null;
-		Element el = createElement(doc, "status", "", new String[] { "action", "created" }, new String[] { "pid", pidCreated });
+		Element el = createElement(doc, "status", "", new String[] { "action", "created" }, new String[] { "pid", pidCreated }, new String[] {"type", item.getType()});
 		try
 		{
 			dataStream = FedoraBroker.getDatastreamAsStream(pidCreated, Constants.XML_SOURCE);
