@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_locationPublished" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="6c146030-1c01-4a2f-bde7-7d41f2304abb">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SOLR_LOCATION" class="java.lang.String">
+		<defaultValueExpression><![CDATA["http://localhost:8380/solr"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="param1" class="java.lang.String">
+		<defaultValueExpression><![CDATA["ANDS"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="baseURL" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C:/WorkSpace/Software/ireport/reports/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subRpt_publishDate" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["subRpt_publishDate.jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subRpt_location" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["subRpt_location.jasper"]]></defaultValueExpression>
+	</parameter>
+	<queryString language="solr">
+		<![CDATA[q=location.published:$P{param1}&fl=id,published.name,location.published]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="published.name" class="java.lang.String"/>
+	<field name="location.published" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="67" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="ed4063b2-57bc-4a0a-bcc8-4c00fc9652ab" x="0" y="0" width="554" height="45"/>
+				<textElement textAlignment="Left">
+					<font size="30"/>
+				</textElement>
+				<text><![CDATA[Published For Location]]></text>
+			</staticText>
+			<subreport runToBottom="false">
+				<reportElement uuid="5a8c75a9-5eab-4af8-995f-52efcd40c126" x="0" y="45" width="555" height="21"/>
+				<subreportParameter name="location">
+					<subreportParameterExpression><![CDATA[$P{param1}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{baseURL} + $P{subRpt_location}]]></subreportExpression>
+			</subreport>
+			<line>
+				<reportElement uuid="6dd60893-c833-4799-989a-885eba41317a" x="0" y="66" width="554" height="1"/>
+			</line>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="5f18be31-7d67-4aff-897e-19b2f9510d6a" x="1" y="0" width="21" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[ID]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="f9d36c99-7690-472a-bbed-65d6399ae158" x="22" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="216c0d1c-a35f-4ea9-92c3-38bde2d788cb" x="122" y="0" width="31" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Title]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="29dce18b-d5d9-4563-965f-7864b548324c" x="153" y="0" width="402" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{published.name}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="22">
+			<line>
+				<reportElement uuid="c1801a04-30f3-4cee-bec8-c2c4f62b4827" positionType="Float" x="1" y="21" width="554" height="1"/>
+			</line>
+			<subreport runToBottom="false">
+				<reportElement uuid="5a8c75a9-5eab-4af8-995f-52efcd40c126" x="0" y="0" width="555" height="21"/>
+				<subreportParameter name="pid">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{baseURL} + $P{subRpt_publishDate}]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

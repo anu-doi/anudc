@@ -44,6 +44,7 @@ import au.edu.anu.datacommons.data.db.model.Report;
 import au.edu.anu.datacommons.data.db.model.ReportParam;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.SolrUtils;
+import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.util.ExtensionFileFilter;
 import au.edu.anu.datacommons.util.Util;
 
@@ -62,6 +63,7 @@ import au.edu.anu.datacommons.util.Util;
  * 0.1		27/09/2012	Genevieve Turner (GT)	Initial
  * 0.2		02/10/2012	Genevieve Turner (GT)	Moved the recompile reports functionality to this class
  * 0.3		03/10/2012	Genevieve Turner (GT)	Added the retrieval of the reports object name
+ * 0.4		26/10/2012	Genevieve Turner (GT)	Added solr parameter and fixed an issue where with parameters
  * </pre>
  *
  */
@@ -84,6 +86,7 @@ public class ReportGenerator {
 	 * Version	Date		Developer				Description
 	 * 0.1		27/09/2012	Genevieve Turner(GT)	Initial
 	 * 0.3		03/10/2012	Genevieve Turner (GT)	Added the retrieval of the reports object name
+	 * 0.4		26/10/2012	Genevieve Turner (GT)	Added solr parameter and fixed an issue where with parameters
 	 * </pre>
 	 * 
 	 * @param request the http request information
@@ -99,6 +102,7 @@ public class ReportGenerator {
 		
 		params_ = new HashMap<String, Object>();
 		params_.put("baseURL", serverPath + REPORT_PATH);
+		params_.put("SOLR_LOCATION", GlobalProps.getProperty(GlobalProps.PROP_SEARCH_SOLR));
 		if (Util.isNotEmpty(report.getSubReport())) {
 			params_.put("sub_rpt", report.getSubReport());
 		}
@@ -112,7 +116,7 @@ public class ReportGenerator {
 					}
 				}
 			}
-			else if (Util.isNotEmpty(rptParam.getRequestParam())) {
+			else if (Util.isNotEmpty(rptParam.getRequestParam()) && Util.isNotEmpty(request.getParameter(rptParam.getRequestParam()))) {
 				String value = request.getParameter(rptParam.getRequestParam());
 				params_.put(rptParam.getParamName(), value);
 			}

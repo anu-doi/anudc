@@ -16,6 +16,7 @@
 		<module>DcClient</module>
 		<module>ws-phenomics</module>
 		<module>ws-gateway</module>
+		<module>report-datasource</module>
 	</modules>
 
 	<properties>

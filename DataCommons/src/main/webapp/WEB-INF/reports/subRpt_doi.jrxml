@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_doi" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="bf277906-12d5-4482-a5ff-344ec563d173">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SOLR_LOCATION" class="java.lang.String">
+		<defaultValueExpression><![CDATA["http://localhost:8380/solr"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subRpt_doiRequestResponse" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["subRpt_doiRequestResponse.jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="baseURL" class="java.lang.String">
+		<defaultValueExpression><![CDATA["C:/WorkSpace/Software/ireport/reports/"]]></defaultValueExpression>
+	</parameter>
+	<queryString language="solr">
+		<![CDATA[q=unpublished.doi:*&fl=id,unpublished.name,unpublished.doi]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="unpublished.name" class="java.lang.String"/>
+	<field name="unpublished.doi" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="44" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="3bbd98ac-e382-4466-adfb-4db3904391b5" x="0" y="0" width="555" height="43"/>
+				<textElement>
+					<font size="30"/>
+				</textElement>
+				<text><![CDATA[Records with Digital Object Identifiers]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="7e8b1081-db31-4e06-9261-ba594a383ac3" x="-1" y="43" width="555" height="1"/>
+			</line>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="ff83b8df-1fb5-4734-82b2-a23b82c763a7" x="20" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="252d3dd2-c6a1-4d30-847f-7c93790791b4" x="0" y="0" width="20" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[ID:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="8259adc4-75df-42d6-9730-bd28df3f39cd" x="276" y="0" width="278" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{unpublished.name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="83bfba20-6e01-494b-8d09-a43fa8fcb80c" x="246" y="0" width="30" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Title:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e9debd7a-ab4b-4c37-b5c7-bb6b63be08e5" x="120" y="0" width="25" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[DOI:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="59361039-746a-43c0-b63d-4835cd98f38e" x="146" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{unpublished.doi}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="22">
+			<subreport runToBottom="false">
+				<reportElement uuid="5a8c75a9-5eab-4af8-995f-52efcd40c126" x="-1" y="0" width="555" height="21"/>
+				<subreportParameter name="pid">
+					<subreportParameterExpression><![CDATA[$F{id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{baseURL} + $P{subRpt_doiRequestResponse}]]></subreportExpression>
+			</subreport>
+			<line>
+				<reportElement uuid="3e6835b6-93ba-4bff-9020-e961772cce91" positionType="Float" x="0" y="21" width="555" height="1"/>
+			</line>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>
