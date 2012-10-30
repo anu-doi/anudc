@@ -81,6 +81,8 @@ public final class GlobalProps
 	public static final String PROP_REVIEW_REJECTED_TITLE = "review.rejected.title";
 	public static final String PROP_REVIEW_READY_TITLE = "review.reviewready.title";
 	public static final String PROP_PUBLISH_READY_TITLE = "review.publishready.title";
+	public static final String PROP_ORCA_RIFCS = "orca.rifcs.location";
+	public static final String PROP_ORCA_XSL = "orca.transform.xsl";
 
 	static
 	{
