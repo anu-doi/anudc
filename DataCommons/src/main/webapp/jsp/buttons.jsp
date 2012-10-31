@@ -60,7 +60,7 @@
 						</p>
 					</sec:accesscontrollist>
 				
-					<sec:accesscontrollist hasPermission="REVIEW,PUBLISH" domainObject="${it.fedoraObject}">
+					<sec:accesscontrollist hasPermission="REVIEW,PUBLISH,ADMINISTRATION" domainObject="${it.fedoraObject}">
 						<c:url value="/rest/collreq/question" var="questionLink">
 							<c:param name="pid" value="${it.fedoraObject.object_id}" />
 						</c:url>

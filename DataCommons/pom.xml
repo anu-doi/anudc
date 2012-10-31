@@ -293,7 +293,7 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>datacommons-reports</groupId>
+			<groupId>au.edu.anu.datacommons</groupId>
 			<artifactId>report-datasource</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
