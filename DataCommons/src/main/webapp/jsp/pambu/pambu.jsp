@@ -71,6 +71,9 @@
 							</c:when>
 						</c:choose>
 					</c:if>
+					<c:if test="${not empty row['id']}">
+						<a href='<c:url value="/rest/collreq?pid=test:1340" />'>Request Access</a>
+					</c:if>
 				</td>
 			</tr>
 		</c:forEach>

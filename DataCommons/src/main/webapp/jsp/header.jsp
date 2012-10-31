@@ -18,7 +18,6 @@
 			</fmt:bundle>
 			<li><a>Welcome Guest</a></li>
 			<li> <a href='<c:url value="/login" />'>Login</a></li>
-			<li><a href="<c:url value='${casserver}/login'><c:param name='service' value='${appserver}/DataCommons/j_spring_cas_security_check' /></c:url>">ANU Login</a></li>
 		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
 			<li><a href='<c:url value="/rest/user" />'>Welcome <sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.username" />)</a></li>
