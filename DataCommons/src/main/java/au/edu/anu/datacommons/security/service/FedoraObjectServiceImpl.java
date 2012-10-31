@@ -1,5 +1,7 @@
 package au.edu.anu.datacommons.security.service;
 
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -8,8 +10,12 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
@@ -32,6 +38,9 @@ import au.edu.anu.datacommons.data.db.model.ReviewReady;
 import au.edu.anu.datacommons.data.db.model.ReviewReject;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
+import au.edu.anu.datacommons.doi.DoiClient;
+import au.edu.anu.datacommons.doi.DoiException;
+import au.edu.anu.datacommons.doi.DoiResourceAdapter;
 import au.edu.anu.datacommons.exception.ValidationException;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.publish.FieldValidate;
@@ -43,9 +52,11 @@ import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
+import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
+import au.edu.anu.datacommons.xml.data.Data;
 import au.edu.anu.datacommons.xml.sparql.Result;
 import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
@@ -55,6 +66,7 @@ import au.edu.anu.dcbag.BagSummary;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.generated.access.DatastreamType;
 
 /**
  * FedoraObjectServiceImpl
@@ -96,6 +108,19 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 @Service("fedoraObjectServiceImpl")
 public class FedoraObjectServiceImpl implements FedoraObjectService {
 	static final Logger LOGGER = LoggerFactory.getLogger(FedoraObjectServiceImpl.class);
+	private static JAXBContext dataContext;
+	
+	static
+	{
+		try
+		{
+			dataContext = JAXBContext.newInstance(Data.class);
+		}
+		catch (JAXBException e)
+		{
+			LOGGER.error("Unable to create JAXB Context for Data Element");
+		}
+	}
 
 	@Resource(name = "groupServiceImpl")
 	private GroupService groupService;
@@ -1163,5 +1188,63 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 */
 	public void hasReportPermission(FedoraObject fedoraObject) {
 		// do nothing
+	}
+	
+	public void generateDoi(String pid, String tmplt, String itemUri) throws FedoraObjectException
+	{
+		InputStream datastream = null;
+		try
+		{
+			Unmarshaller um = dataContext.createUnmarshaller();
+			datastream = FedoraBroker.getDatastreamAsStream(pid, Constants.XML_SOURCE);
+			Data itemData = (Data) um.unmarshal(datastream);
+			
+			// Check if it's a collection.
+			String type = itemData.getFirstElementByName("type").getValue();
+			if (!type.equalsIgnoreCase("collection"))
+				throw new FedoraObjectException("Item is not of type 'collection'. Digital Object Identifiers can only be minted for collections.");
+
+			// Check if a DOI already exists.
+			if (itemData.getFirstElementByName("doi") != null)
+			{
+				throw new FedoraObjectException("Collection already has a Digital Object Identifier.");
+			}
+			
+			// TODO Change the following code as required for checking if the item's published or not.
+			//			List<DatastreamType> datastreams = FedoraBroker.getDatastreamList(pid);
+			//			for (DatastreamType iDs : datastreams)
+			//			{
+			//				if (iDs.getDsid().equals(Constants.XML_PUBLISHED))
+			//				{
+			//					throw new FedoraObjectException("Item's already published.");
+			//				}
+			//			}
+			
+			org.datacite.schema.kernel_2.Resource doiResource = new DoiResourceAdapter(itemData).getDoiResource();
+			DoiClient doiClient = new DoiClient();
+			doiClient.mint(itemUri, doiResource);
+			
+			String mintedDoi = doiClient.getDoiResponse().getDoi();
+			FedoraObject fedoraObject = getItemByPid(pid);
+			Map<String, List<String>> form = new HashMap<String, List<String>>();
+			form.put("doi", Arrays.asList(mintedDoi));
+			saveEdit(fedoraObject, tmplt, form);
+		}
+		catch (FedoraClientException e)
+		{
+			throw new FedoraObjectException(e.getMessage(), e);
+		}
+		catch (JAXBException e)
+		{
+			throw new FedoraObjectException(e.getMessage(), e);
+		}
+		catch (DoiException e)
+		{
+			throw new FedoraObjectException(e.getMessage(), e);
+		}
+		finally
+		{
+			IOUtils.closeQuietly(datastream);
+		}
 	}
 }

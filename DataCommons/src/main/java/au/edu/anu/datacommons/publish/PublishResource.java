@@ -1,5 +1,6 @@
 package au.edu.anu.datacommons.publish;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,9 @@ import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import au.edu.anu.datacommons.item.ItemResource;
+import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.security.service.FedoraObjectException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.services.ListResource;
 import au.edu.anu.datacommons.util.Util;
@@ -136,6 +141,32 @@ public class PublishResource {
 			uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
 		}
 		return Response.seeOther(uriBuilder.build()).build();
+	}
+	
+	@GET
+	@Path("/mintdoi/{pid}")
+	@Produces(MediaType.TEXT_HTML)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response generateDoi(@PathParam("pid") String pid, @QueryParam("tmplt") String tmplt, @Context UriInfo uriInfo)
+	{
+		Response resp = null;
+
+		try
+		{
+			URI itemUri = UriBuilder.fromUri(GlobalProps.getProperty(GlobalProps.PROP_APP_SERVER)).path("DataCommons").path("item").path(ItemResource.class)
+					.path(ItemResource.class, "getItem").build(pid);
+
+			fedoraObjectService.generateDoi(pid, tmplt, itemUri.toString());
+			UriBuilder redirUri = UriBuilder.fromPath("/display").path(pid).queryParam("layout", "def:display").queryParam("tmplt", tmplt);
+			resp = Response.seeOther(redirUri.build()).build();
+		}
+		catch (Exception e)
+		{
+			LOGGER.error("DOI Minting failed.", e);
+			resp = Response.serverError().entity(e.getMessage()).build();
+		}
+
+		return resp;
 	}
 	
 	/**

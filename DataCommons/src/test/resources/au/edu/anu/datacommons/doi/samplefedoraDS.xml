@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<data xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns4="http://www.w3.org/2001/sw/DataAccess/rf1/result" xmlns:ns5="http://ands.org.au/standards/rif-cs/registryObjects"
+	xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+	<dataRetention>Indefinitely</dataRetention>
+	<phone>+61 (0)2 6125 1234</phone>
+	<citationCreator>First Name; Second Name</citationCreator>
+	<type>Collection</type>
+	<anzseoSubject>9402</anzseoSubject>
+	<collaborator>Some collaborator</collaborator>
+	<ownerGroup>11</ownerGroup>
+	<citationPublisher>Australian Data Archive</citationPublisher>
+	<citationYear>1987</citationYear>
+	<name>Some Name</name>
+	<altName>Some alternative name</altName>
+	<subType>dataset</subType>
+</data>

@@ -98,6 +98,37 @@ public class Data {
 	}
 	
 	/**
+	 * Returns List of elements in a Fedora Object whose tagname is <em>elementName</em>.
+	 * 
+	 * @param elementName
+	 *            Name of the element as String.
+	 * @return List of DataItem objects referencing to the elements. Returns a blank list if no elements found.
+	 */
+	public List<DataItem> getElementByName(String elementName)
+	{
+		List<DataItem> elements = new ArrayList<DataItem>();
+		for (DataItem iItem : items_)
+			if (iItem.getName().equalsIgnoreCase(elementName))
+				elements.add(iItem);
+		return elements;
+	}
+	
+	/**
+	 * Returns the first element in a Fedora Object whose tagname is <em>elementName</em>.
+	 * 
+	 * @param elementName
+	 *            Name of the element as String.
+	 * @return DataItem with the provided elementName. null if an element with that name doesn't exist.
+	 */
+	public DataItem getFirstElementByName(String elementName)
+	{
+		for (DataItem iItem : items_)
+			if (iItem.getName().equalsIgnoreCase(elementName))
+				return iItem;
+		return null;
+	}
+	
+	/**
 	 * hasElement
 	 * 
 	 * Checks if there is an element with the specified name

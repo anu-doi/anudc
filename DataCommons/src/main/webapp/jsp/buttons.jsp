@@ -50,7 +50,7 @@
 						<input type="button" id="fullEditButton" name="fullEditButton" value="Edit Whole Metadata" onclick="window.location='${fullEditLink}'" />
 					</p>
 				</sec:accesscontrollist>
-				<c:if test="${it.itemType == 'Collection'}">
+				<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
 					<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">
 						<c:url value="/rest/upload" var="uploadLink">
 							<c:param name="pid" value="${it.fedoraObject.object_id}" />
@@ -66,6 +66,14 @@
 						</c:url>
 						<p>
 							<input type="button" id="questionButton" name="questionButton" value="Set Request Questions" onclick="window.location='${questionLink}'" />
+						</p>
+						
+						<c:url value="/rest/publish/mintdoi/${it.fedoraObject.object_id}" var="mintDoiLink">
+							<c:param name="tmplt" value="${param.tmplt}" />
+							<c:param name="layout" value="${param.layout}" />
+						</c:url>
+						<p>
+							<input type="button" id="mintDoi" name="mintDoi" value="Mint DOI" onclick="window.location='${mintDoiLink}'" />
 						</p>
 					</sec:accesscontrollist>
 				</c:if>

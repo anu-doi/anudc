@@ -234,13 +234,15 @@ public class DcRequestTest
 		rel2.setRelatedWebTitle("Facebook");
 		rel2.setRelatedWebUrl("http://www.facebook.com");
 		coll.setRelated(Arrays.asList(rel1, rel2));
+		
+		coll.setExtIds(Arrays.asList("ExtId1", "ExtId2"));
 
 		coll.setEmails(Arrays.asList("email1@anu.edu.au", "email2.anu.edu.au"));
 		coll.setContactAddress("Some place for contact.");
 		coll.setPhones(Arrays.asList("123456789", "987654321"));
 		coll.setFaxes(Arrays.asList("321654987", "789456123"));
 		coll.setWebsites(Arrays.asList("http://test.anu.edu.au", "http://test2.anu.edu.au"));
-		coll.setCreators(Arrays.asList("Creator 1", "Creator 2", "Creator 3"));
+		coll.setPrincipalInvestigators(Arrays.asList("Principal Investigator 1", "Principal Investigator 2", "Principal Investigator 3"));
 		coll.setSupervisors(Arrays.asList("Super 1", "Super 2"));
 		coll.setCollaborators(Arrays.asList("Collaborator 1", "Collaborator 2"));
 
