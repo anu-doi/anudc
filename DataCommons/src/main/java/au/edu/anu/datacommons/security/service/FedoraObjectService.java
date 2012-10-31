@@ -398,4 +398,16 @@ public interface FedoraObjectService {
 	 * @throws FedoraClientException
 	 */
 	public void removeLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException;
+	
+	/**
+	 * Generates a DOI for a collection.
+	 * 
+	 * @param pid
+	 *            Pid of collection
+	 * @param tmplt
+	 *            Template
+	 * @throws FedoraObjectException
+	 *             When unable to generate a DOI
+	 */
+	public void generateDoi(String pid, String tmplt, String itemUrl) throws FedoraObjectException;
 }

@@ -39,6 +39,7 @@ public class Collection implements FedoraItem
 	private String citationText;
 	private List<Publication> publications;
 	private List<RelatedWebsites> related;
+	private List<String> extIds;
 
 	// People
 	private List<String> emails;
@@ -46,7 +47,7 @@ public class Collection implements FedoraItem
 	private List<String> phones;
 	private List<String> faxes;
 	private List<String> websites;
-	private List<String> creators;
+	private List<String> principalInvestigators;
 	private List<String> supervisors;
 	private List<String> collaborators;
 	
@@ -267,8 +268,19 @@ public class Collection implements FedoraItem
 		this.related = related;
 	}
 	
-	// People
+	@XmlElement(name = "externalId")
+	public List<String> getExtIds()
+	{
+		return extIds;
+	}
+
+	public void setExtIds(List<String> extIds)
+	{
+		this.extIds = extIds;
+	}
 	
+	// People
+
 	@XmlElement(name = "email")
 	public List<String> getEmails()
 	{
@@ -324,15 +336,15 @@ public class Collection implements FedoraItem
 		this.websites = websites;
 	}
 
-	@XmlElement(name = "creator")
-	public List<String> getCreators()
+	@XmlElement(name = "principalInvestigator")
+	public List<String> getPrincipalInvestigators()
 	{
-		return creators;
+		return principalInvestigators;
 	}
 
-	public void setCreators(List<String> creators)
+	public void setPrincipalInvestigators(List<String> principalInvestigators)
 	{
-		this.creators = creators;
+		this.principalInvestigators = principalInvestigators;
 	}
 
 	@XmlElement(name = "supervisor")
@@ -646,6 +658,9 @@ public class Collection implements FedoraItem
 			data.put("relatedWebURL", relatedWebUrlList);
 			data.put("relatedWebTitle", relatedWebTitleList);
 		}
+		
+		if (this.getExtIds() != null && this.getExtIds().size() > 0)
+			data.put("externalId", this.getExtIds());
 
 		if (this.getEmails() != null && this.getEmails().size() > 0)
 			data.put("email", this.getEmails());
@@ -657,8 +672,8 @@ public class Collection implements FedoraItem
 			data.put("fax", this.getFaxes());
 		if (this.getWebsites() != null)
 			data.put("websiteAddress", this.getWebsites());
-		if (this.getCreators() != null)
-			data.put("creator", this.getCreators());
+		if (this.getPrincipalInvestigators() != null)
+			data.put("principalInvestigator", this.getPrincipalInvestigators());
 		if (this.getSupervisors() != null)
 			data.put("supervisor", this.getSupervisors());
 		if (this.getCollaborators() != null)

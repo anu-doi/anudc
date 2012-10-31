@@ -91,4 +91,7 @@
 		<column name="relatedWebURL" label="URL" fieldType="TextField" />
 		<column name="relatedWebTitle" label="Title" fieldType="TextField" />
 	</item>
+	<item name="externalId" label="Other Related Identifiers" fieldType="TextFieldMulti" saveType="multiple" tab="related">
+		<tooltip>Identifiers for systems external to ANU Data Commons</tooltip>
+	</item>
 </template>

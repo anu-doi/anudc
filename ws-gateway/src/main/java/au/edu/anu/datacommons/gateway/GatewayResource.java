@@ -25,6 +25,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
+import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 
 import au.edu.anu.datacommons.config.Config;
@@ -35,6 +36,8 @@ public class GatewayResource
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GatewayResource.class);
 	private static final Client client = Client.create();
+	private static final ClientFilter loggingFilter = new LoggingFilter();
+
 	private static Properties redirProps;
 
 	static
@@ -78,6 +81,17 @@ public class GatewayResource
 	@Produces(MediaType.APPLICATION_XML)
 	public Response doPostRequest(Document xmlDoc)
 	{
+		if (redirProps.getProperty("http.logging", "false").equalsIgnoreCase("true"))
+		{
+			if (!client.isFilterPreset(loggingFilter))
+				client.addFilter(loggingFilter);
+		}
+		else
+		{
+			if (client.isFilterPreset(loggingFilter))
+				client.removeFilter(loggingFilter);
+		}
+
 		Response resp = null;
 		String function = xmlDoc.getDocumentElement().getAttribute("function");
 		WebResource redirRes = client.resource(UriBuilder.fromPath(redirProps.getProperty(function)).build());

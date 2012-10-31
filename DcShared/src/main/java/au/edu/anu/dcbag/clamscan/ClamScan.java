@@ -71,7 +71,7 @@ public class ClamScan {
         try {
             socket.connect(new InetSocketAddress(getHost(), getPort()));
         } catch (IOException e) {
-            log.error("could not connect to clamd server", e);
+            log.error("could not connect to clamd server");
             return null;
         }
 

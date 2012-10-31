@@ -46,6 +46,7 @@ public class Activity implements FedoraItem
 
 	private List<Publication> publications;
 	private List<RelatedWebsites> related;
+	private List<String> extIds;
 
 	// All elements not captured as its own field.
 	private List<Element> nodes;
@@ -295,6 +296,17 @@ public class Activity implements FedoraItem
 	{
 		this.related = related;
 	}
+	
+	@XmlElement(name = "externalId")
+	public List<String> getExtIds()
+	{
+		return extIds;
+	}
+
+	public void setExtIds(List<String> extIds)
+	{
+		this.extIds = extIds;
+	}
 
 	@XmlAnyElement()
 	public List<Element> getNodes()
@@ -338,6 +350,9 @@ public class Activity implements FedoraItem
 			data.put("briefDesc", new ArrayList<String>(Arrays.asList(this.getBriefDesc())));
 		if (this.getFullDesc() != null)
 			data.put("fullDesc", new ArrayList<String>(Arrays.asList(this.getFullDesc())));
+		
+		if (this.getExtIds() != null && this.getExtIds().size() > 0)
+			data.put("externalId", this.getExtIds());
 
 		if (this.getEmails() != null && this.getEmails().size() > 0)
 			data.put("email", this.getEmails());

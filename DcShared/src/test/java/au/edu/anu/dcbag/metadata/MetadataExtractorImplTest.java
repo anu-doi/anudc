@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -33,7 +34,6 @@ public class MetadataExtractorImplTest
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataExtractorImplTest.class);
 	
-	private MetadataExtractor mdExtractor;
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
@@ -48,7 +48,6 @@ public class MetadataExtractorImplTest
 	@Before
 	public void setUp() throws Exception
 	{
-		mdExtractor = new MetadataExtractorImpl(new File(FidoParserTest.class.getResource("BagIt Specification.pdf").toURI())); 
 	}
 
 	@After
@@ -57,17 +56,27 @@ public class MetadataExtractorImplTest
 	}
 
 	@Test
-	public void testGetMetadataMap()
+	public void testGetMetadataMap() throws IOException, SAXException, TikaException, URISyntaxException
 	{
+		MetadataExtractor mdExtractor = new MetadataExtractorImpl(new File(FidoParserTest.class.getResource("BagIt Specification.pdf").toURI()));
 		Map<String, String[]> mdMap = mdExtractor.getMetadataMap();
-		LOGGER.info("Attributes count: {}", mdMap.size());
-		assertEquals(mdMap.size(), 26);
+		LOGGER.trace("Attributes count: {}", mdMap.size());
+		assertEquals(26, mdMap.size());
 		assertTrue(mdMap.get("dc:title")[0].equals("BagIt File Packaging Format v 0.97"));
+	}
+	
+	@Test
+	public void testFitsGetMetadataMap() throws IOException, SAXException, TikaException, URISyntaxException
+	{
+		MetadataExtractor mde = new MetadataExtractorImpl(new File(MetadataExtractorImplTest.class.getResource("Nasa - WFPC2u5780205r_c0fx.fits").toURI()));
+		Map<String, String[]> mdMap = mde.getMetadataMap();
+		assertEquals(180, mdMap.size());
 	}
 
 	@Test
-	public void testGetXmpMetadata()
+	public void testGetXmpMetadata() throws IOException, SAXException, TikaException, URISyntaxException
 	{
+		MetadataExtractor mdExtractor = new MetadataExtractorImpl(new File(FidoParserTest.class.getResource("BagIt Specification.pdf").toURI()));
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder dBuilder;
 		Document doc = null;
