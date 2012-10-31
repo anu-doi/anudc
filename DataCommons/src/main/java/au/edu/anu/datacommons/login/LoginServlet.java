@@ -17,6 +17,7 @@ import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.savedrequest.SavedRequest;
 
+import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.util.Util;
 
 /**
@@ -37,6 +38,8 @@ import au.edu.anu.datacommons.util.Util;
  * Version	Date		Developer				Description
  * 0.1		19/03/2012	Rahul Khanna (RK)		Initial build
  * 0.2		26/04/2012	Genevieve Turner (GT)	Updated for changes to security
+ * 0.3		13/09/2012	Genevieve Turner (GT)	Updated to allow redirect to original url when login page is selected
+ * 0.4		31/10/2012	Genevieve Turner (GT)	Updates to allow for a single login landing page that then redirects to other pages
  * </pre>
  * 
  */
@@ -56,6 +59,7 @@ public class LoginServlet extends HttpServlet
 	 * 0.1		19/03/2012	Rahul Khanna (RK)		Initial build
 	 * 0.2		26/04/2012	Genevieve Turner (GT)	Updated for changes to security
 	 * 0.3		13/09/2012	Genevieve Turner (GT)	Updated to allow redirect to original url when login page is selected
+	 * 0.4		31/10/2012	Genevieve Turner (GT)	Updates to allow for a single login landing page that then redirects to other pages
 	 * </pre>
 	 * 
 	 * @param request a HttpServletRequest object that contains the request the client has made of the servlet
@@ -68,6 +72,7 @@ public class LoginServlet extends HttpServlet
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		String errorParam = request.getParameter("error");
+		String methodParam = request.getParameter("method");
 		if("true".equals(errorParam)) {
 			request.setAttribute("error", "You have entered an invalid username or password");
 		}
@@ -77,14 +82,31 @@ public class LoginServlet extends HttpServlet
 			if (savedRequest == null) {
 				String referer = request.getHeader("Referer");
 				if (Util.isNotEmpty(referer)) {
+					LOGGER.debug("Referer on login page is not empty and is: {}", referer);
 					PortResolver portResolver = new PortResolverImpl();
 					DefaultSavedRequest savedRequestToSet = new DefaultSavedRequest (request, portResolver);
 					request.getSession().setAttribute(WebAttributes.SAVED_REQUEST, savedRequestToSet);
 				}
 			}
 		}
+		RequestDispatcher requestDispatcher = null;
 		
-		RequestDispatcher requestDispatcher = request.getRequestDispatcher("jsp/login.jsp");
+		if ("anu".equals(methodParam)) {
+			StringBuilder casURL = new StringBuilder();
+			casURL.append(GlobalProps.getProperty(GlobalProps.PROP_CAS_SERVER));
+			casURL.append("/login?service=");
+			casURL.append(GlobalProps.getProperty(GlobalProps.PROP_APP_SERVER));
+			casURL.append(request.getServletContext().getContextPath());
+			casURL.append("/j_spring_cas_security_check");
+			response.sendRedirect(casURL.toString());
+			return;
+		}
+		else if ("registered".equals(methodParam)) {
+			requestDispatcher = request.getRequestDispatcher("jsp/login.jsp");
+		}
+		else {
+			requestDispatcher = request.getRequestDispatcher("jsp/login_select.jsp");
+		}
 		requestDispatcher.forward(request, response);
 	}
 }

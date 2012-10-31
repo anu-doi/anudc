@@ -5,14 +5,12 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
-import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.cas.ANUUserDetailsService;
 
 /**
@@ -30,6 +28,7 @@ import au.edu.anu.datacommons.security.cas.ANUUserDetailsService;
  * Version	Date		Developer				Description
  * 0.1		11/07/2012	Genevieve Turner (GT)	Initial
  * 0.2		12/07/2012	Rahul Khanna (RK)		Added auth header if request from Bagit.
+ * 0.3		31/10/2012	Genevieve Turner (GT)	Updated to redirect to a login landing page
  * </pre>
  *
  */
@@ -45,6 +44,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 	 * Version	Date		Developer				Description
 	 * 0.1		11/07/2012	Genevieve Turner(GT)	Initial
 	 * 0.2		12/07/2012	Rahul Khanna (RK)		Added auth header if request from Bagit.
+	 * 0.3		31/10/2012	Genevieve Turner (GT)	Updated to redirect to a login landing page
 	 * </pre>
 	 * 
 	 * @param request HTTP request information
@@ -66,7 +66,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 		}
 		else
 		{
-			response.sendRedirect(GlobalProps.getCasServerUri().toString());
+			response.sendRedirect(request.getServletContext().getContextPath() + "/login");
 		}
 	}
 

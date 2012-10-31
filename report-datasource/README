@@ -1,0 +1,15 @@
+To use this datasource in iReport please perform the following steps:
+
+1) Compile with the JARS 'mvn assembly:single'
+2) Place the jar file somewhere that you would happy for it to be
+3) Add the Query Executer to the list of available executers
+Tools -> Options
+Query Executers tab
+Click 'Add' and input the following values:
+Language: solr
+Factory Class: au.edu.anu.datacommons.report.datasource.SolrQueryExecuterFactory
+Fields Provider Class: com.jaspersoft.ireport.designer.data.fieldsproviders.SQLFieldsProvider (this may or may not be required)
+
+4) Adding the query executer mode may be optional:
+But in Datasources click 'New' -> 'Query Executer mode' -> Name it whatever you want.  This will then allow you to query items such as solr.
+This can also be run under an sql connection for further queries in databases.

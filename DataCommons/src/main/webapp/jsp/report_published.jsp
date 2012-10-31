@@ -15,26 +15,26 @@
 <jsp:include page="/jsp/header.jsp" />
 
 <anu:content layout="doublenarrow" title="Reports">
-	<form class="anuform" method="POST" action="">
-		<label for="itemSearch">Find Item</label><input type="text" id="itemSearch" name="itemSearch" /><br/>
-		<label for="name">Item Name</label><input readonly="readonly" type="text" id="name" name="name" /><br/>
-		<label for="pid">Item ID</label><input readonly="readonly" type="text" id="pid" name="pid" value="${it.pid}" /><br/>
+	<form class="anuform" method="POST"  action="<c:url value='/rest/report' />">
+		<label for="report">Report</label>
+		<select id="report" name="report">
+			<option value="6">Reports Published To Location</option>
+		</select>
+		<br/>
+		<label for="location">Location</label>
+		<select name="location" id="location">
+			<c:forEach items="${it.publishLocations}" var="location">
+				<option value="${location.code}">${location.name}</option>
+			</c:forEach>
+		</select>
+		<br/>
 		<label for="format">Format</label>
 		<select id="format" name="format">
 			<option value="pdf">PDF</option>
 			<option value="html">HTML</option>
 		</select>
 		<br/>
-		<label for="report">Report</label>
-		<select id="report" name="report">
-			<option value="1">All</option>
-			<option value="2">Modifications</option>
-			<option value="3">Published</option>
-			<option value="4">Logs</option>
-			<option value="5">Dropbox Access</option>
-		</select>
-		<br/>
-		<input type="submit" class="right" value="Submit" />
+		<input type="submit" class="right" value="Get Report" />
 	</form>
 </anu:content>
 

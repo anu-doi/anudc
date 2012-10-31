@@ -16,16 +16,15 @@
 		<security:intercept-url pattern="/**" access="permitAll" />
 		
 		<security:form-login
-			login-page="/login"
+			login-page="/login?method=registered&amp;test=test"
 			authentication-success-handler-ref="authenticationSuccessHandler"
-			authentication-failure-url="/login?error=true" />
+			authentication-failure-url="/login?error=true&amp;method=registered" />
 		
 		<security:logout
-			logout-success-url="/jsp/welcome.jsp" />
+			logout-success-url="/" />
 		
 		<security:custom-filter ref="casAuthenticationFilter" after="CAS_FILTER"/>
 		<security:custom-filter position="PRE_AUTH_FILTER" ref="tokenFilter" />
-
 	</security:http>
 	
 	<bean id="customAuthenticationEntryPoint" class="au.edu.anu.datacommons.security.CustomAuthenticationEntryPoint" />
@@ -83,7 +82,7 @@
 			</bean>
 		</property>
 		<property name="authenticationSuccessHandler">
-			<bean class="org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler">
+			<bean class="au.edu.anu.datacommons.security.CustomSuccessHandler">
 				<property name="defaultTargetUrl" value="/" />
 			</bean>
 		</property>

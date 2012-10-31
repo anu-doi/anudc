@@ -25,7 +25,7 @@
 			</c:if>
 			<sec:authorize access="hasRole('ROLE_ANU_USER')">
 				<sec:accesscontrollist hasPermission="ADMINISTRATION" domainObject="${it.fedoraObject}">
-					<c:url value="/rest/report" var="reportLink">
+					<c:url value="/rest/report/single" var="reportLink">
 						<c:param name="pid" value="${it.fedoraObject.object_id}" />
 					</c:url>
 					<p>

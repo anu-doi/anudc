@@ -51,6 +51,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.2		13/06/2012	Genevieve Turner (GT)	Updated to use solrj classes and added and/or query functionality
  * 0.3		10/08/2012	Genevieve Turner (GT)	Updated to provide more get options.
  * 0.4		14/08/2012	Genevieve Turner (GT)	Updated to show links for the web crawler
+ * 0.5		31/10/2012	Genevieve Turner (GT)	Updated to add id and alternate name fields to be returned
  * </pre>
  *
  */
@@ -262,6 +263,7 @@ public class PambuSearchResource {
 	 * Version	Date		Developer				Description
 	 * 0.1		08/06/2012	Genevieve Turner(GT)	Initial
 	 * 0.2		13/06/2012	Genevieve Turner (GT)	Updated to use solrj classes and added and/or query functionality
+	 * 0.5		31/10/2012	Genevieve Turner (GT)	Updated to add id and alternate name fields to be returned
 	 * </pre>
 	 * 
 	 * @param value The value of the return criteria filter
@@ -276,6 +278,9 @@ public class PambuSearchResource {
 		solrQuery.addField("published.serialNum");
 		solrQuery.addField("published.accessRights");
 		solrQuery.addField("published.format");
+
+		solrQuery.addField("id");
+		solrQuery.addField("published.altName");
 		
 		if ("long".equals(value)) {
 			solrQuery.addField("published.briefDesc");

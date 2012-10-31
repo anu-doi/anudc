@@ -1,6 +1,7 @@
 package au.edu.anu.datacommons.report;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -23,7 +24,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
+import au.edu.anu.datacommons.data.db.dao.GenericDAO;
+import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.util.Util;
 
@@ -44,6 +48,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.1		27/09/2012	Genevieve Turner (GT)	Initial
  * 0.2		02/10/2012	Genevieve Turner (GT)	MOved reload of reports functionality to ReportGenerator class
  * 0.3		02/10/2012	Genevieve Turner (GT)	Updated to verify the user has permissions to execute a report prior to generating the report
+ * 0.4		30/10/2012	Genevieve Turner (GT)	Updated to make available more report types
  * </pre>
  *
  */
@@ -59,11 +64,11 @@ public class ReportResource {
 	/**
 	 * getReportPage
 	 *
-	 * Get the page to ask questions about the report to generate
+	 * Get a page that list the types of reports
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * 0.1		27/09/2012	Genevieve Turner(GT)	Initial
+	 * X.X		30/10/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return
@@ -71,13 +76,80 @@ public class ReportResource {
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response getReportPage(@QueryParam("pid") String pid) {
+	public Response getReportPage() {
+		return Response.ok(new Viewable("/report.jsp")).build();
+	}
+	
+	/**
+	 * getSingleItemReportPage
+	 *
+	 * Get the page to ask questions about the report to generate
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		27/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		30/10/2012	Genevieve Turner (GT)	Renamed and changed the jsp used
+	 * </pre>
+	 * 
+	 * @return
+	 */
+	@GET
+	@Path("single")
+	@Produces(MediaType.TEXT_HTML)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response getSingleItemReportPage(@QueryParam("pid") String pid) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		if (Util.isNotEmpty(pid)) {
 			model.put("pid", pid);
 		}
 		
-		return Response.ok(new Viewable("/reports.jsp", model)).build();
+		return Response.ok(new Viewable("/report_single.jsp", model)).build();
+	}
+	
+	/**
+	 * getPublishedReportPage
+	 *
+	 * Get the page to generate a report that is generated for a particular location
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		30/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 */
+	@GET
+	@Path("published")
+	@Produces(MediaType.TEXT_HTML)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response getPublishedReportPage() {
+		GenericDAO<PublishLocation, Long> publishLocationDAO = new GenericDAOImpl<PublishLocation, Long>(PublishLocation.class);
+		List<PublishLocation> publishLocations = publishLocationDAO.getAll();
+		
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("publishLocations", publishLocations);
+		
+		return Response.ok(new Viewable("/report_published.jsp", model)).build();
+	}
+	
+	/**
+	 * getMultipleItemReportPage
+	 *
+	 * Get a page to check the reports for multiple items
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		30/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 */
+	@GET
+	@Path("multiple")
+	@Produces(MediaType.TEXT_HTML)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response getMultipleItemReportPage() {
+		return Response.ok(new Viewable("/report_multiple.jsp")).build();
 	}
 	
 	/**

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_publishDate" pageWidth="554" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="f31c8a80-eaff-4836-9d0f-55e94b4d4856">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="pid" class="java.lang.String">
+		<defaultValueExpression><![CDATA[null]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select fedora_object.pid, audit_object.log_date,audit_object.after, users.username
+from fedora_object, audit_object, users
+where pid = $P{pid}
+and fedora_object.id = audit_object.object_id
+and audit_object.log_type = 'PUBLISH'
+and audit_object.user_id = users.id
+order by audit_object.log_date;]]>
+	</queryString>
+	<field name="pid" class="java.lang.String"/>
+	<field name="log_date" class="java.sql.Timestamp"/>
+	<field name="after" class="java.lang.String"/>
+	<field name="username" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="218db160-7e31-45eb-b8fa-a0152a721f62" x="79" y="0" width="90" height="15"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{log_date}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="bb447c88-cfb7-4286-90da-0ba85e569d36" x="240" y="0" width="314" height="15"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{username}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="22274ff2-122c-4a44-9a35-a5d2c1783b10" x="0" y="0" width="79" height="15"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Published Date:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b443d1a4-9f1e-4aa1-b49c-e52aff222fae" x="169" y="0" width="71" height="15"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Published By]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d333aa2d-f0bf-4db9-b92e-b6a2748d1c17" x="0" y="15" width="60" height="15"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Location(s):]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="32c769f2-e30c-44f5-9eb0-1ee881eafb7a" x="60" y="15" width="494" height="15"/>
+				<textElement markup="html"/>
+				<textFieldExpression><![CDATA[$F{after}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+	<noData>
+		<band height="15">
+			<staticText>
+				<reportElement uuid="477bda17-6a65-462d-93b8-e77bd9831094" x="0" y="0" width="554" height="15"/>
+				<textElement/>
+				<text><![CDATA[No Publication Dates Logged]]></text>
+			</staticText>
+		</band>
+	</noData>
+</jasperReport>

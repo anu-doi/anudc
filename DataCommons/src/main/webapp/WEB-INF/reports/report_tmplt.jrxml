@@ -16,6 +16,7 @@
 		<defaultValueExpression><![CDATA["test:96"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="name" class="java.lang.String"/>
+	<parameter name="SOLR_LOCATION" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[select 1 as test;]]>
 	</queryString>
@@ -46,6 +47,9 @@
 				<reportElement uuid="0f3fa8c0-40c8-49a4-b811-08798d5e01d3" x="1" y="0" width="554" height="10" isPrintWhenDetailOverflows="true"/>
 				<subreportParameter name="param1">
 					<subreportParameterExpression><![CDATA[$P{param1}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SOLR_LOCATION">
+					<subreportParameterExpression><![CDATA[$P{SOLR_LOCATION}]]></subreportParameterExpression>
 				</subreportParameter>
 				<subreportParameter name="name">
 					<subreportParameterExpression><![CDATA[$P{name}]]></subreportParameterExpression>

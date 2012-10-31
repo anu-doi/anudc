@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_doiRequestResponse" pageWidth="554" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="dfd953bd-417c-44ed-82e2-f2e248c27efb">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="pid" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select audit_object.log_date, audit_object.log_type, users.username, audit_object.after
+from fedora_object, audit_object, users
+where fedora_object.pid = $P{pid}
+and fedora_object.id = audit_object.object_id
+and audit_object.log_type in ('DOI_REQUEST','DOI_RESPONSE')
+and audit_object.user_id = users.id
+order by audit_object.log_date;]]>
+	</queryString>
+	<field name="log_date" class="java.sql.Timestamp"/>
+	<field name="log_type" class="java.lang.String"/>
+	<field name="username" class="java.lang.String"/>
+	<field name="after" class="java.lang.String"/>
+	<variable name="type" class="java.lang.String">
+		<variableExpression><![CDATA["DOI_REQUEST".equals($F{log_type}) ? "Request" : "Response"]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="621a106c-92cb-43eb-8b6f-4602af546d84" x="0" y="0" width="27" height="20"/>
+				<textElement/>
+				<text><![CDATA[Date:]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy HH.mm.ss">
+				<reportElement uuid="d00449be-65ef-4199-ac27-c85f4a06e14f" x="27" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{log_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="149fa9da-6367-4a74-92fe-d0320f134347" x="127" y="0" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$V{type}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+	<noData>
+		<band height="20">
+			<staticText>
+				<reportElement uuid="53dea58a-1123-4698-b077-a3f2578415d7" x="0" y="0" width="554" height="20"/>
+				<textElement/>
+				<text><![CDATA[Manually Entered DOI]]></text>
+			</staticText>
+		</band>
+	</noData>
+</jasperReport>
