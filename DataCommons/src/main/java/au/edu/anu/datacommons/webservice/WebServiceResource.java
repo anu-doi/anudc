@@ -352,7 +352,7 @@ public class WebServiceResource
 		item.setPid(pidCreated);
 
 		InputStream dataStream = null;
-		Element el = createElement(doc, "status", "", new String[] { "action", "created" }, new String[] { "anudc", pidCreated },
+		Element el = createElement(doc, "status", "", new String[] { "action", "created" }, new String[] { "anudcid", pidCreated },
 				new String[] { "type", item.getType() });
 		try
 		{
@@ -423,7 +423,7 @@ public class WebServiceResource
 	{
 		getFedoraObjectReadAccess(item.getPid());
 		InputStream dataStream = null;
-		Element el = createElement(doc, "status", "", new String[] { "action", "query" }, new String[] { "anudc", item.getPid() });
+		Element el = createElement(doc, "status", "", new String[] { "action", "query" }, new String[] { "anudcid", item.getPid() });
 		try
 		{
 			dataStream = FedoraBroker.getDatastreamAsStream(item.getPid(), Constants.XML_SOURCE);
