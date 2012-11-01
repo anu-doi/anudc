@@ -173,7 +173,7 @@ public class PhenomicsResource
 						if (extIdElements.getLength() > 0)
 							statusElementFromGenSvc.setAttribute("phid", extIdElements.item(0).getTextContent());
 						statusElements.add(statusElementFromGenSvc);
-						String pid = statusElementFromGenSvc.getAttribute("pid");
+						String pid = statusElementFromGenSvc.getAttribute("anudc");
 						LOGGER.trace("Generic service returned Pid: {}", pid);
 						iDcRequest.getFedoraItem().setPid(pid);
 					}
@@ -202,7 +202,7 @@ public class PhenomicsResource
 					{
 						String sourcePid = dcReqEntry.getKey().getFedoraItem().getPid();
 						String targetPid = relEntry.getValue().getPid();
-						if (sourcePid != null && targetPid != null)
+						if (sourcePid != null && sourcePid.length() > 0 && targetPid != null && targetPid.length() > 0)
 						{
 
 							MultivaluedMap<String, String> formData = new MultivaluedMapImpl();

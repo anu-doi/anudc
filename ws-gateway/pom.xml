@@ -11,7 +11,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>gateway-ws</artifactId>
+	<artifactId>ws-gateway</artifactId>
 	<packaging>war</packaging>
 
 	<name>Gateway Web Service</name>
