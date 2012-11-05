@@ -1,5 +1,7 @@
 package au.edu.anu.datacommons.webservice;
 
+import static java.text.MessageFormat.format;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -72,6 +74,7 @@ import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.cas.ANUUserDetailsService;
+import au.edu.anu.datacommons.security.service.FedoraObjectException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
@@ -349,7 +352,7 @@ public class WebServiceResource
 		item.setPid(pidCreated);
 
 		InputStream dataStream = null;
-		Element el = createElement(doc, "status", "", new String[] { "action", "created" }, new String[] { "pid", pidCreated },
+		Element el = createElement(doc, "status", "", new String[] { "action", "created" }, new String[] { "anudcid", pidCreated },
 				new String[] { "type", item.getType() });
 		try
 		{
@@ -420,7 +423,7 @@ public class WebServiceResource
 	{
 		getFedoraObjectReadAccess(item.getPid());
 		InputStream dataStream = null;
-		Element el = createElement(doc, "status", "", new String[] { "action", "query" }, new String[] { "pid", item.getPid() });
+		Element el = createElement(doc, "status", "", new String[] { "action", "query" }, new String[] { "anudcid", item.getPid() });
 		try
 		{
 			dataStream = FedoraBroker.getDatastreamAsStream(item.getPid(), Constants.XML_SOURCE);
@@ -433,25 +436,43 @@ public class WebServiceResource
 		return el;
 	}
 
-	private String getPidFromExtId(String extId, String type, String ownerGroup)
+	private String getPidFromExtId(String extId, String type, String ownerGroup) throws FedoraObjectException
 	{
 		String pid = "";
 
 		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
 		SolrQuery solrQuery = new SolrQuery();
-		solrQuery.setQuery("unpublished.externalId:" + extId);
-		solrQuery.addFilterQuery("unpublished.ownerGroup:" + ownerGroup);
-		solrQuery.addFilterQuery("unpublished.type:" + type);
+		solrQuery.setQuery(format("unpublished.externalId:\"{0}\"", extId));
+		solrQuery.addFilterQuery(format("unpublished.ownerGroup:\"{0}\"", ownerGroup));
+		solrQuery.addFilterQuery(format("unpublished.type:\"{0}\"", type));
 		solrQuery.addField("id");
+		
+		LOGGER.debug("Finding {} with external ID {}, belonging to ownerGroup {}...", type, extId, ownerGroup);
 
 		try
 		{
 			QueryResponse queryResponse = solrServer.query(solrQuery);
 			SolrDocumentList resultList = queryResponse.getResults();
-			if (resultList.getNumFound() == 1)
+			LOGGER.debug("{} {}(s) found with external ID {}, belonging to ownerGroup {}.", resultList.getNumFound(), type, extId, ownerGroup);
+			if (resultList.getNumFound() == 0)
+			{
+				pid = "";
+			}
+			else if (resultList.getNumFound() == 1)
 			{
 				SolrDocument solrDoc = resultList.get(0);
 				pid = (String) solrDoc.get("id");
+			}
+			else
+			{
+				StringBuilder pids = new StringBuilder();
+				for (int i = 0; i < resultList.getNumFound(); i++)
+				{
+					pids.append((String) resultList.get(i).get("id"));
+					if (i < resultList.getNumFound() - 1)
+						pids.append(", ");
+				}
+				throw new FedoraObjectException("Multiple items have the specified external ID: " + pids.toString());
 			}
 		}
 		catch (SolrServerException e)
