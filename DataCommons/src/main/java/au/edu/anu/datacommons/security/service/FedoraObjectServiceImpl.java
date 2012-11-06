@@ -10,7 +10,6 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -52,7 +51,6 @@ import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
-import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
@@ -66,7 +64,6 @@ import au.edu.anu.dcbag.BagSummary;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.access.DatastreamType;
 
 /**
  * FedoraObjectServiceImpl
@@ -102,6 +99,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.19		27/09/2012	Genevieve Turner (GT)	Updated to generate reverse links
  * 0.20		15/10/2012	Genevieve Turner (GT)	Modified/Added some functions surrounding publication
  * 0.21		22/10/2012	Genevieve Turner (GT)	Added link removal and chagned getLinks method to be public
+ * 0.22		06/11/2012	Genevieve Turner (GT)	Updated to check if the user has permissions to update the group if not remove those permissions
  * </pre>
  * 
  */
@@ -341,6 +339,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * 0.13		25/07/2012	Genevieve Turner (GT)	Added removing of ready for review/publish
 	 * 0.16		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
+	 * 0.22		06/11/2012	Genevieve Turner (GT)	Updated to check if the user has permissions to update the group if not remove those permissions
 	 * </pre>
 	 * 
 	 * @param fedoraObject The  fedora object to get the page for
@@ -352,6 +351,12 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		Map<String, Object> values = new HashMap<String, Object>();
 		ViewTransform viewTransform = new ViewTransform();
 		try {
+			if (form.containsKey("ownerGroup")) {
+				//TODO Update this so that an error is thrown if the user does not have permissions to update the group
+				if (!permissionService.hasSetGroupPermissionsForObject(fedoraObject)) {
+					form.remove("ownerGroup");
+				}
+			}
 			fedoraObject = viewTransform.saveData(tmplt, fedoraObject, form);
 			removeReviewReady(fedoraObject);
 			removePublishReady(fedoraObject);
