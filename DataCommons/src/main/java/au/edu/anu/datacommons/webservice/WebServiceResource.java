@@ -446,7 +446,7 @@ public class WebServiceResource
 		solrQuery.addFilterQuery(format("unpublished.ownerGroup:\"{0}\"", ownerGroup));
 		solrQuery.addFilterQuery(format("unpublished.type:\"{0}\"", type));
 		solrQuery.addField("id");
-		
+
 		LOGGER.debug("Finding {} with external ID {}, belonging to ownerGroup {}...", type, extId, ownerGroup);
 
 		try
@@ -472,7 +472,8 @@ public class WebServiceResource
 					if (i < resultList.getNumFound() - 1)
 						pids.append(", ");
 				}
-				throw new FedoraObjectException("Multiple items have the specified external ID: " + pids.toString());
+				throw new FedoraObjectException(format("Multiple items of type {0} in group {1} have the external ID [{2}]: {3}", type, ownerGroup, extId,
+						pids.toString()));
 			}
 		}
 		catch (SolrServerException e)

@@ -5,6 +5,8 @@ import java.io.File;
 public class Config
 {
 	public static final File DIR;
+	public static final String NEWLINE = System.getProperty("line.separator");
+	public static final String CHARSET = "UTF-8";
 	
 	static
 	{

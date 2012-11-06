@@ -409,5 +409,5 @@ public interface FedoraObjectService {
 	 * @throws FedoraObjectException
 	 *             When unable to generate a DOI
 	 */
-	public void generateDoi(String pid, String tmplt, String itemUrl) throws FedoraObjectException;
+	public void generateDoi(String pid, String tmplt) throws FedoraObjectException;
 }

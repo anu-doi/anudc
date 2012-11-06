@@ -1,5 +1,6 @@
 package au.edu.anu.datacommons.doi;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -24,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.config.Config;
 import au.edu.anu.datacommons.config.PropertiesFile;
+import au.edu.anu.datacommons.doi.logging.ExtWebResourceLog;
+import au.edu.anu.datacommons.doi.logging.ExtWebResourceLogDao;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -122,15 +125,17 @@ public class DoiClient
 		return doiResponseAsString;
 	}
 
-	public void mint(String url, Resource metadata) throws DoiException
+	public void mint(String pid, Resource metadata) throws DoiException
 	{
-		if (url == null || url.trim().length() <= 0)
+		if (pid == null || pid.trim().length() <= 0)
 			throw new DoiException("URL not specified.");
 		if (metadata == null)
 			throw new DoiException("Metadata for DOI not provided.");
 
+		ExtWebResourceLogDao logDao = null;
 		try
 		{
+			String url = generateLandingUri(pid).toString();
 			String xml = getMetadataAsStr(metadata);
 
 			LOGGER.trace("Minting url={}, xml={}.", new Object[] { url, xml });
@@ -147,9 +152,32 @@ public class DoiClient
 			MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
 			formData.add("xml", xml);
 
+			logDao = new ExtWebResourceLogDao();
+			ExtWebResourceLog extResLog = null;
+			try
+			{
+				extResLog = generateExtWebResourceLog(doiUri, pid, xml);
+				logDao.create(extResLog);
+			}
+			catch (Exception e)
+			{
+				LOGGER.warn("Unable to create log record to external service.");
+			}
+			
 			ClientResponse resp = mintDoiResource.accept(getMediaTypeForResp()).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
 					.post(ClientResponse.class, formData);
 			processResponse(resp);
+			
+			try
+			{
+				updateExtWebResourceLog(extResLog, this.doiResponseAsString);
+				logDao.update(extResLog);
+			}
+			catch (Exception e)
+			{
+				LOGGER.warn("Unable to update log record to external service.");
+			}
+			
 			if (!doiResponse.getType().equalsIgnoreCase("success"))
 				throw new DoiException("DOI Service request failed. Server response: " + doiResponseAsString);
 		}
@@ -161,12 +189,19 @@ public class DoiClient
 		{
 			throw new DoiException("Unable to mint DOI", e);
 		}
+		finally
+		{
+			if (logDao != null)
+				logDao.close();
+		}
 	}
 
-	public void update(String doi, String url, Resource metadata) throws DoiException
+	public void update(String doi, String pid, Resource metadata) throws DoiException
 	{
+		ExtWebResourceLogDao logDao = null;
 		try
 		{
+			String url = generateLandingUri(pid).toString();
 			String xml = getMetadataAsStr(metadata);
 			LOGGER.trace("Updating doi={}, url={}, xml={}.", new Object[] { doi, url, xml });
 
@@ -182,6 +217,20 @@ public class DoiClient
 			LOGGER.debug("Updating DOI using {}", doiUri.toString());
 			WebResource updateDoiResource = client.resource(doiUri);
 			ClientResponse resp;
+			
+			logDao = new ExtWebResourceLogDao();
+			ExtWebResourceLog extResLog = null;
+			try
+			{
+				extResLog = generateExtWebResourceLog(doiUri, pid, xml);
+				logDao.create(extResLog);
+			}
+			catch (Exception e)
+			{
+				LOGGER.warn("Unable to create log record to external service.");
+			}
+
+			
 			if (xml != null && xml.trim().length() > 0)
 			{
 				MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
@@ -191,15 +240,23 @@ public class DoiClient
 			else
 				resp = updateDoiResource.accept(getMediaTypeForResp()).get(ClientResponse.class);
 			processResponse(resp);
+			if (!doiResponse.getType().equalsIgnoreCase("success"))
+				throw new DoiException("DOI Service request failed. Server response: " + doiResponseAsString);
 		}
 		catch (Exception e)
 		{
 			throw new DoiException("Unable to update DOI", e);
 		}
+		finally
+		{
+			if (logDao != null)
+				logDao.close();
+		}
 	}
 
 	public void deactivate(String doi) throws DoiException
 	{
+		ExtWebResourceLogDao logDao = null;
 		try
 		{
 			LOGGER.trace("Deactivating doi={}", doi);
@@ -211,6 +268,18 @@ public class DoiClient
 			doiUriBuilder = appendDebug(doiUriBuilder);
 			URI doiUri = doiUriBuilder.build();
 
+			logDao = new ExtWebResourceLogDao();
+			ExtWebResourceLog extResLog = null;
+			try
+			{
+				extResLog = generateExtWebResourceLog(doiUri);
+				logDao.create(extResLog);
+			}
+			catch (Exception e)
+			{
+				LOGGER.warn("Unable to create log record to external service.");
+			}
+			
 			LOGGER.debug("Deactivating DOI using {}", doiUri.toString());
 			WebResource deactivateDoiResouce = client.resource(doiUri);
 			ClientResponse resp = deactivateDoiResouce.accept(getMediaTypeForResp()).get(ClientResponse.class);
@@ -220,10 +289,16 @@ public class DoiClient
 		{
 			throw new DoiException("Unable to deactivate DOI", e);
 		}
+		finally
+		{
+			if (logDao != null)
+				logDao.close();
+		}
 	}
 
 	public void activate(String doi) throws DoiException
 	{
+		ExtWebResourceLogDao logDao = null;
 		try
 		{
 			LOGGER.trace("Activating doi={}", doi);
@@ -235,6 +310,18 @@ public class DoiClient
 			doiUriBuilder = appendDebug(doiUriBuilder);
 			URI doiUri = doiUriBuilder.build();
 
+			ExtWebResourceLog extResLog = null;
+			logDao = new ExtWebResourceLogDao();
+			try
+			{
+				extResLog = generateExtWebResourceLog(doiUri);
+				logDao.create(extResLog);
+			}
+			catch (Exception e)
+			{
+				LOGGER.warn("Unable to create log record to external service.");
+			}
+
 			LOGGER.debug("Activating DOI using {}", doiUri.toString());
 			WebResource activateDoiResource = client.resource(doiUri);
 			ClientResponse resp = activateDoiResource.accept(getMediaTypeForResp()).get(ClientResponse.class);
@@ -244,6 +331,11 @@ public class DoiClient
 		{
 			throw new DoiException("Unable to activate DOI", e);
 		}
+		finally
+		{
+			if (logDao != null)
+				logDao.close();
+		}
 	}
 
 	public Resource getMetadata(String doi) throws DoiException
@@ -251,6 +343,7 @@ public class DoiClient
 		Resource res;
 		String respStr;
 
+		ExtWebResourceLogDao logDao = null;
 		try
 		{
 			LOGGER.trace("Getting metadata for doi={}", doi);
@@ -260,6 +353,18 @@ public class DoiClient
 			doiUriBuilder = appendDoi(doiUriBuilder, doi);
 			doiUriBuilder = appendDebug(doiUriBuilder);
 			URI doiUri = doiUriBuilder.build();
+
+			ExtWebResourceLog extResLog = null;
+			logDao = new ExtWebResourceLogDao();
+			try
+			{
+				extResLog = generateExtWebResourceLog(doiUri);
+				logDao.create(extResLog);
+			}
+			catch (Exception e)
+			{
+				LOGGER.warn("Unable to create log record to external service.");
+			}
 
 			LOGGER.debug("Getting DOI Metadata using {}", doiUri.toString());
 			WebResource getDoiMetadataResource = client.resource(doiUri);
@@ -271,6 +376,11 @@ public class DoiClient
 		catch (Exception e)
 		{
 			throw new DoiException("Unable to retrieve DOI metadata.", e);
+		}
+		finally
+		{
+			if (logDao != null)
+				logDao.close();
 		}
 
 		return res;
@@ -348,6 +458,11 @@ public class DoiClient
 		resourceMarshaller.marshal(metadata, xmlSw);
 		return xmlSw.toString();
 	}
+
+	private URI generateLandingUri(String pid)
+	{
+		return doiConfig.getLandingUri().build(pid);
+	}
 	
 	private void setupMarshallers()
 	{
@@ -383,6 +498,28 @@ public class DoiClient
 			LOGGER.error(e.getMessage(), e);
 			doiResponseUnmarshaller = null;
 		}
+	}
+
+	private void updateExtWebResourceLog(ExtWebResourceLog extResLog, String respAsStr)
+	{
+		extResLog.addResponse(respAsStr);
+	}
+
+	private ExtWebResourceLog generateExtWebResourceLog(URI doiUri, String pid, String xml)
+	{
+		StringBuilder reqStr = new StringBuilder();
+		reqStr.append(doiUri.toString());
+		reqStr.append(Config.NEWLINE);
+		reqStr.append(Config.NEWLINE);
+		if (xml != null)
+			reqStr.append(xml);
+		ExtWebResourceLog extResLog = new ExtWebResourceLog(pid, reqStr.toString());
+		return extResLog;
+	}
+
+	private ExtWebResourceLog generateExtWebResourceLog(URI doiUri)
+	{
+		return generateExtWebResourceLog(doiUri, null, null);
 	}
 
 	private static void setupClients(DoiConfig doiConfig)

@@ -4,7 +4,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.StringWriter;
+import java.net.URI;
 
+import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -32,8 +34,7 @@ public class DoiClientTest extends JerseyTest
 	private static final Logger LOGGER = LoggerFactory.getLogger(DoiClientTest.class);
 
 	private DoiClient doiClient;
-//	private String sampleDoi = "10.5072/13/50639BFE25F18";
-		private String sampleDoi = "10.5072/13/50877ECF5635B"; // Lisa's
+	private String sampleDoi = "10.5072/13/50639BFE25F18";
 	
 	private static JAXBContext context;
 	
@@ -92,16 +93,32 @@ public class DoiClientTest extends JerseyTest
 		}
 	}
 
-	@Test
+	@Ignore
 	public void testUpdate()
 	{
 		try
 		{
-			Resource res = generateSampleResource();
+			Resource res = new Resource();
+			Creators creators = new Creators();
+			Creator creator = new Creator();
+			creator.setCreatorName("Creator 1");
+			creators.getCreator().add(creator);
+			res.setCreators(creators);
+			
+			Titles titles = new Titles();
+			Title title = new Title();
+			title.setValue("Title 1");
+			titles.getTitle().add(title);
+			res.setTitles(titles);
+			
+			res.setPublisher("Publisher 1");
+			res.setPublicationYear("1987");
+			
 			Identifier id = new Identifier();
 			id.setValue(sampleDoi);
 			id.setIdentifierType("DOI");
 			res.setIdentifier(id);
+			
 			doiClient.update(sampleDoi, null, res);
 			Resource newRes = doiClient.getMetadata(sampleDoi);
 			String resAsStr = getResourceAsString(newRes);
@@ -161,7 +178,7 @@ public class DoiClientTest extends JerseyTest
 			failOnException(e);
 		}
 	}
-
+	
 	private Resource generateSampleResource()
 	{
 		Resource metadata = new Resource();

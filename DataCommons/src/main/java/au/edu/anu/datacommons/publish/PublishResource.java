@@ -1,6 +1,5 @@
 package au.edu.anu.datacommons.publish;
 
-import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,9 +27,6 @@ import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
-import au.edu.anu.datacommons.item.ItemResource;
-import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.datacommons.security.service.FedoraObjectException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.services.ListResource;
 import au.edu.anu.datacommons.util.Util;
@@ -153,17 +149,14 @@ public class PublishResource {
 
 		try
 		{
-			URI itemUri = UriBuilder.fromUri(GlobalProps.getProperty(GlobalProps.PROP_APP_SERVER)).path("DataCommons").path("item").path(ItemResource.class)
-					.path(ItemResource.class, "getItem").build(pid);
-
-			fedoraObjectService.generateDoi(pid, tmplt, itemUri.toString());
+			fedoraObjectService.generateDoi(pid, tmplt);
 			UriBuilder redirUri = UriBuilder.fromPath("/display").path(pid).queryParam("layout", "def:display").queryParam("tmplt", tmplt);
 			resp = Response.seeOther(redirUri.build()).build();
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("DOI Minting failed.", e);
-			resp = Response.serverError().entity(e.getMessage()).build();
+			resp = Response.status(500).entity(e.getMessage()).build();
 		}
 
 		return resp;

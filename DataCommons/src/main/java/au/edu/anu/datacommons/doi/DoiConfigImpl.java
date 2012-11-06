@@ -2,6 +2,8 @@ package au.edu.anu.datacommons.doi;
 
 import java.util.Properties;
 
+import javax.ws.rs.core.UriBuilder;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,5 +61,10 @@ public class DoiConfigImpl implements DoiConfig
 	public String getProxyPassword()
 	{
 		return props.getProperty("doi.proxyPassword");
+	}
+	
+	public UriBuilder getLandingUri()
+	{
+		return UriBuilder.fromPath(props.getProperty("doi.landingUri"));
 	}
 }
