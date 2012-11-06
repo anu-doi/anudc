@@ -1,6 +1,7 @@
 package au.edu.anu.datacommons.security.acl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -8,6 +9,7 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
@@ -48,6 +50,7 @@ import au.edu.anu.datacommons.util.Util;
  * 0.1		20/08/2012	Genevieve Turner (GT)	Initial
  * 0.2		28/08/2012	Genevieve Turner (GT)	Updates to fix an exception if there is no acl_sid row for the user
  * 0.3		17/09/2012	Genevieve Turner (GT)	Added methods around getting a list of groups the user has create permissions on 
+ * 0.4		06/11/2012	Genevieve Turner (GT)	Updates to fix an issue where there is a NotFoundException if the user is not the owner or has administrative permissions for the object
  * </pre>
  *
  */
@@ -342,6 +345,7 @@ public class PermissionService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		20/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.4		06/11/2012	Genevieve Turner (GT)	Updates to fix an issue where there is a NotFoundException if the user is not the owner or has administrative permissions for the object
 	 * </pre>
 	 * 
 	 * @param fedoraObject The fedora object to save permissions for
@@ -358,6 +362,7 @@ public class PermissionService {
 			groupAcl = (MutableAcl) aclService.readAclById(group_oi);
 		}
 		catch (NotFoundException nfe) {
+			// If the group does not exist in acl_object_identity add the row
 			groupAcl = aclService.createAcl(group_oi);
 		}
 		
@@ -367,13 +372,86 @@ public class PermissionService {
 			fedoraAcl = (MutableAcl) aclService.readAclById(fedora_oi);
 		}
 		catch (NotFoundException nfe) {
+			// If the object does not exist in acl_object_identity add the row
 			fedoraAcl = aclService.createAcl(fedora_oi);
 		}
 		
-		fedoraAcl.setParent(groupAcl);
-		fedoraAcl.setEntriesInheriting(Boolean.TRUE);
-		fedoraAcl.setOwner(sid);
+		Sid owner = fedoraAcl.getOwner();
+		
+		// If the owner is null set all the information
+		if (owner == null) {
+			LOGGER.debug("There is no owner so we are able to set it");
+			fedoraAcl.setParent(groupAcl);
+			fedoraAcl.setEntriesInheriting(Boolean.TRUE);
+			fedoraAcl.setOwner(sid);
+		}
+		// If the user has permissions allow them to update the parent
+		else if (hasSetParentPermissions(fedoraAcl, sid)) {
+			LOGGER.debug("User is able to update the parent");
+			fedoraAcl.setParent(groupAcl);
+		}
 		
 		aclService.updateAcl(fedoraAcl);
+	}
+	
+	/**
+	 * hasSetGroupPermissionsForObject
+	 *
+	 * Checks if the currently logged in user can edit permissions for the fedora object
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.4		06/11/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedora object to check
+	 * @return
+	 */
+	public boolean hasSetGroupPermissionsForObject(FedoraObject fedoraObject) {
+		ObjectIdentity fedora_oi = new ObjectIdentityImpl(FedoraObject.class, fedoraObject.getId());
+		MutableAcl fedoraAcl = null;
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Sid sid = new PrincipalSid(authentication.getName());
+		
+		try {
+			fedoraAcl = (MutableAcl) aclService.readAclById(fedora_oi);
+		}
+		catch (NotFoundException nfe) {
+			LOGGER.error("Unable to find fedora object acl");
+			throw nfe;
+		}
+		
+		return hasSetParentPermissions(fedoraAcl, sid);
+	}
+	
+	/**
+	 * hasSetParentPermissions
+	 * 
+	 * Checks if the sid hs permissions to set the parent for an acl
+	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.4		06/11/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param mutableAcl
+	 * @param authSid
+	 * @return
+	 */
+	private boolean hasSetParentPermissions(MutableAcl mutableAcl, Sid authSid) {
+		Sid owner = mutableAcl.getOwner();
+		
+		if (owner == null || authSid.equals(owner)) {
+			return true;
+		}
+		
+		try {
+			return mutableAcl.isGranted(Arrays.asList(BasePermission.ADMINISTRATION), getAuthenticatedSidList(), false);
+		}
+		catch (NotFoundException nfe) {
+			LOGGER.debug("User is not an administrator");
+		}
+		
+		return false;
 	}
 }
