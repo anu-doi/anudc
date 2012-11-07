@@ -30,8 +30,8 @@
 		<option value="registry" label="Registry" />
 		<option value="repository" label="Repository" />
 	</item>
-	<item name="ownerGroup" label="Owner Group" fieldType="Combobox" saveType="single" class="required" tab="general">
-		<tooltip>Please choose the group the collection is affiliated with</tooltip>
+	<item name="ownerGroup" label="Access Privileges" fieldType="Combobox" saveType="single" class="required" tab="general">
+		<tooltip>Please choose the access privilege group for the collection</tooltip>
 	</item>
 	<item name="doi" label="DOI - Digitan Object Identifier" fieldType="TextField" saveType="single" tab="general">
 		<tooltip>The Digital Object Identifier for this record.<br/>Please note that if this does not already exist a DOI will be created when the record is published</tooltip>
@@ -114,7 +114,7 @@
 		<tooltip>The year the data was first published for citation purposes. If this field is not populated when publishing it will default to the year it is published in ANU Data Commons</tooltip>
 	</item>
 	<item name="citationCreator" label="Creator for Citation" fieldType="TextField" saveType="single" tab="description">
-		<tooltip>The creator of the data for citation purposes. Defaults to 'The Australian National University'. For example:&#xA;&#xA;Smith, G., Jones, J.&#xA;Australian Phenomics Facility&#xA;Research School of Earth Sciences, The Australian National University</tooltip>
+		<tooltip>The creator(s) of the data for citation purposes. This field indicates who should be considered named in a citation.  Defaults to 'The Australian National University'. For example:&#xA;&#xA;Irino, T; Tada, R&#xA;Geofon operator&#xA;Denhard, Michael</tooltip>
 	</item>
 	<item name="citationPublisher" label="Publisher for Citation" fieldType="TextField" saveType="single" tab="description">
 		<tooltip>The publisher of the data.  Defaults to 'The Australian National University Data Commons'. For example:&#xA;&#xA;Australian Data Archive&#xA;Incorporated Research Institutions for Seismology</tooltip>

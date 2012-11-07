@@ -11,8 +11,8 @@
 		readonly="readonly" saveType="single" tab="general"/>
 	<item defaultValue="person" editPerm="admin" fieldType="TextField" label="Party Type" name="subType"
 		readonly="readonly" saveType="single" tab="general"/>
-	<item name="ownerGroup" label="Group Affiliation" fieldType="Combobox" saveType="single" class="required" tab="general">
-		<tooltip>Please choose the group the collection is affiliated with</tooltip>
+	<item name="ownerGroup" label="Access Privileges" fieldType="Combobox" saveType="single" class="required" tab="general">
+		<tooltip>Please choose the access privilege group</tooltip>
 	</item>
 	<item fieldType="TextField" label="Title" name="title" saveType="single" tab="general" />
 	<item fieldType="TextField" label="Given Name" name="givenName" saveType="single" tab="general" />

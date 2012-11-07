@@ -13,8 +13,8 @@
 		<option label="Group" value="group" />
 		<option label="Administrative Position" value="administrativePosition" />
 	</item>
-	<item name="ownerGroup" label="Group Affiliation" fieldType="Combobox" saveType="single" class="required" tab="general">
-		<tooltip>Please choose the group the collection is affiliated with</tooltip>
+	<item name="ownerGroup" label="Access Privileges" fieldType="Combobox" saveType="single" class="required" tab="general">
+		<tooltip>Please choose the access privilege group</tooltip>
 	</item>
 	<item name="name" label="Title" fieldType="TextField" saveType="single" maxLength="80" class="required" tab="general">
 		<tooltip>This is the title of the group/position.</tooltip>

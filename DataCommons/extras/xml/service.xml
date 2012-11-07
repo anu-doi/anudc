@@ -25,8 +25,8 @@
 		<option label="ATOM syndication" value="syndicate-atom" />
 		<option label="RSS feed" value="syndicate-rss" />
 	</item>
-	<item name="ownerGroup" label="Group Affiliation" fieldType="Combobox" saveType="single" class="required" tab="general">
-		<tooltip>Please choose the group the collection is affiliated with</tooltip>
+	<item name="ownerGroup" label="Access Privileges" fieldType="Combobox" saveType="single" class="required" tab="general">
+		<tooltip>Please choose the access privilege group for the service</tooltip>
 	</item>
 	<item class="required" fieldType="TextField" label="Title" maxLength="80" name="name" saveType="single" tab="general">
 		<tooltip>Enter the name of the service&#xA;&#xA;For example:&#xA;The Australian National University Supercomputer Facility</tooltip>
