@@ -79,7 +79,7 @@ public class PhenomicsResource
 
 		try
 		{
-			genericWsProps = new PropertiesFile(new File(Config.DIR, "phenomics-ws/genericws.properties"));
+			genericWsProps = new PropertiesFile(new File(Config.DIR, "ws-phenomics/genericws.properties"));
 		}
 		catch (IOException e)
 		{
@@ -88,7 +88,7 @@ public class PhenomicsResource
 
 		try
 		{
-			packageLookup = new PropertiesFile(new File(Config.DIR, "phenomics-ws/wslookup.properties"));
+			packageLookup = new PropertiesFile(new File(Config.DIR, "ws-phenomics/wslookup.properties"));
 		}
 		catch (IOException e)
 		{

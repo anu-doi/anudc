@@ -36,7 +36,7 @@ public class PhenRequest implements Processable
 	{
 		try
 		{
-			constants = new PropertiesFile(new File(Config.DIR, "phenomics-ws/constants.properties"));
+			constants = new PropertiesFile(new File(Config.DIR, "ws-phenomics/constants.properties"));
 		}
 		catch (IOException e)
 		{

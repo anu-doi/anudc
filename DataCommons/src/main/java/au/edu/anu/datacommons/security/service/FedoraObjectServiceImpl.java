@@ -1195,7 +1195,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		// do nothing
 	}
 	
-	public void generateDoi(String pid, String tmplt, String itemUri) throws FedoraObjectException
+	public void generateDoi(String pid, String tmplt) throws FedoraObjectException
 	{
 		InputStream datastream = null;
 		try
@@ -1227,7 +1227,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			
 			org.datacite.schema.kernel_2.Resource doiResource = new DoiResourceAdapter(itemData).getDoiResource();
 			DoiClient doiClient = new DoiClient();
-			doiClient.mint(itemUri, doiResource);
+			doiClient.mint(pid, doiResource);
 			
 			String mintedDoi = doiClient.getDoiResponse().getDoi();
 			FedoraObject fedoraObject = getItemByPid(pid);

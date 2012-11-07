@@ -1,5 +1,6 @@
 package au.edu.anu.datacommons.doi;
 
+import javax.ws.rs.core.UriBuilder;
 
 public interface DoiConfig
 {
@@ -20,4 +21,6 @@ public interface DoiConfig
 	public String getProxyUsername();
 	
 	public String getProxyPassword();
+	
+	public UriBuilder getLandingUri();
 }
