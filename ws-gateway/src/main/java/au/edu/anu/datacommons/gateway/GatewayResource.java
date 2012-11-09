@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.List;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -15,13 +16,16 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -86,7 +90,7 @@ public class GatewayResource
 		try
 		{
 			logDao = new LogDao();
-			WebSvcLog reqLog = generateWebSvcLog(request, httpHeaders, uriInfo);
+			WebSvcLog reqLog = generateWebSvcLog();
 			try
 			{
 				logDao.create(reqLog);
@@ -97,7 +101,7 @@ public class GatewayResource
 			}
 			resp = Response.ok("Test", MediaType.TEXT_PLAIN_TYPE).build();
 
-			updateLog(reqLog, resp);
+			updateLog(reqLog, resp, null);
 			try
 			{
 				logDao.update(reqLog);
@@ -133,52 +137,37 @@ public class GatewayResource
 
 		Response resp = null;
 		String function = xmlDoc.getDocumentElement().getAttribute("function");
-		WebResource redirRes = client.resource(UriBuilder.fromPath(redirProps.getProperty(function)).build());
 
 		LogDao logDao = null;
 		try
 		{
 			logDao = new LogDao();
-			WebSvcLog reqLog = generateWebSvcLog(request, httpHeaders, uriInfo, function, xmlDoc);
-			try
-			{
-				logDao.create(reqLog);
-			}
-			catch (DaoException e)
-			{
-				LOGGER.warn("Unable to create a log entry for POST request.", e);
-			}
+			WebSvcLog reqLog = generateWebSvcLog(function, xmlDoc);
+			logDao.create(reqLog);
+			long rid = reqLog.getId();
+			WebResource redirRes = client.resource(UriBuilder.fromPath(redirProps.getProperty(function)).queryParam("rid", rid).build());
 
 			// Add HTTP headers to the generic service resource object.
 			Builder reqBuilder = redirRes.accept(MediaType.APPLICATION_XML_TYPE);
-			boolean userAgentExists = false;
-			MultivaluedMap<String, String> headersMap = httpHeaders.getRequestHeaders();
-			for (String key : headersMap.keySet())
-			{
-				for (String value : headersMap.get(key))
-				{
-					if (!key.equalsIgnoreCase("user-agent"))
-						reqBuilder = reqBuilder.header(key, value);
-					else
-					{
-						// Append 'DataCommons' in the user agent so the service can recognize that it's not a request from a web browser.
-						reqBuilder = reqBuilder.header(key, value + " DataCommons");
-						userAgentExists = true;
-					}
-				}
-			}
-
-			// If header doesn't have a user agent key at all, add it.
-			if (!userAgentExists)
-				reqBuilder = reqBuilder.header("user-agent", "DataCommons");
+			reqBuilder = addHttpHeaders(reqBuilder);
 
 			ClientResponse respFromRedirRes = reqBuilder.post(ClientResponse.class, xmlDoc);
 
 			// Generate an outbound response object from the inbound response object received from the redirected URL.
-			String respBodyFromRedirRes = respFromRedirRes.getEntity(String.class);
-			resp = Response.status(respFromRedirRes.getStatus()).type(respFromRedirRes.getType()).entity(respBodyFromRedirRes).build();
+			try
+			{
+				Document respDoc = respFromRedirRes.getEntity(Document.class);
+				respDoc.getDocumentElement().setAttribute("rid", Long.toString(rid));
+				resp = Response.status(respFromRedirRes.getStatus()).type(respFromRedirRes.getType()).entity(respDoc).build();
+				updateLog(reqLog, resp, getXmlAsString(respDoc));
+			}
+			catch (Exception e)
+			{
+				String respBodyFromRedirRes = respFromRedirRes.getEntity(String.class);
+				resp = Response.status(respFromRedirRes.getStatus()).type(respFromRedirRes.getType()).entity(respBodyFromRedirRes).build();
+				updateLog(reqLog, resp, respBodyFromRedirRes);
+			}
 
-			updateLog(reqLog, resp);
 			try
 			{
 				logDao.update(reqLog);
@@ -188,6 +177,10 @@ public class GatewayResource
 				LOGGER.warn("Unable to update log entry for POST request.", e);
 			}
 		}
+		catch (Exception e)
+		{
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+		}
 		finally
 		{
 			if (logDao != null)
@@ -195,6 +188,31 @@ public class GatewayResource
 		}
 
 		return resp;
+	}
+
+	private Builder addHttpHeaders(Builder reqBuilder)
+	{
+		boolean userAgentExists = false;
+		MultivaluedMap<String, String> headersMap = httpHeaders.getRequestHeaders();
+		for (String key : headersMap.keySet())
+		{
+			for (String value : headersMap.get(key))
+			{
+				if (!key.equalsIgnoreCase("user-agent"))
+					reqBuilder = reqBuilder.header(key, value);
+				else
+				{
+					// Append 'DataCommons' in the user agent so the service can recognize that it's not a request from a web browser.
+					reqBuilder = reqBuilder.header(key, value + " DataCommons");
+					userAgentExists = true;
+				}
+			}
+		}
+
+		// If header doesn't have a user agent key at all, add it.
+		if (!userAgentExists)
+			reqBuilder = reqBuilder.header("user-agent", "DataCommons");
+		return reqBuilder;
 	}
 
 	private void updateLogging()
@@ -211,10 +229,22 @@ public class GatewayResource
 		}
 	}
 
-	private WebSvcLog generateWebSvcLog(HttpServletRequest request, HttpHeaders httpHeaders, UriInfo uri)
+	private UriBuilder addQueryParams(UriBuilder uriBuilder)
+	{
+		Set<Entry<String, List<String>>> queryParamsSet = uriInfo.getQueryParameters().entrySet();
+		for (Entry<String, List<String>> queryParam : queryParamsSet)
+			for (String queryParamValue : queryParam.getValue())
+				uriBuilder = uriBuilder.queryParam(queryParam.getKey(), queryParamValue);
+
+		return uriBuilder;
+	}
+
+	private WebSvcLog generateWebSvcLog()
 	{
 		StringBuilder requestStr = new StringBuilder();
-		requestStr.append(format("{0} {1}", request.getMethod().toUpperCase(), uri.getRequestUri().toString()));
+		UriBuilder uriBuilder = uriInfo.getRequestUriBuilder();
+		uriBuilder = addQueryParams(uriBuilder);
+		requestStr.append(format("{0} {1}", request.getMethod().toUpperCase(), uriBuilder.build()));
 		requestStr.append(Config.NEWLINE);
 		for (Entry<String, List<String>> iHeader : httpHeaders.getRequestHeaders().entrySet())
 		{
@@ -227,9 +257,9 @@ public class GatewayResource
 		return webSvcLog;
 	}
 
-	private WebSvcLog generateWebSvcLog(HttpServletRequest request, HttpHeaders httpHeaders, UriInfo uri, String function, Document xmlDoc)
+	private WebSvcLog generateWebSvcLog(String function, Document xmlDoc)
 	{
-		WebSvcLog webSvcLog = generateWebSvcLog(request, httpHeaders, uri);
+		WebSvcLog webSvcLog = generateWebSvcLog();
 		StringBuilder requestStr = new StringBuilder(webSvcLog.getRequest());
 		requestStr.append(Config.NEWLINE);
 		requestStr.append(getXmlAsString(xmlDoc));
@@ -238,7 +268,7 @@ public class GatewayResource
 		return webSvcLog;
 	}
 
-	private void updateLog(WebSvcLog reqLog, Response resp)
+	private void updateLog(WebSvcLog reqLog, Response resp, String body)
 	{
 		StringBuilder respStr = new StringBuilder();
 		respStr.append(resp.getStatus());
@@ -248,11 +278,11 @@ public class GatewayResource
 			for (Object val : iMd.getValue())
 				respStr.append(format("{0}: {1}", iMd.getKey(), val.toString()));
 		}
-		if (resp.getEntity() != null)
+		if (body != null)
 		{
 			respStr.append(Config.NEWLINE);
 			respStr.append(Config.NEWLINE);
-			respStr.append(resp.getEntity().toString());
+			respStr.append(body);
 		}
 		reqLog.addResponse(respStr.toString());
 	}

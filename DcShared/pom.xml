@@ -38,6 +38,12 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		
 
 		<!-- This dependency must be manually installed into the local repository using the command:
 		mvn install:install-file -DgroupId=nom.tam.fits -DartifactId=fits -Dversion=1.10 -Dfile="fits.jar" -Dpackaging=jar -DgeneratePOM=true -Dsources="fits_src.jar"

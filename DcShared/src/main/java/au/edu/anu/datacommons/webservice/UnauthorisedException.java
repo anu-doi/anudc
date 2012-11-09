@@ -1,4 +1,4 @@
-package au.edu.anu.datacommons.phenomics;
+package au.edu.anu.datacommons.webservice;
 
 public class UnauthorisedException extends Exception
 {
