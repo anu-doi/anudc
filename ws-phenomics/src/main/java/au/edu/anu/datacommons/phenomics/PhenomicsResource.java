@@ -5,7 +5,6 @@ import static java.text.MessageFormat.format;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,10 +21,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -43,40 +40,25 @@ import org.xml.sax.SAXException;
 import au.edu.anu.datacommons.config.Config;
 import au.edu.anu.datacommons.config.PropertiesFile;
 import au.edu.anu.datacommons.phenomics.bindings.PhenResponse;
+import au.edu.anu.datacommons.webservice.AbstractResource;
+import au.edu.anu.datacommons.webservice.UnauthorisedException;
 import au.edu.anu.datacommons.webservice.bindings.DcRequest;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
-import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 @Path("/")
-public class PhenomicsResource
+public class PhenomicsResource extends AbstractResource
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PhenomicsResource.class);
-	private static final Client client = Client.create();
-	private static final ClientFilter loggingFilter = new LoggingFilter();
-	private static Properties genericWsProps;
-	private static Properties packageLookup;
-
-	private static DocumentBuilder docBuilder;
+	public static final Logger LOGGER = LoggerFactory.getLogger(PhenomicsResource.class);
 
 	static
 	{
-		try
-		{
-			docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		}
-		catch (ParserConfigurationException e)
-		{
-			LOGGER.error(e.getMessage(), e);
-			docBuilder = null;
-		}
-
 		try
 		{
 			genericWsProps = new PropertiesFile(new File(Config.DIR, "ws-phenomics/genericws.properties"));
@@ -84,6 +66,7 @@ public class PhenomicsResource
 		catch (IOException e)
 		{
 			LOGGER.error(e.getMessage(), e);
+			throw new RuntimeException(e.getMessage(), e);
 		}
 
 		try
@@ -93,15 +76,9 @@ public class PhenomicsResource
 		catch (IOException e)
 		{
 			LOGGER.error(e.getMessage(), e);
+			throw new RuntimeException(e.getMessage(), e);
 		}
 	}
-
-	@Context
-	private UriInfo uriInfo;
-	@Context
-	private Request request;
-	@Context
-	private HttpHeaders httpHeaders;
 
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
@@ -120,24 +97,12 @@ public class PhenomicsResource
 	 *            Request as an XML document.
 	 * @return HTTP Response with an XML document with results of requests.
 	 */
-	@POST
-	@Produces(MediaType.APPLICATION_XML)
 	public Response doPostRequest(Document xmlDoc)
 	{
 		Response resp = null;
 
-		if (genericWsProps.getProperty("http.logging", "false").equalsIgnoreCase("true"))
-		{
-			if (!client.isFilterPreset(loggingFilter))
-				client.addFilter(loggingFilter);
-		}
-		else
-		{
-			if (client.isFilterPreset(loggingFilter))
-				client.removeFilter(loggingFilter);
-		}
-
-		PhenResponse phenRespElement = new PhenResponse();
+		updateClientLogging();
+		PhenResponse phenRespRootElement = new PhenResponse();
 		List<Element> statusElements = new ArrayList<Element>();
 		try
 		{
@@ -148,9 +113,7 @@ public class PhenomicsResource
 
 			Processable proc = (Processable) um.unmarshal(xmlDoc);
 
-			ClientResponse respUserInfo = generateUserInfoBuilder().get(ClientResponse.class);
-			if (respUserInfo.getClientResponseStatus() == Status.UNAUTHORIZED)
-				throw new UnauthorisedException("Invalid username and/or password.");
+			authenticateCredentials();
 
 			// Iterate through each DcRequest object, wrap it in an HTTP request and send to generic service.
 			Map<DcRequest, Map<String, FedoraItem>> dcReqs = proc.generateDcRequests();
@@ -173,7 +136,7 @@ public class PhenomicsResource
 						if (extIdElements.getLength() > 0)
 							statusElementFromGenSvc.setAttribute("phid", extIdElements.item(0).getTextContent());
 						statusElements.add(statusElementFromGenSvc);
-						String pid = statusElementFromGenSvc.getAttribute("anudc");
+						String pid = statusElementFromGenSvc.getAttribute("anudcid");
 						LOGGER.trace("Generic service returned Pid: {}", pid);
 						iDcRequest.getFedoraItem().setPid(pid);
 					}
@@ -225,91 +188,33 @@ public class PhenomicsResource
 			}
 
 			if (countSuccess == countTotalRequests)
-				phenRespElement.setStatus(PhenResponse.Status.SUCCESS);
+				phenRespRootElement.setStatus(PhenResponse.Status.SUCCESS);
 			else if (countSuccess == 0)
-				phenRespElement.setStatus(PhenResponse.Status.FAILURE);
+				phenRespRootElement.setStatus(PhenResponse.Status.FAILURE);
 			else
-				phenRespElement.setStatus(PhenResponse.Status.PARTIAL);
+				phenRespRootElement.setStatus(PhenResponse.Status.PARTIAL);
 
-			resp = Response.ok(phenRespElement, MediaType.APPLICATION_XML_TYPE).build();
+			resp = Response.ok(phenRespRootElement, MediaType.APPLICATION_XML_TYPE).build();
 		}
 		catch (UnauthorisedException e)
 		{
 			LOGGER.error(e.getMessage());
-			phenRespElement.setStatus(PhenResponse.Status.FAILURE);
-			phenRespElement.setMsg(e.getMessage());
-			resp = Response.status(Status.UNAUTHORIZED).entity(phenRespElement).build();
+			phenRespRootElement.setStatus(PhenResponse.Status.FAILURE);
+			phenRespRootElement.setMsg(e.getMessage());
+			resp = Response.status(Status.UNAUTHORIZED).entity(phenRespRootElement).build();
 		}
 		catch (Exception e)
 		{
 			LOGGER.error(e.getMessage(), e);
-			phenRespElement.setStatus(PhenResponse.Status.FAILURE);
-			phenRespElement.setMsg(e.getMessage());
-			resp = Response.serverError().entity(phenRespElement).build();
+			phenRespRootElement.setStatus(PhenResponse.Status.FAILURE);
+			phenRespRootElement.setMsg(e.getMessage());
+			resp = Response.serverError().entity(phenRespRootElement).build();
 		}
 		finally
 		{
-			phenRespElement.setNodes(statusElements);
+			phenRespRootElement.setNodes(statusElements);
 		}
 
 		return resp;
-	}
-
-	private JAXBContext getJaxbContext(Document xmlDoc) throws JAXBException, IOException
-	{
-		String version = xmlDoc.getDocumentElement().getAttribute("version");
-		if (!packageLookup.containsKey(version))
-			throw new JAXBException(MessageFormat.format("Unrecognised schema version - {0}", version));
-		String packageName = packageLookup.getProperty(version);
-		LOGGER.debug("Using package '{}' for version '{}'", packageName, version);
-		JAXBContext context = JAXBContext.newInstance(packageName);
-		return context;
-	}
-
-	private Builder generateHttpRequestBuilder()
-	{
-		Builder reqBuilder = client.resource(
-				UriBuilder.fromPath(genericWsProps.getProperty("dc.baseUrl")).path(genericWsProps.getProperty("dc.wsPath")).build()).accept(
-				MediaType.APPLICATION_XML_TYPE);
-		reqBuilder = addHttpHeaders(reqBuilder);
-		return reqBuilder;
-	}
-
-	private Builder generateAddLinkBuilder(String pid)
-	{
-		Builder reqBuilder = client
-				.resource(UriBuilder.fromPath(genericWsProps.getProperty("dc.baseUrl")).path(genericWsProps.getProperty("dc.addLinkPath")).path(pid).build())
-				.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).accept(MediaType.TEXT_PLAIN_TYPE);
-		reqBuilder = addHttpHeaders(reqBuilder);
-		return reqBuilder;
-	}
-
-	private Builder generateUserInfoBuilder()
-	{
-		Builder reqBuilder = client
-				.resource(UriBuilder.fromPath(genericWsProps.getProperty("dc.baseUrl")).path(genericWsProps.getProperty("dc.userInfo")).build())
-				.type(MediaType.TEXT_PLAIN_TYPE).accept(MediaType.TEXT_PLAIN_TYPE);
-		reqBuilder = addHttpHeaders(reqBuilder);
-		return reqBuilder;
-	}
-
-	private Builder addHttpHeaders(Builder b)
-	{
-		MultivaluedMap<String, String> headersMap = httpHeaders.getRequestHeaders();
-		String headersToCopyLine = genericWsProps.getProperty("http.headers");
-		if (headersToCopyLine != null)
-		{
-			String[] headersToCopy = headersToCopyLine.split(";");
-			for (int i = 0; i < headersToCopy.length; i++)
-			{
-				if (headersMap.containsKey(headersToCopy[i]))
-				{
-					for (String value : headersMap.get(headersToCopy[i]))
-						b = b.header(headersToCopy[i], value);
-				}
-			}
-		}
-
-		return b;
 	}
 }

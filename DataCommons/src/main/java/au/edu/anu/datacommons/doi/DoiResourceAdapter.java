@@ -1,8 +1,10 @@
 package au.edu.anu.datacommons.doi;
 
+import org.datacite.schema.kernel_2.RelatedIdentifierType;
 import org.datacite.schema.kernel_2.Resource;
 import org.datacite.schema.kernel_2.Resource.Creators;
 import org.datacite.schema.kernel_2.Resource.Creators.Creator;
+import org.datacite.schema.kernel_2.Resource.Identifier;
 import org.datacite.schema.kernel_2.Resource.Titles;
 import org.datacite.schema.kernel_2.Resource.Titles.Title;
 import org.datacite.schema.kernel_2.TitleType;
@@ -21,6 +23,7 @@ public class DoiResourceAdapter
 
 	public void generateResource(Data itemData) throws DoiException
 	{
+		// Mandatory fields.
 		Creators creators = getCreators(itemData);
 		if (creators.getCreator().size() == 0)
 			throw new DoiException("No creators provided.");
@@ -40,6 +43,16 @@ public class DoiResourceAdapter
 		if (publicationYear == null || publicationYear.length() == 0)
 			throw new DoiException("No publication year provided.");
 		doiResource.setPublicationYear(publicationYear);
+		
+		// Optional fields.
+		String doi = getDoi(itemData);
+		if (doi != null && doi.length() > 0)
+		{
+			Identifier identifier = new Identifier();
+			identifier.setIdentifierType("DOI");
+			identifier.setValue(doi);
+			doiResource.setIdentifier(identifier);
+		}
 	}
 
 	private Creators getCreators(Data itemData)
@@ -101,6 +114,16 @@ public class DoiResourceAdapter
 		if (publicationYearDI != null)
 			publicationYear = publicationYearDI.getValue();
 		return publicationYear;
+	}
+	
+	private String getDoi(Data itemData)
+	{
+		String doi = null;
+		
+		DataItem doiDI = itemData.getFirstElementByName("doi");
+		if (doiDI != null)
+			doi = doiDI.getValue();
+		return doi;
 	}
 
 	public Resource getDoiResource()
