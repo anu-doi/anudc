@@ -84,6 +84,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.15		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
  * 0.16		31/08/2012	Genevieve Turner (GT)	Removed the retrieval of option lists
  * 0.17		13/09/2012	Genevieve Turner (GT)	Added setting of tmplt id to fedora object
+ * 0.18		09/11/2012	Genevieve Turner (GT)	Added request id field
  * </pre>
  * 
  */
@@ -758,6 +759,7 @@ public class ViewTransform
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		15/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.18		09/11/2012	Genevieve Turner (GT)	Added request id field
 	 * </pre>
 	 * 
 	 * @param tmplt
@@ -774,6 +776,12 @@ public class ViewTransform
 		setName(data);
 		DublinCore dublinCore = getDublinCore(data);
 		StringWriter dcSW = new StringWriter();
+		
+		Long rid = null;
+		if (form.containsKey("rid") && form.get("rid").size() > 0) {
+			String ridStr = form.get("rid").get(0);
+			rid = new Long(ridStr);
+		}
 		
 		StringWriter sw = new StringWriter();
 		
@@ -825,7 +833,7 @@ public class ViewTransform
 			FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
 			fedoraObjectDAO.create(fedoraObject);
 			LOGGER.debug("fedora object id: {}", fedoraObject.getId());
-			saveAuditModifyRow(fedoraObject);
+			saveAuditModifyRow(fedoraObject, rid);
 		} else {
 			FedoraBroker.modifyDatastreamBySource(fedoraObject.getObject_id(), Constants.XML_SOURCE, "XML Source", sw.toString());
 			if(Util.isNotEmpty(dcSW.toString())) {
@@ -837,7 +845,7 @@ public class ViewTransform
 				FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
 				fedoraObjectDAO.update(fedoraObject);
 			}
-			saveAuditModifyRow(fedoraObject);
+			saveAuditModifyRow(fedoraObject, rid);
 		}
 		return fedoraObject;
 	}
@@ -850,11 +858,12 @@ public class ViewTransform
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.10		20/06/2012	Genevieve Turner(GT)	Initial
+	 * 0.18		09/11/2012	Genevieve Turner (GT)	Added request id field
 	 * </pre>
 	 * 
 	 * @param fedoraObject The fedora object to add an audit row to
 	 */
-	private void saveAuditModifyRow(FedoraObject fedoraObject) {
+	private void saveAuditModifyRow(FedoraObject fedoraObject, Long rid) {
 		CustomUser customUser = (CustomUser)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		
 		AuditObject auditObject = new AuditObject();
@@ -862,6 +871,7 @@ public class ViewTransform
 		auditObject.setLog_type("MODIFIED");
 		auditObject.setObject_id(fedoraObject.getId());
 		auditObject.setUser_id(customUser.getId());
+		auditObject.setRid(rid);
 		
 		JAXBTransform jaxbTransform = new JAXBTransform();
 		

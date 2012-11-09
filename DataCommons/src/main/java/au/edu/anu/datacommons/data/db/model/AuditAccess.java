@@ -22,6 +22,7 @@ import javax.persistence.Table;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		24/09/2012	Genevieve Turner (GT)	Initial
+ * 0.2		09/11/2012	Genevieve Turner (GT)	Updated for request id
  * </pre>
  *
  */
@@ -35,6 +36,7 @@ public class AuditAccess {
 	private String method;
 	private String pid;
 	private String username;
+	private Long rid;
 	
 	/**
 	 * getId
@@ -266,5 +268,37 @@ public class AuditAccess {
 	 */
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	/**
+	 * getRid
+	 *
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		09/11/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return the rid
+	 */
+	public Long getRid() {
+		return rid;
+	}
+
+	/**
+	 * setRid
+	 *
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		09/11/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param rid the rid to set
+	 */
+	public void setRid(Long rid) {
+		this.rid = rid;
 	}
 }

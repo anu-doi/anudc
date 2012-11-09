@@ -257,11 +257,6 @@
 				</subject>
 			</xsl:for-each>
 		</xsl:if>
-		<xsl:if test="data/briefDesc">
-			<description type="brief">
-				<xsl:value-of select="data/briefDesc" />
-			</description>
-		</xsl:if>
 		<xsl:if test="data/fullDesc">
 			<description type="full">
 				<xsl:value-of select="data/fullDesc" />

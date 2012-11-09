@@ -38,12 +38,14 @@ import au.edu.anu.datacommons.util.Util;
  * Version	Date		Developer				Description
  * 0.1		25/09/2012	Genevieve Turner (GT)	Initial
  * 0.2		26/09/2012	Genevieve Turner (GT)	Fixed an issue if the url is encoded
+ * 0.3		09/11/2012	Genevieve Turner (GT)	Added request id to filter
  * </pre>
  *
  */
 public class AuditFilter implements Filter {
 	static final Logger LOGGER = LoggerFactory.getLogger(AuditFilter.class);
-	private Pattern pattern;
+	private Pattern pidPattern;
+	private Pattern ridPattern;
 
 	/**
 	 * destroy
@@ -70,6 +72,7 @@ public class AuditFilter implements Filter {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		25/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.3		09/11/2012	Genevieve Turner (GT)	Added request id to filter
 	 * </pre>
 	 * 
 	 * @param request
@@ -106,9 +109,16 @@ public class AuditFilter implements Filter {
 				auditAccess.setUsername(principal.toString());
 			}
 			
-			Matcher m = pattern.matcher(Util.decodeUrlEncoded(requestURL.toString()));
-			if (m.find()) {
-				auditAccess.setPid(m.group(1));
+			String decodedRequestURL = Util.decodeUrlEncoded(requestURL.toString());
+			
+			Matcher pidMatch = pidPattern.matcher(decodedRequestURL);
+			if (pidMatch.find()) {
+				auditAccess.setPid(pidMatch.group(1));
+			}
+			
+			Matcher ridMatch = ridPattern.matcher(decodedRequestURL);
+			if (ridMatch.find()) {
+				auditAccess.setRid(new Long(ridMatch.group(1)));
 			}
 			
 			GenericDAO<AuditAccess, Long> genericDAO = new GenericDAOImpl<AuditAccess, Long>(AuditAccess.class);
@@ -130,6 +140,7 @@ public class AuditFilter implements Filter {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		25/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.3		09/11/2012	Genevieve Turner (GT)	Added request id to filter
 	 * </pre>
 	 * 
 	 * @param config
@@ -140,7 +151,10 @@ public class AuditFilter implements Filter {
 	public void init(FilterConfig config) throws ServletException {
 		String namespace = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_SAVENAMESPACE);
 		String patternToMatch = "/(" + namespace + ":\\d*)";
-		pattern = Pattern.compile(patternToMatch);
+		pidPattern = Pattern.compile(patternToMatch);
+		
+		String ridPatternToMatch = "[?&]{1}rid=(\\d*)";
+		ridPattern = Pattern.compile(ridPatternToMatch);
 	}
 
 }
