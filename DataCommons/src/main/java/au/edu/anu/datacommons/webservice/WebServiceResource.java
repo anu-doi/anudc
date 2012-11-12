@@ -3,31 +3,26 @@ package au.edu.anu.datacommons.webservice;
 import static java.text.MessageFormat.format;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.net.URL;
-import java.text.MessageFormat;
 import java.util.List;
 
 import javax.annotation.Resource;
-import javax.jws.WebService;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,7 +33,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -51,40 +45,28 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.RememberMeAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import com.yourmediashelf.fedora.client.FedoraClientException;
 
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.solr.SolrManager;
-import au.edu.anu.datacommons.security.CustomUser;
-import au.edu.anu.datacommons.security.cas.ANUUserDetailsService;
 import au.edu.anu.datacommons.security.service.FedoraObjectException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
-import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
-import au.edu.anu.datacommons.webservice.bindings.Activity;
 import au.edu.anu.datacommons.webservice.bindings.Collection;
 import au.edu.anu.datacommons.webservice.bindings.DcRequest;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
 import au.edu.anu.datacommons.webservice.bindings.Link;
+
+import com.yourmediashelf.fedora.client.FedoraClientException;
 
 @Component
 @Scope("request")
@@ -156,7 +138,7 @@ public class WebServiceResource
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
 	@PreAuthorize("hasAnyRole('ROLE_ANU_USER', 'ROLE_REGISTERED')")
-	public Response doPostAsXml(Document xmlDoc)
+	public Response doPostAsXml(Document xmlDoc, @QueryParam("rid") Long rid)
 	{
 		Response resp = null;
 		Document respDoc = docBuilder.newDocument();
@@ -188,13 +170,13 @@ public class WebServiceResource
 			if (item.getPid() == null)
 			{
 				// Create
-				Element el = createItem(item, respDoc);
+				Element el = createItem(item, respDoc, rid);
 				respDoc.getDocumentElement().appendChild(el);
 			}
 			else if (item.generateDataMap().size() > 0)
 			{
 				// Update
-				Element el = updateItem(item, respDoc);
+				Element el = updateItem(item, respDoc, rid);
 				respDoc.getDocumentElement().appendChild(el);
 			}
 			else
@@ -345,9 +327,9 @@ public class WebServiceResource
 		return fo;
 	}
 
-	private Element createItem(FedoraItem item, Document doc) throws FedoraClientException, JAXBException
+	private Element createItem(FedoraItem item, Document doc, Long rid) throws FedoraClientException, JAXBException
 	{
-		FedoraObject fo = fedoraObjectService.saveNew(item);
+		FedoraObject fo = fedoraObjectService.saveNew(item, rid);
 		String pidCreated = fo.getObject_id();
 		item.setPid(pidCreated);
 
@@ -384,10 +366,10 @@ public class WebServiceResource
 		return el;
 	}
 
-	private Element updateItem(FedoraItem item, Document doc) throws FedoraClientException, JAXBException
+	private Element updateItem(FedoraItem item, Document doc, Long rid) throws FedoraClientException, JAXBException
 	{
 		getFedoraObjectWriteAccess(item.getPid());
-		FedoraObject fo = fedoraObjectService.saveEdit(item);
+		FedoraObject fo = fedoraObjectService.saveEdit(item, rid);
 		Element el = createElement(doc, "status", "", new String[] { "action", "updated" }, new String[] { "anudcid", fo.getObject_id() });
 		InputStream dataStream = null;
 		try

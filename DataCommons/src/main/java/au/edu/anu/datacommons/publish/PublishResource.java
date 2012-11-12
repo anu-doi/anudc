@@ -50,6 +50,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.3		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
  * 0.4		19/09/2012	Genevieve Turner (GT)	Updated to redirect to the display page after publishing
  * 0.5		27/09/2012	Genevieve Turner (GT)	Updated to redirect to display page rather than edit
+ * 0.6		15/10/2012	Genevieve Turner (GT)	Added the availablity of validation checks
  * </pre>
  * 
  */
@@ -149,7 +150,7 @@ public class PublishResource {
 
 		try
 		{
-			fedoraObjectService.generateDoi(pid, tmplt);
+			fedoraObjectService.generateDoi(pid, tmplt, null);
 			UriBuilder redirUri = UriBuilder.fromPath("/display").path(pid).queryParam("layout", "def:display").queryParam("tmplt", tmplt);
 			resp = Response.seeOther(redirUri.build()).build();
 		}
@@ -169,7 +170,7 @@ public class PublishResource {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		15/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.6		15/10/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param item The item to check validation on
@@ -195,7 +196,7 @@ public class PublishResource {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		15/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.6		15/10/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param item The item to check validation on

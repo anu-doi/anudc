@@ -38,6 +38,7 @@ import au.edu.anu.datacommons.xml.sparql.Result;
  * 0.8		03/08/2012	Genevieve Turner (GT)	Fixed issue with permissions
  * 0.9		02/10/2012	Genevieve Turner (GT)	Updated to verify report permissions
  * 0.10		15/10/2012	Genevieve Turner (GT)	Added validatePublishLocation method
+ * 0.11		12/11/2012	Genevieve Turner (GT)	Added the rid parameter for some methods
  * </pre>
  * 
  */
@@ -98,17 +99,36 @@ public interface FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.11		12/11/2012	Genevieve Turner (GT)	Added the request id
 	 * </pre>
 	 * 
 	 * @param tmplt The template that determines the fields on the screen
 	 * @param form Contains the parameters from the request
+	 * @param rid The request id
 	 * @return Returns the viewable for the jsp file to pick up.
 	 * @throws JAXBException 
 	 * @throws FedoraClientException 
 	 */
-	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form) throws FedoraClientException, JAXBException;
+	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException;
 	
-	public FedoraObject saveNew(FedoraItem item) throws FedoraClientException, JAXBException;
+	/**
+	 * saveNew
+	 *
+	 * Saves the information contained in the fedora item
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		XX/XX/2012	Rahul Khanna (RK)		Initial
+	 * 0.11		12/11/2012	Genevieve Turner (GT)	Added the request id
+	 * </pre>
+	 * 
+	 * @param item
+	 * @param rid The request ID
+	 * @return
+	 * @throws FedoraClientException
+	 * @throws JAXBException
+	 */
+	public FedoraObject saveNew(FedoraItem item, Long rid) throws FedoraClientException, JAXBException;
 	
 	/**
 	 * getEditPage
@@ -118,6 +138,7 @@ public interface FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.11		12/11/2012	Genevieve Turner (GT)	Added the request id
 	 * </pre>
 	 * 
 	 * @param fedoraObject The  fedora object to get the page for
@@ -155,27 +176,38 @@ public interface FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.11		12/11/2012	Genevieve Turner (GT)	Added the request id
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to transform to a display
 	 * @param tmplt The template that determines the fields on the screen
 	 * @param form Contains the parameters from the request
+	 * @param rid The request id
 	 * @return Returns the viewable for the jsp file to pick up
 	 * @throws JAXBException 
 	 * @throws FedoraClientException 
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
-	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String tmplt, Map<String, List<String>> form);
+	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String tmplt, Map<String, List<String>> form, Long rid);
 	
 	/**
+	 * saveEdit
+	 * 
 	 * Updates an existing Fedora object with new values.
 	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		XX/XX/XXXX	Rahul Khanna (RK)		Initial
+	 * 0.11		12/11/2012	Genevieve Turner (GT)	Added the request id
+	 * </pre>
+	 * 
 	 * @param item
+	 * @param rid The request id
 	 * @return
 	 * @throws FedoraClientException
 	 * @throws JAXBException
 	 */
-	public FedoraObject saveEdit(FedoraItem item) throws FedoraClientException, JAXBException;
+	public FedoraObject saveEdit(FedoraItem item, Long rid) throws FedoraClientException, JAXBException;
 	
 	/**
 	 * addLink
@@ -402,12 +434,19 @@ public interface FedoraObjectService {
 	/**
 	 * Generates a DOI for a collection.
 	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		XX/XX/2012	Rahul Khanna (RK)		Initial
+	 * 0.11		22/10/2012	Genevieve Turner(GT)	Added the request id
+	 * </pre>
+	 * 
 	 * @param pid
 	 *            Pid of collection
 	 * @param tmplt
 	 *            Template
+	 * @param rid The request id
 	 * @throws FedoraObjectException
 	 *             When unable to generate a DOI
 	 */
-	public void generateDoi(String pid, String tmplt) throws FedoraObjectException;
+	public void generateDoi(String pid, String tmplt, Long rid) throws FedoraObjectException;
 }

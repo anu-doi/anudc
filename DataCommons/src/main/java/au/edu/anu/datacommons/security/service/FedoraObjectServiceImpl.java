@@ -206,16 +206,18 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * 0.15		20/08/2012	Genevieve Turner (GT)	Updated to use permissionService rather than aclService
+	 * 0.23		12/11/2012	Genevieve Turner (GT)	Added the request id
 	 * </pre>
 	 * 
 	 * @param layout The layout to display the page
 	 * @param tmplt The template that determines the fields on the screen
 	 * @param form Contains the parameters from the request
+	 * @param rid The request id
 	 * @return Returns the viewable for the jsp file to pick up.
 	 * @throws JAXBException 
 	 * @throws FedoraClientException 
 	 */
-	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form) throws FedoraClientException, JAXBException
+	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException
 	{
 		FedoraObject fedoraObject = null;
 		ViewTransform viewTransform = new ViewTransform();
@@ -240,7 +242,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			throw new IllegalArgumentException("No group selected");
 		}
 		
-		fedoraObject = viewTransform.saveData(tmplt, null, form);
+		fedoraObject = viewTransform.saveData(tmplt, null, form, rid);
 		permissionService.saveObjectPermissions(fedoraObject);
 		
 		return fedoraObject;
@@ -249,16 +251,23 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	/**
 	 * Passes the template name and datamap to saveNew.
 	 * 
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		XX/XX/2012	Rahul Khanna (RK)		Initial
+	 * 0.23		12/11/2012	Genevieve Turner (GT)	Added the request id
+	 * </pre>
+	 * 
 	 * @param item
 	 *            FedoraItem created from XML input.
+	 * @param rid The request id
 	 * @return FedoraObject created/updated.
 	 * @throws JAXBException 
 	 * @throws FedoraClientException 
 	 */
-	public FedoraObject saveNew(FedoraItem item) throws FedoraClientException, JAXBException
+	public FedoraObject saveNew(FedoraItem item, Long rid) throws FedoraClientException, JAXBException
 	{
 		FedoraObject fedoraObject = null;
-		fedoraObject = this.saveNew(item.getTemplate(), item.generateDataMap());
+		fedoraObject = this.saveNew(item.getTemplate(), item.generateDataMap(), rid);
 		return fedoraObject;
 	}
 
@@ -340,14 +349,17 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.13		25/07/2012	Genevieve Turner (GT)	Added removing of ready for review/publish
 	 * 0.16		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated when editing
 	 * 0.22		06/11/2012	Genevieve Turner (GT)	Updated to check if the user has permissions to update the group if not remove those permissions
+	 * 0.23		12/11/2012	Genevieve Turner (GT)	Added the request id
 	 * </pre>
 	 * 
 	 * @param fedoraObject The  fedora object to get the page for
 	 * @param tmplt The template that determines the fields on the screen
 	 * @param form The form fields of the screen
+	 * @param rid The request id
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String tmplt, Map<String, List<String>> form) {
+	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String tmplt, 
+			Map<String, List<String>> form, Long rid) {
 		Map<String, Object> values = new HashMap<String, Object>();
 		ViewTransform viewTransform = new ViewTransform();
 		try {
@@ -357,7 +369,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 					form.remove("ownerGroup");
 				}
 			}
-			fedoraObject = viewTransform.saveData(tmplt, fedoraObject, form);
+			fedoraObject = viewTransform.saveData(tmplt, fedoraObject, form, rid);
 			removeReviewReady(fedoraObject);
 			removePublishReady(fedoraObject);
 			if (form.containsKey("ownerGroup")) {
@@ -376,11 +388,30 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		return values;
 	}
 	
-	public FedoraObject saveEdit(FedoraItem item) throws FedoraClientException, JAXBException
+	/**
+	 * 
+	 * saveEdit
+	 * 
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		XX/XX/2012	Rahul Khanna (RK)		Initial
+	 * 0.23		12/11/2012	Genevieve Turner (GT)	Added the request id
+	 * </pre>
+	 * 
+	 * @param item
+	 * @param rid The request id
+	 * @return
+	 * @throws FedoraClientException
+	 * @throws JAXBException
+	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#saveEdit(au.edu.anu.datacommons.webservice.bindings.FedoraItem, java.lang.Long)
+	 */
+	public FedoraObject saveEdit(FedoraItem item, Long rid) throws FedoraClientException, JAXBException
 	{
 		ViewTransform viewTransform = new ViewTransform();
 		FedoraObject fo = this.getItemByPid(item.getPid());
-		fo = viewTransform.saveData(item.getTemplate(), fo, item.generateDataMap());
+		fo = viewTransform.saveData(item.getTemplate(), fo, item.generateDataMap(), rid);
 		return fo;
 	}
 	
@@ -763,7 +794,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		
 		ViewTransform viewTransform = new ViewTransform();
 		try {
-			viewTransform.setDefaultPublishData(null, fedoraObject, form);
+			viewTransform.setDefaultPublishData(null, fedoraObject, form, null);
 		}
 		catch (JAXBException e) {
 			LOGGER.error("Error transforming document for saving publication");
@@ -1195,7 +1226,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		// do nothing
 	}
 	
-	public void generateDoi(String pid, String tmplt) throws FedoraObjectException
+	public void generateDoi(String pid, String tmplt, Long rid) throws FedoraObjectException
 	{
 		InputStream datastream = null;
 		try
@@ -1233,7 +1264,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			FedoraObject fedoraObject = getItemByPid(pid);
 			Map<String, List<String>> form = new HashMap<String, List<String>>();
 			form.put("doi", Arrays.asList(mintedDoi));
-			saveEdit(fedoraObject, tmplt, form);
+			saveEdit(fedoraObject, tmplt, form, rid);
 		}
 		catch (FedoraClientException e)
 		{
