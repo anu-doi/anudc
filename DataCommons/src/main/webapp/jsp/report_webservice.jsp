@@ -6,16 +6,30 @@
 	ssl="true">
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
 	<link href="http://styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" type="text/css" href="<c:url value='/css/jquery-ui-1.8.20.custom.css' />" />
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/default.css' />" />
+	<script type="text/javascript" src="<c:url value='/js/report.js' />"></script>
+	<script type="text/javascript" src="<c:url value='/js/jquery-ui-1.8.20.custom.min.js' />"></script>
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
 
 <anu:content layout="doublenarrow" title="Reports">
-	<a href="<c:url value="/rest/report/single" />">Single Item Reports</a><br/>
-	<a href="<c:url value="/rest/report/multiple" />">Multiple Item Reports</a><br/>
-	<a href="<c:url value="/rest/report/published" />">Published To Location Report</a><br/>
-	<a href="<c:url value="/rest/report/webservice" />">Web Service Reports</a><br/>
+	<form class="anuform" method="POST"  action="<c:url value='/rest/report' />">
+		<label for="wid">Web Service ID</label><input type="text" id="rid" name="rid"/><br/>
+		<label for="format">Format</label>
+		<select id="format" name="format">
+			<option value="pdf">PDF</option>
+			<option value="html">HTML</option>
+		</select>
+		<br/>
+		<label for="report">Report</label>
+		<select id="report" name="report">
+			<option value="8">Web Service Report</option>
+		</select>
+		<br/>
+		<input type="submit" class="right" value="Get Report" />
+	</form>
 </anu:content>
 
 <jsp:include page="/jsp/footer.jsp" />

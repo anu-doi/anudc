@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_webserviceActions" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="c3f6f3eb-b164-47ea-a6e1-39548caf8801">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="rid" class="java.lang.Long"/>
+	<queryString>
+		<![CDATA[select audit_object.log_date
+	, audit_object.log_type
+	, users.username
+	, null as ip_address
+	, audit_object.before
+	, audit_object.after
+	, null as url
+	, fedora_object.pid as pid
+from audit_object, users, fedora_object
+where audit_object.rid = $P{rid}
+and audit_object.user_id = users.id
+and audit_object.object_id = fedora_object.id
+UNION
+select access_date as log_date
+	, method as log_type
+	, username
+	, ip_address as ip_address
+	, null as before
+	, null as after
+	, url
+	, null as pid
+from audit_access
+where rid = $P{rid}
+order by log_date]]>
+	</queryString>
+	<field name="log_date" class="java.sql.Timestamp"/>
+	<field name="log_type" class="java.lang.String"/>
+	<field name="username" class="java.lang.String"/>
+	<field name="ip_address" class="java.lang.String"/>
+	<field name="before" class="java.lang.String"/>
+	<field name="after" class="java.lang.String"/>
+	<field name="url" class="java.lang.String"/>
+	<field name="pid" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="40" splitType="Stretch">
+			<textField pattern="dd/MM/yyyy HH.mm.ss">
+				<reportElement uuid="400c6a5a-8360-4b9f-a4de-aec8327fe59f" x="0" y="20" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{log_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="a88a1685-6a0b-485b-bac6-8d979846dac7" x="100" y="20" width="100" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{log_type}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="fb903761-ac27-4c89-8d4b-fe08c1fdbc8c" x="0" y="0" width="100" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Action Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="3a9a4ccb-b79a-41e3-a5ba-25f66b284abc" x="100" y="0" width="100" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Action Type]]></text>
+			</staticText>
+		</band>
+		<band height="20">
+			<printWhenExpression><![CDATA[$F{before} == null ? false : true]]></printWhenExpression>
+			<staticText>
+				<reportElement uuid="fe83a287-529d-42e4-b85c-37359b1c7c75" x="0" y="0" width="41" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Before:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="316d31c8-532e-492e-ad07-607ae606657c" x="41" y="0" width="513" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{before}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="20">
+			<printWhenExpression><![CDATA[$F{after} == null ? false : true]]></printWhenExpression>
+			<staticText>
+				<reportElement uuid="31c0d561-e16a-4b5b-8f3b-b7a872397b7c" x="0" y="0" width="41" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[After:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="db50c624-3ff0-4a4e-b241-b2c64f466c3d" x="41" y="0" width="513" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{after}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="20">
+			<printWhenExpression><![CDATA[$F{url} == null ? false : true]]></printWhenExpression>
+			<staticText>
+				<reportElement uuid="b5e719a0-d5f4-40c5-acb5-596dbcba9b04" x="0" y="0" width="41" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[URL:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="9c97d53f-0a42-406c-be89-2d5c4c2ab2d8" x="41" y="0" width="513" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{url}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="1">
+			<line>
+				<reportElement uuid="6f0fd4b8-21df-4287-bec8-879876063806" x="0" y="0" width="554" height="1"/>
+			</line>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

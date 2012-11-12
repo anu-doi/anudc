@@ -49,6 +49,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.2		02/10/2012	Genevieve Turner (GT)	MOved reload of reports functionality to ReportGenerator class
  * 0.3		02/10/2012	Genevieve Turner (GT)	Updated to verify the user has permissions to execute a report prior to generating the report
  * 0.4		30/10/2012	Genevieve Turner (GT)	Updated to make available more report types
+ * 0.5		12/11/2012	Genevieve Turner (GT)	Added web service report type
  * </pre>
  *
  */
@@ -113,7 +114,7 @@ public class ReportResource {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		30/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.4		30/10/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return
@@ -139,7 +140,7 @@ public class ReportResource {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		30/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.4		30/10/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @return
@@ -150,6 +151,26 @@ public class ReportResource {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response getMultipleItemReportPage() {
 		return Response.ok(new Viewable("/report_multiple.jsp")).build();
+	}
+	
+	/**
+	 * getWebServiceReportPage
+	 *
+	 * Get a page to retrieve reports for the web service
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		12/11/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 */
+	@GET
+	@Path("webservice")
+	@Produces(MediaType.TEXT_HTML)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response getWebServiceReportPage() {
+		return Response.ok(new Viewable("/report_webservice.jsp")).build();
 	}
 	
 	/**
