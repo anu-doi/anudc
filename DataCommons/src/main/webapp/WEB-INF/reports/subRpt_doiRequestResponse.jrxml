@@ -5,21 +5,13 @@
 	<property name="ireport.y" value="0"/>
 	<parameter name="pid" class="java.lang.String"/>
 	<queryString>
-		<![CDATA[select audit_object.log_date, audit_object.log_type, users.username, audit_object.after
-from fedora_object, audit_object, users
-where fedora_object.pid = $P{pid}
-and fedora_object.id = audit_object.object_id
-and audit_object.log_type in ('DOI_REQUEST','DOI_RESPONSE')
-and audit_object.user_id = users.id
-order by audit_object.log_date;]]>
+		<![CDATA[select id, request_timestamp, response_timestamp
+from log_external_web_resource
+where pid = $P{pid};]]>
 	</queryString>
-	<field name="log_date" class="java.sql.Timestamp"/>
-	<field name="log_type" class="java.lang.String"/>
-	<field name="username" class="java.lang.String"/>
-	<field name="after" class="java.lang.String"/>
-	<variable name="type" class="java.lang.String">
-		<variableExpression><![CDATA["DOI_REQUEST".equals($F{log_type}) ? "Request" : "Response"]]></variableExpression>
-	</variable>
+	<field name="id" class="java.lang.Long"/>
+	<field name="request_timestamp" class="java.sql.Timestamp"/>
+	<field name="response_timestamp" class="java.sql.Timestamp"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -35,19 +27,28 @@ order by audit_object.log_date;]]>
 	<detail>
 		<band height="20" splitType="Stretch">
 			<staticText>
-				<reportElement uuid="621a106c-92cb-43eb-8b6f-4602af546d84" x="0" y="0" width="27" height="20"/>
-				<textElement/>
-				<text><![CDATA[Date:]]></text>
+				<reportElement uuid="ea5c29b6-92d7-48ad-8610-bac518c56dbf" x="0" y="0" width="98" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Request Date/Time:]]></text>
 			</staticText>
 			<textField pattern="dd/MM/yyyy HH.mm.ss">
-				<reportElement uuid="d00449be-65ef-4199-ac27-c85f4a06e14f" x="27" y="0" width="100" height="20"/>
+				<reportElement uuid="f110b1cc-a2fc-44ae-a959-907a8ce67135" x="98" y="0" width="100" height="20"/>
 				<textElement/>
-				<textFieldExpression><![CDATA[$F{log_date}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{request_timestamp}]]></textFieldExpression>
 			</textField>
-			<textField>
-				<reportElement uuid="149fa9da-6367-4a74-92fe-d0320f134347" x="127" y="0" width="100" height="20"/>
+			<staticText>
+				<reportElement uuid="e708f9af-7ee0-47f2-a3f1-57b840a4911e" x="198" y="0" width="107" height="20"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Response Date/Time:]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy HH.mm.ss">
+				<reportElement uuid="10b52639-8e6f-4828-8231-830113fdc717" x="305" y="0" width="100" height="20"/>
 				<textElement/>
-				<textFieldExpression><![CDATA[$V{type}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{response_timestamp}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>
