@@ -1,4 +1,4 @@
-package au.edu.anu.datacommons.phenomics;
+package au.edu.anu.datacommons.webservice;
 
 import java.util.List;
 import java.util.Map;

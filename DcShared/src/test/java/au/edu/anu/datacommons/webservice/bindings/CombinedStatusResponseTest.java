@@ -1,4 +1,4 @@
-package au.edu.anu.datacommons.phenomics.bindings;
+package au.edu.anu.datacommons.webservice.bindings;
 
 import static org.junit.Assert.fail;
 
@@ -14,9 +14,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PhenResponseTest
+public class CombinedStatusResponseTest
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PhenResponseTest.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CombinedStatusResponseTest.class);
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
@@ -41,8 +41,8 @@ public class PhenResponseTest
 	@Test
 	public void test()
 	{
-		PhenResponse resp = new PhenResponse();
-		resp.setStatus(PhenResponse.Status.SUCCESS);
+		CombinedStatusResponse resp = new CombinedStatusResponse();
+		resp.setStatus(CombinedStatusResponse.Status.SUCCESS);
 		resp.setMsg("Completed");
 		
 		try

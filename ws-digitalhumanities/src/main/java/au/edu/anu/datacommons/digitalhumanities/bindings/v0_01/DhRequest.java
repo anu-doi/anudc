@@ -1,19 +1,15 @@
-package au.edu.anu.datacommons.phenomics.bindings.v0_01;
+package au.edu.anu.datacommons.digitalhumanities.bindings.v0_01;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,16 +23,16 @@ import au.edu.anu.datacommons.webservice.bindings.DcRequest;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
 
 @XmlRootElement(name = "request")
-public class PhenRequest implements Processable
+public class DhRequest implements Processable
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PhenRequest.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DhRequest.class);
 	private static PropertiesFile constants;
 
 	static
 	{
 		try
 		{
-			constants = new PropertiesFile(new File(Config.DIR, "ws-phenomics/constants.properties"));
+			constants = new PropertiesFile(new File(Config.DIR, "ws-digitalhumanities/constants.properties"));
 		}
 		catch (IOException e)
 		{
@@ -46,7 +42,7 @@ public class PhenRequest implements Processable
 
 	private String version;
 	private String function;
-	private PhenProject project;
+	private DhProject project;
 
 	@XmlAttribute(name = "version")
 	public String getVersion()
@@ -71,12 +67,12 @@ public class PhenRequest implements Processable
 	}
 
 	@XmlElement(name = "project")
-	public PhenProject getProject()
+	public DhProject getProject()
 	{
 		return project;
 	}
 
-	public void setProject(PhenProject project)
+	public void setProject(DhProject project)
 	{
 		this.project = project;
 	}
