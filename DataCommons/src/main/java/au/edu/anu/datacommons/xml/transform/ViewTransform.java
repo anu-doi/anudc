@@ -85,6 +85,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * 0.16		31/08/2012	Genevieve Turner (GT)	Removed the retrieval of option lists
  * 0.17		13/09/2012	Genevieve Turner (GT)	Added setting of tmplt id to fedora object
  * 0.18		09/11/2012	Genevieve Turner (GT)	Added request id field
+ * 0.19		12/11/2012	Genevieve Turner (GT)	Updated several methods to have an input with rid
  * </pre>
  * 
  */
@@ -616,16 +617,19 @@ public class ViewTransform
 	 * 0.15		27/08/2012	Genevieve Turner (GT)	Fixed issue where group was not updated
 	 * 0.17		13/09/2012	Genevieve Turner (GT)	Added setting of tmplt id to fedora object
 	 * 0.18		15/10/2012	Genevieve Turner (GT)	Moved some of the functionality into separate methods for reusability
+	 * 0.19		12/11/2012	Genevieve Turner (GT)	Updated with the rid parameter
 	 * </pre>
 	 * 
 	 * @param tmplt The id of the template
 	 * @param fedoraObject The object to save data for
 	 * @param form The form data
+	 * @param rid The request id
 	 * @return Returns the object id
 	 * @throws FedoraClientException
 	 * @throws JAXBException
 	 */
-	public FedoraObject saveData (String tmplt, FedoraObject fedoraObject, Map<String, List<String>> form) 
+	public FedoraObject saveData (String tmplt, FedoraObject fedoraObject, 
+			Map<String, List<String>> form, Long rid) 
 			throws FedoraClientException, JAXBException {
 		//Put the data in a map otherwise it is null in this function
 		Map<String, Object> map = new HashMap<String, Object>();;
@@ -658,7 +662,7 @@ public class ViewTransform
 			}
 		}
 		
-		fedoraObject = saveFields(tmplt, fedoraObject, form, data);
+		fedoraObject = saveFields(tmplt, fedoraObject, form, data, rid);
 		
 		processedValues_.clear();
 		
@@ -674,16 +678,19 @@ public class ViewTransform
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		15/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.19		12/11/2012	Genevieve Turner (GT)	Updated with the rid parameter
 	 * </pre>
 	 * 
 	 * @param tmplt The template currently used
 	 * @param fedoraObject The fedora object to save to
 	 * @param form The data to save
+	 * @param rid The request id
 	 * @return The fedora object
 	 * @throws FedoraClientException
 	 * @throws JAXBException
 	 */
-	public FedoraObject setDefaultPublishData (String tmplt, FedoraObject fedoraObject, Map<String, String> form) 
+	public FedoraObject setDefaultPublishData (String tmplt, FedoraObject fedoraObject, 
+			Map<String, String> form, Long rid) 
 				throws FedoraClientException, JAXBException {
 		Map<String, Object> map = new HashMap<String, Object>();
 		
@@ -699,7 +706,7 @@ public class ViewTransform
 			}
 		}
 		
-		fedoraObject = saveFields(tmplt, fedoraObject, new HashMap<String, List<String>>(), data);
+		fedoraObject = saveFields(tmplt, fedoraObject, new HashMap<String, List<String>>(), data, rid);
 		
 		return fedoraObject;
 	}
@@ -760,28 +767,25 @@ public class ViewTransform
 	 * Version	Date		Developer				Description
 	 * 0.1		15/10/2012	Genevieve Turner(GT)	Initial
 	 * 0.18		09/11/2012	Genevieve Turner (GT)	Added request id field
+	 * 0.19		12/11/2012	Genevieve Turner (GT)	Updated with the rid parameter
 	 * </pre>
 	 * 
 	 * @param tmplt
 	 * @param fedoraObject
 	 * @param form
 	 * @param data
+	 * @param rid The request id
 	 * @return
 	 * @throws FedoraClientException
 	 * @throws JAXBException
 	 */
-	private FedoraObject saveFields(String tmplt, FedoraObject fedoraObject, Map<String, List<String>> form, Data data) 
+	private FedoraObject saveFields(String tmplt, FedoraObject fedoraObject, 
+			Map<String, List<String>> form, Data data, Long rid) 
 			throws FedoraClientException, JAXBException {
 		//Added because for some types the name is separated fields
 		setName(data);
 		DublinCore dublinCore = getDublinCore(data);
 		StringWriter dcSW = new StringWriter();
-		
-		Long rid = null;
-		if (form.containsKey("rid") && form.get("rid").size() > 0) {
-			String ridStr = form.get("rid").get(0);
-			rid = new Long(ridStr);
-		}
 		
 		StringWriter sw = new StringWriter();
 		

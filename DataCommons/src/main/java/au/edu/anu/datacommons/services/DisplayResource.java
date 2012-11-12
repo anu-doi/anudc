@@ -63,6 +63,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.9		16/10/2012	Genevieve Turner(GT)	Fixed an issue with info:fedora being appended in linkItemAsText
  * 0.10		17/10/2012	Genevieve Turner (GT)	Updated to support a full page edit
  * 0.11		22/10/2012	Genevieve Turner (GT)	Updates to allow deletion/edit of relationships
+ * 0.12		12/11/2012	Genevieve Turner (GT)	Updated to with the request id fields of null
  * </pre>
  */
 @Component
@@ -156,6 +157,7 @@ public class DisplayResource
 	 * 0.6		28/06/2012	Rahul Khanna (RK)		Fixed failure condition
 	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * 0.8		11/09/2012	Genevieve Turner (GT)	Updated to reject creation of groups when the user does not have permissions
+	 * 0.12		12/11/2012	Genevieve Turner (GT)	Updated to with the request id fields of null
 	 * </pre>
 	 * 
 	 * @param layout
@@ -181,7 +183,7 @@ public class DisplayResource
 		Response resp;
 		try
 		{
-			fedoraObject = fedoraObjectService.saveNew(tmplt, form);
+			fedoraObject = fedoraObjectService.saveNew(tmplt, form, null);
 			UriBuilder redirUri = UriBuilder.fromPath("/display").path(fedoraObject.getObject_id()).queryParam("layout", layout).queryParam("tmplt", tmplt);
 			resp = Response.seeOther(redirUri.build()).build();
 		}
@@ -209,6 +211,7 @@ public class DisplayResource
 	 * <pre>
 	 * Version	Date		Developer			Description
 	 * 0.1		31/07/2012	Rahul Khanna (RK)	Initial
+	 * 0.12		12/11/2012	Genevieve Turner (GT)	Updated to with the request id fields of null
 	 * </pre>
 	 * 
 	 * @param uriInfo
@@ -235,7 +238,7 @@ public class DisplayResource
 		Response resp = null;
 		try
 		{
-			fedoraObject = fedoraObjectService.saveNew(tmplt, form);
+			fedoraObject = fedoraObjectService.saveNew(tmplt, form, null);
 			LOGGER.info("Created fedora object {}. Returning HTTP 301 response.", fedoraObject.getObject_id());
 			URI createdUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(DisplayResource.class).path(DisplayResource.class, "getItem")
 					.build(fedoraObject.getObject_id());
@@ -342,6 +345,7 @@ public class DisplayResource
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
 	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * 0.10		17/10/2012	Genevieve Turner (GT)	Updated to support a full page edit
+	 * 0.12		12/11/2012	Genevieve Turner (GT)	Updated to with the request id fields of null
 	 * </pre>
 	 * 
 	 * @param layout
@@ -367,8 +371,8 @@ public class DisplayResource
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 
 		LOGGER.info("tmplt: {}", tmplt);
-
-		Map<String, Object> values = fedoraObjectService.saveEdit(fedoraObject, tmplt, form);
+		
+		Map<String, Object> values = fedoraObjectService.saveEdit(fedoraObject, tmplt, form, null);
 		UriBuilder uriBuilder = null;
 		if (values.containsKey("error"))
 		{
