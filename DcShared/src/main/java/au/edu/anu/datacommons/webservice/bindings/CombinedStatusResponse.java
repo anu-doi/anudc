@@ -1,4 +1,4 @@
-package au.edu.anu.datacommons.phenomics.bindings;
+package au.edu.anu.datacommons.webservice.bindings;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.w3c.dom.Element;
 
 @XmlRootElement (name = "response")
-public class PhenResponse
+public class CombinedStatusResponse
 {
 	private Status status;
 	private String msg;

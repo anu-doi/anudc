@@ -19,7 +19,7 @@ public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedPro
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TokenHeaderAuthenticationFilter.class);
 	
-	private static final String TOKEN_HEADER = "authtoken";
+	private static final String TOKEN_HEADER = "X-Auth-Token";
 	private static Properties tokens;
 	
 	static
@@ -40,7 +40,7 @@ public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedPro
 		// Principal = Uni Id of user
 		String token = request.getHeader(TOKEN_HEADER);
 		String principal;
-		if (token != null)
+		if (token != null && tokens != null)
 		{
 			principal = tokens.getProperty(token);
 			if (principal != null)
@@ -58,5 +58,4 @@ public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedPro
 		// Credentials not required.
 		return "N/A";
 	}
-	
 }

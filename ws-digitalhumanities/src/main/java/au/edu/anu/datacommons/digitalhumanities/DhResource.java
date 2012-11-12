@@ -1,5 +1,9 @@
 package au.edu.anu.datacommons.digitalhumanities;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Properties;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -9,21 +13,41 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import au.edu.anu.datacommons.config.Config;
+import au.edu.anu.datacommons.config.PropertiesFile;
+import au.edu.anu.datacommons.webservice.AbstractResource;
+
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.filter.ClientFilter;
+import com.sun.jersey.api.client.filter.LoggingFilter;
 
 @Path("/")
-public class DhResource
+public class DhResource extends AbstractResource
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DhResource.class);
-	
-	@Context
-	private UriInfo uriInfo;
-	@Context
-	private Request request;
-	@Context
-	private HttpHeaders httpHeaders;
+
+	public DhResource()
+	{
+		try
+		{
+			genericWsProps = new PropertiesFile(new File(Config.DIR, "ws-digitalhumanities/genericws.properties"));
+			packageLookup = new PropertiesFile(new File(Config.DIR, "ws-digitalhumanities/wslookup.properties"));
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e.getMessage(), e);
+		}
+	}
 
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
@@ -34,5 +58,14 @@ public class DhResource
 		respStr.append("Test - Digital Humanities");
 		resp = Response.ok(respStr.toString()).build();
 		return resp;
+	}
+
+	@Override
+	protected Element processRespElement(Element statusElementFromGenSvc)
+	{
+		NodeList extIdElements = statusElementFromGenSvc.getElementsByTagName("externalId");
+		if (extIdElements.getLength() > 0)
+			statusElementFromGenSvc.setAttribute("dhid", extIdElements.item(0).getTextContent());
+		return statusElementFromGenSvc;
 	}
 }
