@@ -139,15 +139,17 @@ public interface FedoraObjectService {
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * 0.11		12/11/2012	Genevieve Turner (GT)	Added the request id
+	 * 0.12		13/11/2012	Genevieve Turner (GT)	Added whether edit mode should be used in retrieving the page (i.e. no published information is retrieved)
 	 * </pre>
 	 * 
 	 * @param fedoraObject The  fedora object to get the page for
 	 * @param layout The layout that defines the flow of the items on the page
 	 * @param tmplt The template that determines the fields on the screen
+	 * @param editMode Whether the returned information contains does or does not contained published information (false for only the unpublished information to be returned)
 	 * @return Returns the viewable for the jsp file to pick up
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
-	public Map<String, Object> getEditPage(FedoraObject fedoraObject, String layout, String tmplt);
+	public Map<String, Object> getEditPage(FedoraObject fedoraObject, String layout, String tmplt, boolean editMode);
 
 	/**
 	 * getEditItem
