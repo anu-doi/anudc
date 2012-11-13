@@ -50,10 +50,10 @@
 	<item name="significanceStatement" label="Significance Statement" fieldType="TextArea" saveType="single" maxLength="4000" tab="description">
 		<tooltip>What is significant about this dataset. For example:&#xA;&#xA;The first Australian full talking film.</tooltip>
 	</item>
-	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000" class="needed"  tab="description">
+	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000"  tab="description">
 		<tooltip>A brief summary about the data</tooltip>
 	</item>
-	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" maxLength="4000"  tab="description">
+	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" maxLength="4000" class="needed"  tab="description">
 		<tooltip>The description should be as rich as possible. If applicable, include: the scope; details of what is being studied or recorded; methodologies used, information about any instruments that were used to produce and/or collect the data; relevant standards used; conditions under which the study or research occured or the data was collected, etc&#xA;If there were any problems or other issues with methods used to produce and/or collect the data, please include those as well.</tooltip>
 	</item>
 	<item name="email" label="Contact Email" fieldType="TextFieldMulti" saveType="multiple" class="needed email" tab="people" />

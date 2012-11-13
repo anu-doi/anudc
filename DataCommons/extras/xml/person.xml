@@ -32,10 +32,10 @@
 	</item>
 	<item class="date" fieldType="TextField" label="Birth Year/Date" name="existenceStart" saveType="single" tab="general" />
 	<item class="date" fieldType="TextField" label="Death Year/Date" name="existenceEnd" saveType="single" tab="general" />
-	<item class="needed" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description">
+	<item fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description">
 		<tooltip>A brief description about the individual, this can include what work is being performed for The Australian National University</tooltip>
 	</item>
-	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description">
+	<item class="needed" fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description">
 		<tooltip>A longer description of the individual. This may include a biography of the person.</tooltip>
 	</item>
 	<item class="needed email" fieldType="TextFieldMulti" label="Email Address" name="email" saveType="multiple" tab="contact"/>

@@ -6,6 +6,7 @@
 	<tab name="contact" label="Contact" order="4">
 		<tooltip>Information about contact(s)</tooltip>
 	</tab>
+	<tab name="subject" label="Subject" order="4" />
 	<item defaultValue="Service" editPerm="admin" fieldType="TextField" label="Type" name="type"
 		readonly="readonly" saveType="single" tab="general"/>
 	<item fieldType="Combobox" label="Service Type" name="subType" saveType="single" class="required" tab="general">
@@ -39,10 +40,10 @@
 	</item>
 	<item class="date" fieldType="TextField" label="Date the service was started" name="existenceStart" saveType="single" tab="general" />
 	<item class="date" fieldType="TextField" label="Date the service was stopped" name="existenceEnd" saveType="single" tab="general" />
-	<item class="needed" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description">
+	<item fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description">
 		<tooltip>A brief summary about the service</tooltip>
 	</item>
-	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description">
+	<item class="needed" fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description">
 		<tooltip>A description that is as rich as possible.</tooltip>
 	</item>
 	<item class="needed email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple" tab="contact"/>
@@ -55,6 +56,15 @@
 		<option label="Software" value="software"/>
 		<option label="Web Service" value="webservice"/>
 		<option label="Workflow" value="workflow"/>
+	</item>
+	<item name="anzforSubject" label="Fields of Research" fieldType="ComboBoxMulti" saveType="multiple" tab="subject">
+		<tooltip>Include Fields of Research terms and corresponding classification codes to be associated with the person being described. The Fields of Research Classfication can be found at the following URL.&#xA;&#xA;http://www.arc.gov.au/applicants/codes.htm#FOR</tooltip>
+	</item>
+	<item name="anzseoSubject" label="Socio-Economic Objective" fieldType="ComboBoxMulti" saveType="multiple" tab="subject">
+		<tooltip>Include terms and corresponding classification codes to be assocaited with the resource being described. Information on the Socio-Economic Objectives Classication Codes can be found at the following URL.&#xA;&#xA;http://www.arc.gov.au/applicants/codes.htm#SEO</tooltip>
+	</item>
+	<item name="locSubject" label="Keywords" fieldType="TextFieldMulti" saveType="multiple" tab="subject">
+		<tooltip>Record keywords describing the data. 5-10 keywords will normally be sufficient. The keywords must be specific enough for researchers with similar interests to find your data.&#xA;&#xA;If you need assistance in selecting keywords, there are many thesauri that may be helpful. Please use one appropriate to your discipline. If you are unable to identify a discipline specific classification scheme, you may wish to use the Library of Congress Classification scheme available at http://www.loc.gov/catdir/cpso/lcco/</tooltip>
 	</item>
 	<item fieldType="TextFieldMulti" label="Access URL" name="websiteAddress" saveType="multiple">
 		<tooltip>The url to access the service.</tooltip>
