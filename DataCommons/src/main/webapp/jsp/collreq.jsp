@@ -140,20 +140,20 @@
 					<input type="submit" value="Submit">
 				<p>
 			</form>
-			<div id="idReqStatusContainer">
-				<hr />
+			<hr />
+			<div id="reqAction">
 				<table id="idReqStatusTable" class="tbl-row-bdr w-doublewide">
 					<tr>
-						<th>Id</th>
+						<th>Request Id</th>
 						<th>Item ID</th>
-						<th>Date</th>
+						<th>Date Requested</th>
 						<th>Requestor</th>
 						<th>Status</th>
 					</tr>
 					<c:forEach var="iCollReq" items="${it.collReqs}">
 						<tr>
 							<td><a href="<c:url value='/rest/collreq' />/${iCollReq.id}"><c:out value="${iCollReq.id}" /></a></td>
-							<td><a href="<c:url value='/rest/collreq' />/${iCollReq.id}"><c:out value="${iCollReq.pid}" /></a></td>
+							<td><a href="<c:url value='/rest/display/${iCollReq.pid}'><c:param name='layout' value='def:display' /></c:url>"><c:out value="${iCollReq.pid}" /></a></td>
 							<td><fmt:formatDate value="${iCollReq.timestamp}" pattern="dd MMM yyyy" /></td>
 							<td><c:out value="${iCollReq.requestor.username}" /></td>
 							<td><c:if test="${iCollReq.lastStatus.status eq 'ACCEPTED'}">
@@ -170,10 +170,11 @@
 				</table>
 			</div>
 		</anu:content>
+		
+		<script type="text/javascript">
+			jQuery(document).ready(ajaxGetPidInfo(document.collReqSubmitForm.pid.value));
+		</script>
 	</c:otherwise>
 </c:choose>
-<script type="text/javascript">
-	jQuery(document).ready(ajaxGetPidInfo(document.collReqSubmitForm.pid.value));
-</script>
 
 <jsp:include page="/jsp/footer.jsp" />

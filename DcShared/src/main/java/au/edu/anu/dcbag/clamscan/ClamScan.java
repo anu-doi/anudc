@@ -21,6 +21,8 @@ public class ClamScan {
     private static final byte[] INSTREAM = "zINSTREAM\0".getBytes();
     private static final byte[] PING = "zPING\0".getBytes();
     private static final byte[] STATS = "nSTATS\n".getBytes();
+    private static final int CONNECT_TIMEOUT_MS = 5000;
+    
     // TODO: IDSESSION, END
 
     //    It is mandatory to prefix this command with n or z, and all commands inside IDSESSION must  be
@@ -69,7 +71,7 @@ public class ClamScan {
         Socket socket = new Socket();
 
         try {
-            socket.connect(new InetSocketAddress(getHost(), getPort()));
+            socket.connect(new InetSocketAddress(getHost(), getPort()), CONNECT_TIMEOUT_MS);
         } catch (IOException e) {
             log.error("could not connect to clamd server");
             return null;

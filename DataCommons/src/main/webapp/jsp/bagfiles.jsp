@@ -23,9 +23,9 @@
 
 			<div id="tabs" class="pagetabs-nav">
 				<ul>
-					<li><a href="#" class="pagetabs-select" onclick="return tabSelect(this, '#files')">Files</a></li>
-					<li><a href="#" onclick="return tabSelect(this, '#info')">Archive Info</a></li>
-					<li><a href="#" onclick="return tabSelect(this, '#extRefs')">External References</a></li>
+					<li><a href="javascript:void(0)" onclick="tabSelect(this, '#files')" class="pagetabs-select" >Files</a></li>
+					<li><a href="javascript:void(0)" onclick="tabSelect(this, '#info')">Archive Info</a></li>
+					<li><a href="javascript:void(0)" onclick="tabSelect(this, '#extRefs')">External References</a></li>
 				</ul>
 			</div>
 
