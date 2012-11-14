@@ -165,6 +165,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.23		13/11/2012	Genevieve Turner (GT)	Added the edit mode to the getPage method
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to transform to a display
@@ -173,7 +174,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	public Map<String, Object> getViewPage(FedoraObject fedoraObject, String layout, String tmplt) {
-		Map<String, Object> values = getPage(layout, tmplt, fedoraObject);
+		Map<String, Object> values = getPage(layout, tmplt, fedoraObject, false);
 		return values;
 	}
 	
@@ -185,6 +186,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.23		13/11/2012	Genevieve Turner (GT)	Added the edit mode to the getPage method
 	 * </pre>
 	 * 
 	 * @param layout The layout that defines the flow of the items on the page
@@ -192,7 +194,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	public Map<String, Object> getNewPage(String layout, String tmplt) {
-		Map<String, Object> values = getPage(layout, tmplt, null);
+		Map<String, Object> values = getPage(layout, tmplt, null, false);
 		return values;
 	}
 	
@@ -309,15 +311,17 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
+	 * 0.23		13/11/2012	Genevieve Turner (GT)	Added whether edit mode should be used in retrieving the page (i.e. no published information is retrieved)
 	 * </pre>
 	 * 
 	 * @param fedoraObject The  fedora object to get the page for
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
 	 * @param tmplt The template that determines the fields on the screen
+	 * @param editMode Whether the returned information contains does or does not contained published information (false for only the unpublished information to be returned)
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	public Map<String, Object> getEditPage(FedoraObject fedoraObject, String layout, String tmplt) {
-		Map<String, Object> values = getPage(layout, tmplt, fedoraObject);
+	public Map<String, Object> getEditPage(FedoraObject fedoraObject, String layout, String tmplt, boolean editMode) {
+		Map<String, Object> values = getPage(layout, tmplt, fedoraObject, editMode);
 		try {
 			// Add the template objects to the viewable, and change the side page
 			Template template = new ViewTransform().getTemplateObject(tmplt, fedoraObject);
@@ -508,14 +512,16 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.10		11/07/2012	Genevieve Turner (GT)	Updated to allow or deny access to unpublished pages
 	 * 0.11		13/07/2012	Rahul Khanna (RK)		Updated filelist displayed on collection page
 	 * 0.15		20/08/2012	Genevieve Turner (GT)	Updated to use permissionService rather than aclService
+	 * 0.23		13/11/2012	Genevieve Turner (GT)	Added whether edit mode should be used in retrieving the page (i.e. no published information is retrieved)
 	 * </pre>
 	 * 
 	 * @param layout The layout to use with display (i.e. the xsl stylesheet)
 	 * @param tmplt The template that determines the fields on the screen
 	 * @param fedoraObject The object of the page to retrieve
+	 * @param editMode Indicates whether published information should be returned or not
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
-	private Map<String, Object> getPage(String layout, String template, FedoraObject fedoraObject) {
+	private Map<String, Object> getPage(String layout, String template, FedoraObject fedoraObject, boolean editMode) {
 		boolean hasPermission = false;
 		if (fedoraObject == null) {
 			hasPermission = true;
@@ -543,7 +549,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 				}
 			}
 			if (hasPermission) {
-				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false, false));
+				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, editMode, false));
 			}
 			else if (fedoraObject.getPublished()) {
 				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false, true));

@@ -23,11 +23,19 @@
 				<c:choose>
 					<c:when test="${not empty row['published.name']}">
 						<a href="<c:url value="/rest/display/${row['id']}?layout=def:display" />"><c:out value="${row['published.name']}" /></a> <br />
-						${row['published.briefDesc'][0]} <br />
+						${row['published.briefDesc'][0]}
+						<c:if test="${empty row['published.briefDesc'][0]}">
+							${row['published.fullDesc'][0]}
+						</c:if>
+						<br />
 					</c:when>
 					<c:when test="${not empty row['unpublished.name']}">
 						<a href="<c:url value="/rest/display/${row['id']}?layout=def:display" />"><c:out value="${row['unpublished.name']}" /></a> <br />
-						${row['unpublished.briefDesc'][0]} <br />
+						${row['unpublished.briefDesc'][0]}
+						<c:if test="${empty row['unpublished.briefDesc'][0]}">
+							${row['unpublished.fullDesc'][0]}
+						</c:if>
+						<br />
 					</c:when>
 				</c:choose>
 				<br />

@@ -22,6 +22,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
@@ -137,6 +138,7 @@ public class UserResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		20/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.4		14/11/2012	Genevieve Turner (GT)	Updated to allow administrative role users able to update permissions
 	 * </pre>
 	 * 
 	 * @return A page for updating permissions
@@ -144,7 +146,7 @@ public class UserResource {
 	@GET
 	@Path("permissions")
 	@Produces(MediaType.TEXT_HTML)
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ANU_USER')")
 	public Response getPermissionsPage() {
 		Map<String, Object> model = new HashMap<String, Object>();
 		
@@ -189,6 +191,7 @@ public class UserResource {
 	 * Version	Date		Developer				Description
 	 * 0.1		20/08/2012	Genevieve Turner(GT)	Initial
 	 * 0.2		17/09/2012	Genevieve Turner (GT)	Fixed an issue with the return result not being in the json format
+	 * 0.4		14/11/2012	Genevieve Turner (GT)	Updated to allow administrative role users able to update permissions
 	 * </pre>
 	 * 
 	 * @param id The id of the group to update the permissions for
@@ -199,12 +202,26 @@ public class UserResource {
 	@Path("permissions/{id}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.APPLICATION_JSON)
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ANU_USER')")
 	public String updateUserPermissions(@PathParam("id") Long id, @Context HttpServletRequest request) {
 		String username = request.getParameter("username");
 		if (!Util.isNotEmpty(username)) {
 			throw new WebApplicationException(Response.status(400).entity("No username specified").build());
 		}
+
+		// Ensure the logged in user has permissions to update this group
+		List<Groups> groups = groupService.getAllowModifyGroups();
+		boolean hasGroupPermission = false;
+		for (int i = 0; !hasGroupPermission && i < groups.size(); i++) {
+			if (groups.get(i).getId().equals(id)) {
+				hasGroupPermission = true;
+			}
+		}
+		if (!hasGroupPermission) {
+			LOGGER.error("{} does not have permissions to update group {}", SecurityContextHolder.getContext().getAuthentication().getName(), id);
+			throw new WebApplicationException(Response.status(Status.UNAUTHORIZED).build());
+		}
+		
 		List<Integer> permissions = new ArrayList<Integer>();
 		String[] group_permissions = request.getParameterValues("group_perm[]");
 		if (group_permissions != null) {
@@ -224,6 +241,7 @@ public class UserResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		20/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.4		14/11/2012	Genevieve Turner (GT)	Updated to allow administrative role users able to update permissions
 	 * </pre>
 	 * 
 	 * @param firstname The firstname of the user to find
@@ -234,8 +252,15 @@ public class UserResource {
 	@GET
 	@Path("find")
 	@Produces(MediaType.APPLICATION_JSON)
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ANU_USER')")
 	public List<LdapPerson> findUser(@QueryParam("firstname") String firstname, @QueryParam("lastname") String lastname, @QueryParam("uniId") String uniId) {
+
+		List<Groups> groups = groupService.getAllowModifyGroups();
+		if (groups.size() == 0) {
+			LOGGER.error("{} does not have permissions search ldap for other users", SecurityContextHolder.getContext().getAuthentication().getName());
+			throw new WebApplicationException(Response.status(Status.UNAUTHORIZED).build());
+		}
+		
 		LdapRequest ldapRequest = new LdapRequest();
 		boolean hasInfo = false;
 		StringBuilder sb = new StringBuilder();

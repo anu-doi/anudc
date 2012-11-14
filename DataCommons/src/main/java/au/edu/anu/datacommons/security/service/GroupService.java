@@ -23,6 +23,7 @@ import au.edu.anu.datacommons.data.db.model.Groups;
  * 0.3		20/06/2012	Genevieve Turner (GT)	Created a select all groups that filters out those for which the user has create permissions
  * 0.4		20/08/2012	Genevieve Turner (GT)	Added a method that determines whether the user has permissions to modify groups
  * 0.5		11/09/2012	Genevieve turner (GT)	Updated edit permissions for retrieving the create groups
+ * 0.6		14/11/2012	Genevieve Turner (GT)	Updated to allow a user with administration permissions to update a users group permissions
  * </pre>
  * 
  */	
@@ -83,10 +84,11 @@ public interface GroupService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.4		20/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.6		14/11/2012	Genevieve Turner (GT)	Updated to allow a user with administration permissions on a group access
 	 * </pre>
 	 * 
 	 * @return A list of groups the user has permissions to modify the groups for
 	 */
-	@PostFilter("hasRole('ROLE_ADMIN')")
+	@PostFilter("hasRole('ROLE_ADMIN') or hasPermission(filterObject,'ADMINISTRATION')")
 	public List<Groups> getAllowModifyGroups();
 }

@@ -64,6 +64,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.10		17/10/2012	Genevieve Turner (GT)	Updated to support a full page edit
  * 0.11		22/10/2012	Genevieve Turner (GT)	Updates to allow deletion/edit of relationships
  * 0.12		12/11/2012	Genevieve Turner (GT)	Updated to with the request id fields of null
+ * 0.13		13/11/2012	Genevieve Turner (GT)	Updated the retrieval of the edit page with the mode.
  * </pre>
  */
 @Component
@@ -302,6 +303,7 @@ public class DisplayResource
 	 * 0.4		29/03/2012	Genevieve Turner (GT)	Added
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
 	 * 0.10		17/10/2012	Genevieve Turner (GT)	Updated to support a full page edit
+	 * 0.13		13/11/2012	Genevieve Turner (GT)	Updated with whether the page should be found via edit mode to fix a bug with full page edits
 	 * </pre>
 	 * 
 	 * @param layout
@@ -321,11 +323,11 @@ public class DisplayResource
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		Map<String, Object> values = null;
 		if ("full".equals(style)) {
-			values = fedoraObjectService.getEditPage(fedoraObject, "def:new", tmplt);
+			values = fedoraObjectService.getEditPage(fedoraObject, "def:new", tmplt, true);
 			values.remove("sidepage");
 		}
 		else {
-			values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt);
+			values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt, false);
 		}
 		
 		//Map<String, Object> values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt);

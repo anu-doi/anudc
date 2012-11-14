@@ -30,10 +30,10 @@
 	</item>
 	<item class="date" fieldType="TextField" label="Date the group/position was formed" name="existenceStart" saveType="single" tab="general" />
 	<item class="date" fieldType="TextField" label="Date the group/position was dissolved" name="existenceEnd" saveType="single" tab="general" />
-	<item class="needed" fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description">
+	<item fieldType="TextArea" label="Brief Description" maxLength="4000" name="briefDesc" saveType="single" tab="description">
 		<tooltip>A brief description about the group/position</tooltip>
 	</item>
-	<item fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description">
+	<item class="needed" fieldType="TextArea" label="Full Description" maxLength="4000" name="fullDesc" saveType="single" tab="description">
 		<tooltip>A longer description of the group/position. This may include a history of the group/position.</tooltip>
 	</item>
 	<item class="needed email" fieldType="TextFieldMulti" label="Contact Email" name="email" saveType="multiple" tab="contact"/>
