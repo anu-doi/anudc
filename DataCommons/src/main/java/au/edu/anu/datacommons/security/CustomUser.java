@@ -22,12 +22,13 @@ import au.edu.anu.datacommons.data.db.model.Users;
  * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
  * 0.2		23/05/2012	Genevieve Turner (GT)	Updated for display name
  * 0.3		23/08/2012	Genevieve Turner (GT)	Updated to allow for passing through a Users object
+ * 0.4		14/11/2012	Genevieve Turner (GT)	Updated such that the id is a Long object rather than primitive long
  * </pre>
  * 
  */
 public class CustomUser extends User {
 	private static final long serialVersionUID = 1L;
-	private long id;
+	private Long id;
 	private String displayName;
 	
 	/**
