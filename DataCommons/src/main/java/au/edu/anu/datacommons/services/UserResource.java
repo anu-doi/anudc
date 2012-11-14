@@ -79,6 +79,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.1		20/08/2012	Genevieve Turner (GT)	Initial
  * 0.2		27/08/2012	Genevieve Turner (GT)	Updates for adding 
  * 0.3		17/09/2012	Genevieve Turner (GT)	Fixed issue with updateUserPermissions
+ * 0.4		14/11/2012	Genevieve Turner (GT)	Added a setting of a password for the user if it is null for the getEncodedPassword method
  * </pre>
  *
  */
@@ -703,6 +704,7 @@ public class UserResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.4		14/11/2012	Genevieve Turner (GT)	Added a setting of a password for the user if it is null
 	 * </pre>
 	 * 
 	 * @param password Password 1 for comparison
@@ -715,6 +717,10 @@ public class UserResource {
 			throw new WebPageException(400, createMessageMap("Passwords do not match"));
 		}
 		Md5PasswordEncoder passwordEncoder = new Md5PasswordEncoder();
+		//The system appears to have issues if the password is null when retrieving the CustomUser
+		if (user.getPassword() == null) {
+			user.setPassword("xxx");
+		}
 		CustomUser customUser = new CustomUser(user, true, true, true, true, new ArrayList<GrantedAuthority>());
 		
 		return passwordEncoder.encodePassword(password, saltSource.getSalt(customUser));
