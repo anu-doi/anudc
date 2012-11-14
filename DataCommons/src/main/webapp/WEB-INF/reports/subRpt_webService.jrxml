@@ -88,13 +88,8 @@ where id = $P{rid}]]>
 				</textElement>
 				<text><![CDATA[Request Date:]]></text>
 			</staticText>
-			<textField pattern="dd/MM/yyyy HH.mm.ss">
-				<reportElement uuid="03710c3f-a968-45d1-ba37-526098d247c5" x="454" y="0" width="100" height="20"/>
-				<textElement/>
-				<textFieldExpression><![CDATA[$F{response_timestamp}]]></textFieldExpression>
-			</textField>
 			<staticText>
-				<reportElement uuid="f6677d26-01ff-4464-93a2-66faa66ca5fd" x="379" y="0" width="75" height="20"/>
+				<reportElement uuid="f6677d26-01ff-4464-93a2-66faa66ca5fd" x="379" y="0" width="78" height="20"/>
 				<textElement>
 					<font isBold="true"/>
 				</textElement>
@@ -103,12 +98,17 @@ where id = $P{rid}]]>
 			<line>
 				<reportElement uuid="1810fabe-b5e3-4fdd-be41-fbf369c1c688" positionType="Float" x="0" y="20" width="554" height="1"/>
 			</line>
+			<textField pattern="dd/MM/yyyy HH.mm.ss">
+				<reportElement uuid="03710c3f-a968-45d1-ba37-526098d247c5" x="457" y="0" width="97" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{response_timestamp}]]></textFieldExpression>
+			</textField>
 		</band>
 		<band height="41">
 			<textField isStretchWithOverflow="true">
 				<reportElement uuid="37e2c47a-15ce-4989-9486-647a8c462e56" x="0" y="20" width="554" height="20"/>
 				<textElement/>
-				<textFieldExpression><![CDATA[$F{request_body}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{request_body}.replace("\t","    ")]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement uuid="3694abda-5461-4979-a17c-78f4892c8867" x="0" y="0" width="100" height="20"/>
