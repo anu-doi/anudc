@@ -1,5 +1,6 @@
 package au.edu.anu.datacommons.storage;
 
+import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
@@ -10,12 +11,10 @@ import gov.loc.repository.bagit.transformer.Completer;
 import gov.loc.repository.bagit.transformer.impl.ChainingCompleter;
 import gov.loc.repository.bagit.transformer.impl.DefaultCompleter;
 import gov.loc.repository.bagit.transformer.impl.TagManifestCompleter;
-import gov.loc.repository.bagit.transformer.impl.UpdateCompleter;
 import gov.loc.repository.bagit.transformer.impl.UpdatePayloadOxumCompleter;
 import gov.loc.repository.bagit.utilities.SimpleResult;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,11 +22,8 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -35,8 +31,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import javax.mail.internet.MimeUtility;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
@@ -46,12 +40,10 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.datacommons.util.Util;
-import au.edu.anu.dcbag.BagPropsTxt.DataSource;
 import au.edu.anu.dcbag.BagSummary;
 import au.edu.anu.dcbag.ExtRefsTxt;
 import au.edu.anu.dcbag.FileSummaryMap;
-import au.edu.anu.dcbag.VirusScanTxt;
+import au.edu.anu.dcbag.BagPropsTxt.DataSource;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
@@ -159,10 +151,8 @@ public final class DcStorage
 		finally
 		{
 			// Delete the file downloaded from URL.
-			if (tempFile != null && tempFile.exists())
-				FileUtils.deleteQuietly(tempFile);
-			if (tempRenamedFile != null && tempRenamedFile.exists())
-				FileUtils.deleteQuietly(tempRenamedFile);
+			FileUtils.deleteQuietly(tempFile);
+			FileUtils.deleteQuietly(tempRenamedFile);
 		}
 	}
 
@@ -232,17 +222,7 @@ public final class DcStorage
 		}
 		finally
 		{
-			if (bag != null)
-			{
-				try
-				{
-					bag.close();
-				}
-				catch (IOException e)
-				{
-					LOGGER.warn(e.getMessage(), e);
-				}
-			}
+			closeBag(bag);
 		}
 	}
 	
@@ -255,14 +235,7 @@ public final class DcStorage
 		}
 		finally
 		{
-			try
-			{
-				bag.close();
-			}
-			catch (IOException e)
-			{
-				LOGGER.warn("Unable to close bag.");
-			}
+			closeBag(bag);
 		}
 	}
 
@@ -296,14 +269,7 @@ public final class DcStorage
 			}
 			finally
 			{
-				try
-				{
-					curBag.close();
-				}
-				catch (IOException e)
-				{
-					LOGGER.warn(e.getMessage(), e);
-				}
+				closeBag(curBag);
 			}
 		}
 
@@ -323,14 +289,7 @@ public final class DcStorage
 			LOGGER.warn(e.getMessage(), e);
 		}
 
-		try
-		{
-			bag.close();
-		}
-		catch (IOException e)
-		{
-			LOGGER.warn(e.getMessage(), e);
-		}
+		closeBag(bag);
 	}
 
 	public boolean bagExists(String pid)
@@ -371,7 +330,7 @@ public final class DcStorage
 	{
 		Bag bag = getBag(pid);
 		if (bag == null)
-			throw new DcStorageException("Bag not found.");
+			throw new DcStorageException(format("Bag not found for pid {0}.", pid));
 		BagSummary bagSummary = new BagSummary(bag);
 		return bagSummary;
 	}
@@ -380,7 +339,7 @@ public final class DcStorage
 	{
 		Bag bag = getBag(pid);
 		if (bag == null)
-			throw new DcStorageException("Bag not found.");
+			throw new DcStorageException(format("Bag not found for pid {0}.", pid));
 		FileSummaryMap fsMap = new FileSummaryMap(bag);
 		return fsMap;
 	}
@@ -389,10 +348,10 @@ public final class DcStorage
 	{
 		Bag bag = getBag(pid);
 		if (bag == null)
-			throw new DcStorageException("Bag not found.");
+			throw new DcStorageException(format("Bag not found for pid {0}.", pid));
 		BagFile file = bag.getBagFile(filePath);
 		if (file == null)
-			throw new DcStorageException("File not found within bag.");
+			throw new DcStorageException(format("File {0} not found within bag for pid {1}.", filePath, pid));
 		InputStream fileStream = file.newInputStream();
 		return fileStream;
 	}
@@ -409,7 +368,7 @@ public final class DcStorage
 			@Override
 			public void run()
 			{
-				byte[] buffer = new byte[1048576];
+				byte[] buffer = new byte[(int) FileUtils.ONE_MB];
 				ZipOutputStream zipOutStream = new ZipOutputStream(sink);
 
 				try
@@ -572,6 +531,21 @@ public final class DcStorage
 		bag.getBagInfoTxt().addExternalIdentifier(pid);
 
 		return bag;
+	}
+
+	private void closeBag(Bag bag)
+	{
+		if (bag != null)
+		{
+			try
+			{
+				bag.close();
+			}
+			catch (IOException e)
+			{
+				LOGGER.warn(e.getMessage(), e);
+			}
+		}
 	}
 
 	public static String convertToDiskSafe(String source)

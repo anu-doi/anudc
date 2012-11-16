@@ -15,7 +15,8 @@
 		<module>ws-gateway</module>
 		<module>report-datasource</module>
 		<module>ws-digitalhumanities</module>
-	</modules>
+    <module>ws-geoscience</module>
+  </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

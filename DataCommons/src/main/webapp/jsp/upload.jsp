@@ -38,7 +38,7 @@
 			</p>
 		</fieldset>
 		<p class="text-right">
-			<input type="submit" name="extRefsOnly" value="Submit URL References only" />
+			<input type="submit" value="Submit URL References only" onclick="jQuery(this).attr('name', 'extRefsOnly')" />
 		</p>
 		<input type="hidden" name="state" value="A" />
 		<input type="hidden" name="cg" value="E" />
