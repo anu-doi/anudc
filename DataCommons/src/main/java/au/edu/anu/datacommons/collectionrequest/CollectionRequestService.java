@@ -1,10 +1,7 @@
 package au.edu.anu.datacommons.collectionrequest;
 
 import gov.loc.repository.bagit.BagFile;
-import gov.loc.repository.bagit.BagFactory.LoadOption;
-import gov.loc.repository.bagit.FetchTxt.FilenameSizeUrl;
 
-import java.io.File;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.Date;
@@ -33,7 +30,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,20 +56,17 @@ import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.Users;
-import au.edu.anu.datacommons.data.fedora.FedoraBroker;
-import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.security.service.GroupService;
+import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Util;
-import au.edu.anu.dcbag.DcBag;
+import au.edu.anu.dcbag.ExtRefsTxt;
 import au.edu.anu.dcbag.FileSummary;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.access.DatastreamType;
 
 /**
  * CollectionRequestService
@@ -109,6 +102,8 @@ public class CollectionRequestService
 	private static final String DROPBOX_JSP = "/dropbox.jsp";
 	private static final String QUESTION_JSP = "/question.jsp";
 	private static final String DROPBOX_ACCESS_JSP = "/dropboxaccess.jsp";
+	
+	private static final DcStorage dcStorage = DcStorage.getInstance();
 
 	@Resource(name = "mailSender")
 	JavaMailSenderImpl mailSender;
@@ -203,9 +198,11 @@ public class CollectionRequestService
 			model.put("collReq", collReq);
 			
 			// Add files in payload to model.
-			DcBag dcBag = new DcBag(GlobalProps.getBagsDirAsFile(), collReq.getPid(), LoadOption.BY_MANIFESTS);
-			Map<BagFile, FileSummary> downloadables = dcBag.getFileSummaryMap();
-			model.put("downloadables", downloadables);
+			if (dcStorage.bagExists(collReq.getPid()))
+			{
+				Map<BagFile, FileSummary> downloadables = dcStorage.getBagSummary(collReq.getPid()).getFileSummaryMap();
+				model.put("downloadables", downloadables);
+			}
 		}
 		catch (Exception e)
 		{
@@ -693,25 +690,17 @@ public class CollectionRequestService
 			model.put("downloadables", downloadables);
 			model.put("downloadAsZipUrl", uriBuilder.build(dropbox.getCollectionRequest().getPid(), "zip"));
 
-			// Fetch List.
-			DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), DcBag.convertToDiskSafe(dropbox.getCollectionRequest().getPid())),
-					LoadOption.BY_MANIFESTS);
-			if (dcBag != null && dcBag.getBag().getFetchTxt() != null)
+			// External references list.
+			
+			ExtRefsTxt extRefsTxt = dcStorage.getBagSummary(dropbox.getCollectionRequest().getPid()).getExtRefsTxt();
+			if (extRefsTxt != null && extRefsTxt.entrySet().size() > 0)
 			{
 				Map<String, String> fetchables = new HashMap<String, String>();
-
-				for (Iterator<FilenameSizeUrl> iter = dcBag.getBag().getFetchTxt().iterator(); iter.hasNext();)
-				{
-					FilenameSizeUrl iFetchItem = iter.next();
-					LOGGER.debug("Added fetch item {}", iFetchItem.toString());
-					fetchables.put(iFetchItem.getFilename(), iFetchItem.getUrl());
-				}
-
-				if (fetchables.size() > 0)
-					model.put("fetchables", fetchables);
-
+				for (Entry<String, String> extRefEntry : extRefsTxt.entrySet())
+					fetchables.put(extRefEntry.getValue(), extRefEntry.getValue());
+				model.put("fetchables", fetchables);
 			}
-
+			
 			// Make a log of access
 			CollectionDropboxAccessLog log = new CollectionDropboxAccessLog(dropbox, request.getRemoteAddr());
 			dropbox.addAccessLogEntry(log);
@@ -948,59 +937,10 @@ public class CollectionRequestService
 	{
 		Response resp = null;
 
-		LOGGER.info("In doGetCollReqInfoAsJson");
-
 		LOGGER.trace("In doGetDsListAsJson. Params task={}, pid={}.", task, pid);
 
-		// Gets a list of items available for request in a Collection.
-		if (task.equals("listPidItems"))
-		{
-			JSONArray itemsAvail = new JSONArray();
-			try
-			{
-				// Get a list of datastreams for the pid from the Fedora Repository.
-				List<DatastreamType> pidDsList = FedoraBroker.getDatastreamList(pid);
-
-				//Iterate through the files holding datastreams - FILE0 onwards.
-				for (DatastreamType iDs : pidDsList)
-				{
-					if (iDs.getDsid().startsWith("FILE"))
-					{
-						try
-						{
-							DcBag dcBag = new DcBag(new File(GlobalProps.getBagsDirAsFile(), DcBag.convertToDiskSafe(pid)), LoadOption.BY_MANIFESTS);
-							for (Entry<String, String> iFileItem : dcBag.getPayloadFileList())
-							{
-								try
-								{
-									JSONObject dsJsonObj = new JSONObject();
-									dsJsonObj.put("filename", iFileItem.getKey());
-									itemsAvail.put(dsJsonObj);
-								}
-								catch (JSONException e)
-								{
-								}
-							}
-						}
-						catch (RuntimeException e)
-						{
-							// Thrown when the bag doesn't exist.
-						}
-					}
-				}
-
-				// Convert the JSONArray containing datastream details into a JSON string and create a Response object for return.
-				LOGGER.debug("Returning JSON Object: {}", itemsAvail.toString());
-				resp = Response.ok(itemsAvail.toString(), MediaType.APPLICATION_JSON_TYPE).build();
-			}
-			catch (FedoraClientException e)
-			{
-				LOGGER.error("Unable to retrieve list of datastreams.", e);
-				resp = Response.serverError().build();
-			}
-		}
 		// Gets a list of Questions assigned to a Pid.
-		else if (task.equals("listPidQuestions"))
+		if (task.equals("listPidQuestions"))
 		{
 			JSONObject questionsJson = new JSONObject();
 			try

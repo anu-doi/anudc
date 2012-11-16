@@ -1,6 +1,6 @@
 function tabSelect(el, containerId)
 {
-	jQuery('#tabs').find('*').removeClass('pagetabs-select');
+	jQuery('.pagetabs-nav > ul > li > a[href]').removeClass('pagetabs-select');
 	jQuery(el).addClass('pagetabs-select');
 
 	// Hide containers for tabs.
@@ -11,5 +11,5 @@ function tabSelect(el, containerId)
 	// Show the container corresponding to the tab selected.
 	jQuery(containerId).show();
 
-	return false;
+	return;
 }
