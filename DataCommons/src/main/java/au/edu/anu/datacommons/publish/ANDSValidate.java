@@ -37,6 +37,9 @@ import au.edu.anu.datacommons.ands.check.CollectionCheck;
 import au.edu.anu.datacommons.ands.check.PartyCheck;
 import au.edu.anu.datacommons.ands.check.ServiceCheck;
 import au.edu.anu.datacommons.ands.xml.RegistryObjects;
+import au.edu.anu.datacommons.data.db.dao.ExternalLinkDAO;
+import au.edu.anu.datacommons.data.db.dao.ExternalLinkDAOImpl;
+import au.edu.anu.datacommons.data.db.model.ExternalLinkPattern;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
@@ -61,6 +64,8 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		17/07/2012	Genevieve Turner (GT)	Initial
+ * 0.2		15/10/2012	Genevieve Turner (GT)	Updated to perform RIF-CS validation
+ * 0.3		20/11/2012	Genevieve Turner (GT)	Added a way to match external links with particular object types
  * </pre>
  *
  */
@@ -91,7 +96,7 @@ public class ANDSValidate implements Validate{
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		17/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		17/07/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @param pid
@@ -337,6 +342,7 @@ public class ANDSValidate implements Validate{
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		17/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.3		20/11/2012	Genevieve Turner (GT)	Added a way to match external links with particular object types
 	 * </pre>
 	 * 
 	 * @param pid The pid check the associations for
@@ -350,7 +356,7 @@ public class ANDSValidate implements Validate{
 		sparqlQuery.addVar("?type");
 		sparqlQuery.addVar("?predicate");
 		
-		StringBuffer tripleString = new StringBuffer();
+		StringBuilder tripleString = new StringBuilder();
 		
 		tripleString.append("{ <info:fedora/");
 		tripleString.append(pid);
@@ -361,8 +367,8 @@ public class ANDSValidate implements Validate{
 		tripleString.append("> } ");
 		
 		sparqlQuery.addTripleSet(tripleString.toString());
-		sparqlQuery.addTriple("?item", "<dc:type>", "?type", false);
-		StringBuffer filterString = new StringBuffer();
+		sparqlQuery.addTriple("?item", "<dc:type>", "?type", true);
+		StringBuilder filterString = new StringBuilder();
 		
 		// Add the predicate filter
 		filterString.append("regex(str(?predicate), '");
@@ -375,7 +381,20 @@ public class ANDSValidate implements Validate{
 		filterString.append("', 'i') ");
 		
 		sparqlQuery.addFilter(filterString.toString(), "");
+		
+		// Match external link patterns to particular types e.g. nla id's to parties
+		ExternalLinkDAO externalLinkDAO = new ExternalLinkDAOImpl(ExternalLinkPattern.class);
+		List<ExternalLinkPattern> patterns = externalLinkDAO.getByObjectType(type);
+		for (ExternalLinkPattern pattern : patterns) {
+			StringBuilder patternString = new StringBuilder();
+			patternString.append("regex(str(?item), '");
+			patternString.append(pattern.getPattern());
+			patternString.append("', 'i') ");
+			sparqlQuery.addFilter(patternString.toString(), "||");
+		}
+		
 		String queryString = sparqlQuery.generateQuery();
+		LOGGER.debug("Sparql Query String: {}", queryString);
 		
 		//TODO see if there is an easier way to get this information
 		ExternalPoster poster = new ExternalPoster();
@@ -407,6 +426,20 @@ public class ANDSValidate implements Validate{
 		return isValid;
 	}
 	
+	/**
+	 * xmlValidate
+	 *
+	 * Validates the RIF-CS XML
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		15/10/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param pid The pid of the xml to validate
+	 * @param clazz The class type to validate
+	 * @return Whether the xml is valid
+	 */
 	private boolean xmlValidate(String pid, Class clazz) {
 		boolean isValid = false;
 		try {
@@ -420,7 +453,7 @@ public class ANDSValidate implements Validate{
 			Transformer transformer = transformerFactory.newTransformer(xslSource);
 			transformer.transform(xmlSource, new StreamResult(sw));
 			//transformer.tra
-			LOGGER.info("page: {}", sw.toString());
+			LOGGER.debug("page: {}", sw.toString());
 			JAXBTransform jaxbTransform = new JAXBTransform();
 			
 			InputStream rifcsStream = new ByteArrayInputStream(sw.toString().getBytes("UTF-8"));
