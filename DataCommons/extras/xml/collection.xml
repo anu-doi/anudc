@@ -34,7 +34,7 @@
 	<item name="ownerGroup" label="Access Privileges" fieldType="Combobox" saveType="single" class="required" tab="general">
 		<tooltip>Please choose the access privilege group for the collection</tooltip>
 	</item>
-	<item name="doi" label="DOI - Digitan Object Identifier" fieldType="TextField" saveType="single" tab="general">
+	<item name="doi" label="DOI - Digital Object Identifier" fieldType="TextField" saveType="single" tab="general">
 		<tooltip>The Digital Object Identifier for this record.<br/>Please note that if this does not already exist a DOI will be created when the record is published</tooltip>
 	</item>
 	<item name="metaLang" label="Metadata Language" fieldType="Combobox" saveType="single" tab="general">
