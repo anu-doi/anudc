@@ -73,18 +73,12 @@ public class DcStorageCompleter implements Completer
 			FidoParser fido;
 			try
 			{
-				File fullFilePath;
-				fullFilePath = getFileFromBagFile(iBagFile);
-				fido = new FidoParser(fullFilePath);
+				fido = new FidoParser(iBagFile.newInputStream());
 				pFormats.put(iBagFile.getFilepath(), fido.getOutput());
 			}
 			catch (IOException e)
 			{
 				LOGGER.warn("Unable to get Fido output for file {}", iBagFile.getFilepath());
-			}
-			catch (URISyntaxException e)
-			{
-				LOGGER.warn(e.getMessage(), e);
 			}
 		}
 
@@ -193,109 +187,6 @@ public class DcStorageCompleter implements Completer
 		{
 			IOUtils.closeQuietly(objOutStream);
 			IOUtils.closeQuietly(bos);
-		}
-	}
-
-	private File getFileFromBagFile(BagFile bagFile)
-	{
-		// Using reflection, access private field 'file' in the bagfile that has the full path as its value.
-		@SuppressWarnings("rawtypes")
-		Class bagFileClass = bagFile.getClass();
-		File file = null;
-		try
-		{
-			Field fileField = bagFileClass.getDeclaredField("file");
-			fileField.setAccessible(true);
-			file = (File) fileField.get(bagFile);
-		}
-		catch (NoSuchFieldException e)
-		{
-			// If field 'file' doesn't exist, access fileNode and get File object from it.
-			try
-			{
-				Field fileNodeField = bagFileClass.getDeclaredField("fileNode");
-				fileNodeField.setAccessible(true);
-				FileFileNode fileFileNode = (FileFileNode) fileNodeField.get(bagFile);
-				file = fileFileNode.getFile();
-			}
-			catch (NoSuchFieldException e1)
-			{
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			catch (SecurityException e1)
-			{
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			catch (IllegalArgumentException e1)
-			{
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			catch (IllegalAccessException e1)
-			{
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
-		catch (SecurityException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		catch (IllegalArgumentException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		catch (IllegalAccessException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return file;
-	}
-
-	@Deprecated
-	public void checkValidMods(DcBag dcBag) throws DcBagException
-	{
-		if (dcBag.getBagProperty(BagPropsTxt.FIELD_DATASOURCE) != null
-				&& dcBag.getBagProperty(BagPropsTxt.FIELD_DATASOURCE).equals(BagPropsTxt.DataSource.INSTRUMENT.toString()))
-		{
-			// Verify the integrity of tagmanifest.
-			Manifest tagManifest = dcBag.getBag().getTagManifest(DcBag.BAGS_ALGORITHM);
-			List<Manifest> payloadManifestList = dcBag.getBag().getPayloadManifests();
-
-			for (Manifest iPlManifest : payloadManifestList)
-			{
-				if (tagManifest.containsKey(iPlManifest.getFilepath()))
-				{
-					String hashInManifest = tagManifest.get(iPlManifest.getFilepath());
-					if (!MessageDigestHelper.fixityMatches(iPlManifest.newInputStream(), iPlManifest.getAlgorithm(), hashInManifest))
-					{
-						LOGGER.error("Payload manifest hash invalid.");
-						throw new DcBagException("Payload manifest hash invalid.");
-					}
-				}
-			}
-
-			if (dcBag.getBagProperty(BagPropsTxt.FIELD_DATASOURCE).equals(DataSource.INSTRUMENT.toString()))
-			{
-				// Hash check files in payload manifest.
-				Set<Entry<String, String>> plManifestFiles = dcBag.getBag().getPayloadManifest(DcBag.BAGS_ALGORITHM).entrySet();
-				for (Entry<String, String> iEntry : plManifestFiles)
-				{
-					BagFile iFile = dcBag.getBag().getBagFile(iEntry.getKey());
-
-					// Check if file exists. Then check its hash value matches the one in the manifest.
-					if (iFile == null || !iFile.exists())
-						throw new DcBagException("Bag doesn't contain file " + iFile.getFilepath());
-					if (!MessageDigestHelper.fixityMatches(iFile.newInputStream(), DcBag.BAGS_ALGORITHM, iEntry.getValue()))
-						throw new DcBagException("Bag contains modified existing files.");
-				}
-			}
 		}
 	}
 }

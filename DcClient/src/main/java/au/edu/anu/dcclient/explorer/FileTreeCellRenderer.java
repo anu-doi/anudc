@@ -77,18 +77,20 @@ class FileTreeCellRenderer extends DefaultTreeCellRenderer
 		setForeground(fg);
 
 		// File icon
-		Icon icon = fileSystemView.getSystemIcon(file);
-		
-		// TODO Fix icon issue.
-		
-		/*
-		if (leaf)
-			icon = getLeafIcon();
-		else if (expanded)
-			icon = getOpenIcon();
-		else
-			icon = getClosedIcon();
-		*/
+		Icon icon;
+		try
+		{
+			icon = fileSystemView.getSystemIcon(file);
+		}
+		catch (NullPointerException e)
+		{
+			if (leaf)
+				icon = getLeafIcon();
+			else if (expanded)
+				icon = getOpenIcon();
+			else
+				icon = getClosedIcon();
+		}
 		
 		if (!tree.isEnabled())
 		{

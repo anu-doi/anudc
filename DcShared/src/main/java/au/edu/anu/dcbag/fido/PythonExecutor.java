@@ -7,7 +7,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -21,12 +24,18 @@ public class PythonExecutor
 
 	private File pyFile;
 	private Process pythonProcess;
-	private List<String> cmdLine;
+	private List<String> cmdLine = new ArrayList<String>();
 
 	public PythonExecutor(File pyFile) throws IOException
 	{
-		cmdLine = new ArrayList<String>();
+		this(pyFile, null);
+	}
+	
+	public PythonExecutor(File pyFile, String[] pythonSwitches) throws IOException
+	{
 		cmdLine.add(getPythonExe());
+		if (pythonSwitches != null)
+			cmdLine.addAll(Arrays.asList(pythonSwitches));
 		cmdLine.add(pyFile.getCanonicalPath());
 	}
 
@@ -45,15 +54,40 @@ public class PythonExecutor
 		pythonProcess = Runtime.getRuntime().exec(cmdLine.toArray(new String[0]));
 	}
 
-	protected InputStream getOutputAsInputStream()
+	
+	public void sendStreamToStdIn(InputStream inStream) throws IOException
+	{
+		OutputStream outStream = pythonProcess.getOutputStream();
+		byte buffer[] = new byte[1024 * 1024];
+		int numBytesRead = 0;
+
+		try
+		{
+			while ((numBytesRead = inStream.read(buffer)) != -1)
+				outStream.write(buffer, 0, numBytesRead);
+			outStream.flush();
+		}
+		finally
+		{
+			IOUtils.closeQuietly(inStream);
+			IOUtils.closeQuietly(outStream);
+		}
+	}
+
+	protected InputStream getStdOutAsInputStream()
 	{
 		return pythonProcess.getInputStream();
+	}
+	
+	protected OutputStream getStdInAsOutputStream()
+	{
+		return pythonProcess.getOutputStream();
 	}
 
 	public String getOutputAsString() throws IOException
 	{
 		StringBuilder output = new StringBuilder();
-		BufferedReader stdout = new BufferedReader(new InputStreamReader(getOutputAsInputStream()));
+		BufferedReader stdout = new BufferedReader(new InputStreamReader(getStdOutAsInputStream()));
 		for (String str = stdout.readLine(); str != null; str = stdout.readLine())
 		{
 			output.append(str);

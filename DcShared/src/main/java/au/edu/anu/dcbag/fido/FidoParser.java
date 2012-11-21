@@ -4,10 +4,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.tika.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,10 +22,11 @@ public class FidoParser
 	private final String output;
 	private final PronomFormat fileFormat;
 	
-	public FidoParser(File fileToId) throws IOException, URISyntaxException
+	public FidoParser(InputStream fileStream) throws IOException
 	{
-		pyExec = new PythonExecutor(getFidoScriptFile());
-		pyExec.execute(new String[] {fileToId.getCanonicalPath()});
+		pyExec = new PythonExecutor(getFidoScriptFile(), new String[] {"-u"});
+		pyExec.execute(new String[] {"-"});
+		pyExec.sendStreamToStdIn(fileStream);
 		output = pyExec.getOutputAsString();
 		fileFormat = new PronomFormat(this.output);
 		LOGGER.info("Fido returned {}", output);
