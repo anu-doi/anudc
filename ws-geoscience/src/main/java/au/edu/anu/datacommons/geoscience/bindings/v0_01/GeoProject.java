@@ -15,7 +15,7 @@ public class GeoProject
 
 	private String title;
 	private String briefDesc;
-	private List<Strain> strains;
+	private List<GeoCollection> strains;
 
 	@XmlAttribute(name = "dhid")
 	public String getExtId()
@@ -62,12 +62,12 @@ public class GeoProject
 	}
 
 	@XmlElement(name = "strain")
-	public List<Strain> getStrains()
+	public List<GeoCollection> getStrains()
 	{
 		return strains;
 	}
 
-	public void setStrains(List<Strain> strains)
+	public void setStrains(List<GeoCollection> strains)
 	{
 		this.strains = strains;
 	}

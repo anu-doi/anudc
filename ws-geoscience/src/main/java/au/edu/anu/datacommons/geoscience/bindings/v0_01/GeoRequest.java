@@ -42,7 +42,7 @@ public class GeoRequest implements Processable
 
 	private String version;
 	private String function;
-	private GeoProject project;
+	private List<GeoCollection> geoCollections;
 
 	@XmlAttribute(name = "version")
 	public String getVersion()
@@ -66,15 +66,15 @@ public class GeoRequest implements Processable
 		this.function = function;
 	}
 
-	@XmlElement(name = "project")
-	public GeoProject getProject()
+	@XmlElement(name = "collection")
+	public List<GeoCollection> getGeoCollections()
 	{
-		return project;
+		return geoCollections;
 	}
 
-	public void setProject(GeoProject project)
+	public void setGeoCollections(List<GeoCollection> geoCollections)
 	{
-		this.project = project;
+		this.geoCollections = geoCollections;
 	}
 
 	@Override
@@ -84,117 +84,42 @@ public class GeoRequest implements Processable
 
 		// Activity
 		Activity activity = new Activity();
-		if (this.getProject().getAnudcId() != null)
-			activity.setPid(this.getProject().getAnudcId());
-		activity.setExtIds(Arrays.asList(this.getProject().getExtId()));
-		activity.setTitle(this.getProject().getTitle());
-		activity.setBriefDesc(this.getProject().getBriefDesc());
-
-		// Activity constants
-		activity.setSubType(constants.getProperty("project.subType"));
-		activity.setOwnerGroup(constants.getProperty("project.ownerGroup"));
-		activity.setTemplate(constants.getProperty("project.tmplt"));
-		activity.setEmails(Arrays.asList(constants.getProperty("project.emails").split(";")));
-		activity.setAnzForCodes(Arrays.asList(constants.getProperty("project.anzforSubjects").split(";")));
-
+		activity.setPid(constants.getProperty("project.anudcid"));
+		
 		// Generate a DcRequest for the Activity.
 		DcRequest dcReqActivity = new DcRequest();
 		dcReqActivity.setActivity(activity);
 		dcRequestsMap.put(dcReqActivity, null);
 
-		// Collection DcRequest for each Strain
-		List<Strain> strains = this.getProject().getStrains();
-		if (strains != null)
+		// Collection DcRequest for each GeoCollection
+		List<GeoCollection> geoCollections = this.getGeoCollections();
+		if (geoCollections != null)
 		{
-			for (Strain iStrain : strains)
+			for (GeoCollection iGeoColl : geoCollections)
 			{
 				// Strain as collection
-				Collection strainColl = new Collection();
-				if (iStrain.getAnudcId() != null)
-					strainColl.setPid(iStrain.getAnudcId());
-				strainColl.setExtIds(Arrays.asList(iStrain.getExtId()));
-				strainColl.setTitle(iStrain.getTitle());
-				strainColl.setBriefDesc(iStrain.getBriefDesc());
+				Collection dcColl = new Collection();
+				if (iGeoColl.getAnudcId() != null)
+					dcColl.setPid(iGeoColl.getAnudcId());
+				dcColl.setExtIds(Arrays.asList(iGeoColl.getExtId()));
+				dcColl.setTitle(iGeoColl.getTitle());
+				dcColl.setBriefDesc(iGeoColl.getBriefDesc());
 
 				// Strain constants
-				strainColl.setOwnerGroup(constants.getProperty("strain.ownerGroup"));
-				strainColl.setSubType(constants.getProperty("strain.subType"));
-				strainColl.setTemplate(constants.getProperty("strain.tmplt"));
-				strainColl.setEmails(Arrays.asList(constants.getProperty("strain.emails").split(";")));
-				strainColl.setAnzForCodes(Arrays.asList(constants.getProperty("strain.anzforSubjects").split(";")));
+				dcColl.setOwnerGroup(constants.getProperty("collection.ownerGroup"));
+				dcColl.setSubType(constants.getProperty("collection.subType"));
+				dcColl.setTemplate(constants.getProperty("collection.tmplt"));
+				dcColl.setEmails(Arrays.asList(constants.getProperty("collection.emails").split(";")));
+				dcColl.setAnzForCodes(Arrays.asList(constants.getProperty("collection.anzforSubjects").split(";")));
 
 				// Relation to project.
 				Map<String, FedoraItem> projectRel = new HashMap<String, FedoraItem>();
-				projectRel.put(constants.getProperty("strain.relToProject"), activity);
+				projectRel.put(constants.getProperty("collection.relToProject"), activity);
 
 				// Create DcRequest for strain collection.
 				DcRequest dcReqStrainColl = new DcRequest();
-				dcReqStrainColl.setCollection(strainColl);
+				dcReqStrainColl.setCollection(dcColl);
 				dcRequestsMap.put(dcReqStrainColl, projectRel);
-
-				// Collection DcRequest for each animal within this strain.
-				List<Animal> animals = iStrain.getAnimals();
-				if (animals != null)
-				{
-					for (Animal iAnimal : animals)
-					{
-						// Animal as collection
-						Collection animalColl = new Collection();
-						if (iAnimal.getAnudcId() != null)
-							animalColl.setPid(iAnimal.getAnudcId());
-						animalColl.setExtIds(Arrays.asList(iAnimal.getExtId()));
-						animalColl.setTitle(iAnimal.getTitle());
-						animalColl.setBriefDesc(iAnimal.getBriefDesc());
-
-						// Animal constants
-						animalColl.setOwnerGroup(constants.getProperty("animal.ownerGroup"));
-						animalColl.setSubType(constants.getProperty("animal.subType"));
-						animalColl.setTemplate(constants.getProperty("animal.tmplt"));
-						animalColl.setAnzForCodes(Arrays.asList(constants.getProperty("animal.anzforSubjects").split(";")));
-						animalColl.setEmails(Arrays.asList(constants.getProperty("animal.emails").split(";")));
-
-						// Relation to strain.
-						Map<String, FedoraItem> strainRel = new HashMap<String, FedoraItem>();
-						strainRel.put(constants.getProperty("animal.relToStrain"), strainColl);
-
-						// Create DcRequest for animal collection.
-						DcRequest dcReqAnimalColl = new DcRequest();
-						dcReqAnimalColl.setCollection(animalColl);
-						dcRequestsMap.put(dcReqAnimalColl, strainRel);
-
-						List<Instrument> instruments = iAnimal.getInstruments();
-						if (instruments != null)
-						{
-							for (Instrument iInstr : iAnimal.getInstruments())
-							{
-								// Instrument as collection.
-								Collection instrumentColl = new Collection();
-								if (iInstr.getAnudcId() != null)
-									instrumentColl.setPid(iInstr.getAnudcId());
-								instrumentColl.setExtIds(Arrays.asList(iInstr.getExtId()));
-								instrumentColl.setTitle(iInstr.getTitle());
-								instrumentColl.setBriefDesc(iInstr.getBriefDesc());
-								instrumentColl.setFileUrlList(iInstr.getFileUrlList());
-
-								// Instrument constants.
-								instrumentColl.setOwnerGroup(constants.getProperty("instrument.ownerGroup"));
-								instrumentColl.setSubType(constants.getProperty("instrument.subType"));
-								instrumentColl.setTemplate(constants.getProperty("instrument.tmplt"));
-								instrumentColl.setAnzForCodes(Arrays.asList(constants.getProperty("instrument.anzforSubjects").split(";")));
-								instrumentColl.setEmails(Arrays.asList(constants.getProperty("instrument.emails").split(";")));
-
-								// Relation to strain.
-								Map<String, FedoraItem> animalRel = new HashMap<String, FedoraItem>();
-								animalRel.put(constants.getProperty("instrument.relToAnimal"), animalColl);
-
-								// Create DcRequest for instrument collection.
-								DcRequest dcReqInstrColl = new DcRequest();
-								dcReqInstrColl.setCollection(instrumentColl);
-								dcRequestsMap.put(dcReqInstrColl, animalRel);
-							}
-						}
-					}
-				}
 			}
 		}
 

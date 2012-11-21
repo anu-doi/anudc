@@ -6,16 +6,15 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 
-public class Strain
+public class GeoCollection
 {
 	private String extId;
 	private String anudcId;
 	
 	private String title;
 	private String briefDesc;
-	private List<Animal> animals;
 
-	@XmlAttribute(name = "dhid")
+	@XmlAttribute(name = "geoid")
 	public String getExtId()
 	{
 		return extId;
@@ -48,7 +47,7 @@ public class Strain
 		this.title = title;
 	}
 
-	@XmlElement(name = "briefDesc")
+	@XmlElement(name = "abstract")
 	public String getBriefDesc()
 	{
 		return briefDesc;
@@ -57,16 +56,5 @@ public class Strain
 	public void setBriefDesc(String briefDesc)
 	{
 		this.briefDesc = briefDesc;
-	}
-
-	@XmlElement(name = "animal")
-	public List<Animal> getAnimals()
-	{
-		return animals;
-	}
-
-	public void setAnimals(List<Animal> animals)
-	{
-		this.animals = animals;
 	}
 }
