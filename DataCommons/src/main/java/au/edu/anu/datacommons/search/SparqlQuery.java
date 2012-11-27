@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.config.Config;
 import au.edu.anu.datacommons.properties.GlobalProps;
 
 /**
@@ -357,12 +358,14 @@ public final class SparqlQuery
 		if (operator != null && !operator.equals(""))
 		{
 			filterLine.append(operator);
-			filterLine.append("\r\n");
+			filterLine.append(Config.NEWLINE);
 		}
 
-		filterLine.append("(\r\n");
+		filterLine.append("(");
+		filterLine.append(Config.NEWLINE);
 		filterLine.append(filter);
-		filterLine.append("\r\n)");
+		filterLine.append(Config.NEWLINE);
+		filterLine.append(")");
 
 		filters.add(filterLine.toString());
 	}
@@ -427,7 +430,10 @@ public final class SparqlQuery
 			for (int jDcField = 0; jDcField < dcFieldsToSearch.length; jDcField++)
 			{
 				if (jDcField > 0)
-					regExpForTerm.append("\r\n|| ");
+				{
+					regExpForTerm.append(Config.NEWLINE);
+					regExpForTerm.append("|| ");
+				}
 
 				regExpForTerm.append("regex(");
 				regExpForTerm.append("?");
@@ -510,7 +516,7 @@ public final class SparqlQuery
 		for (String iPrefix : prefixes)
 		{
 			sparqlQuery.append(iPrefix);
-			sparqlQuery.append("\r\n");
+			sparqlQuery.append(Config.NEWLINE);
 		}
 
 		// SELECT clause for vars.
@@ -522,44 +528,54 @@ public final class SparqlQuery
 		}
 
 		// WHERE clause for triples.
-		sparqlQuery.append("\r\nWHERE\r\n{\r\n");
+		sparqlQuery.append(Config.NEWLINE);
+		sparqlQuery.append("WHERE");
+		sparqlQuery.append(Config.NEWLINE);
+		sparqlQuery.append("{");
+		sparqlQuery.append(Config.NEWLINE);
 		sparqlQuery.append("");
 		for (String iTriple : triples)
 		{
 			sparqlQuery.append(iTriple);
-			sparqlQuery.append(" .\r\n");
+			sparqlQuery.append(" .");
+			sparqlQuery.append(Config.NEWLINE);
 		}
 
 		// FILTER clause for Filters.
 		if (filters.size() > 0)
 		{
-			sparqlQuery.append("FILTER\r\n");
-			sparqlQuery.append("(\r\n");
+			sparqlQuery.append("FILTER");
+			sparqlQuery.append(Config.NEWLINE);
+			sparqlQuery.append("(");
+			sparqlQuery.append(Config.NEWLINE);
 
 			for (String iFilter : filters)
 			{
 				sparqlQuery.append(iFilter);
-				sparqlQuery.append("\r\n");
+				sparqlQuery.append(Config.NEWLINE);
 			}
 
-			sparqlQuery.append(")\r\n");
+			sparqlQuery.append(")");
+			sparqlQuery.append(Config.NEWLINE);
 		}
 
 		sparqlQuery.append("}");
 
 		if (offset > 0)
 		{
-			sparqlQuery.append("\r\nOFFSET ");
+			sparqlQuery.append(Config.NEWLINE);
+			sparqlQuery.append("OFFSET ");
 			sparqlQuery.append(offset);
 		}
 
 		if (limit > 0)
 		{
-			sparqlQuery.append("\r\nLIMIT ");
+			sparqlQuery.append(Config.NEWLINE);
+			sparqlQuery.append("LIMIT ");
 			sparqlQuery.append(limit);
 		}
 
-		LOGGER.debug("Returning SPARQL query:\r\n" + sparqlQuery);
+		LOGGER.debug("Returning SPARQL query: {}", sparqlQuery);
 		return sparqlQuery.toString();
 	}
 }

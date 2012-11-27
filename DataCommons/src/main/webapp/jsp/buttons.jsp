@@ -1,4 +1,4 @@
-<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
@@ -59,7 +59,7 @@
 							<input type="button" id="uploadButton" name="uploadButton" value="Upload Files" onclick="window.location='${uploadLink}'" />
 						</p>
 					</sec:accesscontrollist>
-				
+
 					<sec:accesscontrollist hasPermission="REVIEW,PUBLISH,ADMINISTRATION" domainObject="${it.fedoraObject}">
 						<c:url value="/rest/collreq/question" var="questionLink">
 							<c:param name="pid" value="${it.fedoraObject.object_id}" />
@@ -67,13 +67,14 @@
 						<p>
 							<input type="button" id="questionButton" name="questionButton" value="Set Request Questions" onclick="window.location='${questionLink}'" />
 						</p>
-						
+
 						<c:url value="/rest/publish/mintdoi/${it.fedoraObject.object_id}" var="mintDoiLink">
 							<c:param name="tmplt" value="${param.tmplt}" />
 							<c:param name="layout" value="${param.layout}" />
 						</c:url>
 						<p>
-							<input type="button" id="mintDoi" name="mintDoi" value="Mint DOI" onclick="window.location='${mintDoiLink}'" />
+							<input type="button" id="mintDoi" name="mintDoi" value="Mint DOI"
+								onclick="if (confirm('This will mint a Digital Object Identifier for this collection. Are you sure?')) window.location='${mintDoiLink}'" />
 						</p>
 					</sec:accesscontrollist>
 				</c:if>
@@ -90,13 +91,17 @@
 		</sec:authorize>
 	</anu:box>
 	<jsp:include page="listrelated.jsp" />
-	
+
 	<!-- Bag Summary Begin -->
 	<c:if test="${not empty it.bagSummary}">
 		<anu:boxheader text="<a href='/DataCommons/rest/upload/bag/${it.fedoraObject.object_id}'>Files</a>" />
 		<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
 			<anu:box style="solid">
-				<p><c:out value="${it.bagSummary.numFiles}" /> file(s) in collection. Size <c:out value="${it.bagSummary.friendlySize}" /></p>
+				<p>
+					<c:out value="${it.bagSummary.numFiles}" />
+					file(s) in collection. Size
+					<c:out value="${it.bagSummary.friendlySize}" />
+				</p>
 			</anu:box>
 		</c:if>
 	</c:if>
