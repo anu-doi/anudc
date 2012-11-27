@@ -5,7 +5,7 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<anu:header id="1998" title="TITLE" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur" respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
+<anu:header id="1998" title="Collection Request" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur" respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
 	<link href="http://styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
 	<script type="text/javascript" src="<c:url value='/js/collreq.js' />"></script>
@@ -20,7 +20,6 @@
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
-
 			<form class="anuform" name="collReqUpdateForm" method="post" action="<c:url value='/rest/collreq/' />${it.collReq.id}">
 				<p>
 					<label>Request Id</label>
@@ -124,20 +123,51 @@
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
-
+			<c:if test="${empty param.pid}">
+				<p>
+					To request access to a collection please perform the following steps:<br/>
+					<ol>
+						<li>
+							Enter the Identifier of the item you wish to request access to
+						</li>
+						<li>
+							Select to retrieve the request questions
+						</li>
+						<li>
+							Answer the questions that appear on the screen (if any)
+						</li>
+						<li>
+							Click the 'Request Access' button
+						</li>
+					</ol>
+				</p>
+			</c:if>
+			<c:if test="${not empty param.pid}">
+				<p>
+					To request access to a collection please perform the following steps:<br/>
+					<ol>
+						<li>
+							Answer the questions that appear on the screen (if any)
+						</li>
+						<li>
+							Click the 'Request Access' button
+						</li>
+					</ol>
+				</p>
+			</c:if>
 			<form name="collReqSubmitForm" class="anuform" method="post" action="<c:url value='/rest/collreq/' />">
 				<p>
 					<label class="req" for="idPid">Item ID</label>
 					<input class="text" type="text" id="idPid" name="pid" value="<c:out value='${param.pid}' />" <c:if test="${not empty param.pid}">readonly="readonly"</c:if> />
 					<c:if test="${empty param.pid}">
-						<input type="button" onclick="ajaxGetPidInfo(document.collReqSubmitForm.pid.value)" value="Get Items for Request" />
+						<input type="button" onclick="ajaxGetPidInfo(document.collReqSubmitForm.pid.value)" value="Retrieve Request Questions" />
 					</c:if>
 				</p>
 				<p id="idQuestionsContainer">
 					<!-- Container for questions that need to be answered as part of collection request. -->
 				</p>
 				<p class="text-right">
-					<input type="submit" value="Submit">
+					<input type="submit" value="Request Access">
 				<p>
 			</form>
 			<hr />

@@ -3,7 +3,7 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 
-<anu:header id="226" title="Microfilm catalogue - PAMBU - ANU" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
+<anu:header id="226" title="Catalogue - PAMBU - ANU" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
 	<c:set var="pambusite" value="http://asiapacific.anu.edu.au/pambu" scope="page" />
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
@@ -17,7 +17,7 @@
 		<anu:crumb title="Catalogue search" href='${catalogueLink}' />
 		<anu:crumb title="Search Result" />
 	</anu:breadcrumbs>
-	<h1 class="doublewide nopadbottom nopadtop">Microfilm catalogue</h1>
+	<h1 class="doublewide nopadbottom nopadtop">Catalogue</h1>
 	
 	<hr />
 
@@ -34,12 +34,21 @@
 				</td>
 				<td style='width: 450px;'>
 					<strong>${row['published.combinedAuthors']}<br /></strong>
-					<span class="text-blue"><strong>Title:</strong></span> ${row['published.name']}<br />
+					<c:if test="${not empty row['published.altName']}">
+						<span class="text-blue"><strong>Title:</strong></span> ${row['published.altName'][0]}<br />
+						<span class="text-blue"><strong>Short Title:</strong></span> ${row['published.name']}<br />
+					</c:if>
+					<c:if test="${empty row['published.altName']}">
+						<span class="text-blue"><strong>Title:</strong></span> ${row['published.name']}<br />
+					</c:if>
 					<c:if test="${not empty row['published.combinedDates.formatted']}">
 						<span class="text-blue"><strong>Dates:</strong></span> ${row['published.combinedDates.formatted']}<br />
 					</c:if>
-					<c:if test="${not empty row['published.numReels'] or not empty row['published.format']}">
-						<span class="text-blue"><strong>Reels &amp; Format:</strong></span> ${row['published.numReels'][0]}, ${row['published.format'][0]}<br />
+					<c:if test="${not empty row['published.numReels'] or not empty row['published.format'] or not empty row['published.digiFormat']}">
+						<span class="text-blue"><strong>Format:</strong></span> 
+						${row['published.numReels'][0]}<c:if test="${not empty row['published.numReels'] and not empty row['published.format']}">,</c:if>
+						${row['published.format'][0]}<c:if test="${(not empty row['published.numReels'] or not empty row['published.format']) and not empty row['published.digiFormat']}">,</c:if>
+						${row['published.digiFormat'][0]}<br />
 					</c:if>
 					<c:if test="${not empty row['published.holdingLocation']}">
 						<span class="text-blue"><strong>Holding:</strong></span> ${row['published.holdingLocation'][0]}<br />
@@ -54,25 +63,11 @@
 						${row['published.fullDesc'][0]}<br />
 					</c:if>
 					<c:if test="${row['published.reelList'][0] == 'yes'}">
-						<c:choose>
-							<c:when test="${row['published.holdingType'][0] == 'doc'}">
-								<c:set var="docrtf" value="http://asiapacific.anu.edu.au/pambu/reels/docs/DOC${fn:substring(row['published.serialNum'][0], 8, 20)}.rtf" />
-								<a href="${docrtf}">${row['published.serialNum'][0]} RTF</a>
-								<br/>
-								<c:set var="docpdf" value="http://asiapacific.anu.edu.au/pambu/reels/docs/DOC${fn:substring(row['published.serialNum'][0], 8, 20)}.PDF" />
-								<a href="${docpdf}">${row['published.serialNum'][0]} PDF</a>
-							</c:when>
-							<c:when test="${row['published.holdingType'][0] == 'ms'}">
-								<c:set var="msrft" value="http://asiapacific.anu.edu.au/pambu/reels/manuscripts/PMB${fn:substring(row['published.serialNum'][0], 4, 20)}.rtf" />
-								<a href="${msrft}" >${row['published.serialNum'][0]} RTF</a><br/>
-								<c:set var="mspdf" value="http://asiapacific.anu.edu.au/pambu/reels/manuscripts/PMB${fn:substring(row['published.serialNum'][0], 4, 20)}.PDF" />
-								<a href="${mspdf}">${row['published.serialNum'][0]} PDF</a>
-								<br />
-							</c:when>
-						</c:choose>
+						<c:url value="/rest/pambu/item/list/${row['published.serialNum'][0]}" var="listURL"/>
+						<a href="${listURL}">Item List</a><br/>
 					</c:if>
 					<c:if test="${not empty row['id']}">
-						<a href='<c:url value="/rest/collreq?pid=test:1340" />'>Request Access</a>
+						<a href='<c:url value="/rest/collreq?pid=${row['id']}" />'>Request Access</a>
 					</c:if>
 				</td>
 			</tr>

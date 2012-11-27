@@ -12,6 +12,7 @@
 	</tab>
 	<tab name="subject" label="Subject" order="5" />
 	<tab name="rights" label="Rights" order="6" />
+	<tab name="formats" label="Formats" order="7" />
 	<item name="type" label="Type" fieldType="TextField" saveType="single" defaultValue="Collection" readonly="readonly" editPerm="admin" tab="general" />
 	<item name="name" label="Title" fieldType="TextField" saveType="single" maxLength="80" class="required" tab="general">
 		<tooltip>This is the title of the data collection. It needs to be unique, i.e. do not use a title that is identical to an existing publication that is related to and/or underpinned by the data.&#xA;&#xA;Titles that are descriptive of the actual data are best. Try to include key distinctive characteristics that would provide information for potential users to determine if the data might be useful to them. These may include information specific to the entities studied, survey data, observations, images collected, location, time, and temporal or spatial coverage.&#xA;&#xA;Examples:&#xA;Net levels of greenhouse gas emission and sources in the New South Wales Hunter Valley, 1990 - 1998.</tooltip>
@@ -33,18 +34,21 @@
 	<item name="ownerGroup" label="Access Privileges" fieldType="Combobox" saveType="single" class="required" tab="general">
 		<tooltip>Please choose the access privilege group for the collection</tooltip>
 	</item>
-	<item name="doi" label="DOI - Digitan Object Identifier" fieldType="TextField" saveType="single" tab="general">
+	<item name="doi" label="DOI - Digital Object Identifier" fieldType="TextField" saveType="single" tab="general">
 		<tooltip>The Digital Object Identifier for this record.<br/>Please note that if this does not already exist a DOI will be created when the record is published</tooltip>
 	</item>
 	<item name="holdingType" label="PAMBU Holding Type" fieldType="Combobox" saveType="single" class="needed" tab="general">
 		<option value="ms" label="Manuscript Series" />
 		<option value="doc" label="Printed Document Series" />
+		<option value="pic" label="Photographs" />
+		<option value="map" label="Maps" />
+		<option value="audio" label="Sound Recordings" />
 	</item>
 	<item name="serialNum" label="Serial Number" fieldType="TextField" saveType="single" tab="general">
-		<tooltip>For example:&#xA;PMB Doc 1&#xA;PMB 1</tooltip>
+		<tooltip>For example:&#xA;PMB Doc 1&#xA;PMB 1&#xA;PMB Audio 1&#xA;PMB Photo 1</tooltip>
 	</item>
 	<item name="externalId" label="PAMBU ID" fieldType="TextField" saveType="single" tab="general">
-		<tooltip>For example:&#xA;doc1&#xA;ms1</tooltip>
+		<tooltip>For example:&#xA;doc1&#xA;ms1&#xA;pic1&#xA;map1&#xA;audio1</tooltip>
 	</item>
 	<item name="metaLang" label="Metadata Language" fieldType="Combobox" saveType="single" tab="general">
 		<tooltip>Please select the language that you are using to describe this data</tooltip>
@@ -64,6 +68,9 @@
 	</item>
 	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" maxLength="4000"  tab="description">
 		<tooltip>The description should be as rich as possible. If applicable, include: the scope; details of what is being studied or recorded; methodologies used, information about any instruments that were used to produce and/or collect the data; relevant standards used; conditions under which the study or research occured or the data was collected, etc&#xA;If there were any problems or other issues with methods used to produce and/or collect the data, please include those as well.</tooltip>
+	</item>
+	<item name="label" label="Label" fieldType="TextArea" saveType="single" maxLength="4000" tab="description">
+		<tooltip>A label field to be attached to physical items</tooltip>
 	</item>
 	<item name="email" label="Contact Email" fieldType="TextFieldMulti" saveType="multiple" class="needed email" tab="people" />
 	<item name="postalAddress" label="Contact Address" fieldType="TextArea" saveType="single" tab="people" />
@@ -167,25 +174,28 @@
 	<item name="accessRights" label="Access Rights" fieldType="TextArea" saveType="single" tab="rights">
 		<tooltip>Information about who and when people may access the information in this collection</tooltip>
 	</item>
-	<item name="format" label="Format" fieldType="TextField" saveType="single">
+	<item name="format" label="Format" fieldType="TextField" saveType="single" tab="formats">
 		<tooltip>The format of the data&#xA;For example:&#xA;Microfilm&#xA;Microfische</tooltip>
 	</item>
-	<item name="numReels" label="Number of Reels" fieldType="TextField" saveType="single">
+	<item name="numReels" label="Number of Reels" fieldType="TextField" saveType="single" tab="formats">
 		<tooltip>The number of reels of microfilm/microfische in this collection</tooltip>
 	</item>
-	<item name="holdingLocation" label="Holding" fieldType="TextField" saveType="single">
+	<item name="digiFormat" label="Digital Format" fieldType="TextField" saveType="single" tab="formats">
+		<tooltip>The format of the data&#xA;For example:&#xA;PDF&#xA;mp3&#xA;jpeg</tooltip>
+	</item>
+	<item name="holdingLocation" label="Holding" fieldType="TextField" saveType="single" tab="formats">
 		<tooltip>Where this collection is being held</tooltip>
 	</item>
-	<item name="digital" label="Digitized" fieldType="Combobox" saveType="single">
+	<item name="digital" label="Digitized" fieldType="Combobox" saveType="single" tab="formats">
 		<tooltip>Has this collection been digitized yet?</tooltip>
 		<option value="NO" label="No" />
 		<option value="YES" label="Yes" />
 	</item>
-	<item name="sortVal" label="Sort Value" fieldType="TextField" saveType="single" class="number">
+	<item name="sortVal" label="Sort Value" fieldType="TextField" saveType="single" class="number" tab="formats">
 		<tooltip>Value for sorting</tooltip>
 	</item>
-	<item name="reelList" label="Has Reel List" fieldType="RadioButton" saveType="single">
-		<tooltip>Indicates whether there is a rtf/pdf reel list associated with this record</tooltip>
+	<item name="reelList" label="Has Item List" fieldType="RadioButton" saveType="single" tab="formats">
+		<tooltip>Indicates whether there is an item list associated with this record</tooltip>
 		<option value="yes" label="Yes" />
 		<option value="no" label="No" />
 	</item>

@@ -100,6 +100,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.20		15/10/2012	Genevieve Turner (GT)	Modified/Added some functions surrounding publication
  * 0.21		22/10/2012	Genevieve Turner (GT)	Added link removal and chagned getLinks method to be public
  * 0.22		06/11/2012	Genevieve Turner (GT)	Updated to check if the user has permissions to update the group if not remove those permissions
+ * 0.23		26/11/2012	Genevieve Turner (GT)	Added the removal of reverse links
  * </pre>
  * 
  */
@@ -470,6 +471,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.21		22/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.23		26/11/2012	Genevieve Turner (GT)	Added the removal of reverse links
 	 * </pre>
 	 * 
 	 * @param fedoraObject The fedoraObject to remove an association with
@@ -495,8 +497,18 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		reference.setPredicate_(link + referenceType);
 		reference.setObject_(referenceItem);
 		reference.setIsLiteral_(Boolean.FALSE);
+		LOGGER.debug("Item: {}, Predicate: {}, Object: {}", new Object[]{fedoraObject.getObject_id(), reference.getPredicate_(), reference.getObject_()});
 		FedoraBroker.removeRelationship(fedoraObject.getObject_id(), reference);
-		//TODO remove reverse link
+		
+		if (referenceItem.startsWith("info:fedora/")) {
+			String referenceItemID = referenceItem.substring(12);
+			FedoraReference reverseReference = new FedoraReference();
+			reverseReference.setPredicate_(link + linkTypeRecord.getReverse());
+			reverseReference.setObject_("info:fedora/" + fedoraObject.getObject_id());
+			reverseReference.setIsLiteral_(Boolean.FALSE);
+			LOGGER.debug("Item: {}, Predicate: {}, Object: {}", new Object[]{referenceItemID, reverseReference.getPredicate_(), reverseReference.getObject_()});
+			FedoraBroker.removeRelationship(referenceItemID, reverseReference);
+		}
 	}
 	
 	/**

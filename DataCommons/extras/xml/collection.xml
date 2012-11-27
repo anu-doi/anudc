@@ -37,6 +37,9 @@
 	<item name="doi" label="DOI - Digital Object Identifier" fieldType="TextField" saveType="single" tab="general">
 		<tooltip>The Digital Object Identifier for this record.<br/>Please note that if this does not already exist a DOI will be created when the record is published</tooltip>
 	</item>
+	<item name="websiteAddress" label="Website Address" fieldType="TextFieldMulti" saveType="multiple" tab="general">
+		<tooltip>Websites at which the collections data is held</tooltip>
+	</item>
 	<item name="metaLang" label="Metadata Language" fieldType="Combobox" saveType="single" tab="general">
 		<tooltip>Please select the language that you are using to describe this data</tooltip>
 		<option value="en" label="English" />
@@ -60,7 +63,6 @@
 	<item name="postalAddress" label="Contact Address" fieldType="TextArea" saveType="single" tab="people" />
 	<item name="phone" label="Contact Phone Number" fieldType="TextFieldMulti" saveType="multiple" tab="people" />
 	<item name="fax" label="Contact Fax Number" fieldType="TextFieldMulti"  saveType="multiple" tab="people" />
-	<item name="websiteAddress" label="Website Address" fieldType="TextFieldMulti" saveType="multiple" tab="people" />
 	<item name="principalInvestigator" label="Principal Investigator" fieldType="TextField" saveType="single" tab="people">
 		<tooltip>Please record the name of the principal investigator</tooltip>
 	</item>
@@ -110,7 +112,10 @@
 		</column>
 		<column name="covAreaValue" label="Location Value" fieldType="TextField" />
 	</item>
-	<item name="citationYear" label="Year of data publication" fieldType="TextField" saveType="single" tab="description">
+	<item name="createdDate" label="Date of data creation" fieldType="TextField" saveType="single" class="date" tab="description">
+		<tooltip>The date/year the data was created.  It may be the date the information was created before an embargo period. For example:&#xA;&#xA;1987&#xA;2005-06&#xA;2009-01-24</tooltip>
+	</item>
+	<item name="citationYear" label="Year of data publication" fieldType="TextField" saveType="single" class="date" tab="description">
 		<tooltip>The year the data was first published for citation purposes. If this field is not populated when publishing it will default to the year it is published in ANU Data Commons</tooltip>
 	</item>
 	<item name="citationCreator" label="Creator(s) for Citation" fieldType="TextField" saveType="single" tab="description">

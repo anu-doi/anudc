@@ -3,7 +3,7 @@
 	<xsl:param name="key" />
 	<xsl:param name="external" />
 	<xsl:variable name="anukey">http://anu.edu.au/</xsl:variable>
-	<xsl:variable name="anuidentifier">http://67h5p1s.uds.anu.edu.au:9081/DataCommons/item/</xsl:variable>
+	<xsl:variable name="anuidentifier">https://datacommons.anu.edu.au:8443/DataCommons/item/</xsl:variable>
 	<xsl:template match="/">
 		<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
@@ -138,6 +138,13 @@
 					</namePart>
 				</name>
 			</xsl:for-each>
+		</xsl:if>
+		<xsl:if test="data/createdDate">
+			<dates type="created">
+				<date type="dateFrom" dateFormat="W3CDTF">
+					<xsl:value-of select="data/createdDate" />
+				</date>
+			</dates>
 		</xsl:if>
 		<xsl:if test="data/email">
 			<xsl:for-each select="data/email">
@@ -331,6 +338,18 @@
 					<xsl:value-of select="data/relatedURL" />
 				</identifier>
 			</relatedInfo>
+		</xsl:if>
+		<xsl:if test="data/relatedWebsites">
+			<xsl:for-each select="data/relatedWebsites">
+				<relatedInfo type="website">
+					<identifier type="uri">
+						<xsl:value-of select="relatedWebURL" />
+					</identifier>
+					<title>
+						<xsl:value-of select="relatedWebTitle" />
+					</title>
+				</relatedInfo>
+			</xsl:for-each>
 		</xsl:if>
 		<xsl:if test="data/type/text() = 'Collection'">
 			<xsl:if test="data/name">

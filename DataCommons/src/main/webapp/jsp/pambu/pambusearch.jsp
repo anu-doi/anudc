@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 
-<anu:header id="226" title="Microfilm catalogue - PAMBU - ANU" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
+<anu:header id="226" title="Catalogue - PAMBU - ANU" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
 	<c:set var="pambusite" value="http://asiapacific.anu.edu.au/pambu" scope="page" />
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
@@ -11,7 +11,7 @@
 
 <jsp:include page="pambuheader.jsp" />
 <anu:content layout="doublewide">
-	<h1 class="doublewide nopadbottom">Microfilm catalogue</h1>
+	<h1 class="doublewide nopadbottom">Catalogue</h1>
 	<form name="longForm" method="post" action="">
 		<div class="doublewide nomargintop">
 			<h2>Search options</h2>
