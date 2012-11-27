@@ -52,8 +52,11 @@ public class FileSummary
 		try
 		{
 			String serMetadataFilename = "metadata/" + bf.getFilepath().substring(bf.getFilepath().indexOf('/') + 1) + ".ser";
-			ObjectInputStream objInStream = new ObjectInputStream(bag.getBagFile(serMetadataFilename).newInputStream());
-			this.metadata = (Map<String, String[]>) objInStream.readObject();
+			if (bag.getBagFile(serMetadataFilename) != null)
+			{
+				ObjectInputStream objInStream = new ObjectInputStream(bag.getBagFile(serMetadataFilename).newInputStream());
+				this.metadata = (Map<String, String[]>) objInStream.readObject();
+			}
 		}
 		catch (Exception e)
 		{

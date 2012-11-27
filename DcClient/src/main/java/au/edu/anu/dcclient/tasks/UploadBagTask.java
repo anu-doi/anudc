@@ -1,5 +1,6 @@
 package au.edu.anu.dcclient.tasks;
 
+import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.ProgressListener;
 
@@ -134,7 +135,7 @@ public class UploadBagTask extends AbstractDcBagTask<ClientResponse>
 		WebResource webResource = client.resource(pidUri);
 		// TODO Replace content disposition using an object.
 		// ContentDisposition contDisp2 = new ContentDispositionBuilder("attachment").fileName(serializedBagFile.getName()).size(serializedBagFile.length()).build();
-		String contDisp = MessageFormat.format("attachment; filename=\"{0}\"", serializedBagFile.getName());
+		String contDisp = format("attachment; filename=\"{0}\"", serializedBagFile.getName());
 
 		ClientResponse response = webResource.type(MediaType.APPLICATION_OCTET_STREAM_TYPE).header("Content-Disposition", contDisp)
 				.post(ClientResponse.class, new FileInputStream(serializedBagFile));

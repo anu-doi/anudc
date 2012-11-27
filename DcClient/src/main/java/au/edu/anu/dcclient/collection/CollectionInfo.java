@@ -122,8 +122,8 @@ public class CollectionInfo
 					continue;
 
 				String key = line.substring(0, equalsIndex).trim();
-				String value = line.substring(equalsIndex + 1).trim();
-
+				String value = line.substring(equalsIndex + 1).trim().replace("\\r\\n", "<br />");
+				
 				// Skip line if key or value is ""
 				if (key.length() == 0 || value.length() == 0)
 					continue;

@@ -44,20 +44,24 @@ public class FidoParserTest
 	}
 
 	@Test
-	public void testGetOutput() throws IOException, URISyntaxException
+	public void testGetFileFormatFromInputStream()
 	{
-		FidoParser fidoParser = new FidoParser(sampleFile);
-		LOGGER.debug(fidoParser.getOutput());
-		// TODO Change the match string. 
-		// assertTrue(fidoParser.getOutput().substring(0, 12).equals("OK,266,fmt/20"));
+		try
+		{
+			FidoParser fidoParser = new FidoParser(FidoParserTest.class.getResourceAsStream("BagIt Specification.pdf"));
+			PronomFormat fileFormat = fidoParser.getFileFormat();
+			assertTrue(fileFormat.getMatchStatus().equals(MatchStatus.OK));
+			assertTrue(fileFormat.getPuid().equals("fmt/20"));
+		}
+		catch (IOException e)
+		{
+			failOnException(e);
+		}
 	}
-
-	@Test
-	public void testGetFileFormat() throws IOException, URISyntaxException
+	
+	private void failOnException(Throwable e)
 	{
-		FidoParser fidoParser = new FidoParser(sampleFile);
-		PronomFormat fileFormat = fidoParser.getFileFormat();
-		assertTrue(fileFormat.getMatchStatus().equals(MatchStatus.OK));
-		assertTrue(fileFormat.getPuid().equals("fmt/20"));
+		LOGGER.error(e.getMessage(), e);
+		fail(e.getMessage());
 	}
 }

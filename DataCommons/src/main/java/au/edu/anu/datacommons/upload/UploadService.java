@@ -573,7 +573,7 @@ public class UploadService
 		}
 		catch (DcStorageException e)
 		{
-			LOGGER.error(e.getMessage(), e);
+			LOGGER.error(e.getMessage());
 			throw new NotFoundException(e.getMessage());
 		}
 
