@@ -58,7 +58,8 @@ public class FitsParser implements Parser
 				
 				if (key == null || key.length() == 0 || key.equalsIgnoreCase("end"))
 					continue;
-				
+			
+				// If the value's null, sometimes the comment contains the value and the comment separated by a '/'
 				if (value == null)
 				{
 					Matcher m = p.matcher(comment);
@@ -78,6 +79,7 @@ public class FitsParser implements Parser
 					formattedValue.append(value);
 				}
 				
+				// Because metadata can take only a key and a value, appending the comment to the value string. 
 				if (comment != null)
 				{
 					if (formattedValue.length() > 0)

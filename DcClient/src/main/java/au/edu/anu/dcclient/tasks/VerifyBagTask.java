@@ -63,7 +63,14 @@ public final class VerifyBagTask extends AbstractDcBagTask<SimpleResult>
 		try
 		{
 			updateProgress("Verifying integrity of bag for pid", dcBag.getExternalIdentifier(), 1L, 1L);
+			System.out.print("Verifying integrity of bag...");
 			result = dcBag.verifyValid();
+			System.out.println("[OK]");
+		}
+		catch (Exception e)
+		{
+			System.out.println("[ERROR]");
+			throw e;
 		}
 		finally
 		{

@@ -59,6 +59,7 @@ import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.security.service.FedoraObjectException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
+import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.webservice.bindings.Collection;
@@ -150,7 +151,7 @@ public class WebServiceResource
 		{
 			req = (DcRequest) um.unmarshal(xmlDoc);
 
-			FedoraItem item = req.getFedoraItem();
+			final FedoraItem item = req.getFedoraItem();
 
 			// If a pid's not provided, but external IDs are, search for objects with that external ID. If found use the result's pid.
 			if (item.getPid() == null)
@@ -194,8 +195,29 @@ public class WebServiceResource
 				{
 					if (iLink.isRefOnly() == null || iLink.isRefOnly() == Boolean.FALSE)
 					{
-						// Download file hosted at url to bag.
-						dcStorage.addFileToBag(item.getPid(), iLink.getFilename(), iLink.getUrl());
+						final String filename = iLink.getFilename();
+						final String fileUrl = iLink.getUrl();
+						Runnable downloadRunnable = new Runnable()
+						{
+							@Override
+							public void run()
+							{
+								try
+								{
+									LOGGER.info("Beginning download of file {} from {} to add to {}...", filename, fileUrl, item.getPid());
+									dcStorage.addFileToBag(item.getPid(), filename, fileUrl);
+									LOGGER.info("Successfully downloaded file {} from {} and added to {}.", filename, fileUrl, item.getPid());
+								}
+								catch (DcStorageException e)
+								{
+									LOGGER.error("Failed to download file {} from {} to add to {}.", filename, fileUrl, item.getPid());
+									LOGGER.error(e.getMessage(), e);
+								}
+							}
+						};
+						Thread downloadThread = new Thread(downloadRunnable);
+						downloadThread.setPriority(Thread.MIN_PRIORITY);
+						downloadThread.start();
 					}
 					else
 					{

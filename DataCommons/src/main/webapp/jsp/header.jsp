@@ -12,10 +12,6 @@
 	<div class="right right">
 		<ul>
 		<sec:authorize access="isAnonymous()">
-			<fmt:bundle basename='global'>
-				<fmt:message var="casserver" key='cas.server' />
-				<fmt:message var="appserver" key='app.server' />
-			</fmt:bundle>
 			<li><a>Welcome Guest</a></li>
 			<li> <a href='<c:url value="/login" />'>Login</a></li>
 		</sec:authorize>

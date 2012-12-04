@@ -2,9 +2,6 @@
 
 package au.edu.anu.dcbag.clamscan;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -13,9 +10,12 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ClamScan {
 
-    private static Log log = LogFactory.getLog(ClamScan.class);
+    private static final Logger log = LoggerFactory.getLogger(ClamScan.class);
 
     public static final int CHUNK_SIZE = 2048;
     private static final byte[] INSTREAM = "zINSTREAM\0".getBytes();

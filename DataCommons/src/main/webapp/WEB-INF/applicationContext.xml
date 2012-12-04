@@ -9,9 +9,14 @@
 	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
 			<list>
+				<!-- 
 				<value>classpath:global.properties</value>
+				-->
+				<value>file:/etc/anudc/datacommons/datacommons.properties</value>
+				<value>file:/C:/AnuDc/datacommons/datacommons.properties</value>
 			</list>
 		</property>
+		<property name="ignoreResourceNotFound" value="true"/>
 	</bean>
 	
 	<context:annotation-config />

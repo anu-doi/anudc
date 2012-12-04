@@ -1,5 +1,6 @@
 package au.edu.anu.dcclient;
 
+import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.progresslistener.ConsoleProgressListener;
@@ -24,6 +25,7 @@ import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.config.PropertiesFile;
 import au.edu.anu.dcbag.DcBag;
 import au.edu.anu.dcbag.BagPropsTxt;
 import au.edu.anu.dcclient.collection.CollectionInfo;
@@ -81,9 +83,8 @@ public final class CmdMgr
 				// If the command line contains help.
 				dispHelp(OPTIONS);
 			}
-			else if (!cmdLine.hasOption('u') || !cmdLine.hasOption('p'))
+			else if (!cmdLine.hasOption("u"))
 			{
-				// If command line's missing username and password.
 				dispHelp(OPTIONS);
 			}
 			else if (cmdLine.hasOption('d'))
@@ -119,8 +120,35 @@ public final class CmdMgr
 
 	private void setCredentials(CommandLine cmdLine)
 	{
-		LOGGER.trace("Setting username {} and password **** for all requests to ANU Data Commons", cmdLine.getOptionValue('u'));
-		Authenticator.setDefault(new DcAuthenticator(cmdLine.getOptionValue('u'), cmdLine.getOptionValue('p')));
+		String username = null;
+		String password = null;
+		
+		File credsFile = new File(cmdLine.getOptionValue('u'));
+		if (credsFile.exists())
+		{
+			try
+			{
+				PropertiesFile credsProps = new PropertiesFile(credsFile);
+				username = credsProps.getProperty("username");
+				password = credsProps.getProperty("password");
+			}
+			catch (IOException e)
+			{
+				System.out.println(format("Unable to read credentials file at {0} . Check permissions and try again.", credsFile.getAbsolutePath()));
+			}
+		}
+		else
+		{
+			username = cmdLine.getOptionValue('u');
+			password = cmdLine.getOptionValue('p');
+			if (password == null)
+			{
+				password = new String(System.console().readPassword("Password: "));
+			}
+		}
+		
+		LOGGER.trace("Setting username {} and password **** for all requests to ANU Data Commons", username);
+		Authenticator.setDefault(new DcAuthenticator(username, password));
 	}
 
 	public int getExitCode()
@@ -264,8 +292,10 @@ public final class CmdMgr
 	{
 		String pid = cmdLine.getOptionValue('l');
 		DcBag bag = new DcBag(Global.getLocalBagStoreAsFile(), pid, LoadOption.BY_FILES);
+		StopWatch stopWatch = new StopWatch();
 		try
 		{
+			stopWatch.start();
 			if (cmdLine.hasOption('i'))
 			{
 				setDataSource(bag);
@@ -301,6 +331,8 @@ public final class CmdMgr
 				throw new Exception("Bag verification failed.");
 			}
 
+			stopWatch.end();
+			
 		}
 		catch (Exception e)
 		{

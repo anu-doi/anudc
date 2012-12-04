@@ -31,6 +31,22 @@ Server
         />
 
 
+	CA certificate
+	--------------
+	
+	On receiving the certificates from CA:
+	
+	openssl pkcs12 -export -in [DOMAIN CERTIFICATE FILE.CER] -inkey [PRIVATE KEY FILE] \
+                        -out keystore.p12 -name [HOSTNAME] -CAfile [INTERM AND ROOT CERTIFICATE CHAIN FILE.CER] \
+                        -caname root -chain
+                        		
+	This creates keystore in PKCS12 format - mycert.p12. To convert this into JKS format:
+	
+	keytool -importkeystore -deststorepass <somePassword> -destkeystore keystore.jks \
+			-srckeystore keystore.p12 -srcstoretype PKCS12 -srcstorepass <passwortFromStep1> -alias <name>
+			
+	This creates keystore.jks which can be used in Connector element in server.xml
+
 Client
 ------
 
