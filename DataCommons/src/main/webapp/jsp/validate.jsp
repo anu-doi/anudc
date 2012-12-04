@@ -21,9 +21,16 @@
 		</c:forEach>
 		<input id="publishSubmit" type="submit" value="Check Validity" />
 	</form>
-	<c:forEach items="${it.validateMessages}" var="validateMessage">
-		${validateMessage} <br/>
-	</c:forEach>
+	<c:if test="${not empty it.validateMessages}">
+		<p class="msg-info">
+			<c:forEach items="${it.validateMessages}" var="validateMessage">
+				${validateMessage} <br/>
+			</c:forEach>
+		</p>
+	</c:if>
+	<c:if test="${pageContext.request.method=='POST' and empty it.validateMessages}">
+		<p class="msg-success">Record successfully validated</p>
+	</c:if>
 </anu:content>
 
 

@@ -16,11 +16,12 @@ import javax.xml.bind.annotation.XmlElement;
  * Class for the citationMetadata element in the ANDS RIF-CS schema
  *
  * JUnit Coverage:
- * None
+ * RegistryObjectsTest
  * 
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		12/10/2012	Genevieve Turner (GT)	Initial
+ * 0.2		04/12/2012	Genevieve Turner (GT)	Updated to comply with rif-cs version 1.4 including the removal of the edition methods
  * </pre>
  *
  */
@@ -28,10 +29,10 @@ public class CitationMetadata {
 	private Identifier identifier;
 	private List<Contributor> contributors;
 	private String title;
-	private String edition;
+	private String version;
 	private String publisher;
 	private String placePublished;
-	private ANDSDate date;
+	private List<ANDSDate> dates;
 	private String url;
 	private String context;
 
@@ -48,6 +49,7 @@ public class CitationMetadata {
 	 */
 	public CitationMetadata() {
 		contributors = new ArrayList<Contributor>();
+		dates = new ArrayList<ANDSDate>();
 	}
 	
 	/**
@@ -155,21 +157,20 @@ public class CitationMetadata {
 	}
 
 	/**
-	 * getEdition
+	 * getVersion
 	 *
 	 * Get the edition
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * 0.1		03/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		04/12/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @return the edition
+	 * @return the version
 	 */
-	@NotNull(message="Citation metadata requires an edition")
-	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
-	public String getEdition() {
-		return edition;
+	@XmlElement(name="version", namespace=Constants.ANDS_RIF_CS_NS)
+	public String getVersion() {
+		return version;
 	}
 
 	/**
@@ -182,10 +183,10 @@ public class CitationMetadata {
 	 * 0.1		03/10/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @param edition the edition to set
+	 * @param version the version to set
 	 */
-	public void setEdition(String edition) {
-		this.edition = edition;
+	public void setVersion(String version) {
+		this.version = version;
 	}
 
 	/**
@@ -196,10 +197,12 @@ public class CitationMetadata {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		03/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		04/12/2012	Genevieve Turner (GT)	Updated to comply with rif-cs version 1.4
 	 * </pre>
 	 * 
 	 * @return the publisher
 	 */
+	@NotNull(message="Citation metadata requires a publisher")
 	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
 	public String getPublisher() {
 		return publisher;
@@ -229,11 +232,11 @@ public class CitationMetadata {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		03/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		04/12/2012	Genevieve Turner (GT)	Updated to comply with rif-cs version 1.4
 	 * </pre>
 	 * 
 	 * @return the placePublished
 	 */
-	@NotNull(message="Citation metadata requires a location where it was published")
 	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
 	public String getPlacePublished() {
 		return placePublished;
@@ -256,37 +259,38 @@ public class CitationMetadata {
 	}
 
 	/**
-	 * getDate
+	 * getDates
 	 *
-	 * Get the date
+	 * Get the citation dates
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * 0.1		03/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		04/12/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @return the date
+	 * @return the dates
 	 */
 	@Valid
+	@Size(min=1, message="Citation Metadata requires at least one date")
 	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
-	public ANDSDate getDate() {
-		return date;
+	public List<ANDSDate> getDates() {
+		return dates;
 	}
 
 	/**
-	 * setDate
+	 * setDates
 	 *
-	 * Set the date
+	 * Set the citation dates
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * 0.1		03/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		04/12/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param date the date to set
+	 * @param dates the dates to set
 	 */
-	public void setDate(ANDSDate date) {
-		this.date = date;
+	public void setDates(List<ANDSDate> dates) {
+		this.dates = dates;
 	}
 
 	/**
@@ -297,11 +301,11 @@ public class CitationMetadata {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		03/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		04/12/2012	Genevieve Turner (GT)	Updated to comply with rif-cs version 1.4
 	 * </pre>
 	 * 
 	 * @return the url
 	 */
-	@NotNull(message="Citation metadata requires a url")
 	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
 	public String getUrl() {
 		return url;
@@ -331,11 +335,11 @@ public class CitationMetadata {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		03/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		04/12/2012	Genevieve Turner (GT)	Updated to comply with rif-cs version 1.4
 	 * </pre>
 	 * 
 	 * @return the context
 	 */
-	@NotNull(message="Citation metadata requires a context")
 	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
 	public String getContext() {
 		return context;

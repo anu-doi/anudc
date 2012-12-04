@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <template>
-	<name>PAMBU Microfilm Collection Template</name>
-	<briefDesc>Template for creating PAMBU Microfilm Records</briefDesc>
+	<name>PAMBU Collection Template</name>
+	<briefDesc>Template for creating PAMBU Records</briefDesc>
 	<tab name="general" label="General" order="1" />
 	<tab name="description" label="Description" order="3" />
 	<tab name="coverage" label="Coverage" order="2">

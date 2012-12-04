@@ -6,7 +6,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
@@ -40,6 +42,7 @@ import au.edu.anu.datacommons.xml.transform.JAXBTransform;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		30/10/2012	Genevieve Turner (GT)	Initial
+ * 0.2		04/12/2012	Genevieve Turner (GT)	Updated to comply with rif-cs version 1.4
  * </pre>
  *
  */
@@ -54,7 +57,7 @@ public class RegistryObjectsTest {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		30/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		30/10/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @throws Exception
@@ -72,7 +75,7 @@ public class RegistryObjectsTest {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		30/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		30/10/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @throws Exception
@@ -89,7 +92,7 @@ public class RegistryObjectsTest {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		30/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		30/10/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
 	 * @throws JAXBException
@@ -158,7 +161,8 @@ public class RegistryObjectsTest {
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * X.X		30/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		30/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		04/12/2012	Genevieve Turner (GT)	Updated to comply with rif-cs version 1.4
 	 * </pre>
 	 * 
 	 * @throws DatatypeConfigurationException
@@ -167,7 +171,7 @@ public class RegistryObjectsTest {
 	public void testCollection() throws DatatypeConfigurationException {
 		RegistryObjects registryObjects = new RegistryObjects();
 		Set<ConstraintViolation<RegistryObjects>> constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
-		assertEquals(1, constraintViolations.size());
+		assertEquals("Error validating registryObjects", 1, constraintViolations.size());
 		
 		RegistryObject registryObject = new RegistryObject();
 		registryObjects.getRegistryObjects().add(registryObject);
@@ -175,7 +179,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(4, constraintViolations.size());
+		assertEquals("Error validating registryObject", 4, constraintViolations.size());
 		
 		registryObject.setKey("http://anu.edu.au/test:96");
 		registryObject.setGroup("The Australian National University");
@@ -186,14 +190,14 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(9, constraintViolations.size());
+		assertEquals("Error validating collection", 10, constraintViolations.size());
 		
 		collection.setType("dataset");
 		
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(8, constraintViolations.size());
+		assertEquals("Error validating collection type", 9, constraintViolations.size());
 		
 		Identifier identifier = new Identifier();
 		collection.getIdentifiers().add(identifier);
@@ -201,7 +205,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(9, constraintViolations.size());
+		assertEquals("Error validating Identifier", 10, constraintViolations.size());
 		
 		identifier.setType("local");
 		identifier.setValue("test:96");
@@ -209,7 +213,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(7, constraintViolations.size());
+		assertEquals("Error validating identifier contents", 8, constraintViolations.size());
 		
 		Name name = new Name();
 		
@@ -218,7 +222,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(9, constraintViolations.size());
+		assertEquals("Error validating name", 10, constraintViolations.size());
 		
 		name.setType("test");
 		
@@ -228,7 +232,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(9, constraintViolations.size());
+		assertEquals("Error validating namePart", 10, constraintViolations.size());
 		
 		name.setType("alternative");
 		namePart.setType("test");
@@ -237,21 +241,21 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(8, constraintViolations.size());
+		assertEquals("Error validating namePart contents", 9, constraintViolations.size());
 		
 		name.setType("primary");
 		
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(7, constraintViolations.size());
+		assertEquals("Error validating name type", 8, constraintViolations.size());
 		
 		namePart.setType("title");
 		
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(6, constraintViolations.size());
+		assertEquals("Error validating namePart type", 7, constraintViolations.size());
 		
 		Location location = new Location();
 		collection.getLocations().add(location);
@@ -259,7 +263,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(6, constraintViolations.size());
+		assertEquals("Error validating location", 7, constraintViolations.size());
 		
 		Address address = new Address();
 		location.getAddresses().add(address);
@@ -267,7 +271,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(6, constraintViolations.size());
+		assertEquals("Error validating address", 7, constraintViolations.size());
 		
 		PhysicalAddress physicalAddress = new PhysicalAddress();
 		address.getPhysicalAddresses().add(physicalAddress);
@@ -275,7 +279,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(6, constraintViolations.size());
+		assertEquals("Error validating physical address", 7, constraintViolations.size());
 		
 		AddressPart addressPart = new AddressPart();
 		physicalAddress.getAddressParts().add(addressPart);
@@ -283,7 +287,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(7, constraintViolations.size());
+		assertEquals("Error validating address part", 8, constraintViolations.size());
 		
 		addressPart.setType("test");
 		addressPart.setValue("Hello");
@@ -291,14 +295,14 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(6, constraintViolations.size());
+		assertEquals("Error validating addressPart contents", 7, constraintViolations.size());
 		
 		addressPart.setType("addressLine");
 		
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(5, constraintViolations.size());
+		assertEquals("Error validating addressPart type", 6, constraintViolations.size());
 		
 		ElectronicAddress electronicAddress = new ElectronicAddress();
 		address.getElectronicAddresses().add(electronicAddress);
@@ -306,14 +310,14 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(6, constraintViolations.size());
+		assertEquals("Error validating electronic address", 7, constraintViolations.size());
 		
 		electronicAddress.setValue("http://google.com.au");
 		
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(5, constraintViolations.size());
+		assertEquals("Error validating electronic address value", 6, constraintViolations.size());
 		
 		ElectronicAddressArgument argument = new ElectronicAddressArgument();
 		
@@ -322,7 +326,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(8, constraintViolations.size());
+		assertEquals("Error validating electronic address argument", 9, constraintViolations.size());
 		
 		argument.setRequired("test");
 		argument.setType("test");
@@ -331,7 +335,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(9, constraintViolations.size());
+		assertEquals("Error validating argument value", 10, constraintViolations.size());
 		
 		argument.setRequired("true");
 		argument.setType("string");
@@ -340,14 +344,14 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(6, constraintViolations.size());
+		assertEquals("Error validating argument proper values", 7, constraintViolations.size());
 		
 		electronicAddress.getArgs().clear();
 		
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(5, constraintViolations.size());
+		assertEquals("Error validating no electronic address arguments", 6, constraintViolations.size());
 		
 		RelatedObject relatedObject = new RelatedObject();
 		collection.getRelatedObjects().add(relatedObject);
@@ -355,7 +359,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(7, constraintViolations.size());
+		assertEquals("Error validating related objects", 8, constraintViolations.size());
 		
 		relatedObject.setKey("http://anu.edu.au/test:1");
 		Relation relation = new Relation();
@@ -364,14 +368,14 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(6, constraintViolations.size());
+		assertEquals("Error validating relation", 7, constraintViolations.size());
 		
 		relation.setType("isPartOf");
 		
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(5, constraintViolations.size());
+		assertEquals("Error validating relation type", 6, constraintViolations.size());
 		
 		Subject subject = new Subject();
 		collection.getSubjects().add(subject);
@@ -379,7 +383,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(6, constraintViolations.size());
+		assertEquals("Error validating subjects", 7, constraintViolations.size());
 		
 		subject.setType("anzsrc-for");
 		subject.setValue("10");
@@ -387,7 +391,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(4, constraintViolations.size());
+		assertEquals("Error validating subject values", 5, constraintViolations.size());
 		
 		Description description = new Description();
 		collection.getDescriptions().add(description);
@@ -395,7 +399,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(6, constraintViolations.size());
+		assertEquals("Error validating description", 7, constraintViolations.size());
 		
 		description.setType("test");
 		description.setValue("Testing Description");
@@ -403,21 +407,21 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(5, constraintViolations.size());
+		assertEquals("Error validating description values", 6, constraintViolations.size());
 		
 		description.setType("significanceStatement");
 		
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(4, constraintViolations.size());
+		assertEquals("Error validating description type", 5, constraintViolations.size());
 		
 		description.setType("brief");
 		
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(3, constraintViolations.size());
+		assertEquals("Error validating description brief type", 4, constraintViolations.size());
 		
 		Coverage coverage = new Coverage();
 		collection.getCoverage().add(coverage);
@@ -425,7 +429,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(3, constraintViolations.size());
+		assertEquals("Error validating coverage", 4, constraintViolations.size());
 		
 		Temporal temporal = new Temporal();
 		coverage.getTemporalDates().add(temporal);
@@ -433,7 +437,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(3, constraintViolations.size());
+		assertEquals("Error validating temporal coverage", 4, constraintViolations.size());
 		
 		ANDSDate andsDate = new ANDSDate();
 		temporal.setDate(andsDate);
@@ -441,7 +445,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(4, constraintViolations.size());
+		assertEquals("Error validating temporal coverage date", 5, constraintViolations.size());
 		
 		andsDate.setType("dateFrom");
 		andsDate.setDateFormat("");
@@ -451,7 +455,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(2, constraintViolations.size());
+		assertEquals("Error validating temporal coverage date value", 3, constraintViolations.size());
 		
 		Rights rights = new Rights();
 		collection.getRights().add(rights);
@@ -459,7 +463,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(2, constraintViolations.size());
+		assertEquals("Error validating rights", 3, constraintViolations.size());
 		
 		RightsSection rightsSection = new RightsSection();
 		rights.setAccessRights(rightsSection);
@@ -467,7 +471,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(2, constraintViolations.size());
+		assertEquals("Error validating rights section", 3, constraintViolations.size());
 		
 		rightsSection.setType("test");
 		rightsSection.setValue("Testing Rights Value");
@@ -475,14 +479,14 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(2, constraintViolations.size());
+		assertEquals("Error validating rights section content", 3, constraintViolations.size());
 		
 		rightsSection.setType("CC-BY-SA");
 		
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(1, constraintViolations.size());
+		assertEquals("Error validating rights section type", 2, constraintViolations.size());
 		
 		CitationInfo citationInfo = new CitationInfo();
 		collection.getCitationInfo().add(citationInfo);
@@ -490,7 +494,7 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(1, constraintViolations.size());
+		assertEquals("Error validating citation info", 2, constraintViolations.size());
 		
 		FullCitation fullCitation = new FullCitation();
 		citationInfo.setFullCitation(fullCitation);
@@ -498,14 +502,14 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(1, constraintViolations.size());
+		assertEquals("Error validating full citation", 2, constraintViolations.size());
 		
 		fullCitation.setValue("Full Citation Value");
 		
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(0, constraintViolations.size());
+		assertEquals("Error validating full citation value", 1, constraintViolations.size());
 		
 		CitationMetadata citationMetadata = new CitationMetadata();
 		citationInfo.setCitationMetadata(citationMetadata);
@@ -513,22 +517,22 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(7, constraintViolations.size());
+		assertEquals("Error validating citation metadata", 6, constraintViolations.size());
 		
 		Identifier citationIdentifier = new Identifier();
 		citationMetadata.setIdentifier(citationIdentifier);
 		Contributor contributor = new Contributor();
 		citationMetadata.getContributors().add(contributor);
 		citationMetadata.setTitle("Citation Title");
-		citationMetadata.setEdition("Edition 1");
-		citationMetadata.setPlacePublished("Canberra");
-		citationMetadata.setUrl("http://google.com.au");
-		citationMetadata.setContext("test database");
+		citationMetadata.setPublisher("Australian National University");
+		ANDSDate citationDate = new ANDSDate();
+		List<ANDSDate> citationDates = Arrays.asList(citationDate);
+		citationMetadata.setDates(citationDates);
 		
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(3, constraintViolations.size());
+		assertEquals("Error validating citation metadata content", 6, constraintViolations.size());
 		
 		citationIdentifier.setType("doi");
 		citationIdentifier.setValue("test");
@@ -541,8 +545,56 @@ public class RegistryObjectsTest {
 		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
 		//printViolations(constraintViolations);
 		
-		assertEquals(0, constraintViolations.size());
+		assertEquals("Error validating citation metadata contributor", 3, constraintViolations.size());
 		contributor.getNameParts().add(contributorNamePart);
+		
+		citationDate.setDateFormat("W3CDTF");
+		XMLGregorianCalendar citationDateValue = DatatypeFactory.newInstance().newXMLGregorianCalendar();
+		citationDate.setValue(citationDateValue);
+		
+		//andsDate.setType("dateFrom");
+		//andsDate.setDateFormat("");
+		//XMLGregorianCalendar date = DatatypeFactory.newInstance().newXMLGregorianCalendar();
+		//andsDate.setValue(date);
+		
+		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
+		//printViolations(constraintViolations);
+		
+		assertEquals("Error validating citation metadata date", 1, constraintViolations.size());
+		contributor.getNameParts().add(contributorNamePart);
+		
+		Dates dates = new Dates();
+		List<Dates> dateList = Arrays.asList(dates);
+		
+		collection.setDates(dateList);
+		
+		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
+		//printViolations(constraintViolations);
+		
+		assertEquals("Error validating citation metadata date", 2, constraintViolations.size());
+		
+		dates.setType("test");
+		
+		ANDSDate datesDate = new ANDSDate();
+		List<ANDSDate> andsDatesList = Arrays.asList(datesDate);
+		
+		dates.setDate(andsDatesList);
+		
+		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
+		//printViolations(constraintViolations);
+		
+		assertEquals("Error validating citation metadata date", 3, constraintViolations.size());
+		
+		dates.setType("created");
+		
+		datesDate.setDateFormat("dateFrom");
+		XMLGregorianCalendar datesXMLDate = DatatypeFactory.newInstance().newXMLGregorianCalendar();
+		datesDate.setValue(datesXMLDate);
+		
+		constraintViolations = validator.validate(registryObjects, CollectionCheck.class);
+		//printViolations(constraintViolations);
+		
+		assertEquals("Error validating citation metadata date", 0, constraintViolations.size());
 	}
 	
 	private void printViolations(Set<ConstraintViolation<RegistryObjects>> constraintViolations) {

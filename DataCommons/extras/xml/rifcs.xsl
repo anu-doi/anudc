@@ -301,9 +301,9 @@
 		<xsl:if test="data/licence">
 			<xsl:for-each select="data/licence">
 				<rights>
-					<license>
+					<licence>
 						<xsl:value-of select="text()" />
-					</license>
+					</licence>
 				</rights>
 			</xsl:for-each>
 		</xsl:if>

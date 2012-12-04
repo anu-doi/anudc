@@ -43,6 +43,7 @@ import com.sun.jersey.api.view.Viewable;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		28/11/2012	Genevieve Turner (GT)	Initial
+ * 0.2		28/11/2012	Genevieve Turner (GT)	Updated to fix an issue with a null pointer exception when there are no child relations
  * </pre>
  *
  */
@@ -60,6 +61,7 @@ public class PambuItemResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		28/11/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		28/11/2012	Genevieve Turner (GT)	Updated to fix an issue with a null pointer exception when there are no child relations
 	 * </pre>
 	 * 
 	 * @param pambuId The pacific manuscripts bureau serial number
@@ -95,9 +97,11 @@ public class PambuItemResource {
 			if (solrDocumentList.size() > 0) {
 				SolrDocument doc = solrDocumentList.get(0);
 				List<String> hasPart = (ArrayList<String>) doc.get("published.related.hasPart");
-				SolrSearchResult results = getItemList(hasPart);
 				model.put("document", doc);
-				model.put("items", results);
+				if (hasPart != null && hasPart.size() > 0) {
+					SolrSearchResult results = getItemList(hasPart);
+					model.put("items", results);
+				}
 			}
 		}
 		catch (SolrServerException e) {

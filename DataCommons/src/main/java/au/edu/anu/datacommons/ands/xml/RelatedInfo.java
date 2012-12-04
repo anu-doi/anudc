@@ -1,6 +1,7 @@
 package au.edu.anu.datacommons.ands.xml;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  * RelatedInfo
@@ -10,17 +11,19 @@ import javax.xml.bind.annotation.XmlAttribute;
  * Class for the relatedInfo element in the ANDS RIF-CS schema
  *
  * JUnit Coverage:
- * None
+ * RegistryObjectsTest
  * 
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		15/10/2012	Genevieve Turner (GT)	Initial
+ * 0.2		04/12/2012	Genevieve Turner (GT)	Updated to comply with rif-cs version 1.4
  * </pre>
  *
  */
 public class RelatedInfo {
 	private String type;
 	private Identifier identifier;
+	private Format format;
 	private String title;
 	private String notes;
 	
@@ -69,6 +72,7 @@ public class RelatedInfo {
 	 * 
 	 * @return the identifier
 	 */
+	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
 	public Identifier getIdentifier() {
 		return identifier;
 	}
@@ -88,6 +92,39 @@ public class RelatedInfo {
 	public void setIdentifier(Identifier identifier) {
 		this.identifier = identifier;
 	}
+
+	/**
+	 * getFormat
+	 *
+	 * Get the related info format
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		04/12/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return the format
+	 */
+	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
+	public Format getFormat() {
+		return format;
+	}
+
+	/**
+	 * setFormat
+	 *
+	 * Set the related info format
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		04/12/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param format the format to set
+	 */
+	public void setFormat(Format format) {
+		this.format = format;
+	}
 	
 	/**
 	 * getTitle
@@ -101,6 +138,7 @@ public class RelatedInfo {
 	 * 
 	 * @return the title
 	 */
+	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
 	public String getTitle() {
 		return title;
 	}
@@ -133,6 +171,7 @@ public class RelatedInfo {
 	 * 
 	 * @return the notes
 	 */
+	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
 	public String getNotes() {
 		return notes;
 	}
