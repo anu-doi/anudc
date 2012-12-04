@@ -34,7 +34,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-import org.apache.tika.io.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +62,10 @@ public final class DcStorage
 
 	public static final BagFactory bagFactory = new BagFactory();
 
-	protected DcStorage() throws IOException
+	/**
+	 * Constructor for DcStorage. Initialises the hashing algorithm(s) to use, completers, and writers.
+	 */
+	protected DcStorage()
 	{
 		// Algorithms for manifest files.
 		algorithms = new HashSet<Manifest.Algorithm>();
@@ -81,27 +84,21 @@ public final class DcStorage
 			bagsDir = GlobalProps.getBagsDirAsFile();
 
 		// If the directory specified doesn't exist, create it.
-		if (!bagsDir.exists())
+		if (!bagsDir.exists() && !bagsDir.mkdirs())
 		{
-			if (!bagsDir.mkdirs())
-				throw new IOException(MessageFormat.format("Unable to create {0}. Check permissions.", bagsDir.getAbsolutePath()));
+			throw new RuntimeException(MessageFormat.format("Unable to create {0}. Check permissions.", bagsDir.getAbsolutePath()));
 		}
 	}
 
+	/**
+	 * Returns the singleton instance of DcStorage object.
+	 * 
+	 * @return DcStorage object as DcStorage
+	 */
 	public static synchronized DcStorage getInstance()
 	{
 		if (inst == null)
-		{
-			try
-			{
-				inst = new DcStorage();
-			}
-			catch (IOException e)
-			{
-				inst = null;
-				LOGGER.error(e.getMessage(), e);
-			}
-		}
+			inst = new DcStorage();
 		return inst;
 	}
 
@@ -113,6 +110,17 @@ public final class DcStorage
 			throw new RuntimeException("Can't change storage location after instantiation.");
 	}
 
+	/**
+	 * Downloads a file from a specified URL and adds it to the bag of a specified collection.
+	 * 
+	 * @param pid
+	 *            Pid of the collection record
+	 * @param filename
+	 *            Filename to save as
+	 * @param fileUrl
+	 *            URL of the externally hosted file as String
+	 * @throws DcStorageException
+	 */
 	public void addFileToBag(String pid, String filename, String fileUrl) throws DcStorageException
 	{
 		try
@@ -127,6 +135,17 @@ public final class DcStorage
 		}
 	}
 
+	/**
+	 * Downloads a file from a specified URL and adds it to the bag of a specified collection.
+	 * 
+	 * @param pid
+	 *            Pid of the collection record
+	 * @param filename
+	 *            Filename to save as
+	 * @param fileUrl
+	 *            URL from where to download the file
+	 * @throws DcStorageException
+	 */
 	public void addFileToBag(String pid, String filename, URL fileUrl) throws DcStorageException
 	{
 		File tempFile = null;
@@ -139,7 +158,8 @@ public final class DcStorage
 				throw new IOException(MessageFormat.format("Unable to rename {0} to {1}.", tempFile.getAbsolutePath(), tempRenamedFile.getAbsolutePath()));
 
 			LOGGER.debug("Saving {} as {}...", fileUrl.toString(), tempRenamedFile.getAbsolutePath());
-			FileUtils.copyURLToFile(fileUrl, tempRenamedFile);
+			// Connection and read timeout set to 30 seconds.
+			FileUtils.copyURLToFile(fileUrl, tempRenamedFile, 30000, 30000);
 			addFileToBag(pid, tempRenamedFile);
 		}
 		catch (IOException e)
@@ -156,6 +176,15 @@ public final class DcStorage
 		}
 	}
 
+	/**
+	 * Adds a local file to a collection's bag.
+	 * 
+	 * @param pid
+	 *            Pid of the collection record
+	 * @param file
+	 *            File object
+	 * @throws DcStorageException
+	 */
 	public void addFileToBag(String pid, File file) throws DcStorageException
 	{
 		// TODO Lock Pid
@@ -176,14 +205,7 @@ public final class DcStorage
 			writeBag(bag, pid);
 			bag = bag.makeComplete(postSaveCompleter);
 			writeBag(bag, pid);
-			try
-			{
-				bag.close();
-			}
-			catch (IOException e)
-			{
-				LOGGER.warn(e.getMessage(), e);
-			}
+			IOUtils.closeQuietly(bag);
 		}
 		catch (IOException e)
 		{
@@ -193,6 +215,15 @@ public final class DcStorage
 		}
 	}
 
+	/**
+	 * Adds a reference to an external URL in a bag.
+	 * 
+	 * @param pid
+	 *            Pid of a collection as String
+	 * @param url
+	 *            External URL as String
+	 * @throws DcStorageException
+	 */
 	public void addExtRef(String pid, String url) throws DcStorageException
 	{
 		Bag bag = null;
@@ -222,10 +253,20 @@ public final class DcStorage
 		}
 		finally
 		{
-			closeBag(bag);
+			IOUtils.closeQuietly(bag);
 		}
 	}
 	
+	/**
+	 * Adds a bag to a collection.
+	 * 
+	 * @see #storeBag(String, Bag)
+	 * @param pid
+	 *            Pid of a collection as String
+	 * @param bagFile
+	 *            Bag as a File object
+	 * @throws DcStorageException
+	 */
 	public void storeBag(String pid, File bagFile) throws DcStorageException
 	{
 		Bag bag = bagFactory.createBag(bagFile, LoadOption.BY_FILES);
@@ -235,10 +276,20 @@ public final class DcStorage
 		}
 		finally
 		{
-			closeBag(bag);
+			IOUtils.closeQuietly(bag);
 		}
 	}
 
+	/**
+	 * Adds a bag to a collection.
+	 * 
+	 * @param pid
+	 *            Pid of a collection as String.
+	 * 
+	 * @param bag
+	 *            Bag as Bag object
+	 * @throws DcStorageException
+	 */
 	public void storeBag(String pid, Bag bag) throws DcStorageException
 	{
 		// Verify the bag.
@@ -269,7 +320,7 @@ public final class DcStorage
 			}
 			finally
 			{
-				closeBag(curBag);
+				IOUtils.closeQuietly(curBag);
 			}
 		}
 
@@ -289,14 +340,31 @@ public final class DcStorage
 			LOGGER.warn(e.getMessage(), e);
 		}
 
-		closeBag(bag);
+		IOUtils.closeQuietly(bag);
 	}
 
+	/**
+	 * Checks if a bag exists for a specified collection.
+	 * 
+	 * @param pid
+	 *            A collection's Pid as String
+	 * @return true if bag exists, false otherwise.
+	 */
 	public boolean bagExists(String pid)
 	{
 		return (getBag(pid) != null);
 	}
 
+	/**
+	 * Checks if a file exists in a bag of a specified collection.
+	 * 
+	 * @param pid
+	 *            Pid of a collection
+	 * @param filepath
+	 *            Path of the file within the bag. E.g. <code>data/abc.txt</code>
+	 * @return true if exists, false otherwise
+	 * @throws DcStorageException
+	 */
 	public boolean fileExistsInBag(String pid, String filepath) throws DcStorageException
 	{
 		Bag bag = getBag(pid);
@@ -307,6 +375,14 @@ public final class DcStorage
 		return (bFile != null);
 	}
 
+	/**
+	 * Gets the bag of a specified collection record.
+	 * 
+	 * @param pid
+	 *            Pid of a collection record
+	 * 
+	 * @return Bag as Bag object
+	 */
 	public Bag getBag(String pid)
 	{
 		LOGGER.debug("Checking if a bag exists for {}...", pid);
@@ -326,6 +402,16 @@ public final class DcStorage
 		return bag;
 	}
 
+	/**
+	 * Gets the bag summary of a bag.
+	 * 
+	 * @param pid
+	 *            Pid of the collection record whose bag summary to retrieve
+	 * 
+	 * @return Summary as Bag Summary
+	 * 
+	 * @throws DcStorageException
+	 */
 	public BagSummary getBagSummary(String pid) throws DcStorageException
 	{
 		Bag bag = getBag(pid);
@@ -335,6 +421,16 @@ public final class DcStorage
 		return bagSummary;
 	}
 
+	/**
+	 * File Summary Map of files in a bag.
+	 * 
+	 * @param pid
+	 *            Pid of the collection record whose FileSummaryMap to retrieve.
+	 * 
+	 * @return File Summary Map as FileSummaryMap.
+	 * 
+	 * @throws DcStorageException
+	 */
 	public FileSummaryMap getFileSummaryMap(String pid) throws DcStorageException
 	{
 		Bag bag = getBag(pid);
@@ -344,6 +440,16 @@ public final class DcStorage
 		return fsMap;
 	}
 
+	/**
+	 * Gets an InputStream of a file within the bag of a specified collection.
+	 * 
+	 * @param pid
+	 *            Pid of the collection
+	 * @param filePath
+	 *            Path of file within the bag. E.g. data/file.txt
+	 * @return Inputstream of file within bag
+	 * @throws DcStorageException
+	 */
 	public InputStream getFileStream(String pid, String filePath) throws DcStorageException
 	{
 		Bag bag = getBag(pid);
@@ -356,6 +462,17 @@ public final class DcStorage
 		return fileStream;
 	}
 
+	/**
+	 * Returns an inputstream containing the zip stream of multiple files. The InputStream is filled in a separate thread while the calling function reads from
+	 * it in another thread.
+	 * 
+	 * @param pid
+	 *            Pid of the collection whose files to retrieve
+	 * @param fileSet
+	 *            Set of files whose contents are to be included in the zipstream.
+	 * @return ZipStream as InputStream
+	 * @throws IOException
+	 */
 	public InputStream getFilesAsZipStream(String pid, final Set<String> fileSet) throws IOException
 	{
 		final PipedOutputStream sink = new PipedOutputStream();
@@ -531,21 +648,6 @@ public final class DcStorage
 		bag.getBagInfoTxt().addExternalIdentifier(pid);
 
 		return bag;
-	}
-
-	private void closeBag(Bag bag)
-	{
-		if (bag != null)
-		{
-			try
-			{
-				bag.close();
-			}
-			catch (IOException e)
-			{
-				LOGGER.warn(e.getMessage(), e);
-			}
-		}
 	}
 
 	public static String convertToDiskSafe(String source)

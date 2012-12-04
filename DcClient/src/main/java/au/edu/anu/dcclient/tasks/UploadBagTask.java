@@ -7,6 +7,7 @@ import gov.loc.repository.bagit.ProgressListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URI;
@@ -16,6 +17,8 @@ import java.util.concurrent.Callable;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.tika.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +88,7 @@ public class UploadBagTask extends AbstractDcBagTask<ClientResponse>
 		try
 		{
 			updateProgress("Creating ZIP file for upload", dcBag, null, null);
+			System.out.print("Zipping bag contents... ");
 			if (this.plSet != null)
 				for (ProgressListener l : plSet)
 					dcBag.addProgressListener(l);
@@ -92,7 +96,8 @@ public class UploadBagTask extends AbstractDcBagTask<ClientResponse>
 			if (zipFile == null)
 				throw new Exception("Unable to save the bag as a ZIP file.");
 
-			updateProgress("Uploading ZIP file to Data Commons", zipFile, null, null);
+			System.out.println("[OK]");
+			updateProgress("Uploading ZIP file to ANU Data Commons", zipFile, null, null);
 			ClientResponse resp = uploadFile(zipFile);
 			dcBag.close();
 			zipFile.delete();
@@ -137,8 +142,49 @@ public class UploadBagTask extends AbstractDcBagTask<ClientResponse>
 		// ContentDisposition contDisp2 = new ContentDispositionBuilder("attachment").fileName(serializedBagFile.getName()).size(serializedBagFile.length()).build();
 		String contDisp = format("attachment; filename=\"{0}\"", serializedBagFile.getName());
 
-		ClientResponse response = webResource.type(MediaType.APPLICATION_OCTET_STREAM_TYPE).header("Content-Disposition", contDisp)
-				.post(ClientResponse.class, new FileInputStream(serializedBagFile));
+		FileInputStream bagStream = null;
+		ClientResponse response;
+		System.out.println(format("Uploading Zip file ({0}) to ANU Data Commons...", FileUtils.byteCountToDisplaySize(serializedBagFile.length())));
+		try
+		{
+			bagStream = new FileInputStream(serializedBagFile) {
+				protected long numBytes = 0L;
+				protected String progressString = "";
+				
+				@Override
+				public int read() throws IOException
+				{
+					System.out.print(".");
+					return super.read();
+				}
+				
+				@Override
+				public int read(byte b[]) throws IOException
+				{
+					numBytes += b.length;
+					String tempStr = FileUtils.byteCountToDisplaySize(numBytes);
+					if (!tempStr.equals(progressString))
+					{
+						progressString = tempStr;
+						System.out.print(format("\r{0} transferred.          ", FileUtils.byteCountToDisplaySize(numBytes)));
+					}
+					return super.read(b);
+				}
+				
+				@Override
+				public int read(byte b[], int off, int len) throws IOException {
+			        System.out.print(".");
+					return super.read(b, off, len);
+			    }
+				
+			};
+			response = webResource.type(MediaType.APPLICATION_OCTET_STREAM_TYPE).header("Content-Disposition", contDisp).post(ClientResponse.class, bagStream);
+			System.out.println();
+		}
+		finally
+		{
+			IOUtils.closeQuietly(bagStream);
+		}
 		LOGGER.info("Response status: {}", response.getStatus());
 		return response;
 	}

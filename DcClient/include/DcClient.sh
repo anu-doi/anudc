@@ -1,7 +1,8 @@
 #!/bin/sh
 
 AppServer=https://dc7-dev1.anu.edu.au:8443
-AppServer=https://datacommons.anu.edu.au:8443
+# AppServer=https://datacommons.anu.edu.au:8443
+
 BagsDir=~/Bags
 DcClientAppDir=`dirname $0`
 

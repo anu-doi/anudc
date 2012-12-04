@@ -11,6 +11,9 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.config.Config;
+import au.edu.anu.datacommons.config.PropertiesFile;
+
 /**
  * GlobalProps
  * 
@@ -41,9 +44,6 @@ public final class GlobalProps
 {
 	private static final Properties globalProperties;
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalProps.class);
-
-	// Name of the properties file from which properties will be read.
-	private static final String GLOBAL_PROPERTIES_FILENAME = "global.properties";
 
 	// List of valid Keys in global.properties file that can be used as parameters in the methods of this class.
 	public static final String PROP_FEDORA_URI = "fedora.baseURI";
@@ -86,15 +86,13 @@ public final class GlobalProps
 
 	static
 	{
-		globalProperties = new Properties();
-
 		try
 		{
-			globalProperties.load(Thread.currentThread().getContextClassLoader().getResourceAsStream(GLOBAL_PROPERTIES_FILENAME));
+			globalProperties = new PropertiesFile(new File(Config.DIR, "datacommons/datacommons.properties"));
 		}
 		catch (IOException e)
 		{
-			LOGGER.error("Unable to read configuration file", e);
+			throw new RuntimeException(e);
 		}
 	}
 
