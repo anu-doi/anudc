@@ -105,14 +105,13 @@
 		<tooltip>If appropriate, please include geospatial location information relevant to the research dataset/collection. This information may describe a geographical area where the data was collected, a place which is the subject of the collection or a location which is the focus of an activity e.g. co-ordinates or place name.</tooltip>
 		<column name="covAreaType" label="Location Type" fieldType="Combobox">
 			<option value="text" label="Text" />
-			<option value="gml" label="OpenGIS Geography Markup Language (GML) Encoding Standard" />
 			<option value="gmlKmlPolyCoords" label="KML long/lat co-ordinates from GML defining a polygon" />
 			<option value="gpx" label="the GPS Exchange Format" />
 			<option value="iso31661" label="ISO 3166-1 Country Codes" />
 			<option value="iso31662" label="ISO 3166-2 Country Subdivision Codes" />
+			<option value="iso31663" label="ISO 3166-3 Deleted Country Codes" />
 			<option value="iso19139dcmiBox" label="DCMI Box notation conformant with iso 19139" />
-			<option value="kml" label="Keyhole Markup Language developed for use with Google Earth" />
-			<option value="kmlPolyCoords" label="Keyhol Markup Language co-ordinates defining a polygon" />
+			<option value="kmlPolyCoords" label="Keyhole Markup Language co-ordinates defining a polygon" />
 			<option value="dcmiPpoint" label="Spatial Location Information in DCMI Point Notation" />
 		</column>
 		<column name="covAreaValue" fieldType="TextField" />

@@ -2,7 +2,7 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
-<anu:header id="1998" title="Page" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au" ssl="true">
+<anu:header id="1998" title="Publish" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au" ssl="true">
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/default.css' />" />
 	<script type="text/javascript" src="<c:url value='/js/global.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/jquery.validate.min.js' />"></script>
@@ -10,7 +10,7 @@
 
 <jsp:include page="header.jsp" />
 
-<anu:content layout="doublenarrow">
+<anu:content layout="doublewide">
 	<h1>Publishing Page</h1>
 	<c:if test="${not empty it.message}">
 		Published to:<br />

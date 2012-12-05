@@ -23,7 +23,11 @@
 				<xsl:if test="$data = ''">
 					<xsl:attribute name="action">new?layout=def:display&amp;tmplt=<xsl:value-of select="$tmplt" />&amp;item=<xsl:value-of select="$item" /></xsl:attribute>
 				</xsl:if>
-				<input type="submit" class="right" value="Submit" /><br/>
+				<input type="submit" class="right" value="Submit" />
+				<xsl:if test="$data != ''">
+					<input type="button" class="right" value="Return to Record" onclick="window.location='/DataCommons/rest/display/{$item}?layout=def:display'" />
+				</xsl:if>
+				<br/>
 				<div id="tabs" class="pagetabs-nav">
 					<ul>
 						<xsl:for-each select="template/tab">
