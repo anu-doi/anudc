@@ -61,7 +61,7 @@ public class DhProject
 		this.briefDesc = briefDesc;
 	}
 
-	@XmlElement(name = "strain")
+	@XmlElement(name = "collection")
 	public List<Strain> getStrains()
 	{
 		return strains;

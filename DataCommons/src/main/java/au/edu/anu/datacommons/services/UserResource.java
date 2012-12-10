@@ -504,8 +504,7 @@ public class UserResource {
 		authorityDAO.create(authority);
 		
 		Email email = new Email(mailSender);
-		email.setToName(user.getDisplayName());
-		email.setToEmail(emailAddr);
+		email.addRecipient(emailAddr, user.getDisplayName());
 		email.setSubject("Account Created");
 		
 		Map<String, String> varMap = new HashMap<String, String>();
@@ -579,8 +578,7 @@ public class UserResource {
 		UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path("user").path("resetpassword").queryParam("link", userRequest.getLink_id());
 		
 		Email email = new Email(mailSender);
-		email.setToName(user.getDisplayName());
-		email.setToEmail(username);
+		email.addRecipient(username, user.getDisplayName());
 		email.setSubject("Forgotten Password");
 		
 		Map<String, String> varMap = new HashMap<String, String>();
@@ -651,8 +649,7 @@ public class UserResource {
 		userRequestDAO.update(userRequest);
 		
 		Email email = new Email(mailSender);
-		email.setToName(user.getDisplayName());
-		email.setToEmail(user.getUsername());
+		email.addRecipient(user.getUsername(), user.getDisplayName());
 		email.setSubject("Forgotten Password");
 		
 		Map<String, String> varMap = new HashMap<String, String>();

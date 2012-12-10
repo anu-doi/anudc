@@ -115,6 +115,7 @@ public class DhRequest implements Processable
 				strainColl.setExtIds(Arrays.asList(iStrain.getExtId()));
 				strainColl.setTitle(iStrain.getTitle());
 				strainColl.setBriefDesc(iStrain.getBriefDesc());
+				strainColl.setFileUrlList(iStrain.getFileUrlList());
 
 				// Strain constants
 				strainColl.setOwnerGroup(constants.getProperty("strain.ownerGroup"));

@@ -7,13 +7,13 @@
 <anu:content layout="narrow">
 	<jsp:include page="status.jsp" />
 	<anu:box style="solid">
-		<c:if test="${it.itemType == 'Collection'}">
+		<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
 			<sec:authorize access="isAnonymous()">
 				Please login to request access to this dataset
 			</sec:authorize>
 		</c:if>
 		<sec:authorize access="isAuthenticated()">
-			<c:if test="${it.itemType == 'Collection'}">
+			<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
 				<sec:authorize access="hasRole('ROLE_REGISTERED')">
 					<c:url value="/rest/collreq" var="collReqLink">
 						<c:param name="pid" value="${it.fedoraObject.object_id}" />

@@ -1,0 +1,4 @@
+A Collection Request has been submitted for the collection ID ${pid} that requires your action. To view the request, please visit ${collReqUrl} to take an appropriate action.
+
+Regards,
+ANU

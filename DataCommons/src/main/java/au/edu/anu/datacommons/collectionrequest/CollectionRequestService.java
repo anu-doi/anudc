@@ -1,9 +1,11 @@
 package au.edu.anu.datacommons.collectionrequest;
 
+import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.BagFile;
 
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,6 +31,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
@@ -56,6 +63,8 @@ import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.Users;
+import au.edu.anu.datacommons.data.solr.SolrManager;
+import au.edu.anu.datacommons.data.solr.SolrUtils;
 import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.security.service.GroupService;
@@ -102,7 +111,7 @@ public class CollectionRequestService
 	private static final String DROPBOX_JSP = "/dropbox.jsp";
 	private static final String QUESTION_JSP = "/question.jsp";
 	private static final String DROPBOX_ACCESS_JSP = "/dropboxaccess.jsp";
-	
+
 	private static final DcStorage dcStorage = DcStorage.getInstance();
 
 	@Resource(name = "mailSender")
@@ -196,7 +205,7 @@ public class CollectionRequestService
 
 			LOGGER.debug("Found Collection Request ID {}, for Pid {}.", collReq.getId(), collReq.getPid());
 			model.put("collReq", collReq);
-			
+
 			// Add files in payload to model.
 			if (dcStorage.bagExists(collReq.getPid()))
 			{
@@ -286,9 +295,24 @@ public class CollectionRequestService
 			CollectionRequestDAO requestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
 			requestDAO.create(newCollReq);
 
+			uriBuilder = UriBuilder.fromPath("/collreq/").path(newCollReq.getId().toString());
+
+			// Send email to contacts of the collection.
+			Map<String, String> varMap = new HashMap<String, String>();
+			varMap.put("pid", pid);
+			varMap.put("collReqUrl", uriInfo.getBaseUriBuilder().path(this.getClass()).path(this.getClass(), "doGetReqItemAsHtml").build(newCollReq.getId())
+					.toString());
+
+			Email email = new Email(mailSender);
+			List<String> contactEmailList = getEmails(pid);
+			for (String recipientEmail : contactEmailList)
+				email.addRecipient(recipientEmail);
+			email.setSubject("Collection data requested");
+			email.setBody("mailtmpl/collreqsubmitted.txt", varMap);
+			email.send();
+
 			messages.add(MessageType.SUCCESS, "Collection Request successfully saved. ID# " + newCollReq.getId(), model);
 			model.put("collReq", newCollReq);
-			uriBuilder = UriBuilder.fromPath("/collreq/").path(newCollReq.getId().toString());
 			uriBuilder = uriBuilder.queryParam("smsg", "Collection Request saved. ID# " + newCollReq.getId().toString());
 		}
 		catch (Exception e)
@@ -370,7 +394,7 @@ public class CollectionRequestService
 			LOGGER.debug("{} items checked.", fileSet.size());
 			// Add each of the items requested (datastreams) to the CR.
 			Set<CollectionRequestItem> curItems = collReq.getItems();
-			
+
 			// Sync the list of items in the POST with the ones already stored.
 			for (String iFile : fileSet)
 			{
@@ -383,17 +407,17 @@ public class CollectionRequestService
 						break;
 					}
 				}
-				
+
 				if (!isPresent)
 				{
 					CollectionRequestItem newItem = new CollectionRequestItem(iFile);
 					collReq.addItem(newItem);
 				}
 			}
-			
+
 			GenericDAO<CollectionRequestItem, Long> collReqDao = new GenericDAOImpl<CollectionRequestItem, Long>(CollectionRequestItem.class);
 			Iterator<CollectionRequestItem> iter = curItems.iterator();
-			while(iter.hasNext())
+			while (iter.hasNext())
 			{
 				CollectionRequestItem iItem = iter.next();
 				if (!fileSet.contains(iItem.getItem()))
@@ -402,10 +426,10 @@ public class CollectionRequestService
 					collReqDao.delete(iItem.getId());
 				}
 			}
-			
+
 			// Save the updated collection request in the DB.
 			collReq = collectionRequestDAO.update(collReq);
-			
+
 			LOGGER.debug("Updated details of CR ID# {}.", collReq.getId());
 			redirUri.queryParam("smsg", "Successfully added status to Status History");
 
@@ -416,16 +440,16 @@ public class CollectionRequestService
 				CollectionDropbox dBox = new CollectionDropbox(collReq, user, true);
 				collReq.setDropbox(dBox);
 				collReq = collectionRequestDAO.update(collReq);
-				
+
 				dropboxUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(CollectionRequestService.class)
 						.path(CollectionRequestService.class, "doGetDropboxAccessAsHtml").queryParam("p", collReq.getDropbox().getAccessPassword())
 						.build(collReq.getDropbox().getAccessCode());
 
 				redirUri.queryParam(
 						"imsg",
-						MessageFormat.format("Dropbox created<br /><strong>Code: </strong>{0}<br /><strong>Password: </strong>{1}", collReq.getDropbox()
-								.getAccessCode().toString(), collReq.getDropbox().getAccessPassword()));
-				redirUri.queryParam("imsg", MessageFormat.format("Dropbox Access Link: <a href=''{0}''>Dropbox Access</a>", dropboxUri.toString()));
+						format("Dropbox created<br /><strong>Code: </strong>{0}<br /><strong>Password: </strong>{1}", collReq.getDropbox().getAccessCode()
+								.toString(), collReq.getDropbox().getAccessPassword()));
+				redirUri.queryParam("imsg", format("Dropbox Access Link: <a href=''{0}''>Dropbox Access</a>", dropboxUri.toString()));
 			}
 
 			// Send out an email to the requestor. If failed, add status message advising that the requestor should be contacted directly.
@@ -440,8 +464,7 @@ public class CollectionRequestService
 				varMap.put("reason", collReq.getLastStatus().getReason());
 
 				Email email = new Email(mailSender);
-				email.setToName(collReq.getRequestor().getDisplayName());
-				email.setToEmail(collReq.getRequestor().getEmail());
+				email.addRecipient(collReq.getRequestor().getEmail(), collReq.getRequestor().getDisplayName());
 				email.setSubject("Collection Request# " + collReq.getId() + " Status Changed");
 
 				// Add a message about the dropbox being created if the status is now Accepted.
@@ -655,7 +678,7 @@ public class CollectionRequestService
 			CollectionDropbox dropbox = dropboxDAO.getSingleByAccessCode(dropboxAccessCode);
 
 			if (dropbox == null)
-				throw new NotFoundException(MessageFormat.format("Dropbox with Access Code {0} doesn't exist.", dropbox.getAccessCode().toString()));
+				throw new NotFoundException(format("Dropbox with Access Code {0} doesn't exist.", dropbox.getAccessCode().toString()));
 
 			LOGGER.debug("Dropbox found.");
 			model.put("dropbox", dropbox);
@@ -691,7 +714,7 @@ public class CollectionRequestService
 			model.put("downloadAsZipUrl", uriBuilder.build(dropbox.getCollectionRequest().getPid(), "zip"));
 
 			// External references list.
-			
+
 			ExtRefsTxt extRefsTxt = dcStorage.getBagSummary(dropbox.getCollectionRequest().getPid()).getExtRefsTxt();
 			if (extRefsTxt != null && extRefsTxt.entrySet().size() > 0)
 			{
@@ -700,7 +723,7 @@ public class CollectionRequestService
 					fetchables.put(extRefEntry.getValue(), extRefEntry.getValue());
 				model.put("fetchables", fetchables);
 			}
-			
+
 			// Make a log of access
 			CollectionDropboxAccessLog log = new CollectionDropboxAccessLog(dropbox, request.getRemoteAddr());
 			dropbox.addAccessLogEntry(log);
@@ -1026,5 +1049,36 @@ public class CollectionRequestService
 	{
 		List<Question> questions = new QuestionDAOImpl(Question.class).getAll();
 		return questions;
+	}
+
+	private List<String> getEmails(String pid)
+	{
+		List<String> emailList = new ArrayList<String>();
+		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		SolrQuery solrQuery = new SolrQuery();
+		solrQuery.setQuery(format("id:\"{0}\"", SolrUtils.escapeSpecialCharacters(pid)));
+		solrQuery.addField("id");
+		solrQuery.addField("unpublished.email");
+
+		QueryResponse queryResponse;
+		try
+		{
+			queryResponse = solrServer.query(solrQuery);
+			SolrDocumentList resultList = queryResponse.getResults();
+			if (resultList.getNumFound() == 0)
+				throw new IllegalArgumentException(format("A collection doesn't exist with the Pid {0}", pid));
+
+			if (resultList.getNumFound() > 1)
+				throw new IllegalArgumentException(format("Multiple collections found with Pid {0}", pid));
+
+			for (Object emailAsObj : resultList.get(0).getFieldValues("unpublished.email"))
+				emailList.add((String) emailAsObj);
+		}
+		catch (SolrServerException e)
+		{
+			LOGGER.warn(format("Unable to execute Solr Query to retrieve emails for pid {0}.", pid), e);
+		}
+
+		return emailList;
 	}
 }

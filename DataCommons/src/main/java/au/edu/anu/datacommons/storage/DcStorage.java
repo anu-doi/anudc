@@ -78,6 +78,7 @@ public final class DcStorage
 		
 		// Bag Writer
 		writer = new FileSystemWriter(bagFactory);
+		writer.setSkipIfPayloadFileExists(false);
 
 		// Set storage location if not set already.
 		if (bagsDir == null)
@@ -188,10 +189,10 @@ public final class DcStorage
 	public void addFileToBag(String pid, File file) throws DcStorageException
 	{
 		// TODO Lock Pid
-
+		Bag bag = null;
 		try
 		{
-			Bag bag = getBag(pid);
+			bag = getBag(pid);
 			if (bag == null)
 				bag = createBlankBag(pid);
 			else
@@ -202,16 +203,19 @@ public final class DcStorage
 			}
 			bag.addFileToPayload(file);
 			bag = bag.makeComplete(preSaveCompleter);
-			writeBag(bag, pid);
+			bag = writeBag(bag, pid);
 			bag = bag.makeComplete(postSaveCompleter);
-			writeBag(bag, pid);
-			IOUtils.closeQuietly(bag);
+			bag = writeBag(bag, pid);
 		}
 		catch (IOException e)
 		{
 			DcStorageException dce = new DcStorageException(e);
 			LOGGER.error(e.getMessage(), dce);
 			throw dce;
+		}
+		finally
+		{
+			IOUtils.closeQuietly(bag);
 		}
 	}
 
