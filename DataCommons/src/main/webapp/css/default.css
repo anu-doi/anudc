@@ -5,6 +5,7 @@ select {
 	width:250px;
 }
 label.error {
+	display: none;
 	color: red;
 }
 .tab-content {

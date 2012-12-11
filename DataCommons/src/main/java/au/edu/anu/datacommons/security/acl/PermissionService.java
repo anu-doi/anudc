@@ -186,6 +186,40 @@ public class PermissionService {
 	}
 	
 	/**
+	 * checkPermission
+	 *
+	 * Verify that the user has the given permission
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		11/12/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject
+	 * @param permission
+	 * @return
+	 */
+	public boolean checkPermission(FedoraObject fedoraObject, Permission permission) {
+		boolean hasPermission = false;
+		
+		List<Sid> sidList = getAuthenticatedSidList();
+
+		ObjectIdentity objectIdentity = new ObjectIdentityImpl(FedoraObject.class, fedoraObject.getId());
+		
+		Acl acl = null;
+		try {
+			acl = aclService.readAclById(objectIdentity, sidList);
+			
+			hasPermission = acl.isGranted(Arrays.asList(permission), sidList, false);
+		}
+		catch (NotFoundException e) {
+			LOGGER.debug("User doesn't have permissions");
+		}
+		
+		return hasPermission;
+	}
+	
+	/**
 	 * getCreatePermissions
 	 *
 	 * This method has been created as the Spring Security post filters do not appear to work

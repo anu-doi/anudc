@@ -24,6 +24,7 @@ import org.springframework.security.acls.model.Permission;
  * Version	Date		Developer				Description
  * 0.1		22/06/2012	Genevieve Turner (GT)	Initial
  * 0.2		16/08/2012	Genevieve Turner (GT)	Added a list of permissions
+ * 0.3		11/12/2012	Genevieve Turner (GT)	Added the PUBLISH_MULTI and SET_PERMISSION permission levels
  * </pre>
  *
  */
@@ -32,6 +33,8 @@ public class CustomACLPermission extends BasePermission {
 	
 	public static final Permission REVIEW = new CustomACLPermission (1<<5,'V');
 	public static final Permission PUBLISH = new CustomACLPermission (1<<6,'P');
+	public static final Permission PUBLISH_MULTI = new CustomACLPermission (1<<7,'M');
+	public static final Permission SET_PERMISSION = new CustomACLPermission (1<<8,'S');
 
 	// 
 	private static List<Permission> listOfPermissions_;
@@ -44,6 +47,8 @@ public class CustomACLPermission extends BasePermission {
 		tmp.add(CustomACLPermission.ADMINISTRATION);
 		tmp.add(CustomACLPermission.REVIEW);
 		tmp.add(CustomACLPermission.PUBLISH);
+		tmp.add(CustomACLPermission.PUBLISH_MULTI);
+		tmp.add(CustomACLPermission.SET_PERMISSION);
 		listOfPermissions_ = Collections.unmodifiableList(tmp);
 	}
 	/**

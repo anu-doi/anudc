@@ -36,6 +36,8 @@
 		<input type="checkbox" name="group_perm" class="chk_perm" value="16"/>ADMINISTRATION<br/>
 		<input type="checkbox" name="group_perm" class="chk_perm" value="32"/>REVIEW<br/>
 		<input type="checkbox" name="group_perm" class="chk_perm" value="64"/>PUBLISH<br/>
+		<input type="checkbox" name="group_perm" class="chk_perm" value="128"/>PUBLISH MULTIPLE<br/>
+		<input type="checkbox" name="group_perm" class="chk_perm" value="256"/>ASSIGN PERMISSIONS<br/>
 		<input type="button" name="updatePerm" id="updatePerm" value="Update" />
 	</div>
 </anu:content>

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -16,9 +17,11 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -26,7 +29,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import au.edu.anu.datacommons.exception.ValidationException;
+import au.edu.anu.datacommons.publish.service.LocationValidationMessage;
+import au.edu.anu.datacommons.publish.service.PublishService;
+import au.edu.anu.datacommons.search.SolrSearchResult;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.services.ListResource;
 import au.edu.anu.datacommons.util.Util;
@@ -51,6 +59,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.4		19/09/2012	Genevieve Turner (GT)	Updated to redirect to the display page after publishing
  * 0.5		27/09/2012	Genevieve Turner (GT)	Updated to redirect to display page rather than edit
  * 0.6		15/10/2012	Genevieve Turner (GT)	Added the availablity of validation checks
+ * 0.7		10/12/2012	Genevieve Turner (GT)	Added mass publication and validation functionality, also moved some functions from the fedora object service to the publish service
  * </pre>
  * 
  */
@@ -59,9 +68,12 @@ import com.sun.jersey.api.view.Viewable;
 @Path("publish")
 public class PublishResource {
 	static final Logger LOGGER = LoggerFactory.getLogger(ListResource.class);
-
+	
 	@Resource(name="fedoraObjectServiceImpl")
 	private FedoraObjectService fedoraObjectService;
+	
+	@Resource(name="publishServiceImpl")
+	private PublishService publishService;
 	
 	/**
 	 * getPublishers
@@ -72,6 +84,7 @@ public class PublishResource {
 	 * Version	Date		Developer				Description
 	 * 0.1		15/05/2012	Genevieve Turner (GT)	Initial
 	 * 0.3		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
+	 * 0.7		10/12/2012	Genevieve Turner (GT)	Updated to use publishService rather htan fedoraObjectService
 	 * </pre>
 	 * 
 	 * @return The web page for publishers
@@ -83,7 +96,7 @@ public class PublishResource {
 	public Response getPublishers() {
 		LOGGER.info("In get publishers");
 		
-		List<PublishLocation> publishLocations = fedoraObjectService.getPublishers();
+		List<PublishLocation> publishLocations = publishService.getPublishers();
 		
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("publishLocations", publishLocations);
@@ -105,6 +118,7 @@ public class PublishResource {
 	 * 0.3		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
 	 * 0.4		19/09/2012	Genevieve Turner (GT)	Updated to redirect to the display page
 	 * 0.5		27/09/2012	Genevieve Turner (GT)	Updated to redirect to display page rather than edit
+	 * 0.7		10/12/2012	Genevieve Turner (GT)	Updated to use publishService rather than fedoraObjectService
 	 * </pre>
 	 * 
 	 * @param item The item to publish
@@ -115,23 +129,22 @@ public class PublishResource {
 	@Path("{item}")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response savePublishers(@PathParam("item") String item, @QueryParam("layout") String layout, 
+	public Response publishItem(@PathParam("item") String item, @QueryParam("layout") String layout, 
 			@QueryParam("tmplt") String tmplt, @Context HttpServletRequest request) {
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		List<String> publishers = form.get("publish");
 		LOGGER.debug("Locations to publish to: {}", publishers);
-		String message = "No publishers selected";
+		
 		if (publishers != null && publishers.size() > 0) {
-			message = fedoraObjectService.publish(fedoraObject, publishers);
+			try {
+				publishService.publish(fedoraObject, publishers);
+			}
+			catch (ValidateException e) {
+				throw new ValidationException(e.getMessage());
+			}
 		}
-		
-		List<PublishLocation> publishLocations = fedoraObjectService.getPublishers();
-		
-		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("publishLocations", publishLocations);
-		model.put("message", message);
 		
 		UriBuilder uriBuilder = UriBuilder.fromPath("/display").path(item).queryParam("layout", layout);
 		if (Util.isNotEmpty(tmplt)) {
@@ -171,15 +184,18 @@ public class PublishResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.6		15/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.7		11/12/2012	Genevieve Turner (GT)	Updated to use the publishing service
 	 * </pre>
 	 * 
 	 * @param item The item to check validation on
 	 * @return The validation page
 	 */
 	@GET
+	@Produces(MediaType.TEXT_HTML)
 	@Path("validate/{item}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response getValidationCheckScreen(@PathParam("item") String item) {
-		List<PublishLocation> publishLocations = fedoraObjectService.getPublishers();
+		List<PublishLocation> publishLocations = publishService.getPublishers();
 		
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("publishLocations", publishLocations);
@@ -197,6 +213,7 @@ public class PublishResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.6		15/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.7		10/12/2012	Genevieve Turner (GT)	Updated to use publishService rather htan fedoraObjectService
 	 * </pre>
 	 * 
 	 * @param item The item to check validation on
@@ -204,7 +221,9 @@ public class PublishResource {
 	 * @return The validation reponse page
 	 */
 	@POST
+	@Produces(MediaType.TEXT_HTML)
 	@Path("validate/{item}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response validateItem(@PathParam("item") String item, @Context HttpServletRequest request) {
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		List<String> publishers = form.get("publish");
@@ -213,19 +232,188 @@ public class PublishResource {
 		
 		if (publishers.size() > 0) {
 			FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
-			List<String> messages = fedoraObjectService.validatePublishLocation(fedoraObject, publishers);
+			List<String> messages = publishService.validatePublishLocation(fedoraObject, publishers);
 			model.put("validateMessages", messages);
 		}
 		else {
 			throw new WebApplicationException(Response.status(400).entity("No publish location specified").build());
 		}
 		
-		List<PublishLocation> publishLocations = fedoraObjectService.getPublishers();
+		List<PublishLocation> publishLocations = publishService.getPublishers();
 		
 		model.put("publishLocations", publishLocations);
 		
 		Viewable viewable = new Viewable("/validate.jsp", model);
 		
 		return Response.ok(viewable).build();
+	}
+	
+	/**
+	 * getMultipleItemValidationScreen
+	 *
+	 * Retrieve the page to select items and locations to validate against
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.7		10/12/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param groupId The group to find records for
+	 * @param page The page number to get records for
+	 * @return A page that contains groups that the user can validate for, also locations and items that they can validate
+	 */
+	@GET
+	@Produces(MediaType.TEXT_HTML)
+	@Path("validate/multiple")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response getMultipleItemValidationScreen(@QueryParam("group") Long groupId, @QueryParam("page") Integer page) {
+		List<Groups> groups = publishService.getValidationGroups();
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("groups", groups);
+		
+		if (groupId != null) {
+			List<PublishLocation> publishers = publishService.getPublishers();
+			model.put("publishers", publishers);
+			try {
+				SolrSearchResult results = publishService.getGroupObjects(groupId, page);
+				model.put("results", results);
+			}
+			catch (SolrServerException e) {
+				LOGGER.error("Exception querying solr", e);
+			}
+		}
+		
+		return Response.ok(new Viewable("/validate_multiple.jsp", model)).build();
+	}
+	
+	/**
+	 * executeMultipleItemValidation
+	 *
+	 * Perform validation against multiple records
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.7		10/12/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param request The http request information
+	 * @return A page containing the validated records
+	 */
+	@POST
+	@Produces(MediaType.TEXT_HTML)
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Path("validate/multiple")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response executeMultipleItemValidation(@Context HttpServletRequest request) {
+		Map<String, Object> model = new HashMap<String, Object>();
+		
+		String[] ids = request.getParameterValues("ids");
+		String[] publishLocations = request.getParameterValues("publishLocation");
+
+		if (publishLocations == null || publishLocations.length == 0 || ids == null || ids.length == 0) {
+			throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity("You must select at least one publish location and one record").build());
+		}
+		
+		try {
+			Map<String, List<LocationValidationMessage>> messages = publishService.validateMultiple(publishLocations, ids);
+			model.put("validationMessages", messages);
+		}
+		catch (Exception e) {
+			LOGGER.error("Exception validating messages", e);
+			throw new WebApplicationException(Response.status(400).entity("No publish location specified").build());
+		}
+		
+		try {
+			SolrSearchResult information = publishService.getItemInformation(ids);
+			model.put("information", information);
+		}
+		catch (SolrServerException e) {
+			LOGGER.error("Error searching solr", e);
+		}
+		
+		return Response.ok(new Viewable("/validate_display.jsp", model)).build();
+	}
+	
+	/**
+	 * getMultipleItemPublishScreen
+	 *
+	 * Retrieves the screen for records available publishing records
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.7		10/12/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param groupId The group to find items to publish for
+	 * @param page The page number of the items
+	 * @return A page that contains the groups, locations and items the user can publish
+	 */
+	@GET
+	@Produces(MediaType.TEXT_HTML)
+	@Path("multiple")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response getMultipleItemPublishScreen(@QueryParam("group") Long groupId, @QueryParam("page") Integer page) {
+		List<Groups> groups = publishService.getMultiplePublishGroups();
+		LOGGER.info("Number of groups: {}", groups.size());
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("groups", groups);
+		
+		if (groupId != null) {
+			List<PublishLocation> publishers = publishService.getPublishers();
+			model.put("publishers", publishers);
+			try {
+				SolrSearchResult results = publishService.getGroupObjects(groupId, page);
+				model.put("results", results);
+			}
+			catch (SolrServerException e) {
+				LOGGER.error("Exception querying solr", e);
+			}
+		}
+		
+		return Response.ok(new Viewable("/publish_multiple.jsp", model)).build();
+	}
+	
+	/**
+	 * executeMultiplePublish
+	 *
+	 * Publish the selected items to the given locations
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.7		10/12/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param request The http request
+	 * @return A page indicating whether the items have been successfully published
+	 */
+	@POST
+	@Produces(MediaType.TEXT_HTML)
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Path("multiple")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response executeMultiplePublish(@Context HttpServletRequest request, @QueryParam("groupId") Long id) {
+		Map<String, Object> model = new HashMap<String, Object>();
+		
+		String[] ids = request.getParameterValues("ids");
+		String[] publishLocations = request.getParameterValues("publishLocation");
+
+		if (publishLocations == null || publishLocations.length == 0 || ids == null || ids.length == 0) {
+			throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity("You must select at least one publish location and one record").build());
+		}
+		
+		Map<String, String> published = publishService.publishMultiple(ids, publishLocations);
+		if (published == null) {
+			return Response.status(400).entity(new Viewable("/publish_multiple_validation_error.jsp", model)).build();
+		}
+		model.put("published", published);
+		try {
+			SolrSearchResult information = publishService.getItemInformation(ids);
+			model.put("information", information);
+		}
+		catch (SolrServerException e) {
+			LOGGER.error("Error searching solr", e);
+		}
+		
+		return Response.ok(new Viewable("/publish_multiple_display.jsp", model)).build();
 	}
 }

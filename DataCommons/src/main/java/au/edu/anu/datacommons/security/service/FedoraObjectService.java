@@ -5,15 +5,13 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
-import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
-import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
 import au.edu.anu.datacommons.xml.sparql.Result;
+
+import com.yourmediashelf.fedora.client.FedoraClientException;
 
 /**
  * FedoraObjectService
@@ -39,6 +37,7 @@ import au.edu.anu.datacommons.xml.sparql.Result;
  * 0.9		02/10/2012	Genevieve Turner (GT)	Updated to verify report permissions
  * 0.10		15/10/2012	Genevieve Turner (GT)	Added validatePublishLocation method
  * 0.11		12/11/2012	Genevieve Turner (GT)	Added the rid parameter for some methods
+ * 0.12		11/12/2012	Genevieve Turner (GT)	Moved some publishing methods to PublishService
  * </pre>
  * 
  */
@@ -229,133 +228,6 @@ public interface FedoraObjectService {
 	public void addLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException;
 	
 	/**
-	 * getPublishers
-	 * 
-	 * Returns a list of publishers
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.2		05/05/2012	Genevieve Turner (GT)	Initial
-	 * 0.4		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
-	 * </pre>
-	 * 
-	 * @return Returns a viewable of publishers
-	 */
-	public List<PublishLocation> getPublishers();
-	
-	/**
-	 * publish
-	 * 
-	 * Publishes to the provided list of publishers
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.3		15/05/2012	Genevieve Turner (GT)	Initial
-	 * 0.4		16/05/2012	Genevivee Turner (GT)	Updated to allow differing configurations for publishing
-	 * 0.5		22/06/2012	Genevieve Turner (GT)	Updated to only allow people with ADMIN or Publish permissions the ability to publish
-	 * </pre>
-	 * 
-	 * @param fedoraObject The item to publish
-	 * @param publishers The list of publishers to publish to
-	 */
-	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'PUBLISH')")
-	public String publish(FedoraObject fedoraObject, List<String> publishers);
-	
-	/**
-	 * getReadyForReview
-	 *
-	 * Returns a list of items that are ready for a review
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @return
-	 */
-	@PostFilter("hasPermission(filterObject,'REVIEW') or hasPermission(filterObject,'ADMINISTRATION')")
-	public List<FedoraObject> getReadyForReview();
-	
-	/**
-	 * getRejected
-	 *
-	 * Returns a list of items that have been rejected.
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @return
-	 */
-	@PostFilter("hasPermission(filterObject,'WRITE') or hasPermission(filterObject,'ADMINISTRATION')")
-	public List<FedoraObject> getRejected();
-	
-	/**
-	 * getReadyForPublish
-	 *
-	 * Returns a list of items that are ready for publish
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @return
-	 */
-	@PostFilter("hasPermission(filterObject,'PUBLISH') or hasPermission(filterObject,'ADMINISTRATION')")
-	public List<FedoraObject> getReadyForPublish();
-	
-	/**
-	 * setReadyForReview
-	 *
-	 * Sets the item as ready for review
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
-	 * 0.8		03/08/2012	Genevieve Turner (GT)	Fixed issue with permissions
-	 * </pre>
-	 * 
-	 * @param fedoraObject
-	 */
-	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE') or hasPermission(#fedoraObject, 'ADMINISTRATION')")
-	public void setReadyForReview(FedoraObject fedoraObject);
-	
-	/**
-	 * setReadyForPublish
-	 *
-	 * Sets the item as ready for publish
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
-	 * 0.8		03/08/2012	Genevieve Turner (GT)	Fixed issue with permissions
-	 * </pre>
-	 * 
-	 * @param fedoraObject
-	 */
-	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'REVIEW') or hasPermission(#fedoraObject, 'ADMINISTRATION')")
-	public void setReadyForPublish(FedoraObject fedoraObject);
-	
-	/**
-	 * setRejected
-	 *
-	 * Rejects the item for publishing
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.6		25/07/2012	Genevieve Turner(GT)	Initial
-	 * 0.8		03/08/2012	Genevieve Turner (GT)	Fixed issue with permissions
-	 * </pre>
-	 * 
-	 * @param fedoraObject
-	 * @param reasons
-	 */
-	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'REVIEW') or hasPermission(#fedoraObject, 'PUBLISH') or hasPermission(#fedoraObject, 'ADMINISTRATION')")
-	public void setRejected(FedoraObject fedoraObject, List<String> reasons);
-	
-	/**
 	 * getListInformation
 	 *
 	 * Retrieves information given the list of fedora objects
@@ -384,22 +256,6 @@ public interface FedoraObjectService {
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'ADMINISTRATION')")
 	public void hasReportPermission(FedoraObject fedoraObject);
-	
-	/**
-	 * validatePublishLocation
-	 * 
-	 * Gets validation messages for the given location
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.10		15/10/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @param fedoraObject The fedoraObject to validate
-	 * @param publishers The publisher(s) to validate
-	 * @return A list of validation error messages
-	 */
-	public List<String> validatePublishLocation(FedoraObject fedoraObject, List<String> publishers);
 	
 	/**
 	 * getLinks

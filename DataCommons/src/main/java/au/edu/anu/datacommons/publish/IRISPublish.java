@@ -21,6 +21,7 @@ import au.edu.anu.datacommons.data.db.model.PublishIrisPK;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		20/11/2012	Genevieve Turner (GT)	Initial
+ * 0.2		11/12/2012	Genevieve Turner (GT)	Added the thrwoing of the validation exception for publish
  * </pre>
  *
  */
@@ -33,14 +34,16 @@ public class IRISPublish extends GenericPublish implements Publish {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		20/11/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		11/12/2012	Genevieve Turner (GT)	Added the thrwoing of the validation exception
 	 * </pre>
 	 * 
 	 * @param pid The pid of the object to publish
 	 * @param publishCode The code to publish to
+	 * @throws ValidateException
 	 * @see au.edu.anu.datacommons.publish.GenericPublish#publish(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void publish(String pid, String publishCode) {
+	public void publish(String pid, String publishCode) throws ValidateException{
 		super.publish(pid, publishCode);
 		
 		PublishIris publishIris = new PublishIris();

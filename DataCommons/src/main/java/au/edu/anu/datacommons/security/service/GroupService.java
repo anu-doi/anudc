@@ -24,6 +24,7 @@ import au.edu.anu.datacommons.data.db.model.Groups;
  * 0.4		20/08/2012	Genevieve Turner (GT)	Added a method that determines whether the user has permissions to modify groups
  * 0.5		11/09/2012	Genevieve turner (GT)	Updated edit permissions for retrieving the create groups
  * 0.6		14/11/2012	Genevieve Turner (GT)	Updated to allow a user with administration permissions to update a users group permissions
+ * 0.7		11/12/2022	Genevieve Turner (GT)	Added validation and mass publication methods
  * </pre>
  * 
  */	
@@ -91,4 +92,35 @@ public interface GroupService {
 	 */
 	@PostFilter("hasRole('ROLE_ADMIN') or hasPermission(filterObject,'ADMINISTRATION')")
 	public List<Groups> getAllowModifyGroups();
+	
+	/**
+	 * getValidationGroups
+	 *
+	 * Get the groups that the user is allowed to validate
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		11/12/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 */
+	@PostFilter("hasPermission(filterObject,'CREATE') or hasPermission(filterObject,'WRITE') or hasPermission(filterObject,'REVIEW') or hasPermission(filterObject,'PUBLISH') or hasPermission(filterObject,'ADMINISTRATION')")
+	public List<Groups> getValidationGroups();
+	
+	/**
+	 * getMultiplePublishGroups
+	 *
+	 * Get the groups that the user is allowed to perform mass publication on
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		11/12/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 */
+	@PostFilter("hasPermission(filterObject,'PUBLISH_MULTI')")
+	public List<Groups> getMultiplePublishGroups();
+	
 }

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.publish.service.PublishService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.sparql.Result;
@@ -46,6 +47,8 @@ import com.sun.jersey.api.view.Viewable;
  * 0.1		25/07/2012	Genevieve Turner (GT)	Initial
  * 0.2		01/08/2012	Genevieve Turner (GT)	Updated the return values for getting lists of objects in a particular status
  * 0.3		12/10/2012	Genevieve Turner (GT)	Updated to add a title to the return values
+ * 0.4		15/10/2012	Genevieve Turner (GT)	Added title for return for lists
+ * 0.5		11/12/2012	Genevieve Turner (GT)	Updated to use the publishing service rather than the fedora object service
  * </pre>
  *
  */
@@ -58,6 +61,9 @@ public class ReadyResource {
 	@Resource(name="fedoraObjectServiceImpl")
 	private FedoraObjectService fedoraObjectService;
 
+	@Resource(name="publishServiceImpl")
+	private PublishService publishService;
+	
 	/**
 	 * readyForReview
 	 *
@@ -66,6 +72,7 @@ public class ReadyResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		25/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.5		11/12/2012	Genevieve Turner (GT)	Updated to use the publishing service rather than the fedora object service
 	 * </pre>
 	 * 
 	 * @param pid The item to perform actions on
@@ -79,7 +86,7 @@ public class ReadyResource {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response readyForReview(@PathParam("id") String pid, @QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt) {
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
-		fedoraObjectService.setReadyForReview(fedoraObject);
+		publishService.setReadyForReview(fedoraObject);
 		
 		return buildDisplayResponse(pid, layout, tmplt);
 	}
@@ -92,6 +99,7 @@ public class ReadyResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		25/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.5		11/12/2012	Genevieve Turner (GT)	Updated to use the publishing service rather than the fedora object service
 	 * </pre>
 	 * 
 	 * @param pid The item to perform actions on
@@ -110,7 +118,7 @@ public class ReadyResource {
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		List<String> reasons = form.get("rejectReason");
 		
-		fedoraObjectService.setRejected(fedoraObject, reasons);
+		publishService.setRejected(fedoraObject, reasons);
 		
 		return buildDisplayResponse(pid, layout, tmplt);
 	}
@@ -123,6 +131,7 @@ public class ReadyResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		25/07/2012	Genevieve Turner(GT)	Initial
+	 * 0.5		11/12/2012	Genevieve Turner (GT)	Updated to use the publishing service rather than the fedora object service
 	 * </pre>
 	 * 
 	 * @param pid The item to perform actions on
@@ -136,7 +145,7 @@ public class ReadyResource {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response readyForPublish(@PathParam("id") String pid, @QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt) {
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
-		fedoraObjectService.setReadyForPublish(fedoraObject);
+		publishService.setReadyForPublish(fedoraObject);
 		
 		return buildDisplayResponse(pid, layout, tmplt);
 	}
@@ -152,6 +161,7 @@ public class ReadyResource {
 	 * 0.2		01/08/2012	Genevieve Turner (GT)	Updated the return values for getting lists of objects in a particular status
 	 * 0.3		12/10/2012	Genevieve Turner (GT)	Updated to add a title to the return values
 	 * 0.4		15/10/2012	Genevieve Turner (GT)	Added title to return fields
+	 * 0.5		11/12/2012	Genevieve Turner (GT)	Updated to use the publishing service rather than the fedora object service
 	 * </pre>
 	 * 
 	 * @return The html response
@@ -161,7 +171,7 @@ public class ReadyResource {
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response listReadyForReview() {
-		List<FedoraObject> reviewReadyList = fedoraObjectService.getReadyForReview();
+		List<FedoraObject> reviewReadyList = publishService.getReadyForReview();
 		List<Result> results = fedoraObjectService.getListInformation(reviewReadyList);
 		
 		Map<String, Object> values = new HashMap<String, Object>();
@@ -184,6 +194,7 @@ public class ReadyResource {
 	 * 0.2		01/08/2012	Genevieve Turner (GT)	Updated the return values for getting lists of objects in a particular status
 	 * 0.3		12/10/2012	Genevieve Turner (GT)	Updated to add a title to the return values
 	 * 0.4		15/10/2012	Genevieve Turner (GT)	Added title to return fields
+	 * 0.5		11/12/2012	Genevieve Turner (GT)	Updated to use the publishing service rather than the fedora object service
 	 * </pre>
 	 * 
 	 * @return The html response
@@ -193,7 +204,7 @@ public class ReadyResource {
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response listRejected() {
-		List<FedoraObject> rejectedList = fedoraObjectService.getRejected();
+		List<FedoraObject> rejectedList = publishService.getRejected();
 		List<Result> results = fedoraObjectService.getListInformation(rejectedList);
 		
 		Map<String, Object> values = new HashMap<String, Object>();
@@ -216,6 +227,7 @@ public class ReadyResource {
 	 * 0.2		01/08/2012	Genevieve Turner (GT)	Updated the return values for getting lists of objects in a particular status
 	 * 0.3		12/10/2012	Genevieve Turner (GT)	Updated to add a title to the return values
 	 * 0.4		15/10/2012	Genevieve Turner (GT)	Added title to return fields
+	 * 0.5		11/12/2012	Genevieve Turner (GT)	Updated to use the publishing service rather than the fedora object service
 	 * </pre>
 	 * 
 	 * @return The html response
@@ -225,7 +237,7 @@ public class ReadyResource {
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response listReadyForPublish() {
-		List<FedoraObject> publishReadyList = fedoraObjectService.getReadyForPublish();
+		List<FedoraObject> publishReadyList = publishService.getReadyForPublish();
 		List<Result> results = fedoraObjectService.getListInformation(publishReadyList);
 		
 		Map<String, Object> values = new HashMap<String, Object>();

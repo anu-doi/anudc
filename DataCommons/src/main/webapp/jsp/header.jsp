@@ -49,6 +49,12 @@
 					<li><a href="<c:url value='/rest/ready/list/publish' />">${publishReadyTitle}</a></li>
 				</ul>
 			</li>
+			<li><a href="<c:url value='/jsp/publish_validate.jsp' />">Validate/Publish</a>
+				<ul>
+					<li><a href='<c:url value="/rest/publish/validate/multiple" />'>Validate Multiple Records</a></li>
+					<li><a href='<c:url value="/rest/publish/multiple" />'>Publish Multiple Records</a></li>
+				</ul>
+			</li>
 		</sec:authorize>
 		<li><a href="<c:url value='/rest/admin/anupublished' />">Site Map</a></li>
 	</anu:submenu>

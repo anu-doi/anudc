@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
-import au.edu.anu.datacommons.exception.ValidationException;
+import au.edu.anu.datacommons.util.Util;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
@@ -26,11 +26,15 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.1		15/05/2012	Genevieve Turner (GT)	Initial build
  * 0.2		08/06/2012	Genevieve Turner (GT)	Updated to incorporate some changes to publishing
  * 0.3		17/06/2012	Genevieve Turner (GT)	Added validation prior to publishing
+ * 0.4		15/10/2012	Genevieve Turner(GT)	Added checkValidity		
+ * 0.5		10/12/2012	Genevieve Turner (GT)	Updated to use the default validation functions and added the isAllowedToPublish field
  * </pre>
  * 
  */
 public class ANDSPublish extends GenericPublish implements Publish {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ANDSPublish.class);
+	
+	private boolean isAllowedToPublish = false;
 
 	/**
 	 * publish
@@ -42,24 +46,23 @@ public class ANDSPublish extends GenericPublish implements Publish {
 	 * 0.1		15/05/2012	Genevieve Turner (GT)	Initial build
 	 * 0.2		08/06/2012	Genevieve Turner (GT)	Updated to incorporate some changes to publishing
 	 * 0.3		17/06/2012	Genevieve Turner (GT)	Added validation prior to publishing
+	 * 0.5		10/12/2012	Genevieve Turner (GT)	Updated to use isAllowedToPublish
 	 * </pre>
 	 * 
 	 * @param pid The id of the object to publish
 	 */
 	@Override
-	public void publish(String pid, String publishCode) {
-		Validate validate = new ANDSValidate();
-		if (!validate.isValid(pid)) {
-			StringBuffer errorMessage = new StringBuffer();
+	public void publish(String pid, String publishCode) throws ValidateException {
+		//Validate validate = new ANDSValidate();
+		List<String> errorMessages = checkValidity(pid);
+		if (!isAllowedToPublish) {
+			StringBuilder errorMessage = new StringBuilder();
 			errorMessage.append("Error publishing to ");
 			errorMessage.append(publishCode);
 			errorMessage.append("\n");
-			for (String message : validate.getErrorMessages()){
-				errorMessage.append(message);
-				errorMessage.append("\n");
-			}
-
-			throw new ValidationException(errorMessage.toString());
+			errorMessage.append(Util.listToStringWithNewline(errorMessages));
+			
+			throw new ValidateException(errorMessage.toString());
 		}
 		
 		super.publish(pid, publishCode);
@@ -102,6 +105,7 @@ public class ANDSPublish extends GenericPublish implements Publish {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.4		15/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.5		10/12/2012	Genevieve Turner (GT)	Added the setting of isAllowedToPublish
 	 * </pre>
 	 * 
 	 * @param pid The pid to check validity for
@@ -111,7 +115,24 @@ public class ANDSPublish extends GenericPublish implements Publish {
 	@Override
 	public List<String> checkValidity(String pid) {
 		Validate validate = new ANDSValidate();
-		validate.isValid(pid);
+		isAllowedToPublish = validate.isValid(pid);
 		return validate.getErrorMessages();
+	}
+	
+	/**
+	 * isAllowedToPublish
+	 * 
+	 * Indicates whether record is valid enough to allow for publishing
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.5		10/12/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 * @see au.edu.anu.datacommons.publish.GenericPublish#isAllowedToPublish()
+	 */
+	public boolean isAllowedToPublish() {
+		return isAllowedToPublish;
 	}
 }

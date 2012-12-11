@@ -24,11 +24,14 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * Version	Date		Developer				Description
  * 0.1		08/06/2012	Genevieve Turner (GT)	Initial
  * 0.2		15/10/2012	Genevieve Turner (GT)	Added checkValidity function
+ * 0.3		11/12/2012	Genevieve Turner (GT)	Added a check for if the record is publishable
  * </pre>
  *
  */
 public class GenericPublish implements Publish {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GenericPublish.class);
+	
+	private boolean isAllowedToPublish = false;
 	
 	/**
 	 * publish
@@ -45,7 +48,7 @@ public class GenericPublish implements Publish {
 	 * @see au.edu.anu.datacommons.publish.Publish#publish(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void publish(String pid, String publishCode) {
+	public void publish(String pid, String publishCode) throws ValidateException {
 		LOGGER.debug("Publishing to {}", publishCode);
 		FedoraReference reference = new FedoraReference();
 		reference.setPredicate_("http://anu.edu.au/publish");
@@ -96,7 +99,24 @@ public class GenericPublish implements Publish {
 	 */
 	public List<String> checkValidity(String pid) {
 		Validate validate = new FieldValidate();
-		validate.isValid(pid);
+		isAllowedToPublish = validate.isValid(pid);
 		return validate.getErrorMessages();
+	}
+	
+	/**
+	 * isAllowedToPublish
+	 * 
+	 * Indicates whether record is valid enough to allow for publishing
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		11/12/2012	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return
+	 * @see au.edu.anu.datacommons.publish.Publish#isAllowedToPublish()
+	 */
+	public boolean isAllowedToPublish() {
+		return isAllowedToPublish;
 	}
 }

@@ -20,7 +20,7 @@
 <!-- Section for changelogs, updates, news and announcements etc. for users to see. -->
 <anu:content layout="narrow">
 	<anu:boxheader text="Updates" />
-	<anu:box style="solid">Welcome to the Closed Beta of ANU Data Commons</anu:box>
+	<anu:box style="solid">Welcome to The Australian National University Data Commons</anu:box>
 </anu:content>
 
 <jsp:include page="/jsp/footer.jsp" />
