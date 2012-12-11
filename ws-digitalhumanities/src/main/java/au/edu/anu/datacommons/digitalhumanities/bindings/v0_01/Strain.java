@@ -6,6 +6,8 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 
+import au.edu.anu.datacommons.webservice.bindings.Link;
+
 public class Strain
 {
 	private String extId;
@@ -13,6 +15,7 @@ public class Strain
 	
 	private String title;
 	private String briefDesc;
+	private List<Link> fileUrlList;
 	private List<Animal> animals;
 
 	@XmlAttribute(name = "dhid")
@@ -57,6 +60,17 @@ public class Strain
 	public void setBriefDesc(String briefDesc)
 	{
 		this.briefDesc = briefDesc;
+	}
+
+	@XmlElement(name = "link")
+	public List<Link> getFileUrlList()
+	{
+		return fileUrlList;
+	}
+
+	public void setFileUrlList(List<Link> fileUrlList)
+	{
+		this.fileUrlList = fileUrlList;
 	}
 
 	@XmlElement(name = "animal")

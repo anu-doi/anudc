@@ -1,23 +1,34 @@
 package au.edu.anu.datacommons.collectionrequest;
 
+import static java.text.MessageFormat.format;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 
+import au.edu.anu.datacommons.config.Config;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.util.Util;
 
@@ -30,8 +41,7 @@ public class Email
 
 	private String fromName;
 	private String fromEmail;
-	private String toName;
-	private String toEmail;
+	private Map<String, String> recipients;
 	private String subject;
 	private String body;
 
@@ -40,6 +50,7 @@ public class Email
 		this.mailSender = mailSender;
 		this.setFromName("ANU Data Commons");
 		this.setFromEmail("no-reply@anu.edu.au");
+		this.recipients = new HashMap<String, String>();
 	}
 
 	public String getFromName()
@@ -59,33 +70,28 @@ public class Email
 
 	public void setFromEmail(String fromEmail)
 	{
-		if (!pattern.matcher(fromEmail).matches())
-			throw new IllegalArgumentException("Invalid email format - " + fromEmail);
+		if (!isValidEmail(fromEmail))
+			throw new IllegalArgumentException(format("Invalid email format - {0}", fromEmail));
 		this.fromEmail = fromEmail;
 	}
 
-	public String getToName()
+	public Map<String, String> getRecipients()
 	{
-		return toName;
+		return recipients;
 	}
-
-	public void setToName(String toName)
+	
+	public void addRecipient(String toEmail)
 	{
-		this.toName = toName;
+		addRecipient(toEmail, null);
 	}
-
-	public String getToEmail()
+	
+	public void addRecipient(String toEmail, String name)
 	{
-		return toEmail;
+		if (!isValidEmail(toEmail))
+			throw new IllegalArgumentException(format("Invalid email format - {0}", toEmail));
+		recipients.put(toEmail, name);
 	}
-
-	public void setToEmail(String toEmail)
-	{
-		if (!pattern.matcher(toEmail).matches())
-			throw new IllegalArgumentException("Invalid email format - " + toEmail);
-		this.toEmail = toEmail;
-	}
-
+	
 	public String getSubject()
 	{
 		return subject;
@@ -130,19 +136,60 @@ public class Email
 				throw new NullPointerException("Message Body is Null. Message text must be provided.");
 
 			SimpleMailMessage message = new SimpleMailMessage();
-			message.setFrom(fromName + " <" + fromEmail + ">");
-			message.setTo(toName + " <" + toEmail + ">");
+			message.setFrom(format("{0} <{1}>", fromName, fromEmail));
+			// message.setTo(format("{0} <{1}>", toName, toEmail));
+			message.setTo(getRecipientsAsStringArray());
 			message.setSubject(subject);
 			message.setText(body);
-			LOGGER.info("Sending email...\r\nTO: {}\r\nSUBJECT: {}\r\nBODY: {}", new Object[] { toName + " <" + toEmail + ">", subject, body });
+			LOGGER.info("Sending email...\r\nTO: {}\r\nSUBJECT: {}\r\nBODY: {}", new Object[] { recipientsAsString(), subject, body });
 			mailSender.send(message);
 		}
 		else
 		{
 			LOGGER.info(
 					"email.debug.sendmail set to 'false' or not present in Global Properties. Following email not sent out.\r\nTO: {}\r\nSUBJECT: {}\r\nBODY: {}",
-					new Object[] { toName + " <" + toEmail + ">", subject, body });
+					new Object[] { recipientsAsString(), subject, body });
 		}
+	}
+
+	private String recipientsAsString()
+	{
+		StringBuilder toList = new StringBuilder();
+		String[] toListArray = getRecipientsAsStringArray();
+		for (int i = 0; i < toListArray.length; i++)
+		{
+			toList.append(toListArray[i]);
+			if (i < (toListArray.length - 1))
+				toList.append(", ");
+		}
+		return toList.toString();
+	}
+
+	private String[] getRecipientsAsStringArray()
+	{
+		Set<String> emailSet = new HashSet<String>(recipients.size());
+		for (Entry<String, String> recipient : recipients.entrySet())
+		{
+			if (recipient.getValue() != null)
+				emailSet.add(format("{0} <{1}>", recipient.getValue(), recipient.getKey()));
+			else
+				emailSet.add(recipient.getKey());
+		}
+
+		return emailSet.toArray(new String[0]);
+	}
+
+	/**
+	 * Checks if an email address is valid.
+	 * 
+	 * @param email
+	 *            Email address to check as String
+	 * 
+	 * @return true if valid, false otherwise
+	 */
+	private boolean isValidEmail(String email)
+	{
+		return pattern.matcher(email).matches();
 	}
 
 	private String convertStreamToString(InputStream is) throws IOException
@@ -155,15 +202,14 @@ public class Email
 		char[] buffer = new char[8192];		// 8K.
 		try
 		{
-			BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(is, Config.CHARSET));
 			int n;
 			while ((n = reader.read(buffer)) != -1)
 				writer.write(buffer, 0, n);
 		}
 		finally
 		{
-			if (is != null)
-				is.close();
+			IOUtils.closeQuietly(is);
 		}
 
 		return writer.toString();

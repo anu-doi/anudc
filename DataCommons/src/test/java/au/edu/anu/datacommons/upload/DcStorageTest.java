@@ -127,6 +127,8 @@ public class DcStorageTest
 			// Download file from URL and add to existing bag.
 			dcStorage.addFileToBag(pid, "Some Pdf.pdf", "http://samplepdf.com/sample.pdf");
 			assertTrue(dcStorage.fileExistsInBag(pid, "data/Some Pdf.pdf"));
+			
+			dcStorage.addFileToBag(pid, "Some Pdf.pdf", "http://www.stluciadance.com/prospectus_file/sample.pdf");
 
 			// Verify the downloaded file is now included in the bag.
 			bag.close();
@@ -147,7 +149,7 @@ public class DcStorageTest
 				{
 					// Check the size of the downloaded file.
 					downloadedFileExists = true;
-					assertEquals(218882L, file.getSize());
+					assertEquals(54836L, file.getSize());
 				}
 			}
 			assertTrue(downloadedFileExists);

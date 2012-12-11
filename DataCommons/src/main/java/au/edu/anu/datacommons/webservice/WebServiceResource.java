@@ -56,6 +56,7 @@ import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.solr.SolrManager;
+import au.edu.anu.datacommons.data.solr.SolrUtils;
 import au.edu.anu.datacommons.security.service.FedoraObjectException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
@@ -446,7 +447,7 @@ public class WebServiceResource
 
 		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
 		SolrQuery solrQuery = new SolrQuery();
-		solrQuery.setQuery(format("unpublished.externalId:\"{0}\"", extId));
+		solrQuery.setQuery(format("unpublished.externalId:\"{0}\"", SolrUtils.escapeSpecialCharacters(extId)));
 		solrQuery.addFilterQuery(format("unpublished.ownerGroup:\"{0}\"", ownerGroup));
 		solrQuery.addFilterQuery(format("unpublished.type:\"{0}\"", type));
 		solrQuery.addField("id");
