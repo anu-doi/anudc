@@ -123,6 +123,7 @@ public class DcStorageTest
 				assertTrue(plManifest.containsKey("data/File1.txt"));
 				MessageDigestHelper.fixityMatches(bagFile.newInputStream(), plManifest.getAlgorithm(), plManifest.get("data/File1.txt"));
 			}
+			bag.close();
 
 			// Download file from URL and add to existing bag.
 			dcStorage.addFileToBag(pid, "Some Pdf.pdf", "http://samplepdf.com/sample.pdf");
@@ -131,7 +132,6 @@ public class DcStorageTest
 			dcStorage.addFileToBag(pid, "Some Pdf.pdf", "http://www.stluciadance.com/prospectus_file/sample.pdf");
 
 			// Verify the downloaded file is now included in the bag.
-			bag.close();
 			bag = dcStorage.getBag(pid);
 			plFiles = bag.getPayload();
 			assertEquals(2, plFiles.size());
@@ -234,11 +234,12 @@ public class DcStorageTest
 	}
 
 	@Test
-	public void testAddExtRef()
+	public void testExtRef()
 	{
 		FileWriter fWriter;
 		final String pid = "test:4";
 		Bag bag = null;
+		BagSummary bagSummary;
 		try
 		{
 			// Create temp file.
@@ -281,7 +282,7 @@ public class DcStorageTest
 			// Add second external reference.
 			dcStorage.addExtRef(pid, url2);
 
-			BagSummary bagSummary = dcStorage.getBagSummary(pid);
+			bagSummary = dcStorage.getBagSummary(pid);
 
 			// Verify the ext refs file contains the two URLs.
 			assertTrue(bagSummary.getExtRefsTxt().containsValue(url1));
@@ -307,6 +308,21 @@ public class DcStorageTest
 				assertTrue(MessageDigestHelper.fixityMatches(bag.getBagFile(ExtRefsTxt.FILEPATH).newInputStream(), tagManifest.getAlgorithm(),
 						tagManifest.get(ExtRefsTxt.FILEPATH)));
 			}
+			
+			// Delete the 2 external references.
+			dcStorage.deleteExtRef(pid, url1);
+			bagSummary = dcStorage.getBagSummary(pid);
+
+			// Verify the ext refs file contains the two URLs.
+			assertFalse(bagSummary.getExtRefsTxt().containsValue(url1));
+			assertTrue(bagSummary.getExtRefsTxt().containsValue(url2));
+
+			dcStorage.deleteExtRef(pid, url2);
+			bagSummary = dcStorage.getBagSummary(pid);
+
+			// Verify the ext refs file contains the two URLs.
+			assertFalse(bagSummary.getExtRefsTxt().containsValue(url1));
+			assertFalse(bagSummary.getExtRefsTxt().containsValue(url2));
 		}
 		catch (IOException e)
 		{

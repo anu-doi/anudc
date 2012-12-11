@@ -87,7 +87,7 @@ public final class DcStorage
 		// If the directory specified doesn't exist, create it.
 		if (!bagsDir.exists() && !bagsDir.mkdirs())
 		{
-			throw new RuntimeException(MessageFormat.format("Unable to create {0}. Check permissions.", bagsDir.getAbsolutePath()));
+			throw new RuntimeException(format("Unable to create {0}. Check permissions.", bagsDir.getAbsolutePath()));
 		}
 	}
 
@@ -130,7 +130,7 @@ public final class DcStorage
 		}
 		catch (MalformedURLException e)
 		{
-			DcStorageException dce = new DcStorageException(e);
+			DcStorageException dce = new DcStorageException(e.getMessage(), e);
 			LOGGER.error(e.getMessage(), dce);
 			throw dce;
 		}
@@ -156,7 +156,7 @@ public final class DcStorage
 			tempFile = File.createTempFile("DcTempFile", null);
 			tempRenamedFile = new File(tempFile.getParentFile(), filename);
 			if (!tempFile.renameTo(tempRenamedFile))
-				throw new IOException(MessageFormat.format("Unable to rename {0} to {1}.", tempFile.getAbsolutePath(), tempRenamedFile.getAbsolutePath()));
+				throw new IOException(format("Unable to rename {0} to {1}.", tempFile.getAbsolutePath(), tempRenamedFile.getAbsolutePath()));
 
 			LOGGER.debug("Saving {} as {}...", fileUrl.toString(), tempRenamedFile.getAbsolutePath());
 			// Connection and read timeout set to 30 seconds.
@@ -218,6 +218,32 @@ public final class DcStorage
 			IOUtils.closeQuietly(bag);
 		}
 	}
+	
+	public void deleteFileFromBag(String pid, String bagFilePath) throws DcStorageException 
+	{
+		Bag bag = null;
+		if (!bagExists(pid))
+			throw new DcStorageException(format("No files present in pid {0}.", bagFilePath));
+		try
+		{
+			bag = getBag(pid);
+			if (!fileExistsInBag(pid, bagFilePath))
+				throw new DcStorageException(format("File {0} doesn't exist in pid {1}.", bagFilePath, pid));
+			archiveBag(bag, false);
+			bag.removeBagFile(bagFilePath);
+			bag = bag.makeComplete(preSaveCompleter);
+			bag = bag.makeComplete(postSaveCompleter);
+			bag = writeBag(bag, pid);
+		}
+		catch (IOException e)
+		{
+			throw new DcStorageException(e.getMessage(), e);
+		}
+		finally
+		{
+			IOUtils.closeQuietly(bag);
+		}
+	}
 
 	/**
 	 * Adds a reference to an external URL in a bag.
@@ -241,18 +267,43 @@ public final class DcStorage
 			// If file doesn't exist, create it.
 			ExtRefsTxt extRefsTxt;
 			if (extRefsFile == null)
-				extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, bag.getBagItTxt().getCharacterEncoding());
+				extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, getCharacterEncoding(bag));
 			else
-				extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, extRefsFile, bag.getBagItTxt().getCharacterEncoding());
+				extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, extRefsFile, getCharacterEncoding(bag));
 
 			// Convert the URL to Base64 string to be used as a key. Urls have ':' which cannot be present in keys. Encoding the url makes the key unique ensuring
 			// each url appears only once.
-			byte[] base64EncodedUrl = Base64.encodeBase64(url.getBytes());
-			extRefsTxt.put(new String(base64EncodedUrl), url);
+			extRefsTxt.put(base64Encode(url), url);
 			bag.putBagFile(extRefsTxt);
 			bag = bag.makeComplete(tagFilesCompleter);
 			
 			// Write the bag.
+			bag = writeBag(bag, pid);
+		}
+		finally
+		{
+			IOUtils.closeQuietly(bag);
+		}
+	}
+
+	public void deleteExtRef(String pid, String url) throws DcStorageException
+	{
+		if (!bagExists(pid))
+			throw new DcStorageException(format("Unable to delete external reference {0}. Bag for pid {1} doesn't exist.", url, pid));
+		Bag bag = null;
+		try
+		{
+			bag = getBag(pid);
+			BagFile extRefsFile = bag.getBagFile(ExtRefsTxt.FILEPATH);
+			if (extRefsFile == null)
+				throw new DcStorageException(format("Unable to delete external reference {0}. No external references exist for pid {1}", url, pid));
+			ExtRefsTxt extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, extRefsFile, getCharacterEncoding(bag));
+			String base64EncodedUrl = base64Encode(url);
+			if (!extRefsTxt.containsKey(base64EncodedUrl))
+				throw new DcStorageException(format("External reference {0} not found in pid {1}", url, pid));
+			extRefsTxt.remove(base64EncodedUrl);
+			bag.putBagFile(extRefsTxt);
+			bag = bag.makeComplete(tagFilesCompleter);
 			bag = writeBag(bag, pid);
 		}
 		finally
@@ -373,7 +424,7 @@ public final class DcStorage
 	{
 		Bag bag = getBag(pid);
 		if (bag == null)
-			throw new DcStorageException(MessageFormat.format("Bag doesn't exist for Pid {0}.", pid));
+			throw new DcStorageException(format("Bag doesn't exist for Pid {0}.", pid));
 
 		BagFile bFile = bag.getBagFile(filepath);
 		return (bFile != null);
@@ -504,9 +555,7 @@ public final class DcStorage
 							bagFileInStream = bag.getBagFile(filePath).newInputStream();
 							zipOutStream.putNextEntry(zipEntry);
 							for (int numBytesRead = bagFileInStream.read(buffer); numBytesRead != -1; numBytesRead = bagFileInStream.read(buffer))
-							{
 								zipOutStream.write(buffer, 0, numBytesRead);
-							}
 							IOUtils.closeQuietly(bagFileInStream);
 							zipOutStream.closeEntry();
 							zipOutStream.flush();
@@ -652,6 +701,17 @@ public final class DcStorage
 		bag.getBagInfoTxt().addExternalIdentifier(pid);
 
 		return bag;
+	}
+	
+	private String base64Encode(String stringToEncode)
+	{
+		String base64Encoded = new String(Base64.encodeBase64(stringToEncode.getBytes()));
+		return base64Encoded;
+	}
+
+	private String getCharacterEncoding(Bag bag)
+	{
+		return bag.getBagItTxt().getCharacterEncoding();
 	}
 
 	public static String convertToDiskSafe(String source)

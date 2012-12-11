@@ -143,7 +143,7 @@ public class FileSystemWriter extends AbstractWriter
 		if (this.newBagDir.equals(bag.getFile()))
 		{
 			log.debug("Removing any extra files or directories");
-			this.removeExtraFiles(this.newBagDir, false);
+			this.removeExtraFiles(this.newBagDir, true);
 			if (!this.tagFilesOnly)
 			{
 				//Data directory
