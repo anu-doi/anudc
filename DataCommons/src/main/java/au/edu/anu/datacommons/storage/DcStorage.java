@@ -278,10 +278,14 @@ public final class DcStorage
 			bag = bag.makeComplete(tagFilesCompleter);
 			
 			// Write the bag.
+			writer.setTagFilesOnly(true);
+			writer.setSkipIfPayloadFileExists(true);
 			bag = writeBag(bag, pid);
 		}
 		finally
 		{
+			writer.setTagFilesOnly(false);
+			writer.setSkipIfPayloadFileExists(false);
 			IOUtils.closeQuietly(bag);
 		}
 	}
@@ -304,10 +308,14 @@ public final class DcStorage
 			extRefsTxt.remove(base64EncodedUrl);
 			bag.putBagFile(extRefsTxt);
 			bag = bag.makeComplete(tagFilesCompleter);
+			writer.setTagFilesOnly(true);
+			writer.setSkipIfPayloadFileExists(true);
 			bag = writeBag(bag, pid);
 		}
 		finally
 		{
+			writer.setTagFilesOnly(false);
+			writer.setSkipIfPayloadFileExists(false);
 			IOUtils.closeQuietly(bag);
 		}
 	}

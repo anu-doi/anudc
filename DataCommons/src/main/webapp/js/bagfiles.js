@@ -13,3 +13,69 @@ function tabSelect(el, containerId)
 
 	return;
 }
+
+function deleteFile(url)
+{
+	jQuery.ajax(
+	{
+		url : url,
+		type : "DELETE",
+	}).done(function()
+	{
+		alert('Deleted successfully.');
+	}).fail(function()
+	{
+		alert('Unable to delete file.');
+	}).always(function()
+	{
+		window.location.reload();
+	});
+}
+
+function deleteExtRef(pid, extRefUrl)
+{
+	jQuery.ajax(
+	{
+		url : "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/extrefs/",
+		type : "POST",
+		data :
+		{
+			"deleteUrl" : extRefUrl
+		}
+	}).done(function()
+	{
+		alert('Deleted successfully.');
+	}).fail(function()
+	{
+		alert('Unable to delete file.');
+	}).always(function()
+	{
+		window.location.reload();
+	});
+}
+
+function addExtRef(pid)
+{
+	var url = prompt("Please enter a URL:");
+	if (url != null && url != "")
+	{
+		jQuery.ajax(
+		{
+			url : "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/extrefs/",
+			type : "POST",
+			data :
+			{
+				"addUrl" : url
+			}
+		}).done(function()
+		{
+			alert('Added successfully.');
+		}).fail(function()
+		{
+			alert('Unable to add url.');
+		}).always(function()
+		{
+			window.location.reload();
+		});
+	}
+}

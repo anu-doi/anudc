@@ -29,6 +29,8 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -39,6 +41,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
@@ -444,7 +447,59 @@ public class UploadService
 
 		return resp;
 	}
+	
+	@DELETE
+	@Path("bag/{pid}/{fileInBag:.*}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response doDeleteFileInBag(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag)
+	{
+		Response resp = null;
+		getFedoraObjectReadAccess(pid);
+		
+		try
+		{
+			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
+					AccessLogRecord.Operation.DELETE));
+			dcStorage.deleteFileFromBag(pid, fileInBag);
+			resp = Response.ok(format("File {0} deleted from {1}", fileInBag, pid)).build();
+		}
+		catch (Exception e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(format("Unable to delete file {0} from {1}", fileInBag, pid)).build();
+		}
+		return resp;
+	}
 
+	@POST
+	@Path("bag/{pid}/extrefs")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response doAddDeleteExtRef(@PathParam("pid") String pid, @FormParam("addUrl") Set<String> addUrlSet, @FormParam("deleteUrl") Set<String> deleteUrlSet)
+	{
+		Response resp = null;
+
+		try
+		{
+			if (addUrlSet != null)
+				for (String url : addUrlSet)
+					dcStorage.addExtRef(pid, url);
+
+			if (deleteUrlSet != null)
+				for (String url : deleteUrlSet)
+					dcStorage.deleteExtRef(pid, url);
+			
+			resp = Response.ok(format("Added {0} to {1}.", addUrlSet, pid)).build();
+		}
+		catch (Exception e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+		}
+
+		return resp;
+	}
+	
 	@POST
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}")
