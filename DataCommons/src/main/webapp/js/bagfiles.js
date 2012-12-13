@@ -16,42 +16,48 @@ function tabSelect(el, containerId)
 
 function deleteFile(url)
 {
-	jQuery.ajax(
+	if (confirm("Are you sure you want to delete this file?"))
 	{
-		url : url,
-		type : "DELETE",
-	}).done(function()
-	{
-		alert('Deleted successfully.');
-	}).fail(function()
-	{
-		alert('Unable to delete file.');
-	}).always(function()
-	{
-		window.location.reload();
-	});
+		jQuery.ajax(
+		{
+			url : url,
+			type : "DELETE",
+		}).done(function()
+		{
+			alert('Deleted successfully.');
+		}).fail(function()
+		{
+			alert('Unable to delete file.');
+		}).always(function()
+		{
+			window.location.reload();
+		});
+	}
 }
 
 function deleteExtRef(pid, extRefUrl)
 {
-	jQuery.ajax(
+	if (confirm("Are you sure you want to delete " + extRefUrl))
 	{
-		url : "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/extrefs/",
-		type : "POST",
-		data :
+		jQuery.ajax(
 		{
-			"deleteUrl" : extRefUrl
-		}
-	}).done(function()
-	{
-		alert('Deleted successfully.');
-	}).fail(function()
-	{
-		alert('Unable to delete file.');
-	}).always(function()
-	{
-		window.location.reload();
-	});
+			url : "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/extrefs/",
+			type : "POST",
+			data :
+			{
+				"deleteUrl" : extRefUrl
+			}
+		}).done(function()
+		{
+			alert('Deleted successfully.');
+		}).fail(function()
+		{
+			alert('Unable to delete file.');
+		}).always(function()
+		{
+			window.location.reload();
+		});
+	}
 }
 
 function addExtRef(pid)

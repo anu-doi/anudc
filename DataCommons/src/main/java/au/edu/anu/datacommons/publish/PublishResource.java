@@ -160,17 +160,17 @@ public class PublishResource {
 	public Response generateDoi(@PathParam("pid") String pid, @QueryParam("tmplt") String tmplt, @Context UriInfo uriInfo)
 	{
 		Response resp = null;
+		UriBuilder redirUri = UriBuilder.fromPath("/display").path(pid).queryParam("layout", "def:display").queryParam("tmplt", tmplt);
 
 		try
 		{
 			fedoraObjectService.generateDoi(pid, tmplt, null);
-			UriBuilder redirUri = UriBuilder.fromPath("/display").path(pid).queryParam("layout", "def:display").queryParam("tmplt", tmplt);
 			resp = Response.seeOther(redirUri.build()).build();
 		}
 		catch (Exception e)
 		{
 			LOGGER.error("DOI Minting failed.", e);
-			resp = Response.status(500).entity(e.getMessage()).build();
+			resp = Response.seeOther(redirUri.queryParam("emsg", e.getMessage()).build()).build();
 		}
 
 		return resp;

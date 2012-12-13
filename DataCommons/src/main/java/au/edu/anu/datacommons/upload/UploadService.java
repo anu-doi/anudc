@@ -454,7 +454,7 @@ public class UploadService
 	public Response doDeleteFileInBag(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag)
 	{
 		Response resp = null;
-		getFedoraObjectReadAccess(pid);
+		getFedoraObjectWriteAccess(pid);
 		
 		try
 		{
@@ -479,6 +479,7 @@ public class UploadService
 	{
 		Response resp = null;
 
+		getFedoraObjectWriteAccess(pid);
 		try
 		{
 			if (addUrlSet != null)
