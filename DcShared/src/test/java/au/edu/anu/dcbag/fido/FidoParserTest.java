@@ -19,13 +19,10 @@ import au.edu.anu.dcbag.fido.PronomFormat.MatchStatus;
 public class FidoParserTest
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
-	
-	private static File sampleFile;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
 	{
-		sampleFile = new File(FidoParserTest.class.getResource("BagIt Specification.pdf").toURI());
 	}
 
 	@AfterClass
@@ -50,13 +47,41 @@ public class FidoParserTest
 		{
 			FidoParser fidoParser = new FidoParser(FidoParserTest.class.getResourceAsStream("BagIt Specification.pdf"));
 			PronomFormat fileFormat = fidoParser.getFileFormat();
-			assertTrue(fileFormat.getMatchStatus().equals(MatchStatus.OK));
-			assertTrue(fileFormat.getPuid().equals("fmt/20"));
+			matchValues(fileFormat);
 		}
 		catch (IOException e)
 		{
 			failOnException(e);
 		}
+	}
+	
+	@Test
+	public void testGetFileFormatFromFile()
+	{
+		try
+		{
+			FidoParser fidoParser = new FidoParser(new File(FidoParserTest.class.getResource("BagIt Specification.pdf").toURI()));
+			PronomFormat fileFormat = fidoParser.getFileFormat();
+			matchValues(fileFormat);
+		}
+		catch (IOException e)
+		{
+			failOnException(e);
+		}
+		catch (URISyntaxException e)
+		{
+			failOnException(e);
+		}
+	}
+	
+	private void matchValues(PronomFormat format)
+	{
+		assertEquals(MatchStatus.OK, format.getMatchStatus());
+		assertEquals("fmt/20", format.getPuid());
+		assertEquals("application/pdf", format.getMimeType());
+		assertEquals(63647L, format.getFileSize());
+		assertEquals("PDF 1.6", format.getSigName());
+		assertEquals("Acrobat PDF 1.6 - Portable Document Format", format.getFormatName());
 	}
 	
 	private void failOnException(Throwable e)

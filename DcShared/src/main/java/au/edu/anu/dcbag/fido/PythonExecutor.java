@@ -22,21 +22,20 @@ public class PythonExecutor
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PythonExecutor.class);
 
-	private File pyFile;
 	private Process pythonProcess;
 	private List<String> cmdLine = new ArrayList<String>();
 
-	public PythonExecutor(File pyFile) throws IOException
+	public PythonExecutor(File pythonScript) throws IOException
 	{
-		this(pyFile, null);
+		this(pythonScript, null);
 	}
 	
-	public PythonExecutor(File pyFile, String[] pythonSwitches) throws IOException
+	public PythonExecutor(File pythonScript, String[] pythonSwitches) throws IOException
 	{
 		cmdLine.add(getPythonExe());
 		if (pythonSwitches != null)
 			cmdLine.addAll(Arrays.asList(pythonSwitches));
-		cmdLine.add(pyFile.getCanonicalPath());
+		cmdLine.add(pythonScript.getAbsolutePath());
 	}
 
 	public void execute() throws IOException
@@ -50,7 +49,20 @@ public class PythonExecutor
 			for (String iParam : cmdParams)
 				cmdLine.add(iParam);
 		
-		// LOGGER.debug("Executing: {}", execStr.toString());
+		if (LOGGER.isDebugEnabled())
+		{
+			StringBuilder cmdLineAsStr = new StringBuilder();
+			for (String cmdArg : cmdLine)
+			{
+				if (cmdArg.contains(" "))
+					cmdLineAsStr.append("\"");
+				cmdLineAsStr.append(cmdArg);
+				if (cmdArg.contains(" "))
+					cmdLineAsStr.append("\"");
+				cmdLineAsStr.append(" ");
+			}
+			LOGGER.debug("Executing: {}", cmdLineAsStr.toString().trim());
+		}
 		pythonProcess = Runtime.getRuntime().exec(cmdLine.toArray(new String[0]));
 	}
 

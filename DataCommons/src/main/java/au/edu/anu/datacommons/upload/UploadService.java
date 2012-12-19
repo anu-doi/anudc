@@ -81,6 +81,7 @@ import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.BagSummary;
+import au.edu.anu.dcbag.FileSummaryMap;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
@@ -430,24 +431,35 @@ public class UploadService
 		Response resp = null;
 		// Check for read access.
 		getFedoraObjectReadAccess(pid);
-		// Create a log record.
-		new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
-				AccessLogRecord.Operation.READ));
-		if (fileInBag.equals("zip"))
+
+		try
 		{
-			Set<String> fileSet = new HashSet<String>();
-			Bag bag = dcStorage.getBag(pid);
-			Collection<BagFile> bagFiles = bag.getPayload();
-			for (BagFile iFile : bagFiles)
-				fileSet.add(iFile.getFilepath());
-			resp = getBagFilesAsZip(pid, fileSet, "Collection.zip");
+			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
+					AccessLogRecord.Operation.READ));
+			// Create a log record.
+			if (fileInBag.equals("zip"))
+			{
+				Set<String> fileSet = new HashSet<String>();
+				FileSummaryMap fsMap = dcStorage.getBagSummary(pid).getFileSummaryMap();
+				for (BagFile iFile : fsMap.keySet())
+					fileSet.add(iFile.getFilepath());
+				resp = getBagFilesAsZip(pid, fileSet, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), ".zip"));
+			}
+			else
+			{
+				if (!dcStorage.fileExistsInBag(pid, fileInBag))
+					throw new NotFoundException(format("File {0} not found in {1}", fileInBag, pid));
+				resp = getBagFileOctetStreamResp(pid, fileInBag);
+			}
 		}
-		else
-			resp = getBagFileOctetStreamResp(pid, fileInBag);
+		catch (DcStorageException e)
+		{
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+		}
 
 		return resp;
 	}
-	
+
 	@DELETE
 	@Path("bag/{pid}/{fileInBag:.*}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
@@ -455,7 +467,7 @@ public class UploadService
 	{
 		Response resp = null;
 		getFedoraObjectWriteAccess(pid);
-		
+
 		try
 		{
 			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
@@ -489,7 +501,7 @@ public class UploadService
 			if (deleteUrlSet != null)
 				for (String url : deleteUrlSet)
 					dcStorage.deleteExtRef(pid, url);
-			
+
 			resp = Response.ok(format("Added {0} to {1}.", addUrlSet, pid)).build();
 		}
 		catch (Exception e)
@@ -500,7 +512,7 @@ public class UploadService
 
 		return resp;
 	}
-	
+
 	@POST
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}")
@@ -552,7 +564,7 @@ public class UploadService
 
 		return resp;
 	}
-	
+
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("userinfo")
@@ -610,21 +622,17 @@ public class UploadService
 		Response resp = null;
 		InputStream is = null;
 
-		Bag bag = dcStorage.getBag(pid);
-		if (bag == null)
-		{
-			LOGGER.error(format("No bag found for Pid {0}. Throwing NotFoundException.", pid));
-			throw new NotFoundException(format("No bag found for Pid {0}.", pid));
-		}
-
+		if (!dcStorage.fileExistsInBag(pid, fileInBag))
+			throw new NotFoundException(format("File {} not found in {}", fileInBag, pid));
+		
 		try
 		{
 			is = dcStorage.getFileStream(pid, fileInBag);
 			ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 			// Add filename, MD5 and file size to response header.
 			respBuilder = respBuilder.header("Content-Disposition", format("attachment; filename=\"{0}\"", getFilenameFromPath(fileInBag)));
-			respBuilder = respBuilder.header("Content-MD5", bag.getChecksums(fileInBag).get(Algorithm.MD5));
-			respBuilder = respBuilder.header("Content-Length", bag.getBagFile(fileInBag).getSize());
+			respBuilder = respBuilder.header("Content-MD5", dcStorage.getFileMd5(pid, fileInBag));
+			respBuilder = respBuilder.header("Content-Length", dcStorage.getFileSize(pid, fileInBag));
 			resp = respBuilder.build();
 		}
 		catch (DcStorageException e)
@@ -770,7 +778,7 @@ public class UploadService
 	 * @param partNum
 	 *            Part number has int
 	 * @param pidDir
-	 * @throws IOException 
+	 * @throws IOException
 	 * @throws Exception
 	 *             Thrown if the files could not be merged.
 	 */
@@ -798,7 +806,7 @@ public class UploadService
 				// Read bytes and add them to the merged file until all files in this file part have been merged.
 				try
 				{
-					byte[] buffer = new byte[(int) FileUtils.ONE_MB];				
+					byte[] buffer = new byte[(int) FileUtils.ONE_MB];
 					int numBytesRead;
 					while ((numBytesRead = partInStream.read(buffer)) != -1)
 						mergedFileStream.write(buffer, 0, numBytesRead);
@@ -822,7 +830,7 @@ public class UploadService
 					LOGGER.warn("Unable to delete part file {}.", partFiles[i].getAbsolutePath());
 			}
 		}
-		
+
 		return mergedFile;
 	}
 

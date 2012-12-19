@@ -18,6 +18,7 @@ function deleteFile(url)
 {
 	if (confirm("Are you sure you want to delete this file?"))
 	{
+		jQuery('img#loading').show();
 		jQuery.ajax(
 		{
 			url : url,
@@ -30,7 +31,7 @@ function deleteFile(url)
 			alert('Unable to delete file.');
 		}).always(function()
 		{
-			window.location.reload();
+			window.location = window.location.href.split("?")[0];
 		});
 	}
 }
@@ -39,6 +40,7 @@ function deleteExtRef(pid, extRefUrl)
 {
 	if (confirm("Are you sure you want to delete " + extRefUrl))
 	{
+		jQuery('img#loading').show();
 		jQuery.ajax(
 		{
 			url : "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/extrefs/",
@@ -55,7 +57,7 @@ function deleteExtRef(pid, extRefUrl)
 			alert('Unable to delete file.');
 		}).always(function()
 		{
-			window.location.reload();
+			window.location = window.location.href.split("?")[0];
 		});
 	}
 }
@@ -65,6 +67,7 @@ function addExtRef(pid)
 	var url = prompt("Please enter a URL:");
 	if (url != null && url != "")
 	{
+		jQuery('img#loading').show();
 		jQuery.ajax(
 		{
 			url : "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/extrefs/",
@@ -81,7 +84,7 @@ function addExtRef(pid)
 			alert('Unable to add url.');
 		}).always(function()
 		{
-			window.location.reload();
+			window.location = window.location.href.split("?")[0];
 		});
 	}
 }

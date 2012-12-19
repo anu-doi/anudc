@@ -46,25 +46,20 @@ import gov.loc.repository.bagit.utilities.MessageDigestHelper;
 
 public class DcStorageCompleter implements Completer
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorageCompleter.class);
+	
 	@Override
 	public Bag complete(Bag bag)
 	{
-		handlePronomTxt(bag);
-		handleAvScan(bag);
-		handleMetadata(bag);
+		bag = handlePronomTxt(bag);
+		bag = handleAvScan(bag);
+		bag = handleMetadata(bag);
 		return bag;
 	}
 
-	private void handlePronomTxt(Bag bag)
+	private Bag handlePronomTxt(Bag bag)
 	{
-		PronomFormatsTxt pFormats;
-		BagFile pronomBagFile = bag.getBagFile(PronomFormatsTxt.FILEPATH);
-		if (pronomBagFile == null)
-			pFormats = new PronomFormatsTxt(PronomFormatsTxt.FILEPATH, bag.getBagItTxt().getCharacterEncoding());
-		else
-			pFormats = new PronomFormatsTxt(PronomFormatsTxt.FILEPATH, pronomBagFile, bag.getBagItTxt().getCharacterEncoding());
+		PronomFormatsTxt pFormats = getOrCreatePronomFormats(bag);
 
 		// Get Fido Output for each payload file.
 		pFormats.clear();
@@ -74,6 +69,7 @@ public class DcStorageCompleter implements Completer
 			try
 			{
 				fido = new FidoParser(iBagFile.newInputStream());
+				LOGGER.trace("Fido result for {}: {}", iBagFile.getFilepath(), fido.getOutput());
 				pFormats.put(iBagFile.getFilepath(), fido.getOutput());
 			}
 			catch (IOException e)
@@ -83,20 +79,16 @@ public class DcStorageCompleter implements Completer
 		}
 
 		bag.putBagFile(pFormats);
+		return bag;
 	}
 
-	private void handleAvScan(Bag bag)
+	private Bag handleAvScan(Bag bag)
 	{
-		VirusScanTxt vsTxt;
-		BagFile avStatusFile = bag.getBagFile(VirusScanTxt.FILEPATH);
-		if (avStatusFile == null)
-			vsTxt = new VirusScanTxt(VirusScanTxt.FILEPATH, bag.getBagItTxt().getCharacterEncoding());
-		else
-			vsTxt = new VirusScanTxt(VirusScanTxt.FILEPATH, avStatusFile, bag.getBagItTxt().getCharacterEncoding());
+		VirusScanTxt vsTxt = getOrCreateVirusScan(bag);
 
 		// Get scan result for each payload file.
 		vsTxt.clear();
-		ClamScan cs = new ClamScan("localhost", 3310, 30000);
+		ClamScan cs = new ClamScan("localhost", 3310);
 		if (cs.ping() == true)
 		{
 			for (BagFile iBagFile : bag.getPayload())
@@ -108,9 +100,10 @@ public class DcStorageCompleter implements Completer
 		}
 
 		bag.putBagFile(vsTxt);
+		return bag;
 	}
 
-	private void handleMetadata(Bag bag)
+	private Bag handleMetadata(Bag bag)
 	{
 		// Delete metadata directory in bag.
 		bag.removeTagDirectory("metadata/");
@@ -154,6 +147,8 @@ public class DcStorageCompleter implements Completer
 				LOGGER.warn("TikaException for " + iBagFile.getFilepath(), e);
 			}
 		}
+		
+		return bag;
 	}
 
 	private void handleTikaXmp(Bag bag, BagFile bf, MetadataExtractor me) throws TikaException
@@ -188,5 +183,32 @@ public class DcStorageCompleter implements Completer
 			IOUtils.closeQuietly(objOutStream);
 			IOUtils.closeQuietly(bos);
 		}
+	}
+
+	private PronomFormatsTxt getOrCreatePronomFormats(Bag bag)
+	{
+		PronomFormatsTxt pFormats;
+		BagFile pronomBagFile = bag.getBagFile(PronomFormatsTxt.FILEPATH);
+		if (pronomBagFile == null)
+			pFormats = new PronomFormatsTxt(PronomFormatsTxt.FILEPATH, getCharEncoding(bag));
+		else
+			pFormats = new PronomFormatsTxt(PronomFormatsTxt.FILEPATH, pronomBagFile, getCharEncoding(bag));
+		return pFormats;
+	}
+
+	private VirusScanTxt getOrCreateVirusScan(Bag bag)
+	{
+		VirusScanTxt vsTxt;
+		BagFile avStatusFile = bag.getBagFile(VirusScanTxt.FILEPATH);
+		if (avStatusFile == null)
+			vsTxt = new VirusScanTxt(VirusScanTxt.FILEPATH, getCharEncoding(bag));
+		else
+			vsTxt = new VirusScanTxt(VirusScanTxt.FILEPATH, avStatusFile, getCharEncoding(bag));
+		return vsTxt;
+	}
+
+	private String getCharEncoding(Bag bag)
+	{
+		return bag.getBagItTxt().getCharacterEncoding();
 	}
 }

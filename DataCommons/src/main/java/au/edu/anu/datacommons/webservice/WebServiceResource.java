@@ -9,6 +9,7 @@ import java.io.StringWriter;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import javax.annotation.Resource;
 import javax.ws.rs.Consumes;
@@ -82,7 +83,7 @@ public class WebServiceResource
 
 	private static final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 	private static DocumentBuilder docBuilder;
-	private static ExecutorService threadExec = Executors.newSingleThreadExecutor();
+	private static ExecutorService threadExec;
 
 	private static JAXBContext context;
 	private static Unmarshaller um;
@@ -116,7 +117,20 @@ public class WebServiceResource
 			context = null;
 			um = null;
 		}
-
+		
+		threadExec = Executors.newSingleThreadExecutor(new ThreadFactory() {
+			// Reduced priority for these threads.
+			private final static int PRIORITY = (Thread.NORM_PRIORITY + Thread.MIN_PRIORITY) / 2;
+			
+			@Override
+			public Thread newThread(Runnable r)
+			{
+				Thread newThread = new Thread(r);
+				newThread.setPriority(PRIORITY);
+				newThread.setDaemon(true);
+				return newThread;
+			}
+		});
 	}
 
 	@Context

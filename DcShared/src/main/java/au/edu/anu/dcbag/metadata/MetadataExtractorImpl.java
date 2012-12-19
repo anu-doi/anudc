@@ -40,7 +40,7 @@ public class MetadataExtractorImpl implements MetadataExtractor
 	{
 		try
 		{
-			BodyContentHandler textHandler = new BodyContentHandler();
+			BodyContentHandler textHandler = new BodyContentHandler(-1);
 			AutoDetectParser parser = new AutoDetectParser(new AutoDetectParser(), new FitsParser());
 			ParseContext parseContext = new ParseContext();
 			parser.parse(dataStream, textHandler, this.metadata, parseContext);

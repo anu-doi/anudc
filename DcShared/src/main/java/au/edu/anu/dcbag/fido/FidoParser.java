@@ -17,19 +17,28 @@ import org.slf4j.LoggerFactory;
 public class FidoParser
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
-	private static PythonExecutor pyExec;
 	
 	private final String output;
 	private final PronomFormat fileFormat;
+	private final PythonExecutor pyExec;
 	
 	public FidoParser(InputStream fileStream) throws IOException
 	{
 		pyExec = new PythonExecutor(getFidoScriptFile(), new String[] {"-u"});
-		pyExec.execute(new String[] {"-"});
+		pyExec.execute(new String[] {"-nocontainer", "-"});
 		pyExec.sendStreamToStdIn(fileStream);
 		output = pyExec.getOutputAsString();
 		fileFormat = new PronomFormat(this.output);
-		LOGGER.info("Fido returned {}", output);
+		LOGGER.trace("Fido returned '{}'", output);
+	}
+
+	public FidoParser(File fileToId) throws IOException
+	{
+		pyExec = new PythonExecutor(getFidoScriptFile());
+		pyExec.execute(new String[] {"-nocontainer", fileToId.getAbsolutePath()});
+		output = pyExec.getOutputAsString();
+		fileFormat = new PronomFormat(this.output);
+		LOGGER.trace("Fido returned '{}'", output);
 	}
 	
 	public String getOutput()

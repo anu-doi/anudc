@@ -6,29 +6,44 @@ import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.Manifest;
+import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.ManifestHelper;
 import gov.loc.repository.bagit.transformer.Completer;
 import gov.loc.repository.bagit.transformer.impl.ChainingCompleter;
 import gov.loc.repository.bagit.transformer.impl.DefaultCompleter;
 import gov.loc.repository.bagit.transformer.impl.TagManifestCompleter;
+import gov.loc.repository.bagit.transformer.impl.UpdateCompleter;
 import gov.loc.repository.bagit.transformer.impl.UpdatePayloadOxumCompleter;
 import gov.loc.repository.bagit.utilities.SimpleResult;
+import gov.loc.repository.bagit.verify.FailModeSupporting.FailMode;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.FileChannel;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -47,18 +62,18 @@ import au.edu.anu.dcbag.BagPropsTxt.DataSource;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
-public final class DcStorage
+public final class DcStorage implements Closeable
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorage.class);
 
-	private static Set<Manifest.Algorithm> algorithms;
+	private static ExecutorService execSvc;
+	private static final int CONNECTION_TIMEOUT_MS = 30000;
+	private static final int READ_TIMEOUT_MS = 30000;
+
+	private Set<Manifest.Algorithm> algorithms;
 	private static DcStorage inst = null;
-	private static Set<String> lockedPids = Collections.synchronizedSet(new HashSet<String>());
+	private final Set<String> lockedPids = Collections.synchronizedSet(new HashSet<String>());
 	private static File bagsDir = null;
-	private static Completer tagFilesCompleter;
-	private static Completer preSaveCompleter;
-	private static Completer postSaveCompleter;
-	private static FileSystemWriter writer;
 
 	public static final BagFactory bagFactory = new BagFactory();
 
@@ -71,14 +86,7 @@ public final class DcStorage
 		algorithms = new HashSet<Manifest.Algorithm>();
 		algorithms.add(Manifest.Algorithm.MD5);
 
-		// Bag Completers.
-		preSaveCompleter = new ChainingCompleter(new DefaultCompleter(bagFactory));
-		postSaveCompleter = new ChainingCompleter(new DcStorageCompleter(), new TagManifestCompleter(bagFactory));
-		tagFilesCompleter = new ChainingCompleter(new TagManifestCompleter(bagFactory), new UpdatePayloadOxumCompleter(bagFactory));
-		
-		// Bag Writer
-		writer = new FileSystemWriter(bagFactory);
-		writer.setSkipIfPayloadFileExists(false);
+		execSvc = Executors.newSingleThreadExecutor();
 
 		// Set storage location if not set already.
 		if (bagsDir == null)
@@ -86,9 +94,7 @@ public final class DcStorage
 
 		// If the directory specified doesn't exist, create it.
 		if (!bagsDir.exists() && !bagsDir.mkdirs())
-		{
 			throw new RuntimeException(format("Unable to create {0}. Check permissions.", bagsDir.getAbsolutePath()));
-		}
 	}
 
 	/**
@@ -101,6 +107,11 @@ public final class DcStorage
 		if (inst == null)
 			inst = new DcStorage();
 		return inst;
+	}
+
+	static File getLocation()
+	{
+		return bagsDir;
 	}
 
 	public static void setLocation(File newBagsDir)
@@ -160,7 +171,7 @@ public final class DcStorage
 
 			LOGGER.debug("Saving {} as {}...", fileUrl.toString(), tempRenamedFile.getAbsolutePath());
 			// Connection and read timeout set to 30 seconds.
-			FileUtils.copyURLToFile(fileUrl, tempRenamedFile, 30000, 30000);
+			FileUtils.copyURLToFile(fileUrl, tempRenamedFile, CONNECTION_TIMEOUT_MS, READ_TIMEOUT_MS);
 			addFileToBag(pid, tempRenamedFile);
 		}
 		catch (IOException e)
@@ -186,7 +197,7 @@ public final class DcStorage
 	 *            File object
 	 * @throws DcStorageException
 	 */
-	public void addFileToBag(String pid, File file) throws DcStorageException
+	public void addFileToBag(final String pid, final File file) throws DcStorageException
 	{
 		// TODO Lock Pid
 		Bag bag = null;
@@ -201,11 +212,27 @@ public final class DcStorage
 				// Reload bag instance because now it points to the archived bag.
 				bag = getBag(pid);
 			}
-			bag.addFileToPayload(file);
-			bag = bag.makeComplete(preSaveCompleter);
-			bag = writeBag(bag, pid);
-			bag = bag.makeComplete(postSaveCompleter);
-			bag = writeBag(bag, pid);
+			moveFileToPayload(pid, file, file.getName());
+
+			execSvc.execute(new Runnable() {
+				@Override
+				public void run()
+				{
+					// Complete bag.
+					Bag bag = getBag(pid);
+					UpdateCompleter updateCompleter = new UpdateCompleter(bagFactory);
+					updateCompleter.setLimitAddPayloadFilepaths(Arrays.asList("data/" + file.getName()));
+					updateCompleter.setLimitUpdatePayloadFilepaths(Arrays.asList("data/" + file.getName()));
+					DcStorageCompleter dcStorageCompleter = new DcStorageCompleter();
+					Completer completer = new ChainingCompleter(dcStorageCompleter, updateCompleter);
+					bag = bag.makeComplete(completer);
+
+					// Write bag.
+					FileSystemWriter writer = new FileSystemWriter(bagFactory);
+					writer.setTagFilesOnly(true);
+					bag = writer.write(bag, bag.getFile());
+				}
+			});
 		}
 		catch (IOException e)
 		{
@@ -218,8 +245,8 @@ public final class DcStorage
 			IOUtils.closeQuietly(bag);
 		}
 	}
-	
-	public void deleteFileFromBag(String pid, String bagFilePath) throws DcStorageException 
+
+	public void deleteFileFromBag(final String pid, final String bagFilePath) throws DcStorageException
 	{
 		Bag bag = null;
 		if (!bagExists(pid))
@@ -230,10 +257,28 @@ public final class DcStorage
 			if (!fileExistsInBag(pid, bagFilePath))
 				throw new DcStorageException(format("File {0} doesn't exist in pid {1}.", bagFilePath, pid));
 			archiveBag(bag, false);
-			bag.removeBagFile(bagFilePath);
-			bag = bag.makeComplete(preSaveCompleter);
-			bag = bag.makeComplete(postSaveCompleter);
-			bag = writeBag(bag, pid);
+			bag = getBag(pid);
+			File fileToDelete = new File(bag.getFile(), bagFilePath);
+			if (!fileToDelete.delete())
+				throw new DcStorageException(format("Unable to delete file {0} from {1}", bagFilePath, pid));
+
+			execSvc.execute(new Runnable() {
+				@Override
+				public void run()
+				{
+					// Complete bag.
+					Bag bag = getBag(pid);
+					UpdateCompleter updateCompleter = new UpdateCompleter(bagFactory);
+					updateCompleter.setLimitDeletePayloadFilepaths(Arrays.asList(bagFilePath));
+					Completer completer = new ChainingCompleter(new DcStorageCompleter(), updateCompleter);
+					bag = bag.makeComplete(completer);
+
+					// Write Bag.
+					FileSystemWriter writer = new FileSystemWriter(bagFactory);
+					writer.setTagFilesOnly(true);
+					bag = writer.write(bag, bag.getFile());
+				}
+			});
 		}
 		catch (IOException e)
 		{
@@ -275,17 +320,16 @@ public final class DcStorage
 			// each url appears only once.
 			extRefsTxt.put(base64Encode(url), url);
 			bag.putBagFile(extRefsTxt);
-			bag = bag.makeComplete(tagFilesCompleter);
-			
+			TagManifestCompleter tagManifestCompleter = new TagManifestCompleter(bagFactory);
+			bag = bag.makeComplete(tagManifestCompleter);
+
 			// Write the bag.
+			FileSystemWriter writer = new FileSystemWriter(bagFactory);
 			writer.setTagFilesOnly(true);
-			writer.setSkipIfPayloadFileExists(true);
-			bag = writeBag(bag, pid);
+			bag = writer.write(bag, bag.getFile());
 		}
 		finally
 		{
-			writer.setTagFilesOnly(false);
-			writer.setSkipIfPayloadFileExists(false);
 			IOUtils.closeQuietly(bag);
 		}
 	}
@@ -307,19 +351,22 @@ public final class DcStorage
 				throw new DcStorageException(format("External reference {0} not found in pid {1}", url, pid));
 			extRefsTxt.remove(base64EncodedUrl);
 			bag.putBagFile(extRefsTxt);
-			bag = bag.makeComplete(tagFilesCompleter);
+
+			// Complete bag.
+			TagManifestCompleter tagManifestCompleter = new TagManifestCompleter(bagFactory);
+			bag = bag.makeComplete(tagManifestCompleter);
+
+			// Write Bag.
+			FileSystemWriter writer = new FileSystemWriter(bagFactory);
 			writer.setTagFilesOnly(true);
-			writer.setSkipIfPayloadFileExists(true);
-			bag = writeBag(bag, pid);
+			bag = writer.write(bag, bag.getFile());
 		}
 		finally
 		{
-			writer.setTagFilesOnly(false);
-			writer.setSkipIfPayloadFileExists(false);
 			IOUtils.closeQuietly(bag);
 		}
 	}
-	
+
 	/**
 	 * Adds a bag to a collection.
 	 * 
@@ -357,7 +404,7 @@ public final class DcStorage
 	{
 		// Verify the bag.
 		LOGGER.info("Verifying replacement bag for {}...", pid);
-		SimpleResult verfResults = bag.verifyValid();
+		SimpleResult verfResults = bag.verifyValid(FailMode.FAIL_FAST);
 		if (verfResults.isSuccess() == false)
 		{
 			LOGGER.error("Bag validation failed. Bag will not be stored.");
@@ -387,11 +434,22 @@ public final class DcStorage
 			}
 		}
 
-		// Complete the bag.
-		bag = bag.makeComplete(preSaveCompleter);
-		bag = writeBag(bag, pid);
-		bag = bag.makeComplete(postSaveCompleter);
-		bag = writeBag(bag, pid);
+		try
+		{
+			// Complete bag.
+			DefaultCompleter defaultCompleter = new DefaultCompleter(bagFactory);
+			DcStorageCompleter dcStorageCompleter = new DcStorageCompleter();
+			ChainingCompleter completer = new ChainingCompleter(dcStorageCompleter, defaultCompleter);
+			bag = bag.makeComplete(completer);
+
+			// Write bag.
+			FileSystemWriter writer = new FileSystemWriter(bagFactory);
+			bag = writer.write(bag, getBagDir(pid));
+		}
+		finally
+		{
+			IOUtils.closeQuietly(bag);
+		}
 
 		// Update FILE0 datastream.
 		try
@@ -403,7 +461,6 @@ public final class DcStorage
 			LOGGER.warn(e.getMessage(), e);
 		}
 
-		IOUtils.closeQuietly(bag);
 	}
 
 	/**
@@ -426,13 +483,12 @@ public final class DcStorage
 	 * @param filepath
 	 *            Path of the file within the bag. E.g. <code>data/abc.txt</code>
 	 * @return true if exists, false otherwise
-	 * @throws DcStorageException
 	 */
-	public boolean fileExistsInBag(String pid, String filepath) throws DcStorageException
+	public boolean fileExistsInBag(String pid, String filepath)
 	{
 		Bag bag = getBag(pid);
 		if (bag == null)
-			throw new DcStorageException(format("Bag doesn't exist for Pid {0}.", pid));
+			return false;
 
 		BagFile bFile = bag.getBagFile(filepath);
 		return (bFile != null);
@@ -446,9 +502,9 @@ public final class DcStorage
 	 * 
 	 * @return Bag as Bag object
 	 */
-	public Bag getBag(String pid)
+	Bag getBag(String pid)
 	{
-		LOGGER.debug("Checking if a bag exists for {}...", pid);
+		LOGGER.debug("Getting bag for {}...", pid);
 		Bag bag = null;
 		for (int i = 0; i < Bag.Format.values().length; i++)
 		{
@@ -456,7 +512,7 @@ public final class DcStorage
 			if (possibleBagFile.exists())
 			{
 				LOGGER.debug("Bag for pid {} at {}", pid, possibleBagFile.getAbsolutePath());
-				bag = bagFactory.createBag(possibleBagFile, LoadOption.BY_MANIFESTS);
+				bag = bagFactory.createBag(possibleBagFile, LoadOption.BY_FILES);
 				break;
 			}
 		}
@@ -543,8 +599,7 @@ public final class DcStorage
 		PipedInputStream zipInStream = new PipedInputStream(sink);
 
 		// Writing PipedOutputStream needs to happen in a separate thread to prevent deadlock.
-		Runnable zipWriter = new Runnable()
-		{
+		Runnable zipWriter = new Runnable() {
 			@Override
 			public void run()
 			{
@@ -584,6 +639,80 @@ public final class DcStorage
 
 		new Thread(zipWriter).start();
 		return zipInStream;
+	}
+	
+	public String getFileMd5(String pid, String filepath) throws DcStorageException
+	{
+		Bag bag = getBag(pid);
+		if (bag == null)
+			throw new DcStorageException(format("Bag not found for {0}", pid));
+		
+		return bag.getChecksums(filepath).get(Algorithm.MD5);
+	}
+	
+	public long getFileSize(String pid, String filepath) throws DcStorageException
+	{
+		Bag bag = getBag(pid);
+		if (bag == null)
+			throw new DcStorageException(format("Bag not found for {0}", pid));
+		
+		return bag.getBagFile(filepath).getSize();
+	}
+
+	File getBagDir(String pid)
+	{
+		return new File(bagsDir, convertToDiskSafe(pid) + Bag.Format.FILESYSTEM.extension);
+	}
+
+	private void moveFileToPayload(String pid, File fileToMove, String filename) throws IOException
+	{
+		File payloadDir = new File(getBagDir(pid), "data/");
+		File targetFile = new File(payloadDir, filename);
+		if (targetFile.exists())
+		{
+			LOGGER.debug("File {} already exists. Deleting.", targetFile);
+			if (!targetFile.delete())
+			{
+				LOGGER.error("Unable to delete preexisting {} in bag for {}. Check permissions.", targetFile.getName(), pid);
+				throw new IOException(format("Unable to delete file {0} in {1}", targetFile.getName(), pid));
+			}
+		}
+		LOGGER.debug("Moving {} to {} and saving as {}.", fileToMove.getAbsolutePath(), payloadDir, filename);
+		if (!fileToMove.renameTo(targetFile))
+		{
+			LOGGER.error("Unable to move {} to {} to save as {}. Check permissions", fileToMove.getAbsolutePath(), payloadDir, filename);
+			throw new IOException(format("Unable to move file {0} to payload directory of {1}", fileToMove.getAbsolutePath(), pid));
+		}
+		LOGGER.debug("Succesfully moved {} to {} and saved as {}.", fileToMove.getAbsolutePath(), payloadDir, filename);
+	}
+
+	private void copyFile(File source, File target) throws IOException
+	{
+		if (!source.exists())
+			throw new FileNotFoundException(format("File {0} not found. Check the file exists and has read permissions", source.getAbsolutePath()));
+		LOGGER.debug("Copying {} of size {} to {}.", source.getAbsolutePath(), source.length(), target.getAbsolutePath());
+		FileInputStream sourceStream = null;
+		FileChannel sourceChannel = null;
+		FileOutputStream targetStream = null;
+		FileChannel targetChannel = null;
+
+		try
+		{
+			sourceStream = new FileInputStream(source);
+			targetStream = new FileOutputStream(target);
+			sourceChannel = sourceStream.getChannel();
+			targetChannel = targetStream.getChannel();
+			targetChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
+		}
+		finally
+		{
+			IOUtils.closeQuietly(sourceChannel);
+			IOUtils.closeQuietly(sourceStream);
+			IOUtils.closeQuietly(targetChannel);
+			IOUtils.closeQuietly(targetStream);
+			if (target.exists())
+				FileUtils.deleteQuietly(target);
+		}
 	}
 
 	private void updateDatastream(String pid) throws FedoraClientException
@@ -661,28 +790,23 @@ public final class DcStorage
 		}
 	}
 
-	private Bag writeBag(Bag bag, String pid)
-	{
-		return bag.write(writer, new File(bagsDir, convertToDiskSafe(pid) + Bag.Format.FILESYSTEM.extension));
-	}
-
 	private void archiveBag(Bag bag, boolean deleteOriginal) throws IOException
 	{
-		File file = bag.getFile();
+		File curBagFile = bag.getFile();
 		Date dateNow = new Date();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
 		bag.close();
-		File targetFile = new File(GlobalProps.getBagsDirAsFile(), file.getName() + "-" + dateFormat.format(dateNow));
+		File archivedBagFile = new File(bagsDir, curBagFile.getName() + "-" + dateFormat.format(dateNow));
 		if (deleteOriginal)
 		{
-			file.renameTo(targetFile);
+			curBagFile.renameTo(archivedBagFile);
 		}
 		else
 		{
-			if (file.isDirectory())
-				FileUtils.copyDirectory(file, targetFile, true);
+			if (curBagFile.isDirectory())
+				FileUtils.copyDirectory(curBagFile, archivedBagFile, true);
 			else
-				FileUtils.copyFile(file, targetFile, true);
+				FileUtils.copyFile(curBagFile, archivedBagFile, true);
 		}
 	}
 
@@ -708,9 +832,19 @@ public final class DcStorage
 			bag.putBagFile(bag.getBagPartFactory().createBagInfoTxt());
 		bag.getBagInfoTxt().addExternalIdentifier(pid);
 
+		bag = bag.makeComplete();
+		
+		FileSystemWriter writer = new FileSystemWriter(bagFactory);
+		bag = writer.write(bag, getBagDir(pid));
+
+		// Create payload directory
+		File payloadDir = new File(bag.getFile(), "data/");
+		if (!payloadDir.exists())
+			payloadDir.mkdir();
+
 		return bag;
 	}
-	
+
 	private String base64Encode(String stringToEncode)
 	{
 		String base64Encoded = new String(Base64.encodeBase64(stringToEncode.getBytes()));
@@ -720,6 +854,26 @@ public final class DcStorage
 	private String getCharacterEncoding(Bag bag)
 	{
 		return bag.getBagItTxt().getCharacterEncoding();
+	}
+
+	@Override
+	public void close()
+	{
+		LOGGER.info("Shutting down DcStorage threads...");
+		if (!execSvc.isShutdown())
+		{
+			execSvc.shutdown();
+			try
+			{
+				// Wait until all threads have finished or timeout threshold reached.
+				execSvc.awaitTermination(15, TimeUnit.MINUTES);
+				LOGGER.info("DcStorage shutdown successfully.");
+			}
+			catch (InterruptedException e)
+			{
+				LOGGER.warn("Executor Service normal shutdown interrupted.", e);
+			}
+		}
 	}
 
 	public static String convertToDiskSafe(String source)

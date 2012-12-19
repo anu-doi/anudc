@@ -14,4 +14,14 @@ public class FileSummaryMap extends HashMap<BagFile, FileSummary>
 		for (BagFile iBagFile : bag.getPayload())
 			this.put(iBagFile, new FileSummary(bag, iBagFile));
 	}
+	
+	public FileSummary getFileSummary(String bagFilePath)
+	{
+		for (BagFile bagFile : this.keySet())
+		{
+			if (bagFile.getFilepath().equals(bagFilePath))
+				return this.get(bagFile);
+		}
+		return null;
+	}
 }

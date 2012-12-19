@@ -100,6 +100,8 @@
 					</ul>
 				</c:if>
 			</div>
+			
+			<img id="loading" src="<c:url value='/images/ajax-loader.gif' />" style="display: none"></img>
 		</anu:content>
 	</c:when>
 </c:choose>
