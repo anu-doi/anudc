@@ -1,10 +1,6 @@
 package au.edu.anu.datacommons.storage;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.Manifest;
@@ -433,7 +429,7 @@ public class DcStorageTest
 	{
 		ExecutorService execSvc = Executors.newCachedThreadPool();
 		Set<String> pids = new HashSet<String>();
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 50; i++)
 		{
 			String pid = getNextPid();
 			pids.add(pid);
