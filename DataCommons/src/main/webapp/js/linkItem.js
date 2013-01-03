@@ -79,11 +79,16 @@ jQuery(document).ready(function() {
 				cat1: cat1,
 				cat2: cat2
 			},
+			dataType: "json",
 			success: function(data) {
 				jQuery("#linkType option").remove();
 				jQuery.map(data, function(item, i) {
 					jQuery("#linkType").append("<option value='" + i + "'>" + item + "</option>");
 				});
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				var test = jQuery.parseJSON(jqXHR.responseText);
+				alert('Error retrieving categories for links:\n' + test[0]);
 			}
 		});
 	});

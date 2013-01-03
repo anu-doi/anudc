@@ -2,6 +2,8 @@ package au.edu.anu.datacommons.publish;
 
 import java.util.List;
 
+import au.edu.anu.datacommons.exception.ValidateException;
+
 /**
  * GenericPublish
  * 

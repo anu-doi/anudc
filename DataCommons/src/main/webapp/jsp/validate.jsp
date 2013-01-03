@@ -10,7 +10,19 @@
 
 <jsp:include page="header.jsp" />
 
-<anu:content title="Publication Validation" layout="doublenarrow">
+<anu:content layout="doublewide">
+	<anu:breadcrumbs>
+		<c:url value="/rest/search" var="searchLink" />
+		<anu:crumb title="Search" href="${searchLink}"/>
+		<c:url value="/rest/display/${it.item}" var="displayURL">
+			<c:param name="layout">def:display</c:param>
+		</c:url>
+		<anu:crumb title="Display" href='${displayURL}' />
+		<anu:crumb title="Validate" />
+	</anu:breadcrumbs>
+	 
+	<h1>Publication Validation</h1>
+	
 	<c:if test="${not empty it.message}">
 		Published to:<br />
 		${it.message}<br />

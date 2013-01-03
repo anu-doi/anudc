@@ -6,7 +6,6 @@ import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -19,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.data.solr.SolrManager;
+import au.edu.anu.datacommons.exception.DataCommonsException;
 import au.edu.anu.datacommons.search.SolrSearchResult;
 
 import com.sun.jersey.api.view.Viewable;
@@ -36,6 +36,7 @@ import com.sun.jersey.api.view.Viewable;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		14/08/2012	Genevieve Turner (GT)	Initial
+ * 0.2		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
  * </pre>
  *
  */
@@ -51,6 +52,7 @@ public class AdminResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		14/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @return
@@ -90,7 +92,8 @@ public class AdminResource {
 			response = Response.ok(new Viewable("/sitemap.jsp", model)).build();
 		}
 		catch (SolrServerException e) {
-			throw new WebApplicationException(502);
+			LOGGER.error("Error retrieving results for page", e);
+			throw new DataCommonsException(502, "Error retrieving results for page");
 		}
 		
 		return response;

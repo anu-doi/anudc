@@ -38,6 +38,7 @@ import au.edu.anu.datacommons.util.AppContext;
  * 0.2		17/09/2012	Genevieve Turner (GT)	Updates to how the ownerGroups are retrieved
  * 0.3		05/12/2012	Genevieve Turner (GT)	Updated so each option has a title, so that Internet Explorer users are able to view the values
  * 0.4		11/12/2012	Genevieve Turner (GT)	Added a title to the option list so that Internet Explorer users can see the whole name
+ * 0.5		02/01/2012	Genevieve Turner (GT)	Updated to fix typo of 'options' rather than 'option' on closing tag in formatOptions
  * </pre>
  *
  */
@@ -153,6 +154,7 @@ public class SelectAction {
 	 * 0.1		11/09/2012	Genevieve Turner(GT)	Initial
 	 * 0.3		05/12/2012	Genevieve Turner (GT)	Updated so each option has a title, so that Internet Explorer users are able to view the values
 	 * 0.4		11/12/2012	Genevieve Turner (GT)	Added a title to the option list so that Internet Explorer users can see the whole name
+	 * 0.5		02/01/2012	Genevieve Turner (GT)	Updated to fix typo of 'options' rather than 'option' on closing tag
 	 * </pre>
 	 * 
 	 * @param selectedValue The selected value.
@@ -171,7 +173,7 @@ public class SelectAction {
 			}
 			options.append(">");
 			options.append(entry.getValue());
-			options.append("</options>");
+			options.append("</option>");
 		}
 		
 		return options.toString();

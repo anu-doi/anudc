@@ -10,7 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
-import au.edu.anu.datacommons.publish.ValidateException;
+import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.search.SolrSearchResult;
 
 /**
@@ -26,6 +26,7 @@ import au.edu.anu.datacommons.search.SolrSearchResult;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		11/12/2012	Genevieve Turner (GT)	Initial
+ * 0.2		02/01/2012	Genevieve Turner (GT)	Removed a number of thrown exceptions for validateMultiple
  * </pre>
  *
  */
@@ -39,17 +40,14 @@ public interface PublishService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		11/12/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		02/01/2012	Genevieve Turner (GT)	Removed a number of thrown exceptions
 	 * </pre>
 	 * 
 	 * @param publishers The locations to validate against
 	 * @param ids The ids of the items to validate
 	 * @return A map consisting of the pid and validation messages
-	 * @throws ClassNotFoundException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
 	 */
-	public Map<String, List<LocationValidationMessage>> validateMultiple(String[] publishers, String[] ids)
-		throws ClassNotFoundException, IllegalAccessException, InstantiationException;
+	public Map<String, List<LocationValidationMessage>> validateMultiple(String[] publishers, String[] ids);
 	
 	/**
 	 * getValidationGroups

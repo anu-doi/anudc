@@ -35,6 +35,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.exception.DataCommonsException;
+import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.sparql.Result;
@@ -65,6 +67,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.11		22/10/2012	Genevieve Turner (GT)	Updates to allow deletion/edit of relationships
  * 0.12		12/11/2012	Genevieve Turner (GT)	Updated to with the request id fields of null
  * 0.13		13/11/2012	Genevieve Turner (GT)	Updated the retrieval of the edit page with the mode.
+ * 0.14		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
  * </pre>
  */
 @Component
@@ -269,6 +272,7 @@ public class DisplayResource
 	 * 0.4		29/03/2012	Genevieve Turner (GT)	Added
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
 	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
+	 * 0.14		21/12/2012	Genevieve Turner (GT)	Updated so that text/plain is produced rather than text/html so that a page is not rendered
 	 * </pre>
 	 * 
 	 * @param layout
@@ -284,7 +288,7 @@ public class DisplayResource
 	@GET
 	@Path("/edit/{item}/{fieldName}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	@Produces(MediaType.TEXT_HTML)
+	@Produces(MediaType.TEXT_PLAIN)
 	public String getEditItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item,
 			@PathParam("fieldName") String fieldName)
 	{
@@ -495,6 +499,7 @@ public class DisplayResource
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.11		22/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.14		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param item The item to edit the links for
@@ -511,10 +516,10 @@ public class DisplayResource
 	public String editLink(@PathParam("item") String item, @FormParam("linkType") String linkType, 
 			@FormParam("removeLinkType") String removeLinkType, @FormParam("itemId") String itemId) {
 		if (linkType == null) {
-			throw new WebApplicationException(Response.status(400).entity("Missing linkType").build());
+			throw new ValidateException("The relationship type is missing");
 		}
 		if (itemId == null) {
-			throw new WebApplicationException(Response.status(400).entity("Missing itemId").build());
+			throw new ValidateException("The item to relate to is missing");
 		}
 		
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
@@ -525,7 +530,7 @@ public class DisplayResource
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception removing link", e);
-			throw new WebApplicationException(Response.status(500).entity("Exception removing link").build());
+			throw new DataCommonsException(500, "Exception editing the relationship");
 		}
 		
 		return "Referenced Changed";
@@ -539,6 +544,7 @@ public class DisplayResource
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.11		22/10/2012	Genevieve Turner(GT)	Initial
+	 * 0.14		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param item The item to edit the links for
@@ -552,12 +558,11 @@ public class DisplayResource
 	@Produces(MediaType.TEXT_PLAIN)
 	public String removeLink(@PathParam("item") String item, @FormParam("linkType") String linkType, 
 			@FormParam("itemId") String itemId) {
-		//Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		if (linkType == null) {
-			throw new WebApplicationException(Response.status(400).entity("Missing linkType").build());
+			throw new ValidateException("The relationship type is missing");
 		}
 		if (itemId == null) {
-			throw new WebApplicationException(Response.status(400).entity("Missing itemId").build());
+			throw new ValidateException("The item to relate to is missing");
 		}
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		
@@ -566,7 +571,8 @@ public class DisplayResource
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception removing link", e);
-			throw new WebApplicationException(Response.status(500).entity("Exception removing link").build());
+
+			throw new DataCommonsException(500, "Exception editing the relationship");
 		}
 		
 		return "Reference Removed";
