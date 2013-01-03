@@ -21,7 +21,6 @@ public class ClamScan {
     private static final byte[] INSTREAM = "zINSTREAM\0".getBytes();
     private static final byte[] PING = "zPING\0".getBytes();
     private static final byte[] STATS = "nSTATS\n".getBytes();
-    private static final int CONNECT_TIMEOUT_MS = 5000;
     
     // TODO: IDSESSION, END
 
@@ -45,17 +44,16 @@ public class ClamScan {
     //    If  clamd detects that a client has deadlocked,  it will close the connection. Note that clamd
     //    may close an IDSESSION connection too if you don't follow the protocol's requirements.
 
-    private int timeout;
+    private int timeout = 3000;
     private String host;
     private int port;
 
     public ClamScan() {
     }
 
-    public ClamScan(String host, int port, int timeout) {
+    public ClamScan(String host, int port) {
         setHost(host);
         setPort(port);
-        setTimeout(timeout);
     }
 
     public String stats() {
@@ -71,9 +69,14 @@ public class ClamScan {
         Socket socket = new Socket();
 
         try {
-            socket.connect(new InetSocketAddress(getHost(), getPort()), CONNECT_TIMEOUT_MS);
+            socket.connect(new InetSocketAddress(getHost(), getPort()), getTimeout());
         } catch (IOException e) {
             log.error("could not connect to clamd server");
+            try
+			{
+				socket.close();
+			}
+			catch (IOException e1) { }
             return null;
         }
 

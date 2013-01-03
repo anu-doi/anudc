@@ -10,6 +10,8 @@ briefDesc=Brief Description
 fullDesc=Full Description
 ownerGroup=1
 email=someone@anu.edu.au
+subType=dataset
+type=Collection
 
 #	The following keys are optional.
 abbrName=
@@ -29,8 +31,6 @@ pubType=
 pubValue=
 rightsStatement=
 significanceStatement=
-subType=dataset
-type=Collection
 websiteAddress=
 
 #	'relation' key specifies the relationship with another item. Multiple relation keys can be specified.

@@ -55,6 +55,7 @@ public class FileSystemHelper {
 				IOUtils.closeQuietly(sourceChannel);
 				IOUtils.closeQuietly(in);
 				IOUtils.closeQuietly(targetChannel);
+				out.flush();
 				IOUtils.closeQuietly(out);
 			}
 			TempFileHelper.switchTemp(file);

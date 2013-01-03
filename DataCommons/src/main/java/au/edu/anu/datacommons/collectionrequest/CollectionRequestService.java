@@ -303,8 +303,8 @@ public class CollectionRequestService
 			varMap.put("collReqUrl", uriInfo.getBaseUriBuilder().path(this.getClass()).path(this.getClass(), "doGetReqItemAsHtml").build(newCollReq.getId())
 					.toString());
 
-			Email email = new Email(mailSender);
 			List<String> contactEmailList = getEmails(pid);
+			Email email = new Email(mailSender);
 			for (String recipientEmail : contactEmailList)
 				email.addRecipient(recipientEmail);
 			email.setSubject("Collection data requested");
@@ -1071,8 +1071,9 @@ public class CollectionRequestService
 			if (resultList.getNumFound() > 1)
 				throw new IllegalArgumentException(format("Multiple collections found with Pid {0}", pid));
 
-			for (Object emailAsObj : resultList.get(0).getFieldValues("unpublished.email"))
-				emailList.add((String) emailAsObj);
+			if (resultList.get(0).getFieldValues("unpublished.email") != null)
+				for (Object emailAsObj : resultList.get(0).getFieldValues("unpublished.email"))
+					emailList.add((String) emailAsObj);
 		}
 		catch (SolrServerException e)
 		{

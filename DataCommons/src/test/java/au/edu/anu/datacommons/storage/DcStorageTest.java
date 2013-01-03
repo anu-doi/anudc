@@ -1,25 +1,26 @@
-package au.edu.anu.datacommons.upload;
+package au.edu.anu.datacommons.storage;
 
 import static org.junit.Assert.*;
-
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.Manifest.Algorithm;
-import gov.loc.repository.bagit.ManifestHelper;
 import gov.loc.repository.bagit.utilities.MessageDigestHelper;
 import gov.loc.repository.bagit.writer.impl.ZipWriter;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.Collection;
-import java.util.Map.Entry;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
@@ -27,14 +28,13 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.datacommons.storage.DcStorage;
-import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.dcbag.BagSummary;
 import au.edu.anu.dcbag.ExtRefsTxt;
 import au.edu.anu.dcbag.VirusScanTxt;
@@ -43,16 +43,19 @@ public class DcStorageTest
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorageTest.class);
 	private static DcStorage dcStorage;
+	private static int pidCounter = 1;
 
 	@ClassRule
-	public static final TemporaryFolder tempDir = new TemporaryFolder();
+	public static final TemporaryFolder bagDir = new TemporaryFolder();
+	
+	@Rule
+	public final TemporaryFolder tempDir = new TemporaryFolder();
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
 	{
-		File bagsDir = tempDir.newFolder();
-		LOGGER.info("Setting DcStorage location as: {}", bagsDir.getAbsolutePath());
-		DcStorage.setLocation(bagsDir);
+		LOGGER.info("Setting DcStorage location as: {}", bagDir.getRoot());
+		DcStorage.setLocation(bagDir.getRoot());
 		dcStorage = DcStorage.getInstance();
 	}
 
@@ -74,7 +77,7 @@ public class DcStorageTest
 	@Test
 	public void testDownloadFileAddToNewBag()
 	{
-		final String pid1 = "test:1";
+		final String pid1 = getNextPid();
 		try
 		{
 			dcStorage.addFileToBag(pid1, "SomePdf.pdf", "http://samplepdf.com/sample.pdf");
@@ -92,11 +95,11 @@ public class DcStorageTest
 		}
 	}
 
-	@Test
+	@Ignore
 	public void testDownloadFileAddToExistingBag()
 	{
 		FileWriter fWriter;
-		final String pid = "test:3";
+		final String pid = getNextPid();
 		Bag bag = null;
 		try
 		{
@@ -123,15 +126,15 @@ public class DcStorageTest
 				assertTrue(plManifest.containsKey("data/File1.txt"));
 				MessageDigestHelper.fixityMatches(bagFile.newInputStream(), plManifest.getAlgorithm(), plManifest.get("data/File1.txt"));
 			}
+			bag.close();
 
 			// Download file from URL and add to existing bag.
 			dcStorage.addFileToBag(pid, "Some Pdf.pdf", "http://samplepdf.com/sample.pdf");
 			assertTrue(dcStorage.fileExistsInBag(pid, "data/Some Pdf.pdf"));
-			
+
 			dcStorage.addFileToBag(pid, "Some Pdf.pdf", "http://www.stluciadance.com/prospectus_file/sample.pdf");
 
 			// Verify the downloaded file is now included in the bag.
-			bag.close();
 			bag = dcStorage.getBag(pid);
 			plFiles = bag.getPayload();
 			assertEquals(2, plFiles.size());
@@ -164,30 +167,20 @@ public class DcStorageTest
 		}
 		finally
 		{
-			if (bag != null)
-			{
-				try
-				{
-					bag.close();
-				}
-				catch (IOException e)
-				{
-					LOGGER.warn(e.getMessage(), e);
-				}
-			}
+			IOUtils.closeQuietly(bag);
 		}
 	}
 
-	@Test
+	@Ignore
 	public void testBagFilesIntegrity()
 	{
 		FileWriter fWriter;
-		final String pid = "test:2";
+		final String pid = getNextPid();
 		Bag bag;
 		try
 		{
 			// Create a temp file.
-			File file1 = tempDir.newFile("File1.txt");
+			File file1 = bagDir.newFile("File1.txt");
 			fWriter = new FileWriter(file1);
 			String testStr1 = "This is a test string";
 			fWriter.write(testStr1);
@@ -196,7 +189,7 @@ public class DcStorageTest
 			assertTrue(file1.length() == testStr1.length());
 
 			// Create another temp File.
-			File file2 = tempDir.newFile("File2.txt");
+			File file2 = bagDir.newFile("File2.txt");
 			fWriter = new FileWriter(file2);
 			String testStr2 = "This is a second test string";
 			fWriter.write(testStr2);
@@ -234,23 +227,23 @@ public class DcStorageTest
 	}
 
 	@Test
-	public void testAddExtRef()
+	public void testExtRef()
 	{
 		FileWriter fWriter;
-		final String pid = "test:4";
+		final String pid = getNextPid();
 		Bag bag = null;
+		BagSummary bagSummary;
 		try
 		{
 			// Create temp file.
-			File file1 = tempDir.newFile("File1.txt");
+			File file1 = bagDir.newFile("File1.txt");
 			fWriter = new FileWriter(file1);
 			String testStr1 = "This is a test string";
 			fWriter.write(testStr1);
 			fWriter.close();
 
 			dcStorage.addFileToBag(pid, file1);
-			assertTrue(file1.exists());
-			assertTrue(file1.length() == testStr1.length());
+			
 
 			// Add one external references.
 			String url1 = "http://www.google.com.au:8080/";
@@ -281,7 +274,7 @@ public class DcStorageTest
 			// Add second external reference.
 			dcStorage.addExtRef(pid, url2);
 
-			BagSummary bagSummary = dcStorage.getBagSummary(pid);
+			bagSummary = dcStorage.getBagSummary(pid);
 
 			// Verify the ext refs file contains the two URLs.
 			assertTrue(bagSummary.getExtRefsTxt().containsValue(url1));
@@ -307,6 +300,21 @@ public class DcStorageTest
 				assertTrue(MessageDigestHelper.fixityMatches(bag.getBagFile(ExtRefsTxt.FILEPATH).newInputStream(), tagManifest.getAlgorithm(),
 						tagManifest.get(ExtRefsTxt.FILEPATH)));
 			}
+
+			// Delete the 2 external references.
+			dcStorage.deleteExtRef(pid, url1);
+			bagSummary = dcStorage.getBagSummary(pid);
+
+			// Verify the ext refs file contains the two URLs.
+			assertFalse(bagSummary.getExtRefsTxt().containsValue(url1));
+			assertTrue(bagSummary.getExtRefsTxt().containsValue(url2));
+
+			dcStorage.deleteExtRef(pid, url2);
+			bagSummary = dcStorage.getBagSummary(pid);
+
+			// Verify the ext refs file contains the two URLs.
+			assertFalse(bagSummary.getExtRefsTxt().containsValue(url1));
+			assertFalse(bagSummary.getExtRefsTxt().containsValue(url2));
 		}
 		catch (IOException e)
 		{
@@ -329,26 +337,26 @@ public class DcStorageTest
 			}
 		}
 	}
-	
+
 	@Test
 	public void testReplaceBag()
 	{
-		final String pid = "test:5";
+		final String pid = getNextPid();
 		Bag bag = null;
-		
+
 		// Create a bag first.
 		File file1;
 		FileWriter fWriter;
 		try
 		{
-			file1 = tempDir.newFile("First File.txt");
+			file1 = bagDir.newFile("First File.txt");
 			fWriter = new FileWriter(file1);
 			fWriter.write("Test String");
 			fWriter.close();
-			
+
 			dcStorage.addFileToBag(pid, file1);
 			bag = dcStorage.getBag(pid);
-			
+
 			// Verify file exists in bag.
 			boolean fileExists = false;
 			for (BagFile plFile : bag.getPayload())
@@ -360,12 +368,12 @@ public class DcStorageTest
 				}
 			}
 			assertTrue(fileExists);
-			
-			File newBagZipFile = tempDir.newFile("NewBag.zip");
-			
+
+			File newBagZipFile = bagDir.newFile("NewBag.zip");
+
 			// Create another bag.
 			Bag newBag = DcStorage.bagFactory.createBag();
-			File file2 = tempDir.newFile("Second File.txt");
+			File file2 = bagDir.newFile("Second File.txt");
 			fWriter = new FileWriter(file2);
 			fWriter.write("Test string in second file.");
 			fWriter.close();
@@ -377,21 +385,21 @@ public class DcStorageTest
 			newBag = new ZipWriter(DcStorage.bagFactory).write(newBag, newBagZipFile);
 			assertTrue(newBagZipFile.exists());
 			assertTrue(newBag.verifyValid().isSuccess());
-			
+
 			// Replace existing bag with new one.
 			dcStorage.storeBag(pid, newBag);
 			bag = dcStorage.getBag(pid);
-			
+
 			// Verify the bag.
 			assertTrue(bag.verifyValid().isSuccess());
-			
+
 			// First file shouldn't exist and second file should.
 			for (Manifest plManifest : bag.getPayloadManifests())
 			{
 				assertFalse(plManifest.containsKey("data/" + file1.getName()));
 				assertTrue(plManifest.containsKey("data/" + file2.getName()));
 			}
-			
+
 			// Verify tag files.
 			for (Manifest tagManifest : bag.getTagManifests())
 			{
@@ -400,7 +408,7 @@ public class DcStorageTest
 				assertTrue(tagManifest.containsKey("metadata/" + file2.getName() + ".ser"));
 				assertTrue(tagManifest.containsKey("metadata/" + file2.getName() + ".xmp"));
 			}
-			
+
 		}
 		catch (IOException e)
 		{
@@ -412,23 +420,153 @@ public class DcStorageTest
 		}
 		finally
 		{
-			if (bag != null)
-			{
-				try
-				{
-					bag.close();
-				}
-				catch (IOException e)
-				{
-					LOGGER.warn(e.getMessage(), e);
-				}
-			}
+			IOUtils.closeQuietly(bag);
 		}
+	}
+
+	@Test
+	public void testThreadedAdditions()
+	{
+		ExecutorService execSvc = Executors.newCachedThreadPool();
+		Set<String> pids = new HashSet<String>();
+		for (int i = 0; i < 50; i++)
+		{
+			String pid = getNextPid();
+			pids.add(pid);
+			AddBagFileWorker thread = new AddBagFileWorker(pid);
+			execSvc.execute(thread);
+		}
+		execSvc.shutdown();
+		try
+		{
+			execSvc.awaitTermination(10, TimeUnit.MINUTES);
+		}
+		catch (InterruptedException e)
+		{
+			failOnException(e);
+		}
+
+		LOGGER.debug("Finished");
+	}
+	
+	@Test
+	public void testDeletions()
+	{
+		String pid = getNextPid();
+		try
+		{
+			File file1 = createFile(2);
+			File file2 = createFile(3);
+			LOGGER.info("Adding {} to {}", file1.getAbsolutePath(), pid);
+			dcStorage.addFileToBag(pid, file1);
+			LOGGER.info("Adding {} to {}", file2.getAbsolutePath(), pid);
+			dcStorage.addFileToBag(pid, file2);
+			File fileToDelete = new File(dcStorage.getBagDir(pid), "data/" + file1.getName());
+			while (!fileToDelete.exists());
+			dcStorage.deleteFileFromBag(pid, "data/" + file1.getName());
+		}
+		catch (IOException e)
+		{
+			failOnException(e);
+		}
+		catch (DcStorageException e)
+		{
+			failOnException(e);
+		}
+		LOGGER.debug("Finished");
+	}
+
+	private String calcMD5(File file)
+	{
+		return MessageDigestHelper.generateFixity(file, Algorithm.MD5);
+	}
+
+	private String calcMD5(InputStream is)
+	{
+		return MessageDigestHelper.generateFixity(is, Algorithm.MD5);
+	}
+
+	private File createFile(int sizeInMB) throws IOException
+	{
+		File file = null;
+		FileOutputStream fileStream = null;
+		try
+		{
+			file = tempDir.newFile();
+			LOGGER.debug("Generating file {} of size {} MB...", file.getAbsolutePath(), sizeInMB);
+			fileStream = new FileOutputStream(file);
+			for (int i = 0; i < sizeInMB; i++)
+				fileStream.write(getRandomByteArray(1024 * 1024));
+			LOGGER.debug("Written file {} of size {} MB.", file.getAbsolutePath(), sizeInMB);
+		}
+		finally
+		{
+			IOUtils.closeQuietly(fileStream);
+		}
+
+		return file;
+	}
+
+	private byte[] getRandomByteArray(int size)
+	{
+		byte[] bytes = new byte[size];
+		Random rand = new Random();
+		rand.nextBytes(bytes);
+		return bytes;
+	}
+	
+	private synchronized String getNextPid()
+	{
+		return "test:" + pidCounter++;
 	}
 
 	private void failOnException(Throwable e)
 	{
 		LOGGER.error(e.getMessage(), e);
 		fail(e.getMessage());
+	}
+
+	private class AddBagFileWorker implements Runnable
+	{
+		private final int FILESIZE = 2;
+		private String pid;
+		
+		public AddBagFileWorker(String pid)
+		{
+			this.pid = pid;
+		}
+		
+		@Override
+		public void run()
+		{
+			// Create a file, get it's details. Add the file to bag.
+			try
+			{
+				File file1 = createFile(FILESIZE);
+				String md5sum1 = calcMD5(file1);
+				LOGGER.info("Adding {} to {}...", file1, pid);
+				dcStorage.addFileToBag(pid, file1);
+				
+				File file2 = createFile(FILESIZE);
+				String md5sum2 = calcMD5(file2);
+				dcStorage.addFileToBag(pid, file2);
+
+				File replacementFile1 = createFile(FILESIZE);
+				file1.delete();
+				if (!replacementFile1.renameTo(file1))
+					fail(MessageFormat.format("Unable to rename {0} to {1}.", replacementFile1.getAbsolutePath(), file1.getAbsolutePath()));
+				String md5sumReplacement1 = calcMD5(file1);
+				dcStorage.addFileToBag(pid, file1);
+				
+//				assertEquals(md5sum1, calcMD5(dcStorage.getFileStream(pid, "data/" + file1.getName())));
+				assertEquals(md5sum2, calcMD5(dcStorage.getFileStream(pid, "data/" + file2.getName())));
+				assertEquals(md5sumReplacement1, calcMD5(dcStorage.getFileStream(pid, "data/" + file1.getName())));
+			}
+			catch (Exception e)
+			{
+				failOnException(e);
+			}
+		}
+		
 	}
 }

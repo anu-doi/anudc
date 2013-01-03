@@ -26,24 +26,24 @@ public class DoiResourceAdapter
 		// Mandatory fields.
 		Creators creators = getCreators(itemData);
 		if (creators.getCreator().size() == 0)
-			throw new DoiException("No creators provided.");
+			throw new DoiException("No creators provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
 		doiResource.setCreators(creators);
-		
+
 		Titles titles = getTitles(itemData);
 		if (titles.getTitle().size() == 0)
-			throw new DoiException("No titles provided.");
+			throw new DoiException("No titles provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
 		doiResource.setTitles(titles);
-		
+
 		String publisher = getPublisher(itemData);
 		if (publisher == null || publisher.length() == 0)
-			throw new DoiException("No publisher provided.");
+			throw new DoiException("No publisher provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
 		doiResource.setPublisher(publisher);
-		
+
 		String publicationYear = getPublicationYear(itemData);
 		if (publicationYear == null || publicationYear.length() == 0)
-			throw new DoiException("No publication year provided.");
+			throw new DoiException("No publication year provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
 		doiResource.setPublicationYear(publicationYear);
-		
+
 		// Optional fields.
 		String doi = getDoi(itemData);
 		if (doi != null && doi.length() > 0)
@@ -60,17 +60,20 @@ public class DoiResourceAdapter
 		Creators creators = new Creators();
 
 		DataItem citationCreators = itemData.getFirstElementByName("citationCreator");
-		String[] creatorsStr = citationCreators.getValue().split(";");
-		for (int i = 0; i < creatorsStr.length; i++)
+		if (citationCreators != null && citationCreators.getValue() != null)
 		{
-			Creator creator = new Creator();
-			creator.setCreatorName(creatorsStr[i].trim());
-			creators.getCreator().add(creator);
+			String[] creatorsStr = citationCreators.getValue().split(";");
+			for (int i = 0; i < creatorsStr.length; i++)
+			{
+				Creator creator = new Creator();
+				creator.setCreatorName(creatorsStr[i].trim());
+				creators.getCreator().add(creator);
+			}
 		}
-		
+
 		return creators;
 	}
-	
+
 	private Titles getTitles(Data itemData)
 	{
 		Titles titles = new Titles();
@@ -82,7 +85,7 @@ public class DoiResourceAdapter
 			title.setValue(titleDataItem.getValue());
 			titles.getTitle().add(title);
 		}
-		
+
 		DataItem altTitleDataItem = itemData.getFirstElementByName("altName");
 		if (altTitleDataItem != null)
 		{
@@ -91,18 +94,18 @@ public class DoiResourceAdapter
 			title.setValue(altTitleDataItem.getValue());
 			titles.getTitle().add(title);
 		}
-		
+
 		return titles;
 	}
 
 	private String getPublisher(Data itemData)
 	{
 		String publisher = null;
-		
+
 		DataItem publisherDI = itemData.getFirstElementByName("citationPublisher");
 		if (publisherDI != null)
 			publisher = publisherDI.getValue();
-		
+
 		return publisher;
 	}
 
@@ -115,11 +118,11 @@ public class DoiResourceAdapter
 			publicationYear = publicationYearDI.getValue();
 		return publicationYear;
 	}
-	
+
 	private String getDoi(Data itemData)
 	{
 		String doi = null;
-		
+
 		DataItem doiDI = itemData.getFirstElementByName("doi");
 		if (doiDI != null)
 			doi = doiDI.getValue();

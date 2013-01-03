@@ -1,4 +1,4 @@
-package au.edu.anu.datacommons.upload;
+package au.edu.anu.datacommons.storage;
 
 import static org.junit.Assert.*;
 import gov.loc.repository.bagit.Bag;

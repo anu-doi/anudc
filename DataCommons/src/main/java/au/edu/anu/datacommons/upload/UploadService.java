@@ -1,9 +1,7 @@
 package au.edu.anu.datacommons.upload;
 
-import static java.text.MessageFormat.format;
-import gov.loc.repository.bagit.Bag;
+import static java.text.MessageFormat.*;
 import gov.loc.repository.bagit.BagFile;
-import gov.loc.repository.bagit.Manifest.Algorithm;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -17,7 +15,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +26,8 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -44,7 +43,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.PropertyException;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.fileupload.FileItem;
@@ -78,6 +76,7 @@ import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.dcbag.BagSummary;
+import au.edu.anu.dcbag.FileSummaryMap;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
@@ -257,6 +256,13 @@ public class UploadService
 		return resp;
 	}
 
+	/**
+	 * This method gets called after jupload file parts have been uploaded to merge the file parts, and add the completed files into bags for the collection.
+	 * 
+	 * @param pid
+	 *            Pid of the collection to which the uploaded bags are to be added.
+	 * @return Response as HTML
+	 */
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -333,6 +339,13 @@ public class UploadService
 		return resp;
 	}
 
+	/**
+	 * Returns the details of contents of a bag.
+	 * 
+	 * @param pid
+	 *            Pid of the collection whose bag details are returned
+	 * @return Response as HTML including BagSummary object
+	 */
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@Path("bag/{pid}")
@@ -373,6 +386,20 @@ public class UploadService
 		return resp;
 	}
 
+	/**
+	 * Returns the contents of a file of a group of files combined into a ZipStream as InputStream in the Response object. The user gets a request to open or
+	 * save the requested file. This method checks that the user requesting the file has a valid collection request.
+	 * 
+	 * @param pid
+	 *            Pid of collection whose files
+	 * @param filename
+	 *            filename of the file being requested. E.g. "data/file.txt"
+	 * @param dropboxAccessCode
+	 *            Access Code of the dropbox that the requestor's been given access to
+	 * @param password
+	 *            Password of dropbox
+	 * @return Response containing octet_stream of file or files as zipfile.
+	 */
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("files/{pid}/{fileInBag:.*}")
@@ -396,16 +423,30 @@ public class UploadService
 					.toString());
 			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
 					AccessLogRecord.Operation.READ));
+			Set<CollectionRequestItem> items = dropbox.getCollectionRequest().getItems();
 			if (filename.equalsIgnoreCase("zip"))
 			{
 				Set<String> fileSet = new HashSet<String>();
-				Set<CollectionRequestItem> items = dropbox.getCollectionRequest().getItems();
 				for (CollectionRequestItem item : items)
 					fileSet.add(item.getItem());
 				resp = getBagFilesAsZip(pid, fileSet, "Collection.zip");
 			}
 			else
-				resp = getBagFileOctetStreamResp(pid, filename);
+			{
+				boolean isAllowedItem = false;
+				for (CollectionRequestItem item : items)
+				{
+					if (item.getItem().equals(filename))
+					{
+						isAllowedItem = true;
+						break;
+					}
+				}
+				if (isAllowedItem)
+					resp = getBagFileOctetStreamResp(pid, filename);
+				else
+					resp = Response.status(Status.FORBIDDEN).build();
+			}
 		}
 		else
 		{
@@ -417,6 +458,15 @@ public class UploadService
 		return resp;
 	}
 
+	/**
+	 * Returns a file in a collection's bag as InputStream in Response.
+	 * 
+	 * @param pid
+	 *            Pid of the collection containing the file
+	 * @param fileInBag
+	 *            File being requested. E.g. "data/File.txt"
+	 * @return File contents as InputStream in Response
+	 */
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}/{fileInBag:.*}")
@@ -427,24 +477,124 @@ public class UploadService
 		Response resp = null;
 		// Check for read access.
 		getFedoraObjectReadAccess(pid);
-		// Create a log record.
-		new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
-				AccessLogRecord.Operation.READ));
-		if (fileInBag.equals("zip"))
+
+		try
 		{
-			Set<String> fileSet = new HashSet<String>();
-			Bag bag = dcStorage.getBag(pid);
-			Collection<BagFile> bagFiles = bag.getPayload();
-			for (BagFile iFile : bagFiles)
-				fileSet.add(iFile.getFilepath());
-			resp = getBagFilesAsZip(pid, fileSet, "Collection.zip");
+			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
+					AccessLogRecord.Operation.READ));
+			// Create a log record.
+			if (fileInBag.equals("zip"))
+			{
+				Set<String> fileSet = new HashSet<String>();
+				FileSummaryMap fsMap = dcStorage.getBagSummary(pid).getFileSummaryMap();
+				for (BagFile iFile : fsMap.keySet())
+					fileSet.add(iFile.getFilepath());
+				resp = getBagFilesAsZip(pid, fileSet, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), ".zip"));
+			}
+			else
+			{
+				if (!dcStorage.fileExistsInBag(pid, fileInBag))
+					throw new NotFoundException(format("File {0} not found in {1}", fileInBag, pid));
+				resp = getBagFileOctetStreamResp(pid, fileInBag);
+			}
 		}
-		else
-			resp = getBagFileOctetStreamResp(pid, fileInBag);
+		catch (DcStorageException e)
+		{
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+		}
 
 		return resp;
 	}
 
+	/**
+	 * Deletes a file in a collection's bag.
+	 * 
+	 * @param pid
+	 *            Collection which contains the file to be deleted.
+	 * @param fileInBag
+	 *            File to be deleted. E.g. "data/File.txt"
+	 * @return Response with HTTP OK if successful, HTTP INTERNAL_SERVER_ERROR otherwise.
+	 */
+	@DELETE
+	@Path("bag/{pid}/{fileInBag:.*}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response doDeleteFileInBag(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag)
+	{
+		Response resp = null;
+		getFedoraObjectWriteAccess(pid);
+
+		try
+		{
+			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
+					AccessLogRecord.Operation.DELETE));
+			dcStorage.deleteFileFromBag(pid, fileInBag);
+			resp = Response.ok(format("File {0} deleted from {1}", fileInBag, pid)).build();
+		}
+		catch (Exception e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(format("Unable to delete file {0} from {1}", fileInBag, pid)).build();
+		}
+		return resp;
+	}
+
+	/**
+	 * Adds and/or deletes a set of external reference URLs stored in a collection.
+	 * 
+	 * <p>
+	 * URL format:
+	 * <code>
+	 * http://.../bag/test:123/extrefs?addUrl=http://http://www.add1.com&addUrl=http://www.add2.com&deleteUrl=http://delete1.com&deleteUrl=http://delete2.com
+	 * </code>
+	 * 
+	 * @param pid
+	 *            Pid of the collection whose external references are to be added/deleted.
+	 * @param addUrlSet
+	 *            Set of URLs to add as Set&lt;String&gt;
+	 * @param deleteUrlSet
+	 *            Set of URLs to delete as Set&lt;String&gt;
+	 * @return Response with HTTP OK if successful, HTTP INTERNAL_SERVER_ERROR otherwise.
+	 */
+	@POST
+	@Path("bag/{pid}/extrefs")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response doAddDeleteExtRef(@PathParam("pid") String pid, @FormParam("addUrl") Set<String> addUrlSet, @FormParam("deleteUrl") Set<String> deleteUrlSet)
+	{
+		Response resp = null;
+
+		getFedoraObjectWriteAccess(pid);
+		try
+		{
+			if (addUrlSet != null)
+				for (String url : addUrlSet)
+					dcStorage.addExtRef(pid, url);
+
+			if (deleteUrlSet != null)
+				for (String url : deleteUrlSet)
+					dcStorage.deleteExtRef(pid, url);
+
+			resp = Response.ok(format("Added {0} to {1}.", addUrlSet, pid)).build();
+		}
+		catch (Exception e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+		}
+
+		return resp;
+	}
+
+	/**
+	 * Accepts a zipped bag for adding to a collection. If the specified collection already has a bag assigned, this bag replaces that bag.
+	 * 
+	 * @param pid
+	 *            Pid of collection to which a bag will be added
+	 * 
+	 * @param is
+	 *            Bag contents as InputStream
+	 * @return HTTP OK if successful, HTTP INTERNAL_SERVER_ERROR otherwise.
+	 */
 	@POST
 	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}")
@@ -469,7 +619,6 @@ public class UploadService
 			{
 				LOGGER.info("A bag exists for {}. Replacing it with the file uploaded...", pid);
 				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.UPDATE);
-
 			}
 			else
 			{
@@ -496,7 +645,12 @@ public class UploadService
 
 		return resp;
 	}
-	
+
+	/**
+	 * Returns information about the current logged on user in the format username:displayName. E.g. "u1234567:John Smith"
+	 * 
+	 * @return Response including user information As String.
+	 */
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("userinfo")
@@ -513,6 +667,16 @@ public class UploadService
 		return resp;
 	}
 
+	/**
+	 * Saves an InputStream to a File on disk.
+	 * 
+	 * @param is
+	 *            InputStream from which data will be read.
+	 * @param target
+	 *            target as File to which data will be written.
+	 * @throws IOException
+	 *             if unable to read from inputstream or write file to disk.
+	 */
 	private void saveInputStreamAsFile(InputStream is, File target) throws IOException
 	{
 		FileChannel targetChannel = null;
@@ -537,38 +701,48 @@ public class UploadService
 		}
 		finally
 		{
+			IOUtils.closeQuietly(sourceChannel);
+			IOUtils.closeQuietly(is);
 			IOUtils.closeQuietly(targetChannel);
 			IOUtils.closeQuietly(fos);
-			IOUtils.closeQuietly(is);
-			IOUtils.closeQuietly(sourceChannel);
 		}
 	}
 
+	/**
+	 * Gets a Users object containing information about the currently logged in user.
+	 * 
+	 * @return Users object containing information about the currently logged in user.
+	 */
 	private Users getCurUser()
 	{
 		return new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
 	}
 
+	/**
+	 * Creates a Response object containing the contents of a single file in a bag of collection as Response object containing InputStream.
+	 * 
+	 * @param pid
+	 *            Pid of the collection from which a bagfile is to be read.
+	 * @param fileInBag
+	 *            Name of file in bag whose contents are to be returned as InputStream.
+	 * @return Response object including HTTP headers and InputStream containing file contents.
+	 */
 	private Response getBagFileOctetStreamResp(String pid, String fileInBag)
 	{
 		Response resp = null;
 		InputStream is = null;
 
-		Bag bag = dcStorage.getBag(pid);
-		if (bag == null)
-		{
-			LOGGER.error(format("No bag found for Pid {0}. Throwing NotFoundException.", pid));
-			throw new NotFoundException(format("No bag found for Pid {0}.", pid));
-		}
-
+		if (!dcStorage.fileExistsInBag(pid, fileInBag))
+			throw new NotFoundException(format("File {} not found in {}", fileInBag, pid));
+		
 		try
 		{
 			is = dcStorage.getFileStream(pid, fileInBag);
 			ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 			// Add filename, MD5 and file size to response header.
 			respBuilder = respBuilder.header("Content-Disposition", format("attachment; filename=\"{0}\"", getFilenameFromPath(fileInBag)));
-			respBuilder = respBuilder.header("Content-MD5", bag.getChecksums(fileInBag).get(Algorithm.MD5));
-			respBuilder = respBuilder.header("Content-Length", bag.getBagFile(fileInBag).getSize());
+			respBuilder = respBuilder.header("Content-MD5", dcStorage.getFileMd5(pid, fileInBag));
+			respBuilder = respBuilder.header("Content-Length", dcStorage.getFileSize(pid, fileInBag));
 			resp = respBuilder.build();
 		}
 		catch (DcStorageException e)
@@ -580,6 +754,18 @@ public class UploadService
 		return resp;
 	}
 
+	/**
+	 * Creates a Response object containing a Zip file comprised of data from multiple files in a bag of a collection.
+	 * 
+	 * @param pid
+	 *            Pid of the collection whose files are to be included in the Response object.
+	 * 
+	 * @param fileSet
+	 *            Set of file names as Set&lt;String&gt; that are to be included in the Response.
+	 * @param zipFilename
+	 *            Name of the zip file that will be added to the Content-Disposition HTTP header.
+	 * @return Response object
+	 */
 	private Response getBagFilesAsZip(String pid, Set<String> fileSet, String zipFilename)
 	{
 		Response resp = null;
@@ -600,18 +786,39 @@ public class UploadService
 		return resp;
 	}
 
+	/**
+	 * Checks if the currently logged in user has READ permissions for the specified record.
+	 * 
+	 * @param pid
+	 *            Pid of the record
+	 * 
+	 * @return FedoraObject representing the record with the Pid specified.
+	 */
 	@PostAuthorize("hasPermission(returnObject, 'READ')")
 	private FedoraObject getFedoraObjectReadAccess(String pid)
 	{
 		return getFedoraObject(pid);
 	}
 
+	/**
+	 * Checks if the currently logged in user has READ permissions for the specified record.
+	 * 
+	 * @param pid
+	 *            Pid of the record
+	 * 
+	 * @return FedoraObject representing the record with the Pid specified.
+	 */
 	@PostAuthorize("hasPermission(returnObject, 'WRITE')")
 	private FedoraObject getFedoraObjectWriteAccess(String pid)
 	{
 		return getFedoraObject(pid);
 	}
 
+	/**
+	 * 
+	 * @param pid
+	 * @return
+	 */
 	private FedoraObject getFedoraObject(String pid)
 	{
 		LOGGER.debug("Retrieving object for: {}", pid);
@@ -714,7 +921,7 @@ public class UploadService
 	 * @param partNum
 	 *            Part number has int
 	 * @param pidDir
-	 * @throws IOException 
+	 * @throws IOException
 	 * @throws Exception
 	 *             Thrown if the files could not be merged.
 	 */
@@ -742,7 +949,7 @@ public class UploadService
 				// Read bytes and add them to the merged file until all files in this file part have been merged.
 				try
 				{
-					byte[] buffer = new byte[(int) FileUtils.ONE_MB];				
+					byte[] buffer = new byte[(int) FileUtils.ONE_MB];
 					int numBytesRead;
 					while ((numBytesRead = partInStream.read(buffer)) != -1)
 						mergedFileStream.write(buffer, 0, numBytesRead);
@@ -766,7 +973,7 @@ public class UploadService
 					LOGGER.warn("Unable to delete part file {}.", partFiles[i].getAbsolutePath());
 			}
 		}
-		
+
 		return mergedFile;
 	}
 
@@ -839,14 +1046,29 @@ public class UploadService
 		}
 	}
 
+	/**
+	 * Parses an HttpServletRequest and returns a list of FileItem objects. A fileItem can contain form data or a file that was uploaded by a user.
+	 * 
+	 * @param request
+	 *            HttpServletRequest object to parse.
+	 * @return FileItem objects as List&lt;FileItem&gt;
+	 * @throws FileUploadException
+	 */
 	@SuppressWarnings("unchecked")
-	private List<FileItem> parseUploadRequest(HttpServletRequest request) throws FileUploadException, NumberFormatException, PropertyException
+	private List<FileItem> parseUploadRequest(HttpServletRequest request) throws FileUploadException
 	{
 		// Create a new file upload handler.
 		ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory(GlobalProps.getMaxSizeInMem(), GlobalProps.getTempDirAsFile()));
 		return (List<FileItem>) upload.parseRequest(request);
 	}
 
+	/**
+	 * Trims and changes the case of a string.
+	 * 
+	 * @param fieldName
+	 *            The string to format
+	 * @return Formatted fieldname as String
+	 */
 	private String formatFieldName(String fieldName)
 	{
 		if (Util.isNotEmpty(fieldName))
@@ -855,6 +1077,14 @@ public class UploadService
 			return "";
 	}
 
+	/**
+	 * Combines bag related information from FileItem objects and merges them into a Properties file.
+	 * 
+	 * @param uploadedItems
+	 *            List of uploadedItems
+	 * @param uploadProps
+	 *            Properties file in which the key-value pairs will be merged.
+	 */
 	private void mapFormFields(List<FileItem> uploadedItems, Properties uploadProps)
 	{
 		// Iterate each item in the request, and extract the form fields first.

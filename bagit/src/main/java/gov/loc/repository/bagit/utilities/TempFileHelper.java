@@ -18,7 +18,24 @@ public class TempFileHelper {
 		}
 		try {
 			if (file.exists()) {
-				FileUtils.forceDelete(file);
+				while (true)
+				{
+					try
+					{
+						FileUtils.forceDelete(file);
+						break;
+					}
+					catch (IOException e)
+					{
+						try
+						{
+							Thread.sleep(100);
+						}
+						catch (InterruptedException e1)
+						{
+						}
+					}
+				}
 			}
 			FileUtils.moveFile(tempFile, file);
 		} catch (IOException e) {

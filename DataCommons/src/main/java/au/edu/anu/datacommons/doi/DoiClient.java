@@ -1,6 +1,5 @@
 package au.edu.anu.datacommons.doi;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -36,6 +35,10 @@ import com.sun.jersey.client.apache.ApacheHttpClient;
 import com.sun.jersey.client.apache.config.DefaultApacheHttpClientConfig;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
+/**
+ * A Client that sends Digital Object Identifier (DOI) requests to a relevant service. Refer to <a
+ * href="http://ands.org.au/resource/r9-cite-my-data-v1.1-tech-doco.pdf">Cite My Data M2M Service</a>
+ */
 public class DoiClient
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DoiClient.class);
@@ -81,6 +84,9 @@ public class DoiClient
 		}
 	}
 
+	/**
+	 * Constructor for DoiClient. A DoiConfig object is created from the doi.properties file in the default conf location.
+	 */
 	public DoiClient()
 	{
 		Properties doiProps;
@@ -98,6 +104,12 @@ public class DoiClient
 		setupMarshallers();
 	}
 
+	/**
+	 * Constructor for when a DoiConfig object is provided
+	 * 
+	 * @param doiConfig
+	 *            DoiConfig object
+	 */
 	public DoiClient(DoiConfig doiConfig)
 	{
 		this.doiConfig = doiConfig;
@@ -125,6 +137,18 @@ public class DoiClient
 		return doiResponseAsString;
 	}
 
+
+	/**
+	 * Sends a request to mint a DOI. Refer to section 3.9 of Cite My Data Technical Documentation. URL request is in format:
+	 * <code>https://services.ands.org.au/doi/1.1/mint.{response_type}/?app_id={app_id}&url={url}</code>
+	 * 
+	 * @param pid
+	 *            Pid of the record for which DOI is to be minted.
+	 * @param metadata
+	 *            DataCite Resource object containing metadata about the record.
+	 * @throws DoiException
+	 *             If unable to mint a DOI.
+	 */
 	public void mint(String pid, Resource metadata) throws DoiException
 	{
 		if (pid == null || pid.trim().length() <= 0)
@@ -196,6 +220,19 @@ public class DoiClient
 		}
 	}
 
+	/**
+	 * Updates the metadata associated with a DOI. Refer to section 3.9 of Cite My Data Technical Documentation. URL is in format
+	 * <code>https://services.ands.org.au/doi/1.1/mint.{response_type}/?app_id={app_id}&url={url}</code>
+	 * 
+	 * @param doi
+	 *            DOI whose metadata to be updated
+	 * @param pid
+	 *            Pid of the record to which the DOI belongs
+	 * @param metadata
+	 *            Updated metadata as DataCite Resource object
+	 * @throws DoiException
+	 *             If unable to update DOI
+	 */
 	public void update(String doi, String pid, Resource metadata) throws DoiException
 	{
 		ExtWebResourceLogDao logDao = null;
@@ -254,6 +291,16 @@ public class DoiClient
 		}
 	}
 
+	/**
+	 * Deactivates a DOI. Refer to section 3.9 of Cite My Data Technical Documentation. URL is in format
+	 * <code>https://services.ands.org.au/doi/1.1/mint.{response_type}/?app_id={app_id}&url={url}</code>
+	 * 
+	 * @param doi
+	 *            DOI to deactivate.
+	 * 
+	 * @throws DoiException
+	 *             If unable to deactivate DOI
+	 */
 	public void deactivate(String doi) throws DoiException
 	{
 		ExtWebResourceLogDao logDao = null;
@@ -296,6 +343,15 @@ public class DoiClient
 		}
 	}
 
+	/**
+	 * Activates a deactivated DOI. Refer to section 3.9 of Cite My Data Technical Documentation. URL is in format
+	 * <code>https://services.ands.org.au/doi/1.1/deactivate.{response_type}/?app_id={app_id}&doi={doi}</code>
+	 * 
+	 * @param doi
+	 * DOI to activate
+	 * @throws DoiException
+	 * If unable to activate a DOI 
+	 */
 	public void activate(String doi) throws DoiException
 	{
 		ExtWebResourceLogDao logDao = null;
@@ -338,6 +394,15 @@ public class DoiClient
 		}
 	}
 
+	/**
+	 * Get the metadata associated with a DOI.
+	 * 
+	 * @param doi
+	 *            DOI whose metadata to receive.
+	 * @return Metadata as a DataCite Resource Object
+	 * @throws DoiException
+	 *             If unable to retrieve DOI metadata.
+	 */
 	public Resource getMetadata(String doi) throws DoiException
 	{
 		Resource res;
@@ -386,12 +451,30 @@ public class DoiClient
 		return res;
 	}
 
+	/**
+	 * Appends the app ID to a URIBuilder object as query parameter. App ID is required to make a DOI change request.
+	 * 
+	 * @param ub
+	 *            UriBuilder to which app ID will be appended.
+	 * 
+	 * @return UriBuilder with app ID appended as a query parameter.
+	 */
 	private UriBuilder appendAppId(UriBuilder ub)
 	{
 		// App Id is alphanumeric so no need to URLEncode.
 		return ub.queryParam("app_id", (doiConfig.useTestPrefix() ? "TEST" : "") + doiConfig.getAppId());
 	}
 
+	/**
+	 * Appends a DOI to a URIBuilder object as a query parameter.
+	 * 
+	 * @param ub
+	 *            UriBuilder object to which DOI is to be appended.
+	 * @param doi
+	 *            DOI to be appended.
+	 * @return
+	 * UriBuilder 
+	 */
 	private UriBuilder appendDoi(UriBuilder ub, String doi)
 	{
 		String encodedDoi;
@@ -408,6 +491,14 @@ public class DoiClient
 		}
 	}
 
+	/**
+	 * Appends debug query parameter to a URIBuilder.
+	 * 
+	 * @param ub
+	 *            UriBuilder to which debug query parameter will be appended.
+	 * 
+	 * @return UriBuilder with appended query parameter.
+	 */
 	private UriBuilder appendDebug(UriBuilder ub)
 	{
 		if (doiConfig.isDebug())
@@ -428,6 +519,12 @@ public class DoiClient
 			throw new IllegalArgumentException("Invalid response type.");
 	}
 
+	/**
+	 * Processes the response received from the DOI service.
+	 * 
+	 * @param resp
+	 *            Response received from DOI service as ClientResponse.
+	 */
 	private void processResponse(ClientResponse resp)
 	{
 		this.doiResponseAsString = resp.getEntity(String.class);
@@ -452,6 +549,16 @@ public class DoiClient
 		LOGGER.debug("Response from server: ({}) {}", resp.getStatus(), this.doiResponseAsString);
 	}
 
+	/**
+	 * Marshals a DataCite Resource object containing metadata about a record into a String.
+	 * 
+	 * @param metadata
+	 *            DataCite Resource object
+	 * @return Returns DataCite Resource Object XML as String
+	 * 
+	 * @throws JAXBException
+	 *             If unable to marshall DataCite Resource into XML
+	 */
 	private String getMetadataAsStr(Resource metadata) throws JAXBException
 	{
 		StringWriter xmlSw = new StringWriter();
@@ -459,6 +566,13 @@ public class DoiClient
 		return xmlSw.toString();
 	}
 
+	/**
+	 * Generates the landing page URI for a record.
+	 * 
+	 * @param pid
+	 *            Pid of the record for which a URI is to be created.
+	 * @return URI of the record
+	 */
 	private URI generateLandingUri(String pid)
 	{
 		return doiConfig.getLandingUri().build(pid);

@@ -23,7 +23,7 @@
 
 			<div id="tabs" class="pagetabs-nav">
 				<ul>
-					<li><a href="javascript:void(0)" onclick="tabSelect(this, '#files')" class="pagetabs-select" >Files</a></li>
+					<li><a href="javascript:void(0)" onclick="tabSelect(this, '#files')" class="pagetabs-select">Files</a></li>
 					<li><a href="javascript:void(0)" onclick="tabSelect(this, '#info')">Archive Info</a></li>
 					<li><a href="javascript:void(0)" onclick="tabSelect(this, '#extRefs')">External References</a></li>
 				</ul>
@@ -38,6 +38,7 @@
 					<th>MD5</th>
 					<th>Virus</th>
 					<th>Expand</th>
+					<th>Delete File</th>
 				</tr>
 				<c:forEach var="iFile" items="${it.bagSummary.fileSummaryMap}">
 					<tr>
@@ -56,6 +57,7 @@
 						<td><c:out value="${iFile.value.md5}" /></td>
 						<td><c:out value="${iFile.value.scanResult}" /></td>
 						<td onclick="jQuery('#${iFile.value.md5}').slideToggle()"><a href="#" onclick="return false">Expand</a></td>
+						<td><a href="javascript:void(0);" onclick="deleteFile('<c:url value='${it.dlBaseUri}${iFile.key.filepath}' />', '${iFile.key.filepath}')">X</a>
 					</tr>
 					<tr id="<c:out value='${iFile.value.md5}' />" style="display: none;">
 						<td colspan="7">
@@ -73,7 +75,7 @@
 					</tr>
 				</c:forEach>
 				<tr class="bg-uni50 text-center">
-					<td colspan="7"><a href="${it.downloadAsZipUrl}">Download all as Zip</a></td>
+					<td colspan="8"><a href="${it.downloadAsZipUrl}">Download all as Zip</a></td>
 				</tr>
 			</table>
 
@@ -88,14 +90,18 @@
 
 			<div class="small w-doublewide" id="extRefs" style="display: none;">
 				<!-- External relations -->
+				<button onclick="addExtRef('${it.bagSummary.pid}')">Add External Reference</button>
 				<c:if test="${not empty it.extRefsTxt}">
 					<ul>
 						<c:forEach var="iEntry" items="${it.extRefsTxt}">
-							<li><a href="${iEntry.value}"><c:out value='${iEntry.value}' /></a></li>
+							<li><a href="${iEntry.value}"><c:out value='${iEntry.value}' /></a>&nbsp;&nbsp;<a href="javascript:void(0);"
+								onclick="deleteExtRef('${it.bagSummary.pid}', '${iEntry.value}')">[Delete]</a></li>
 						</c:forEach>
 					</ul>
 				</c:if>
 			</div>
+			
+			<img id="loading" src="<c:url value='/images/ajax-loader.gif' />" style="display: none"></img>
 		</anu:content>
 	</c:when>
 </c:choose>
