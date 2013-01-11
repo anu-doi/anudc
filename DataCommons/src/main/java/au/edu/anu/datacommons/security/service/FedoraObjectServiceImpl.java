@@ -1,6 +1,7 @@
 package au.edu.anu.datacommons.security.service;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +35,7 @@ import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.doi.DoiClient;
 import au.edu.anu.datacommons.doi.DoiException;
 import au.edu.anu.datacommons.doi.DoiResourceAdapter;
+import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
@@ -91,6 +93,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.22		06/11/2012	Genevieve Turner (GT)	Updated to check if the user has permissions to update the group if not remove those permissions
  * 0.23		26/11/2012	Genevieve Turner (GT)	Added the removal of reverse links
  * 0.24		11/12/2012	Genevieve Turner (GT)	Moved some publishing methods to PublishServiceImpl
+ * 0.25		02/01/2012	Genevieve Turner (GT)	Updated to enforce records requriing an ownerGroup, type and name/title for new records
  * </pre>
  * 
  */
@@ -200,6 +203,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.8		20/06/2012	Genevieve Turner (GT)	Updated so that page retrieval is now using a map
 	 * 0.15		20/08/2012	Genevieve Turner (GT)	Updated to use permissionService rather than aclService
 	 * 0.23		12/11/2012	Genevieve Turner (GT)	Added the request id
+	 * 0.25		02/01/2012	Genevieve Turner (GT)	Updated to enforce records requriing an ownerGroup, type and name/title
 	 * </pre>
 	 * 
 	 * @param layout The layout to display the page
@@ -215,8 +219,19 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		FedoraObject fedoraObject = null;
 		ViewTransform viewTransform = new ViewTransform();
 		
-		// Check if an owner's group is specified and the user's got access to it.
-		if (form.get("ownerGroup").size() > 0) {
+		List<String> messages = new ArrayList<String>();
+		if (form.get("ownerGroup") == null || form.get("ownerGroup").size() == 0 || form.get("ownerGroup").get(0).trim().equals("")) {
+			messages.add("No Group Affiliation");
+		}
+		if (form.get("type") == null || form.get("type").size() == 0 || form.get("type").get(0).trim().equals("")) {
+			messages.add("No item type has been set");
+		}
+		if ((form.get("name") == null || form.get("name").size() == 0 || form.get("name").get(0).trim().equals("")) && (form.get("lastName") == null || form.get("lastName").size() == 0 || form.get("lastName").get(0).trim().equals(""))) {
+			messages.add("No name/title has been set");
+		}
+		
+		if (messages.size() == 0) {
+			// Check if the user has access to the ownerGroup
 			String ownerGroup = form.get("ownerGroup").get(0);
 			Long ownerGroupId = new Long(ownerGroup);
 			List<Groups> groups = groupService.getCreateGroups();
@@ -232,7 +247,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			}
 		}
 		else {
-			throw new IllegalArgumentException("No group selected");
+			throw new ValidateException(messages);
 		}
 		
 		fedoraObject = viewTransform.saveData(tmplt, null, form, rid);

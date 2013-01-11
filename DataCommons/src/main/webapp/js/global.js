@@ -100,6 +100,7 @@ function processReturn(xml)
 	jQuery("#extraFields").append(xml);
 	jQuery("#editSubmit").removeAttr("disabled");
 	jQuery('#anzforSubject2').combobox();
+	jQuery('#anzseoSubject2').combobox();
 }
 
 /**

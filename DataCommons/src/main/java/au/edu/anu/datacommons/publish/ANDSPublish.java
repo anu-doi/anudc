@@ -1,5 +1,6 @@
 package au.edu.anu.datacommons.publish;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -7,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
-import au.edu.anu.datacommons.util.Util;
+import au.edu.anu.datacommons.exception.ValidateException;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
@@ -28,6 +29,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.3		17/06/2012	Genevieve Turner (GT)	Added validation prior to publishing
  * 0.4		15/10/2012	Genevieve Turner(GT)	Added checkValidity		
  * 0.5		10/12/2012	Genevieve Turner (GT)	Updated to use the default validation functions and added the isAllowedToPublish field
+ * 0.6		02/01/2012	Genevieve Turner (GT)	Updated to allow for changes to error handling
  * </pre>
  * 
  */
@@ -47,6 +49,7 @@ public class ANDSPublish extends GenericPublish implements Publish {
 	 * 0.2		08/06/2012	Genevieve Turner (GT)	Updated to incorporate some changes to publishing
 	 * 0.3		17/06/2012	Genevieve Turner (GT)	Added validation prior to publishing
 	 * 0.5		10/12/2012	Genevieve Turner (GT)	Updated to use isAllowedToPublish
+	 * 0.6		02/01/2012	Genevieve Turner (GT)	Updated to allow for changes to error handling
 	 * </pre>
 	 * 
 	 * @param pid The id of the object to publish
@@ -56,13 +59,9 @@ public class ANDSPublish extends GenericPublish implements Publish {
 		//Validate validate = new ANDSValidate();
 		List<String> errorMessages = checkValidity(pid);
 		if (!isAllowedToPublish) {
-			StringBuilder errorMessage = new StringBuilder();
-			errorMessage.append("Error publishing to ");
-			errorMessage.append(publishCode);
-			errorMessage.append("\n");
-			errorMessage.append(Util.listToStringWithNewline(errorMessages));
-			
-			throw new ValidateException(errorMessage.toString());
+			List<String> messages = new ArrayList<String>(errorMessages);
+			messages.add(0, "Error publishing to " + publishCode);
+			throw new ValidateException(messages);
 		}
 		
 		super.publish(pid, publishCode);

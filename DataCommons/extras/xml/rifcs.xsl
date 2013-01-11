@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:fn="http://www.w3.org/2005/xpath-functions" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 	<xsl:param name="key" />
 	<xsl:param name="external" />
 	<xsl:variable name="anukey">http://anu.edu.au/</xsl:variable>
@@ -162,7 +162,7 @@
 				<location>
 					<address>
 						<physical type="postalAddress">
-							<addressPart type="addressLine">
+							<addressPart type="text">
 								<xsl:value-of select="text()" />
 							</addressPart>
 						</physical>
@@ -279,6 +279,18 @@
 				<xsl:value-of select="data/deliveryMethod" />
 			</description>
 		</xsl:if>
+		<xsl:if test="data/dataExtent or data/dataSize">
+			<description type="note">
+				<xsl:if test="data/dataExtent">
+					<xsl:value-of select="data/dataExtent" />
+					<xsl:if test="not(substring(data/dataExtent, string-length(data/dataExtent)) = '.')">.</xsl:if>
+				</xsl:if>
+				<xsl:if test="data/dataSize">
+					<xsl:value-of select="data/dataSize" />
+					<xsl:if test="not(substring(data/dataSize, string-length(data/dataSize)) = '.')">.</xsl:if>
+				</xsl:if>
+			</description>
+		</xsl:if>
 		<xsl:if test="data/existenceStart or data/existenceEnd">
 			<existenceDates>
 				<xsl:if test="data/existenceStart">
@@ -295,6 +307,40 @@
 					<rightsStatement>
 						<xsl:value-of select="text()" />
 					</rightsStatement>
+				</rights>
+			</xsl:for-each>
+		</xsl:if>
+		<xsl:if test="data/licenceType">
+			<xsl:for-each select="data/licenceType">
+				<rights>
+					<licence type="{text()}">
+						<xsl:choose>
+							<xsl:when test="text() = 'CC-BY'">
+								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by/3.0/au/deed.en</xsl:attribute>
+							</xsl:when>
+							<xsl:when test="text() = 'CC-BY-SA'">
+								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-sa/3.0/au/deed.en</xsl:attribute>
+							</xsl:when>
+							<xsl:when test="text() = 'CC-BY-ND'">
+								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nd/3.0/au/deed.en</xsl:attribute>
+							</xsl:when>
+							<xsl:when test="text() = 'CC-BY-NC'">
+								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nc/3.0/au/deed.en</xsl:attribute>
+							</xsl:when>
+							<xsl:when test="text() = 'CC-BY-NC-SA'">
+								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nc-sa/3.0/au/deed.en</xsl:attribute>
+							</xsl:when>
+							<xsl:when test="text() = 'CC-BY-NC-ND'">
+								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nc-nd/3.0/au/deed.en</xsl:attribute>
+							</xsl:when>
+							<xsl:when test="text() = 'GPL'"> 
+								<xsl:attribute name="rightsUri">http://www.gnu.org/licenses/gpl.html</xsl:attribute>
+							</xsl:when>
+							<xsl:when test="text() = 'AusGoalRestrictive'">
+								<xsl:attribute name="rightsUri">http://www.ausgoal.gov.au/restrictive-licence-template</xsl:attribute>
+							</xsl:when>
+						</xsl:choose>
+					</licence>
 				</rights>
 			</xsl:for-each>
 		</xsl:if>
@@ -354,23 +400,56 @@
 		<xsl:if test="data/type/text() = 'Collection'">
 			<xsl:if test="data/name">
 				<citationInfo>
-					<fullCitation style="Datacite">
-						<!-- Note the identifier information here is temporary until a DOI is minted -->
+					<citationMetadata>
 						<xsl:choose>
-							<xsl:when test="data/doi and data/citationYear and data/citationCreator and data/citationPublisher">
-								<xsl:value-of select="data/citationCreator" /> (<xsl:value-of select="data/citationYear" />): <xsl:value-of select="data/name" />, <xsl:value-of select="data/citationPublisher" />, <xsl:value-of select="data/doi" />
-							</xsl:when>
-							<xsl:when test="data/citationYear and data/citationCreator and data/citationPublisher">
-								<xsl:value-of select="data/citationCreator" /> (<xsl:value-of select="data/citationYear" />): <xsl:value-of select="data/name" />, <xsl:value-of select="data/citationPublisher" />, <xsl:value-of select="$anuidentifier" /><xsl:value-of select="$key" />
-							</xsl:when>
 							<xsl:when test="data/doi">
-								The Australian National University (2012): <xsl:value-of select="data/name" />, The Australian National University Data Commons, <xsl:value-of select="data/doi" />
+								<identifier type="doi">
+									<xsl:value-of select="data/doi" />
+								</identifier>
 							</xsl:when>
 							<xsl:otherwise>
-								The Australian National University (2012): <xsl:value-of select="data/name" />, The Australian National University Data Commons, <xsl:value-of select="$anuidentifier" /><xsl:value-of select="$key" />
+								<identifier type="uri">
+									<xsl:value-of select="$anuidentifier" /><xsl:value-of select="$key" />
+								</identifier>
 							</xsl:otherwise>
 						</xsl:choose>
-					</fullCitation>
+						<xsl:choose>
+							<xsl:when test="data/citCreator">
+								<xsl:for-each select="data/citCreator">
+									<contributor seq="{position()}">
+										<xsl:if test="citCreatorSurname">
+											<namePart type="family"><xsl:value-of select="citCreatorSurname" /></namePart>
+										</xsl:if>
+										<xsl:if test="citCreatorGiven">
+											<namePart type="given"><xsl:value-of select="citCreatorGiven" /></namePart>
+										</xsl:if>
+									</contributor>
+								</xsl:for-each>
+							</xsl:when>
+							<xsl:otherwise>
+								<contributor seq="1">
+									<namePart>The Australian National University</namePart>
+								</contributor>
+							</xsl:otherwise>
+						</xsl:choose>
+						<title><xsl:value-of select="data/name" /></title>
+						<xsl:choose>
+							<xsl:when test="data/citationPublisher">
+								<publisher><xsl:value-of select="data/citationPublisher" /></publisher>
+							</xsl:when>
+							<xsl:otherwise>
+								<publisher>The Australian National University Data Commons</publisher>
+							</xsl:otherwise>
+						</xsl:choose>
+						<xsl:choose>
+							<xsl:when test="data/citationYear">
+								<date type="publicationDate"><xsl:value-of select="data/citationYear" /></date>
+							</xsl:when>
+							<xsl:otherwise>
+								<date type="publicationDate"><xsl:value-of select="fn:year-from-date(fn:current-date())" /></date>
+							</xsl:otherwise>
+						</xsl:choose>
+					</citationMetadata>
 				</citationInfo>
 			</xsl:if>
 		</xsl:if>

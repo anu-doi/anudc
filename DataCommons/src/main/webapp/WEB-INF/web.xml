@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+<web-app
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	id="WebApp_ID"
+	version="3.0">
 	<display-name>Data Commons Web Application</display-name>
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
@@ -8,7 +13,7 @@
 			/WEB-INF/spring-database.xml
 			/WEB-INF/spring-security.xml
 			/WEB-INF/applicationContext.xml
-     </param-value>
+		</param-value>
 	</context-param>
 	<context-param>
 		<param-name>webAppRootKey</param-name>
@@ -26,8 +31,9 @@
 				au.edu.anu.datacommons.pambu;
 				au.edu.anu.datacommons.report;
 				au.edu.anu.datacommons.orca;
+				au.edu.anu.datacommons.exception;
 				au.edu.anu.datacommons.webservice
-      </param-value>
+			</param-value>
 		</init-param>
 		<init-param>
 			<param-name>com.sun.jersey.config.property.JSPTemplatesBasePath</param-name>
@@ -127,6 +133,9 @@
 	</listener>
 	<listener>
 		<listener-class>au.edu.anu.datacommons.report.ReportAppListener</listener-class>
+	</listener>
+	<listener>
+		<listener-class>au.edu.anu.datacommons.shutdown.ShutdownListener</listener-class>
 	</listener>
 	<listener>
 		<listener-class>au.edu.anu.datacommons.shutdown.ShutdownListener</listener-class>

@@ -13,11 +13,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
@@ -31,7 +29,7 @@ import org.springframework.stereotype.Component;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
-import au.edu.anu.datacommons.exception.ValidationException;
+import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.publish.service.LocationValidationMessage;
 import au.edu.anu.datacommons.publish.service.PublishService;
 import au.edu.anu.datacommons.search.SolrSearchResult;
@@ -60,6 +58,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.5		27/09/2012	Genevieve Turner (GT)	Updated to redirect to display page rather than edit
  * 0.6		15/10/2012	Genevieve Turner (GT)	Added the availablity of validation checks
  * 0.7		10/12/2012	Genevieve Turner (GT)	Added mass publication and validation functionality, also moved some functions from the fedora object service to the publish service
+ * 0.8		02/01/2012	Genevieve Turner (GT)	Updated to allow for changes to error handling
  * </pre>
  * 
  */
@@ -119,6 +118,7 @@ public class PublishResource {
 	 * 0.4		19/09/2012	Genevieve Turner (GT)	Updated to redirect to the display page
 	 * 0.5		27/09/2012	Genevieve Turner (GT)	Updated to redirect to display page rather than edit
 	 * 0.7		10/12/2012	Genevieve Turner (GT)	Updated to use publishService rather than fedoraObjectService
+	 * 0.8		02/01/2012	Genevieve Turner (GT)	Updated to allow for changes to error handling
 	 * </pre>
 	 * 
 	 * @param item The item to publish
@@ -138,12 +138,7 @@ public class PublishResource {
 		LOGGER.debug("Locations to publish to: {}", publishers);
 		
 		if (publishers != null && publishers.size() > 0) {
-			try {
-				publishService.publish(fedoraObject, publishers);
-			}
-			catch (ValidateException e) {
-				throw new ValidationException(e.getMessage());
-			}
+			publishService.publish(fedoraObject, publishers);
 		}
 		
 		UriBuilder uriBuilder = UriBuilder.fromPath("/display").path(item).queryParam("layout", layout);
@@ -199,6 +194,7 @@ public class PublishResource {
 		
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("publishLocations", publishLocations);
+		model.put("item", item);
 		
 		Viewable viewable = new Viewable("/validate.jsp", model);
 		
@@ -214,6 +210,7 @@ public class PublishResource {
 	 * Version	Date		Developer				Description
 	 * 0.6		15/10/2012	Genevieve Turner(GT)	Initial
 	 * 0.7		10/12/2012	Genevieve Turner (GT)	Updated to use publishService rather htan fedoraObjectService
+	 * 0.8		02/01/2012	Genevieve Turner (GT)	Updated to allow for changes to error handling and fixed a null pointer exception if no publishers had been selected
 	 * </pre>
 	 * 
 	 * @param item The item to check validation on
@@ -230,18 +227,19 @@ public class PublishResource {
 
 		Map<String, Object> model = new HashMap<String, Object>();
 		
-		if (publishers.size() > 0) {
+		if (publishers != null && publishers.size() > 0) {
 			FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 			List<String> messages = publishService.validatePublishLocation(fedoraObject, publishers);
 			model.put("validateMessages", messages);
 		}
 		else {
-			throw new WebApplicationException(Response.status(400).entity("No publish location specified").build());
+			throw new ValidateException("No publish location specified");
 		}
 		
 		List<PublishLocation> publishLocations = publishService.getPublishers();
 		
 		model.put("publishLocations", publishLocations);
+		model.put("item", item);
 		
 		Viewable viewable = new Viewable("/validate.jsp", model);
 		
@@ -294,6 +292,7 @@ public class PublishResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.7		10/12/2012	Genevieve Turner(GT)	Initial
+	 * 0.8		02/01/2012	Genevieve Turner (GT)	Updated to allow for changes to error handling
 	 * </pre>
 	 * 
 	 * @param request The http request information
@@ -311,7 +310,7 @@ public class PublishResource {
 		String[] publishLocations = request.getParameterValues("publishLocation");
 
 		if (publishLocations == null || publishLocations.length == 0 || ids == null || ids.length == 0) {
-			throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity("You must select at least one publish location and one record").build());
+			throw new ValidateException("You must select at least one publish location and one record");
 		}
 		
 		try {
@@ -320,7 +319,7 @@ public class PublishResource {
 		}
 		catch (Exception e) {
 			LOGGER.error("Exception validating messages", e);
-			throw new WebApplicationException(Response.status(400).entity("No publish location specified").build());
+			throw new ValidateException("Exception performing validation on the selected records");
 		}
 		
 		try {
@@ -381,6 +380,7 @@ public class PublishResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.7		10/12/2012	Genevieve Turner(GT)	Initial
+	 * 0.8		02/01/2012	Genevieve Turner (GT)	Updated to allow for changes to error handling
 	 * </pre>
 	 * 
 	 * @param request The http request
@@ -398,7 +398,7 @@ public class PublishResource {
 		String[] publishLocations = request.getParameterValues("publishLocation");
 
 		if (publishLocations == null || publishLocations.length == 0 || ids == null || ids.length == 0) {
-			throw new WebApplicationException(Response.status(Status.BAD_REQUEST).entity("You must select at least one publish location and one record").build());
+			throw new ValidateException("At least one publish location and record must be selected");
 		}
 		
 		Map<String, String> published = publishService.publishMultiple(ids, publishLocations);

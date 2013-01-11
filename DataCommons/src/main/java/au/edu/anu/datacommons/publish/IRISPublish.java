@@ -7,6 +7,7 @@ import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.PublishIris;
 import au.edu.anu.datacommons.data.db.model.PublishIrisPK;
+import au.edu.anu.datacommons.exception.ValidateException;
 
 /**
  * IRISPublish

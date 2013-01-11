@@ -51,7 +51,8 @@ import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.UserRegistered;
 import au.edu.anu.datacommons.data.db.model.UserRequestPassword;
 import au.edu.anu.datacommons.data.db.model.Users;
-import au.edu.anu.datacommons.exception.WebPageException;
+import au.edu.anu.datacommons.exception.DataCommonsException;
+import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.ldap.LdapPerson;
 import au.edu.anu.datacommons.ldap.LdapRequest;
 import au.edu.anu.datacommons.properties.GlobalProps;
@@ -80,6 +81,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.2		27/08/2012	Genevieve Turner (GT)	Updates for adding 
  * 0.3		17/09/2012	Genevieve Turner (GT)	Fixed issue with updateUserPermissions
  * 0.4		14/11/2012	Genevieve Turner (GT)	Added a setting of a password for the user if it is null for the getEncodedPassword method
+ * 0.5		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
  * </pre>
  *
  */
@@ -193,6 +195,7 @@ public class UserResource {
 	 * 0.1		20/08/2012	Genevieve Turner(GT)	Initial
 	 * 0.2		17/09/2012	Genevieve Turner (GT)	Fixed an issue with the return result not being in the json format
 	 * 0.4		14/11/2012	Genevieve Turner (GT)	Updated to allow administrative role users able to update permissions
+	 * 0.5		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param id The id of the group to update the permissions for
@@ -207,7 +210,7 @@ public class UserResource {
 	public String updateUserPermissions(@PathParam("id") Long id, @Context HttpServletRequest request) {
 		String username = request.getParameter("username");
 		if (!Util.isNotEmpty(username)) {
-			throw new WebApplicationException(Response.status(400).entity("No username specified").build());
+			throw new ValidateException("No username specified");
 		}
 
 		// Ensure the logged in user has permissions to update this group
@@ -220,7 +223,7 @@ public class UserResource {
 		}
 		if (!hasGroupPermission) {
 			LOGGER.error("{} does not have permissions to update group {}", SecurityContextHolder.getContext().getAuthentication().getName(), id);
-			throw new WebApplicationException(Response.status(Status.UNAUTHORIZED).build());
+			throw new ValidateException("You do not have permissions to update the group");
 		}
 		
 		List<Integer> permissions = new ArrayList<Integer>();
@@ -243,6 +246,7 @@ public class UserResource {
 	 * Version	Date		Developer				Description
 	 * 0.1		20/08/2012	Genevieve Turner(GT)	Initial
 	 * 0.4		14/11/2012	Genevieve Turner (GT)	Updated to allow administrative role users able to update permissions
+	 * 0.5		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param firstname The firstname of the user to find
@@ -259,7 +263,7 @@ public class UserResource {
 		List<Groups> groups = groupService.getAllowModifyGroups();
 		if (groups.size() == 0) {
 			LOGGER.error("{} does not have permissions search ldap for other users", SecurityContextHolder.getContext().getAuthentication().getName());
-			throw new WebApplicationException(Response.status(Status.UNAUTHORIZED).build());
+			throw new DataCommonsException(Status.UNAUTHORIZED, "You do not have permissions to search ldap");
 		}
 		
 		LdapRequest ldapRequest = new LdapRequest();
@@ -280,7 +284,7 @@ public class UserResource {
 		}
 		sb.append(")");
 		if (!hasInfo) {
-			throw new WebApplicationException(Response.status(400).entity("Need a username, lastname or uni id to search for").build());
+			throw new ValidateException("A given name, surname or university id is required for the search");
 		}
 		ldapRequest.setQuery(sb.toString());
 		List<LdapPerson> people = null;
@@ -326,6 +330,7 @@ public class UserResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.5		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param request Http request information
@@ -342,7 +347,7 @@ public class UserResource {
 		Users user = userDAO.getSingleById(customUser.getId());
 		
 		if (!user.getUser_type().equals(new Long(2))) {
-			throw new WebApplicationException(Response.status(403).entity("Can only update registered users").build());
+			throw new DataCommonsException(403, "Only registered users update their information");
 		}
 		
 		model.put("user", user);
@@ -358,6 +363,7 @@ public class UserResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.5		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param request Http request information
@@ -380,7 +386,7 @@ public class UserResource {
 		Users user = userDAO.getSingleById(customUser.getId());
 
 		if (!user.getUser_type().equals(new Long(2))) {
-			throw new WebApplicationException(Response.status(403).entity("Can only update registered users").build());
+			throw new DataCommonsException(403, "Only registered users update their information");
 		}
 		
 		// Verify password
@@ -468,6 +474,7 @@ public class UserResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.5		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param request Http request information
@@ -515,7 +522,7 @@ public class UserResource {
 		}
 		catch (IOException e) {
 			LOGGER.error("Exception creating email", e);
-			throw new WebPageException(500, createMessageMap("Exception creating email"));
+			throw new DataCommonsException(500, "Exception creating email");
 		}
 		
 		Map<String, Object> model = new HashMap<String, Object>();
@@ -549,6 +556,7 @@ public class UserResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.5		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param request Http request information
@@ -590,7 +598,7 @@ public class UserResource {
 		}
 		catch (IOException e) {
 			LOGGER.error("Exception creating email", e);
-			throw new WebPageException(500, createMessageMap("Exception creating email"));
+			throw new DataCommonsException(500, "Exception creating email");
 		}
 		
 		return Response.ok(new Viewable("/user_emailsent.jsp")).build();
@@ -627,6 +635,7 @@ public class UserResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.5		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param link The link of the password reset request
@@ -660,7 +669,7 @@ public class UserResource {
 		}
 		catch (IOException e) {
 			LOGGER.error("Exception creating email", e);
-			throw new WebApplicationException(Response.status(500).build());
+			throw new DataCommonsException(500, "Exception creating email for password reset");
 		}
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("message", "Password Reset and email has been sent");
@@ -676,6 +685,7 @@ public class UserResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.5		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param userRequest The user request to validate
@@ -684,10 +694,10 @@ public class UserResource {
 	private boolean isValidReset(UserRequestPassword userRequest) {
 		Date today = new Date();
 		if (userRequest == null) {
-			throw new WebPageException(404, createMessageMap("Either a request was not found or is invalid"));
+			throw new DataCommonsException(404, "Either a the password change request was not found or it is invalid");
 		}
 		else if (today.getTime() - userRequest.getRequest_date().getTime() - MILLIS_PER_DAY > 0 || Boolean.TRUE.equals(userRequest.getUsed())) {
-			throw new WebPageException(400, createMessageMap("Password change request has expired"));
+			throw new DataCommonsException(400, "Password change request has expired");
 		}
 		
 		return true;
@@ -702,6 +712,7 @@ public class UserResource {
 	 * Version	Date		Developer				Description
 	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
 	 * 0.4		14/11/2012	Genevieve Turner (GT)	Added a setting of a password for the user if it is null
+	 * 0.5		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param password Password 1 for comparison
@@ -711,7 +722,7 @@ public class UserResource {
 	 */
 	private String getEncodedPassword(String password, String password2, Users user) {
 		if (password == null || !password.equals(password2)) {
-			throw new WebPageException(400, createMessageMap("Passwords do not match"));
+			throw new ValidateException("Passwords do not match");
 		}
 		Md5PasswordEncoder passwordEncoder = new Md5PasswordEncoder();
 		//The system appears to have issues if the password is null when retrieving the CustomUser
@@ -721,24 +732,5 @@ public class UserResource {
 		CustomUser customUser = new CustomUser(user, true, true, true, true, new ArrayList<GrantedAuthority>());
 		
 		return passwordEncoder.encodePassword(password, saltSource.getSalt(customUser));
-	}
-	
-	/**
-	 * createMessageMap
-	 *
-	 * Create a map for messages to display on the screen
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.2		27/08/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @param message The message to add to the map
-	 * @return A map with the message in it
-	 */
-	private Map<String, Object> createMessageMap(String message) {
-		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("message", message);
-		return model;
 	}
 }

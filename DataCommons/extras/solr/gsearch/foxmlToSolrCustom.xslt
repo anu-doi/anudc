@@ -85,16 +85,16 @@
 				
 				<xsl:for-each select="foxml:datastream[@ID='XML_TEMPLATE' and @CONTROL_GROUP='X']/foxml:datastreamVersion[last()]/foxml:xmlContent/*">
 					<field name="template.name">
-						<xsl:value-of select="//name" />
+						<xsl:value-of select="./name" />
 					</field>
 					<field name="template.briefDesc">
-						<xsl:value-of select="//briefDesc" />
+						<xsl:value-of select="./briefDesc" />
 					</field>
 					<field name="template.type">
 						<xsl:text>Template</xsl:text>
 					</field>
 					<field name="template.subType">
-						<xsl:value-of select="//item[@name='type']/@defaultValue" />
+						<xsl:value-of select="./item[@name='type']/@defaultValue" />
 					</field>
 				</xsl:for-each>
 				

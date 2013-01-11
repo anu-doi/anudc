@@ -9,10 +9,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
@@ -30,6 +28,8 @@ import au.edu.anu.datacommons.data.db.dao.LinkRelationDAO;
 import au.edu.anu.datacommons.data.db.dao.LinkRelationDAOImpl;
 import au.edu.anu.datacommons.data.db.model.LinkRelation;
 import au.edu.anu.datacommons.data.solr.SolrManager;
+import au.edu.anu.datacommons.exception.DataCommonsException;
+import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SolrSearchResult;
@@ -58,6 +58,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.5		11/09/2012	Genevieve Turner (GT)	Added sorting so that templates are sorted in the order they are created
  * 0.6		19/09/2012	Genevieve Turner (GT)	Added listing of relationship types
  * 0.7		28/09/2012	Genevieve Turner (GT)	Updated so that type is not necessary
+ * 0.8		02/01/2012	Genevieve eturner (GT)	Updated to reflect changes in error handling
  * </pre>
  * 
  */
@@ -80,6 +81,7 @@ public class ListResource {
 	 * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
 	 * 0.3		08/06/2012	Genevieve Turner (GT)	Updated for changes to post
 	 * 0.5		11/09/2012	Genevieve Turner (GT)	Added sorting so that templates are sorted in the order they are created
+	 * 0.8		02/01/2012	Genevieve eturner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * Returns a list of templates 
@@ -118,7 +120,7 @@ public class ListResource {
 		}
 		catch(SolrServerException e) {
 			LOGGER.error("Exception querying field");
-			Response.status(Status.INTERNAL_SERVER_ERROR);
+			throw new DataCommonsException(500, "Error retrieving the list of templates");
 		}
 		
 		return response;
@@ -178,6 +180,7 @@ public class ListResource {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.6		19/09/2012	Genevieve Turner(GT)	Initial
+	 * 0.8		02/01/2012	Genevieve eturner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param category1 The category type of the item to retrieve to
@@ -189,7 +192,7 @@ public class ListResource {
 	@Path("relation_types")
 	public Response getRelationTypes(@QueryParam("cat1") String category1, @QueryParam("cat2") String category2) {
 		if (!Util.isNotEmpty(category1) || !Util.isNotEmpty(category2)) {
-			throw new WebApplicationException(Response.status(400).entity("Missing a category").build());
+			throw new ValidateException("Either the category for the current object or for the associated object is missing");
 		}
 		
 		LinkRelationDAO linkRelationDAO = new LinkRelationDAOImpl(LinkRelation.class);

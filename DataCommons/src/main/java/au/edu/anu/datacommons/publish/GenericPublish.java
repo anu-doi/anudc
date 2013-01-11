@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
+import au.edu.anu.datacommons.exception.ValidateException;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 

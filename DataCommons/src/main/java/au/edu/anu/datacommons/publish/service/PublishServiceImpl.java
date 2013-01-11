@@ -39,12 +39,12 @@ import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.SolrUtils;
-import au.edu.anu.datacommons.exception.ValidationException;
+import au.edu.anu.datacommons.exception.DataCommonsException;
+import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.publish.FieldValidate;
 import au.edu.anu.datacommons.publish.Publish;
 import au.edu.anu.datacommons.publish.Validate;
-import au.edu.anu.datacommons.publish.ValidateException;
 import au.edu.anu.datacommons.search.SolrSearchResult;
 import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.acl.CustomACLPermission;
@@ -70,6 +70,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		11/12/2012	Genevieve Turner (GT)	Initial
+ * 0.2		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
  * </pre>
  *
  */
@@ -96,19 +97,15 @@ public class PublishServiceImpl implements PublishService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		10/12/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		02/01/2012	Genevieve Turner (GT)	Removed a number of thrown exceptions
 	 * </pre>
 	 * 
 	 * @param publishers The locations to validate against
 	 * @param ids The ids of the items to validate
 	 * @return A map consisting of the pid and validation messages
-	 * @throws ClassNotFoundException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
 	 * @see au.edu.anu.datacommons.publish.service.PublishService#validateMultiple(java.lang.String[], java.lang.String[])
 	 */
-	public Map<String, List<LocationValidationMessage>> validateMultiple(String[] publishers, String[] ids)
-			throws ClassNotFoundException, IllegalAccessException, InstantiationException {
-		
+	public Map<String, List<LocationValidationMessage>> validateMultiple(String[] publishers, String[] ids) {
 		List<PublishLocation> publishLocations = getPublishLocationsFromList(Arrays.asList(publishers));
 		
 		return validateMultiple(publishLocations, Arrays.asList(ids));
@@ -502,6 +499,7 @@ public class PublishServiceImpl implements PublishService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		10/12/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		02/01/2012	Genevieve Turner (GT)	Updated with changes to error handling
 	 * </pre>
 	 * 
 	 * @param fedoraObject The object to publish
@@ -511,10 +509,9 @@ public class PublishServiceImpl implements PublishService {
 		Validate validate = new FieldValidate();
 		
 		if (!validate.isValid(fedoraObject.getObject_id())) {
-			StringBuilder errorMessages = new StringBuilder();
-			errorMessages.append("Not all required fields have been filled out correctly\n");
-			errorMessages.append(Util.listToStringWithNewline(validate.getErrorMessages()));
-			throw new ValidateException(errorMessages.toString());
+			List<String> messages = validate.getErrorMessages();
+			messages.add(0, "Not all required fields have been filled out correctly");
+			throw new ValidateException(messages);
 		}
 		setDefaultsForPublish(fedoraObject);
 		updatePublishXML(fedoraObject);
@@ -528,6 +525,7 @@ public class PublishServiceImpl implements PublishService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		10/12/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		02/01/2012	Genevieve Turner (GT)	Updated to reflect the changes to citation creators
 	 * </pre>
 	 * 
 	 * @param fedoraObject The object to publish
@@ -538,7 +536,8 @@ public class PublishServiceImpl implements PublishService {
 		Calendar cal = Calendar.getInstance();
 		int year = cal.get(Calendar.YEAR);
 		
-		form.put("citationCreator", "The Australian National University");
+		//TODO create a properties file for these?
+		form.put("citCreatorSurname", "The Australian National University");
 		form.put("citationYear", Integer.toString(year));
 		form.put("citationPublisher", "The Australian National University Data Commons");
 		
@@ -806,6 +805,7 @@ public class PublishServiceImpl implements PublishService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		18/12/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to set as ready for review
@@ -814,15 +814,14 @@ public class PublishServiceImpl implements PublishService {
 	public void setReadyForReview(FedoraObject fedoraObject) {
 		if (fedoraObject.getReviewReady() != null || fedoraObject.getPublishReady() != null) {
 			LOGGER.info("Record is already in the review queue");
-			throw new WebApplicationException(412);
+			throw new DataCommonsException(412, "Record is already in the review queue");
 		}
 		
 		Validate validate = new FieldValidate();
 		if (!validate.isValid(fedoraObject.getObject_id())) {
-			StringBuffer errorMessages = new StringBuffer();
-			errorMessages.append("Not all required fields have been filled out correctly\n");
-			errorMessages.append(Util.listToStringWithNewline(validate.getErrorMessages()));
-			throw new ValidationException(errorMessages.toString());
+			List<String> errorMessages = validate.getErrorMessages();
+			errorMessages.add(0, "Not all required fields have been filled out correctly");
+			throw new ValidateException(errorMessages);
 		}
 		
 		ReviewReady reviewReady = new ReviewReady();
@@ -844,6 +843,7 @@ public class PublishServiceImpl implements PublishService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		18/12/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to set as ready for publish
@@ -852,11 +852,11 @@ public class PublishServiceImpl implements PublishService {
 	public void setReadyForPublish(FedoraObject fedoraObject) {
 		if (fedoraObject.getReviewReady() == null) {
 			LOGGER.info("Ready for review is null in publish");
-			throw new WebApplicationException(412);
+			throw new DataCommonsException(412, "Record is not currently in the ready for review stage");
 		}
 		else if (fedoraObject.getPublishReady() != null) {
 			LOGGER.info("Record is already in the publish queue");
-			throw new WebApplicationException(412);
+			throw new DataCommonsException(412, "Record is already in the publish queue");
 		}
 		
 		PublishReady publishReady = new PublishReady();
@@ -880,6 +880,7 @@ public class PublishServiceImpl implements PublishService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		18/12/2012	Genevieve Turner(GT)	Initial
+	 * 0.2		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
 	 * </pre>
 	 * 
 	 * @param fedoraObject The item to set to rejected
@@ -890,9 +891,11 @@ public class PublishServiceImpl implements PublishService {
 		if (fedoraObject.getReviewReady() == null && fedoraObject.getPublishReady() == null) {
 			throw new WebApplicationException(412);
 		}
-		if (reasons == null || reasons.size() == 0) {
-			throw new ValidationException("No reasons given");
+		if (reasons == null || reasons.size() == 0 || reasons.get(0).trim().length() == 0) {
+			throw new ValidateException("No reasons were given to indicate why more work is required");
 		}
+		LOGGER.info("Reasons: {}, Number of reasons: {}", reasons, reasons.size());
+		
 		ReviewReject reviewReject = new ReviewReject();
 		reviewReject.setId(fedoraObject.getId());
 		reviewReject.setDate_submitted(new Date());
