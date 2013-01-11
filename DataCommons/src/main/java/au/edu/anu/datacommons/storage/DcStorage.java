@@ -246,6 +246,16 @@ public final class DcStorage implements Closeable
 		}
 	}
 
+	/**
+	 * Deletes a file from the bag of a specified record. The bag itself is then completed in a separate request.
+	 * 
+	 * @param pid
+	 *            Pid of the record whose bag contains the file to be deleted
+	 * @param bagFilePath
+	 *            Path of the file in the bag. For example, "data/somefile.txt"
+	 * @throws DcStorageException
+	 *             when unable to delete the file
+	 */
 	public void deleteFileFromBag(final String pid, final String bagFilePath) throws DcStorageException
 	{
 		Bag bag = null;
@@ -334,6 +344,16 @@ public final class DcStorage implements Closeable
 		}
 	}
 
+	/**
+	 * Deletes an external reference in the bag of a specified record.
+	 * 
+	 * @param pid
+	 *            Pid of the record whose bag contains the external reference to delete
+	 * @param url
+	 *            URL to delete
+	 * @throws DcStorageException
+	 *             when unable to delete the external reference
+	 */
 	public void deleteExtRef(String pid, String url) throws DcStorageException
 	{
 		if (!bagExists(pid))
@@ -641,6 +661,17 @@ public final class DcStorage implements Closeable
 		return zipInStream;
 	}
 	
+	/**
+	 * Gets the MD5 value of a file stored in the payload or tag manifest. The MD5 is not computed, only read from the manifest that contains it.
+	 * 
+	 * @param pid
+	 *            Pid of the record containing the specified file
+	 * @param filepath
+	 *            Relative path of the file within the bag. For example, "data/somefile.txt"
+	 * @return MD5 sum as String
+	 * @throws DcStorageException
+	 *             When unable to read the MD5 checksum
+	 */
 	public String getFileMd5(String pid, String filepath) throws DcStorageException
 	{
 		Bag bag = getBag(pid);
@@ -650,6 +681,17 @@ public final class DcStorage implements Closeable
 		return bag.getChecksums(filepath).get(Algorithm.MD5);
 	}
 	
+	/**
+	 * Gets the size of the file stored in the bag of a specified record.
+	 * 
+	 * @param pid
+	 *            Pid of the record whose bag contains the specified file
+	 * @param filepath
+	 *            Relative path of the file. For example, "data/somefile.txt"
+	 * @return Size of the file in bytes as long
+	 * @throws DcStorageException
+	 *             when unable to get the file size
+	 */
 	public long getFileSize(String pid, String filepath) throws DcStorageException
 	{
 		Bag bag = getBag(pid);
@@ -659,11 +701,32 @@ public final class DcStorage implements Closeable
 		return bag.getBagFile(filepath).getSize();
 	}
 
+	/**
+	 * Gets the location where a bag is stored on disk as a File object.
+	 * 
+	 * <p><em>For use in JUnit testing only.</em>
+	 * 
+	 * @param pid
+	 *            Pid of the collection whose bag's location is requested
+	 * @return Bag location as File
+	 */
 	File getBagDir(String pid)
 	{
 		return new File(bagsDir, convertToDiskSafe(pid) + Bag.Format.FILESYSTEM.extension);
 	}
 
+	/**
+	 * Moves a specified file into the payload directory of a bag.
+	 * 
+	 * @param pid
+	 *            Pid of the record in whose bag the file
+	 * @param fileToMove
+	 *            File object representing the file on disk to move into the payload directory
+	 * @param filename
+	 *            Name of the file to store as
+	 * @throws IOException
+	 *             when unable to move the file
+	 */
 	private void moveFileToPayload(String pid, File fileToMove, String filename) throws IOException
 	{
 		File payloadDir = new File(getBagDir(pid), "data/");
@@ -686,6 +749,16 @@ public final class DcStorage implements Closeable
 		LOGGER.debug("Succesfully moved {} to {} and saved as {}.", fileToMove.getAbsolutePath(), payloadDir, filename);
 	}
 
+	/**
+	 * Performs a high speed copy from one File to another.
+	 * 
+	 * @param source
+	 *            The source File to copy
+	 * @param target
+	 *            The target File
+	 * @throws IOException
+	 *             when unable to copy
+	 */
 	private void copyFile(File source, File target) throws IOException
 	{
 		if (!source.exists())
@@ -715,12 +788,31 @@ public final class DcStorage implements Closeable
 		}
 	}
 
+	/**
+	 * Updates or creates the FILE0 datastream of a specified record to indicate that a record has files stored against it.
+	 * 
+	 * @param pid
+	 *            Pid of the record whose FILE0 datastream to create/update
+	 * @throws FedoraClientException
+	 *             when unable to update the datastream
+	 */
 	private void updateDatastream(String pid) throws FedoraClientException
 	{
 		// Create a placeholder datastream.
 		FedoraBroker.addDatastreamBySource(pid, "FILE" + "0", "FILE0", "<text>Files available.</text>");
 	}
 
+	/**
+	 * Validates the replacement of an existing bag with a new one. If the new bag's source is set to 'instrument', then the new bag must contain the exact same
+	 * files as in the old bag in addition to any new files.
+	 * 
+	 * @param oldBag
+	 *            The old bag that will be replaced
+	 * @param newBag
+	 *            The new bag that will replace the old bag
+	 * @throws DcStorageException
+	 *             when the replacement is not valid
+	 */
 	private void validateReplacementBag(Bag oldBag, Bag newBag) throws DcStorageException
 	{
 		BagSummary newBagSummary = new BagSummary(newBag);
@@ -790,6 +882,18 @@ public final class DcStorage implements Closeable
 		}
 	}
 
+	/**
+	 * Archives a bag by copying the directory containing the bag or renaming it. The new name of the directory is the old name with the current date and time
+	 * appended to it.
+	 * 
+	 * @param bag
+	 *            Bag to be archived
+	 * @param deleteOriginal
+	 *            true if the old bag should be deleted after archiving it to make the directory available for use by a new bag, false if the old bag should be
+	 *            copied into an archive without making any changes to it allowing for addition or deleting of individual files in the bag
+	 * @throws IOException
+	 *             If unable to archive the bag
+	 */
 	private void archiveBag(Bag bag, boolean deleteOriginal) throws IOException
 	{
 		File curBagFile = bag.getFile();
@@ -810,6 +914,13 @@ public final class DcStorage implements Closeable
 		}
 	}
 
+	/**
+	 * Creates a blank bag for a record. A blank bag contains no payload files but contains all essential files as specified in the BagIt Specification.
+	 * 
+	 * @param pid
+	 * @return Created Bag
+	 * @see <a href="http://www.digitalpreservation.gov/documents/bagitspec.pdf">The BagIt File Packaging Format</a>
+	 */
 	private Bag createBlankBag(String pid)
 	{
 		Bag bag = bagFactory.createBag();
@@ -845,17 +956,34 @@ public final class DcStorage implements Closeable
 		return bag;
 	}
 
+	/**
+	 * Returns a Base64 encoding of a provided String
+	 * 
+	 * @param stringToEncode
+	 *            String to encode
+	 * @return Base64 encoded String
+	 */
 	private String base64Encode(String stringToEncode)
 	{
 		String base64Encoded = new String(Base64.encodeBase64(stringToEncode.getBytes()));
 		return base64Encoded;
 	}
 
+	/**
+	 * Gets the character encoding value stored in bagit.txt within a bag. The character set identifies the character set encoding of tag files.
+	 * 
+	 * @param bag
+	 *            Bag from which the Character Encoding String is to be retrieved
+	 * @return Character encoding as String
+	 */
 	private String getCharacterEncoding(Bag bag)
 	{
 		return bag.getBagItTxt().getCharacterEncoding();
 	}
 
+	/**
+	 * Waits until all pending tasks queued in this class' Executor Service are completed, or a threshold time of 15 minutes is reached.
+	 */
 	@Override
 	public void close()
 	{
@@ -876,6 +1004,14 @@ public final class DcStorage implements Closeable
 		}
 	}
 
+	/**
+	 * Utility method that returns a disk safe version of a String for use in a file or directory name. This method replaces the characters *,?,\,:,/,SPACE and
+	 * replaces with an underscore.
+	 * 
+	 * @param source
+	 *            Source string to make disk safe
+	 * @return Disk safe version of the source string
+	 */
 	public static String convertToDiskSafe(String source)
 	{
 		return source.trim().toLowerCase().replaceAll("\\*|\\?|\\\\|:|/|\\s", "_");

@@ -15,6 +15,10 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 import au.edu.anu.datacommons.config.Config;
 import au.edu.anu.datacommons.config.PropertiesFile;
 
+/**
+ * This class allows for token-based authentication where a token specified in the HTTP request header 'X-Auth-Token' allows the request to be authenticated to a
+ * predefined user. Usernames and their associated tokens are stored in a properties file.  
+ */
 public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TokenHeaderAuthenticationFilter.class);
@@ -33,7 +37,11 @@ public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedPro
 			LOGGER.warn("tokens.properties doesn't exist or unreadable. No tokens will be authenticated.");
 		}
 	}
-	
+
+	/**
+	 * Extracts the token value from the HTTP header key, looks up if the token is associated with a username. If yes, then that user is authenticated. If not
+	 * then the request will be authenticated using another filter.
+	 */
 	@Override
 	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request)
 	{

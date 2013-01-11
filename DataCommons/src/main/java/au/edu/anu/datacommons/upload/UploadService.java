@@ -507,6 +507,51 @@ public class UploadService
 	}
 
 	/**
+	 * Adds a single file to a bag.
+	 * 
+	 * @param pid
+	 *            Pid of the collection to which a file will be added
+	 * @param fileInBag
+	 *            Filename to be stored in the bag. For example, "data/File.txt"
+	 * @param is
+	 *            InputStream to read and save into the file
+	 * @return HTTP response as Response
+	 */
+	@POST
+	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
+	@Path("bag/{pid}/{fileInBag:.*}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response doAddFileToBag(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag, InputStream is)
+	{
+		Response resp = null;
+		getFedoraObjectWriteAccess(pid);
+		File uploadedFile = null;
+
+		try
+		{
+			if (dcStorage.fileExistsInBag(pid, fileInBag))
+				new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
+						AccessLogRecord.Operation.UPDATE));
+			else
+				new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
+						AccessLogRecord.Operation.CREATE));
+
+			uploadedFile = File.createTempFile("Rep", null, GlobalProps.getUploadDirAsFile());
+			saveInputStreamAsFile(is, uploadedFile);
+			File renamedFile = new File(uploadedFile.getParentFile(), getFilenameFromPath(fileInBag));
+			uploadedFile.renameTo(renamedFile);
+			dcStorage.addFileToBag(pid, renamedFile);
+			resp = Response.ok().build();
+		}
+		catch (Exception e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
+		return resp;
+	}
+	
+	/**
 	 * Deletes a file in a collection's bag.
 	 * 
 	 * @param pid
@@ -645,7 +690,7 @@ public class UploadService
 
 		return resp;
 	}
-
+	
 	/**
 	 * Returns information about the current logged on user in the format username:displayName. E.g. "u1234567:John Smith"
 	 * 

@@ -578,6 +578,9 @@ public class DoiClient
 		return doiConfig.getLandingUri().build(pid);
 	}
 	
+	/**
+	 * Sets up the marshallers and unmarshallers required to marshal/unmarshall requests to and responses from the DOI service.
+	 */
 	private void setupMarshallers()
 	{
 		try
@@ -614,6 +617,12 @@ public class DoiClient
 		}
 	}
 
+	/**
+	 * Adds the response object to the External Resource Log object. The log object would already contain the request when this method is called.
+	 * 
+	 * @param extResLog
+	 * @param respAsStr
+	 */
 	private void updateExtWebResourceLog(ExtWebResourceLog extResLog, String respAsStr)
 	{
 		extResLog.addResponse(respAsStr);
@@ -636,6 +645,14 @@ public class DoiClient
 		return generateExtWebResourceLog(doiUri, null, null);
 	}
 
+	/**
+	 * Sets up two client objects that will be used for HTTP requests - one without a proxy server specified, and another without. As DOI requests can be sent
+	 * from machines with specific IP addresses for testing purposes, the DOI requests will be routed through an authorised server if initiated from a test
+	 * machine.
+	 * 
+	 * @param doiConfig
+	 *            Config object containing details of proxy server
+	 */
 	private static void setupClients(DoiConfig doiConfig)
 	{
 		if (noProxyClient == null)
