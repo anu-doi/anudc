@@ -22,6 +22,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -732,5 +733,14 @@ public class UserResource {
 		CustomUser customUser = new CustomUser(user, true, true, true, true, new ArrayList<GrantedAuthority>());
 		
 		return passwordEncoder.encodePassword(password, saltSource.getSalt(customUser));
+	}
+	
+	@GET
+	@Path("caslogout")
+	public Response getCasLogout()
+	{
+		Response resp = null;
+		resp = Response.seeOther(UriBuilder.fromUri(GlobalProps.getCasServerUri()).path("logout").build()).build();
+		return resp;
 	}
 }

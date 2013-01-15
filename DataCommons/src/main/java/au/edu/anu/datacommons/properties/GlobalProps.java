@@ -42,7 +42,7 @@ import au.edu.anu.datacommons.config.PropertiesFile;
  */
 public final class GlobalProps
 {
-	private static final Properties globalProperties;
+	private static final PropertiesFile globalProperties;
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalProps.class);
 
 	// List of valid Keys in global.properties file that can be used as parameters in the methods of this class.
@@ -188,8 +188,7 @@ public final class GlobalProps
 	
 	public static URI getCasServerUri()
 	{
-		URI returnUri = UriBuilder.fromPath(getProperty(PROP_APP_SERVER)).path("DataCommons").path("j_spring_cas_security_check").build();
-		URI loginUri = UriBuilder.fromUri(getProperty(PROP_CAS_SERVER)).path("login").queryParam("service", returnUri.toString()).build();
-		return loginUri;
+		URI casUri = UriBuilder.fromUri(getProperty(PROP_CAS_SERVER)).build();
+		return casUri;
 	}
 }

@@ -18,7 +18,7 @@
 		<sec:authorize access="isAuthenticated()">
 			<li><a href='<c:url value="/rest/user" />'>Welcome <sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.username" />)</a></li>
 			<li><a href='<c:url value="/j_spring_security_logout" />'>Logout</a></li>
-			<li><a href="<c:url value="https://login-test.anu.edu.au/logout" />">CAS Logout</a></li>
+			<li><a href="<c:url value="/rest/user/caslogout" />">CAS Logout</a></li>
 		</sec:authorize>
 		</ul>
 	</div>
