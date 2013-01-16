@@ -7,9 +7,15 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Properties;
 
+import org.apache.tika.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Extends the Properties class to provide additional functionality of checking the modification of the underlying properties file before returning the value of
+ * a property. If the properties file is updated, the key-value pairs are updated.
+ * 
+ */
 public class PropertiesFile extends Properties
 {
 	private static final long serialVersionUID = 1L;
@@ -19,6 +25,11 @@ public class PropertiesFile extends Properties
 	private File propFile;
 	private long lastRead;
 
+	/**
+	 * Constructor for PropertiesFile that specifies the file to read properties from and to monitor for changes.
+	 *
+	 * @param file File to read properties from and monitor
+	 */
 	public PropertiesFile(File file) throws IOException
 	{
 		this.propFile = file;
@@ -46,6 +57,9 @@ public class PropertiesFile extends Properties
 		return super.containsKey(key);
 	}
 	
+	/**
+	 * Checks if the properties file has been modified. Reloads the properties from the file if modified, exits otherwise.
+	 */
 	private void refreshProps()
 	{
 		if (propFile.lastModified() > this.lastRead)
@@ -65,13 +79,7 @@ public class PropertiesFile extends Properties
 			}
 			finally
 			{
-				try
-				{
-					inStream.close();
-				}
-				catch (IOException e)
-				{
-				}
+				IOUtils.closeQuietly(inStream);
 			}
 		}
 	}

@@ -1,6 +1,5 @@
 package au.edu.anu.datacommons.webservice.bindings;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,6 +13,56 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.w3c.dom.Element;
 
+/**
+ * This class represents an Activity record and contains metadata information of that record. This class can then be marshalled and unmarshalled to and from an
+ * XML document as required for Data Commons Web Service. The class marshalls into the following XML element:
+ * 
+ * <pre>
+ * {@code
+ * <activity tmplt="...">
+ * 	<abbrName>...</abbrName>
+ * 	<altName>...</altName>
+ * 	<anzforSubject>...</anzforSubject>
+ * 	<anzforSubject>...</anzforSubject>
+ * 	<anzseoSubject>...</anzseoSubject>
+ * 	<anzseoSubject>...</anzseoSubject>
+ * 	<arcNumber>...</arcNumber>
+ * 	<briefDesc>...</briefDesc>
+ * 	<postalAddress>...</postalAddress>
+ * 	<email>...</email>
+ * 	<email>...</email>
+ * 	<fax>...</fax>
+ * 	<fax>...</fax>
+ * 	<fullDesc>...</fullDesc>
+ * 	<fundingBody>...</fundingBody>
+ * 	<locSubject>...</locSubject>
+ * 	<locSubject>...</locSubject>
+ * 	<ownerGroup>...</ownerGroup>
+ * 	<phone>...</phone>
+ * 	<phone>...</phone>
+ * 	<publication>
+ * 		<pubValue>...</pubValue>
+ * 		<pubType>...</pubType>
+ * 		<pubTitle>...</pubTitle>
+ * 	</publication>
+ * 	<relatedWebsites>
+ * 		<relatedWebTitle>...</relatedWebTitle>
+ * 		<relatedWebURL>...</relatedWebURL>
+ * 	</relatedWebsites>
+ * 	<relatedWebsites>
+ * 		<relatedWebTitle>...</relatedWebTitle>
+ * 		<relatedWebURL>...</relatedWebURL>
+ * 	</relatedWebsites>
+ * 	<anztoaSubject>...</anztoaSubject>
+ * 	<subType>...</subType>
+ * 	<name>...</name>
+ * 	<type>...</type>
+ * 	<websiteAddress>...</websiteAddress>
+ * 	<websiteAddress>...</websiteAddress>
+ * </activity>
+ * }
+ * </pre>
+ */
 @XmlType
 public class Activity implements FedoraItem
 {
@@ -64,12 +113,23 @@ public class Activity implements FedoraItem
 		this.pid = pid;
 	}
 
+	/**
+	 * Gets the sub type.
+	 * 
+	 * @return the sub type
+	 */
 	@XmlElement(name = "subType")
 	public String getSubType()
 	{
 		return subType;
 	}
 
+	/**
+	 * Sets the sub type.
+	 * 
+	 * @param subType
+	 *            the new sub type
+	 */
 	public void setSubType(String subType)
 	{
 		this.subType = subType;
@@ -88,6 +148,7 @@ public class Activity implements FedoraItem
 		this.template = template;
 	}
 
+	@Override
 	@XmlElement(name = "ownerGroup")
 	public String getOwnerGroup()
 	{
@@ -99,226 +160,445 @@ public class Activity implements FedoraItem
 		this.ownerGroup = ownerGroup;
 	}
 
+	/**
+	 * Gets the title.
+	 * 
+	 * @return the title
+	 */
 	@XmlElement(name = "name")
 	public String getTitle()
 	{
 		return title;
 	}
 
+	/**
+	 * Sets the title.
+	 * 
+	 * @param title
+	 *            the new title
+	 */
 	public void setTitle(String title)
 	{
 		this.title = title;
 	}
 
+	/**
+	 * Gets the brief description.
+	 * 
+	 * @return the brief description
+	 */
 	@XmlElement(name = "briefDesc")
 	public String getBriefDesc()
 	{
 		return briefDesc;
 	}
 
+	/**
+	 * Sets the brief description.
+	 * 
+	 * @param briefDesc
+	 *            the new brief description
+	 */
 	public void setBriefDesc(String briefDesc)
 	{
 		this.briefDesc = briefDesc;
 	}
 
+	/**
+	 * Gets the emails.
+	 * 
+	 * @return the emails
+	 */
 	@XmlElement(name = "email")
 	public List<String> getEmails()
 	{
 		return emails;
 	}
 
+	/**
+	 * Sets the emails.
+	 * 
+	 * @param emails
+	 *            the new emails
+	 */
 	public void setEmails(List<String> emails)
 	{
 		this.emails = emails;
 	}
 
+	/**
+	 * Gets the ANZFOR codes.
+	 * 
+	 * @return the ANZFOR codes
+	 */
 	@XmlElement(name = "anzforSubject")
 	public List<String> getAnzForCodes()
 	{
 		return anzForCodes;
 	}
 
+	/**
+	 * Sets the ANZFOR codes.
+	 * 
+	 * @param anzForCodes
+	 *            the new ANZFOR codes
+	 */
 	public void setAnzForCodes(List<String> anzForCodes)
 	{
 		this.anzForCodes = anzForCodes;
 	}
 
+	/**
+	 * Gets the ANZSEO codes.
+	 * 
+	 * @return the ANZSEO codes
+	 */
 	@XmlElement(name = "anzseoSubject")
 	public List<String> getAnzSeoCodes()
 	{
 		return anzSeoCodes;
 	}
 
+	/**
+	 * Sets the ANZSEO codes.
+	 * 
+	 * @param anzSeoCodes
+	 *            the new ANZSEO codes
+	 */
 	public void setAnzSeoCodes(List<String> anzSeoCodes)
 	{
 		this.anzSeoCodes = anzSeoCodes;
 	}
 
+	/**
+	 * Gets the research type.
+	 * 
+	 * @return the research type
+	 */
 	@XmlElement(name = "anztoaSubject")
 	public String getResearchType()
 	{
 		return researchType;
 	}
 
+	/**
+	 * Sets the research type.
+	 * 
+	 * @param researchType
+	 *            the new research type
+	 */
 	public void setResearchType(String researchType)
 	{
 		this.researchType = researchType;
 	}
 
+	/**
+	 * Gets the keywords.
+	 * 
+	 * @return the keywords
+	 */
 	@XmlElement(name = "locSubject")
 	public List<String> getKeywords()
 	{
 		return keywords;
 	}
 
+	/**
+	 * Sets the keywords.
+	 * 
+	 * @param keywords
+	 *            the new keywords
+	 */
 	public void setKeywords(List<String> keywords)
 	{
 		this.keywords = keywords;
 	}
 
+	/**
+	 * Gets the abbreviated title.
+	 * 
+	 * @return the abbreviated title
+	 */
 	@XmlElement(name = "abbrName")
 	public String getAbbrTitle()
 	{
 		return abbrTitle;
 	}
 
+	/**
+	 * Sets the abbreviated title.
+	 * 
+	 * @param abbrTitle
+	 *            the new abbreviated title
+	 */
 	public void setAbbrTitle(String abbrTitle)
 	{
 		this.abbrTitle = abbrTitle;
 	}
 
+	/**
+	 * Gets the alternate title.
+	 * 
+	 * @return the alternate title
+	 */
 	@XmlElement(name = "altName")
 	public String getAltTitle()
 	{
 		return altTitle;
 	}
 
+	/**
+	 * Sets the alternate title.
+	 * 
+	 * @param altTitle
+	 *            the new alternate title
+	 */
 	public void setAltTitle(String altTitle)
 	{
 		this.altTitle = altTitle;
 	}
 
+	/**
+	 * Gets the arc number.
+	 * 
+	 * @return the arc number
+	 */
 	@XmlElement(name = "arcNumber")
 	public String getArcNumber()
 	{
 		return arcNumber;
 	}
 
+	/**
+	 * Sets the arc number.
+	 *
+	 * @param arcNumber the new arc number
+	 */
 	public void setArcNumber(String arcNumber)
 	{
 		this.arcNumber = arcNumber;
 	}
 
+	/**
+	 * Gets the funding bodies.
+	 * 
+	 * @return the funding bodies
+	 */
 	@XmlElement(name = "fundingBody")
 	public List<String> getFundingBodies()
 	{
 		return fundingBodies;
 	}
 
+	/**
+	 * Sets the funding bodies.
+	 * 
+	 * @param fundingBodies
+	 *            the new funding bodies
+	 */
 	public void setFundingBodies(List<String> fundingBodies)
 	{
 		this.fundingBodies = fundingBodies;
 	}
 
+	/**
+	 * Gets the full desc.
+	 * 
+	 * @return the full desc
+	 */
 	@XmlElement(name = "fullDesc")
 	public String getFullDesc()
 	{
 		return fullDesc;
 	}
 
+	/**
+	 * Sets the full desc.
+	 * 
+	 * @param fullDesc
+	 *            the new full desc
+	 */
 	public void setFullDesc(String fullDesc)
 	{
 		this.fullDesc = fullDesc;
 	}
 
+	/**
+	 * Gets the contact address.
+	 * 
+	 * @return the contact address
+	 */
 	@XmlElement(name = "postalAddress")
 	public String getContactAddress()
 	{
 		return contactAddress;
 	}
 
+	/**
+	 * Sets the contact address.
+	 * 
+	 * @param contactAddress
+	 *            the new contact address
+	 */
 	public void setContactAddress(String contactAddress)
 	{
 		this.contactAddress = contactAddress;
 	}
 
+	/**
+	 * Gets the phones.
+	 * 
+	 * @return the phones
+	 */
 	@XmlElement(name = "phone")
 	public List<String> getPhones()
 	{
 		return phones;
 	}
 
+	/**
+	 * Sets the phones.
+	 * 
+	 * @param phones
+	 *            the new phones
+	 */
 	public void setPhones(List<String> phones)
 	{
 		this.phones = phones;
 	}
 
+	/**
+	 * Gets the faxes.
+	 * 
+	 * @return the faxes
+	 */
 	@XmlElement(name = "fax")
 	public List<String> getFaxes()
 	{
 		return faxes;
 	}
 
+	/**
+	 * Sets the faxes.
+	 * 
+	 * @param faxes
+	 *            the new faxes
+	 */
 	public void setFaxes(List<String> faxes)
 	{
 		this.faxes = faxes;
 	}
 
+	/**
+	 * Gets the websites.
+	 * 
+	 * @return the websites
+	 */
 	@XmlElement(name = "websiteAddress")
 	public List<String> getWebsites()
 	{
 		return websites;
 	}
 
+	/**
+	 * Sets the websites.
+	 * 
+	 * @param websites
+	 *            the new websites
+	 */
 	public void setWebsites(List<String> websites)
 	{
 		this.websites = websites;
 	}
 
+	/**
+	 * Gets the publications.
+	 * 
+	 * @return the publications
+	 */
 	@XmlElement(name = "publication")
 	public List<Publication> getPublications()
 	{
 		return publications;
 	}
 
+	/**
+	 * Sets the publications.
+	 * 
+	 * @param publications
+	 *            the new publications
+	 */
 	public void setPublications(List<Publication> publications)
 	{
 		this.publications = publications;
 	}
 
+	/**
+	 * Gets the related.
+	 * 
+	 * @return the related
+	 */
 	@XmlElement(name = "relatedWebsites")
 	public List<RelatedWebsites> getRelated()
 	{
 		return related;
 	}
 
+	/**
+	 * Sets the related.
+	 * 
+	 * @param related
+	 *            the new related
+	 */
 	public void setRelated(List<RelatedWebsites> related)
 	{
 		this.related = related;
 	}
-	
+
+	/**
+	 * Gets the ext ids.
+	 * 
+	 * @return the ext ids
+	 */
 	@XmlElement(name = "externalId")
 	public List<String> getExtIds()
 	{
 		return extIds;
 	}
 
+	/**
+	 * Sets the ext ids.
+	 * 
+	 * @param extIds
+	 *            the new ext ids
+	 */
 	public void setExtIds(List<String> extIds)
 	{
 		this.extIds = extIds;
 	}
 
+	/**
+	 * Gets the nodes.
+	 * 
+	 * @return the nodes
+	 */
 	@XmlAnyElement()
 	public List<Element> getNodes()
 	{
 		return nodes;
 	}
 
+	/**
+	 * Sets the nodes.
+	 * 
+	 * @param nodes
+	 *            the new nodes
+	 */
 	public void setNodes(List<Element> nodes)
 	{
 		this.nodes = nodes;
 	}
-	
+
 	@XmlElement(name = "type")
 	public String getType()
 	{
@@ -329,7 +609,7 @@ public class Activity implements FedoraItem
 	public Map<String, List<String>> generateDataMap()
 	{
 		Map<String, List<String>> data = new HashMap<String, List<String>>();
-		
+
 		data.put("type", Arrays.asList(this.getType()));
 		if (this.getSubType() != null)
 			data.put("subType", new ArrayList<String>(Arrays.asList(this.getSubType())));
@@ -350,7 +630,7 @@ public class Activity implements FedoraItem
 			data.put("briefDesc", new ArrayList<String>(Arrays.asList(this.getBriefDesc())));
 		if (this.getFullDesc() != null)
 			data.put("fullDesc", new ArrayList<String>(Arrays.asList(this.getFullDesc())));
-		
+
 		if (this.getExtIds() != null && this.getExtIds().size() > 0)
 			data.put("externalId", this.getExtIds());
 

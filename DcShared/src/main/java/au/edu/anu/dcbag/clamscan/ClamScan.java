@@ -170,6 +170,13 @@ public class ClamScan {
             socket.connect(new InetSocketAddress(getHost(), getPort()));
         } catch (IOException e) {
             log.error("could not connect to clamd server", e);
+            try
+			{
+				socket.close();
+			}
+			catch (IOException e1)
+			{
+			}
             return new ScanResult(e);
         }
 
