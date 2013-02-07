@@ -1,35 +1,32 @@
 package au.edu.anu.dcclient.tasks;
 
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.text.MessageFormat;
-import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
-import org.apache.http.protocol.HttpService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.ClientResponse.Status;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import au.edu.anu.dcclient.Global;
 import au.edu.anu.dcclient.collection.CollectionInfo;
 
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.ClientResponse.Status;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+
+/**
+ * Represents a task that creates/updates a collection in Data Commons.
+ */
 public class CreateCollectionTask extends AbstractDcBagTask<String>
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CreateCollectionTask.class);
 
-	private CollectionInfo collInfo;
-	private URI createUri;
+	private final CollectionInfo collInfo;
+	private final URI createUri;
 
 	public CreateCollectionTask(CollectionInfo collInfo, URI createUri)
 	{

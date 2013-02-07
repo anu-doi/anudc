@@ -3,6 +3,9 @@ package au.edu.anu.dcbag;
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.utilities.namevalue.impl.AbstractNameValueBagFile;
 
+/**
+ * Represents the tag file containing virus scan results for each payload file in a specified Bag.
+ */
 public class VirusScanTxt extends AbstractNameValueBagFile
 {
 	private static final long serialVersionUID = 1L;

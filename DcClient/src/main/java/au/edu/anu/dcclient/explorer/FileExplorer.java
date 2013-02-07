@@ -1,50 +1,86 @@
-/*
- * Source: http://www.java-forums.org/blogs/duvanslabbert/92-java-file-explorer.html
- */
 package au.edu.anu.dcclient.explorer;
 
-import java.awt.*;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
-import java.awt.event.*;
+import java.awt.Desktop;
+import java.awt.GridLayout;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.TransferHandler;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeWillExpandListener;
 import javax.swing.filechooser.FileSystemView;
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.ExpandVetoException;
+import javax.swing.tree.MutableTreeNode;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcclient.ThreadPoolManager;
 
-@SuppressWarnings("serial")
+/**
+ * This class displays a JPanel that includes a JTree resembling a Tree View similar to the directory structure in Windows Explorer. It enables the user to perform
+ * file and directory operations such as copy, move, delete and rename.
+ * 
+ * @see <a
+ *      href="http://www.java-forums.org/blogs/duvanslabbert/92-java-file-explorer.html">http://www.java-forums.org/blogs/duvanslabbert/92-java-file-explorer.html</a>
+ */
 public class FileExplorer extends JPanel
 {
+	private static final long serialVersionUID = 1L;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
 
 	private JTree tree = null;
-	private DefaultMutableTreeNode root = new DefaultMutableTreeNode();
+	private final DefaultMutableTreeNode root = new DefaultMutableTreeNode();
 	private DefaultMutableTreeNode node;
-	private PopupMenu pMenu = new PopupMenu();
+	private final PopupMenu pMenu = new PopupMenu();
 
+	/**
+	 * Instantiates a new file explorer.
+	 */
 	public FileExplorer()
 	{
 		initTree();
 	}
 
+	/**
+	 * Instantiates a new file explorer opening the specified directory as the root.
+	 * 
+	 * @param dir
+	 *            directory as root
+	 */
 	public FileExplorer(File dir)
 	{
 		changeDir(dir);
 		initTree();
 	}
 
+	/**
+	 * Changes the directory displayed in the JTree component.
+	 * 
+	 * @param dir
+	 *            new directory
+	 */
 	public void changeDir(File dir)
 	{
 		root.removeAllChildren();
@@ -59,6 +95,9 @@ public class FileExplorer extends JPanel
 		}
 	}
 
+	/**
+	 * Initialises the JTree component.
+	 */
 	private void initTree()
 	{
 		if (tree != null)
@@ -67,11 +106,13 @@ public class FileExplorer extends JPanel
 		tree.setRootVisible(false);
 		tree.setTransferHandler(new TransferHandler()
 		{
+			@Override
 			public int getSourceActions(JComponent c)
 			{
 				return COPY;
 			}
 
+			@Override
 			protected Transferable createTransferable(JComponent component)
 			{
 				List<File> transFiles = new ArrayList<File>();
@@ -82,23 +123,26 @@ public class FileExplorer extends JPanel
 
 			class GenericTransferable implements Transferable
 			{
-				private List<File> transFfiles;
+				private final List<File> transFfiles;
 
 				public GenericTransferable(List<File> files)
 				{
 					this.transFfiles = files;
 				}
 
+				@Override
 				public DataFlavor[] getTransferDataFlavors()
 				{
 					return new DataFlavor[] { DataFlavor.javaFileListFlavor };
 				}
 
+				@Override
 				public boolean isDataFlavorSupported(DataFlavor flavor)
 				{
 					return flavor.equals(DataFlavor.javaFileListFlavor);
 				}
 
+				@Override
 				public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException
 				{
 					return transFfiles;
@@ -108,18 +152,21 @@ public class FileExplorer extends JPanel
 
 		tree.setDropTarget(new DropTarget()
 		{
+			@Override
 			public void dragExit(DropTargetEvent arg0)
 			{
 				tree.repaint();
 				tree.setSelectionPath(null);
 			}
 
+			@Override
 			public void dragOver(DropTargetDragEvent dtde)
 			{
 				int action = dtde.getDropAction();
 				tree.setSelectionPath(tree.getClosestPathForLocation((int) dtde.getLocation().getX(), (int) dtde.getLocation().getY()));
 			}
 
+			@Override
 			@SuppressWarnings("unchecked")
 			public void drop(DropTargetDropEvent dtde)
 			{
@@ -188,10 +235,12 @@ public class FileExplorer extends JPanel
 
 		tree.addTreeWillExpandListener(new TreeWillExpandListener()
 		{
+			@Override
 			public void treeWillCollapse(TreeExpansionEvent evt) throws ExpandVetoException
 			{
 			}
 
+			@Override
 			public void treeWillExpand(TreeExpansionEvent evt) throws ExpandVetoException
 			{
 				tree.setSelectionPath(evt.getPath());
@@ -203,6 +252,7 @@ public class FileExplorer extends JPanel
 
 		tree.addMouseListener(new MouseAdapter()
 		{
+			@Override
 			public void mousePressed(MouseEvent evt)
 			{
 				node = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
@@ -266,6 +316,11 @@ public class FileExplorer extends JPanel
 		}
 	}
 
+	/**
+	 * Gets the current bag directory.
+	 * 
+	 * @return the bag directory
+	 */
 	public File getBagDir()
 	{
 		LOGGER.trace("In getBagDir");
@@ -276,6 +331,9 @@ public class FileExplorer extends JPanel
 		return dataDir.getParentFile();
 	}
 
+	/**
+	 * Refreshes the current view in JTree component.
+	 */
 	public void refresh()
 	{
 		changeDir((File) ((DefaultMutableTreeNode) root.getFirstChild()).getUserObject());

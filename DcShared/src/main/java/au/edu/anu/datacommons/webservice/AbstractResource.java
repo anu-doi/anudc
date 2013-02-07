@@ -1,6 +1,6 @@
 package au.edu.anu.datacommons.webservice;
 
-import static java.text.MessageFormat.format;
+import static java.text.MessageFormat.*;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -44,7 +44,6 @@ import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
-import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.LoggingFilter;

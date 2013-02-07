@@ -94,13 +94,16 @@
 
 	<!-- Bag Summary Begin -->
 	<c:if test="${not empty it.bagSummary}">
-		<anu:boxheader text="<a href='/DataCommons/rest/upload/bag/${it.fedoraObject.object_id}'>Files</a>" />
+		<anu:boxheader text="Files" />
 		<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
 			<anu:box style="solid">
 				<p>
 					<c:out value="${it.bagSummary.numFiles}" />
 					file(s) in collection. Size
 					<c:out value="${it.bagSummary.friendlySize}" />
+				</p>
+				<p>
+					<a href="<c:url value='/rest/upload/bag/${it.fedoraObject.object_id}' />">View Files</a>
 				</p>
 			</anu:box>
 		</c:if>

@@ -2,7 +2,6 @@ package au.edu.anu.dcbag.metadata;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -23,6 +22,13 @@ import org.apache.tika.sax.XHTMLContentHandler;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
+/**
+ * This class implements the Apache Tika Parser interface allowing parsing of FITS files. A FITS file's header consists of keys, values, and comments. Because
+ * Apache Tika requires a key and a value only, the comment (if any) is contatenated to the value of its respective key using the slash '/' character is a
+ * separator.
+ * 
+ * @see <a href="http://en.wikipedia.org/wiki/FITS">http://en.wikipedia.org/wiki/FITS</a>
+ */
 public class FitsParser implements Parser
 {
 	private static final long serialVersionUID = 1L;
@@ -56,7 +62,7 @@ public class FitsParser implements Parser
 				String value = obj.getValue();
 				String comment = obj.getComment();
 				
-				if (key == null || key.length() == 0 || key.equalsIgnoreCase("end"))
+				if (isKeyBlank(key))
 					continue;
 			
 				// If the value's null, sometimes the comment contains the value and the comment separated by a '/'
@@ -75,9 +81,7 @@ public class FitsParser implements Parser
 				
 				StringBuilder formattedValue = new StringBuilder();
 				if (value != null)
-				{
 					formattedValue.append(value);
-				}
 				
 				// Because metadata can take only a key and a value, appending the comment to the value string. 
 				if (comment != null)
@@ -98,7 +102,17 @@ public class FitsParser implements Parser
 		{
 			throw new IOException(e);
 		}
-
 	}
 
+	/**
+	 * Checks if a key is null, zero-length or the literal "end".
+	 * 
+	 * @param key
+	 *            Key to check
+	 * @return true if null, zero-length or the literal "end", false otherwise
+	 */
+	private boolean isKeyBlank(String key)
+	{
+		return (key == null || key.length() == 0 || key.equalsIgnoreCase("end"));
+	}
 }

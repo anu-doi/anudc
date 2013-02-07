@@ -1,37 +1,34 @@
 package au.edu.anu.dcclient;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.net.Authenticator;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.border.EmptyBorder;
-import javax.swing.SpringLayout;
-import javax.swing.JLabel;
+import javax.swing.JProgressBar;
 import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcclient.tasks.GetUserInfoTask;
 
-import java.awt.Dialog.ModalityType;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.net.Authenticator;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import javax.swing.JProgressBar;
-
+/**
+ * This class displays a Login dialog box allowing users to enter their username and password for logging into Data Commons.
+ */
 public class LoginDialog extends JDialog
 {
 	private static final long serialVersionUID = 1L;
@@ -42,11 +39,11 @@ public class LoginDialog extends JDialog
 	private int optionSelected = JOptionPane.CANCEL_OPTION;
 	private String[] userInfo = null;
 
-	private JPanel contentPanel;
-	private JLabel lblUser;
-	private JLabel lblPassword;
-	private JTextField txtUser;
-	private JTextField txtPassword;
+	private final JPanel contentPanel;
+	private final JLabel lblUser;
+	private final JLabel lblPassword;
+	private final JTextField txtUser;
+	private final JTextField txtPassword;
 	private JProgressBar progressBar;
 
 	/**
@@ -112,6 +109,7 @@ public class LoginDialog extends JDialog
 				JButton okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener()
 				{
+					@Override
 					public void actionPerformed(ActionEvent e)
 					{
 						LOGGER.info("Setting credentials: User {}, Password ****.", LoginDialog.this.txtUser.getText());
@@ -172,6 +170,7 @@ public class LoginDialog extends JDialog
 				JButton cancelButton = new JButton("Cancel");
 				cancelButton.addActionListener(new ActionListener()
 				{
+					@Override
 					public void actionPerformed(ActionEvent e)
 					{
 						optionSelected = JOptionPane.CANCEL_OPTION;
@@ -193,12 +192,22 @@ public class LoginDialog extends JDialog
 		super.setVisible(b);
 	}
 
+	/**
+	 * Displays this login dialog box.
+	 * 
+	 * @return Returns JOptionPane.OK_OPTION if user clicked OK, JOptionPane.CANCEL_OPTION if cancelled.
+	 */
 	public int display()
 	{
 		setVisible(true);
 		return this.optionSelected;
 	}
 
+	/**
+	 * Returns the singleton instance of LoginDialog.
+	 * 
+	 * @return LoginDialog object
+	 */
 	public static LoginDialog getInstance()
 	{
 		if (instance == null)
@@ -206,6 +215,11 @@ public class LoginDialog extends JDialog
 		return instance;
 	}
 
+	/**
+	 * Returns the user information as a string array with first element as username and second as display name.
+	 * 
+	 * @return String array
+	 */
 	public String[] getUserInfo()
 	{
 		return userInfo;

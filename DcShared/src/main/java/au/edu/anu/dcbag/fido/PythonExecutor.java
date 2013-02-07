@@ -10,7 +10,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -18,18 +17,42 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.config.Config;
+
+/**
+ * This class allows for execution of a Python script, passing specified parameters to it, send data through standard input stream (STDIN) and retrieve the
+ * output from the Standard Output (STDOUT)
+ */
 public class PythonExecutor
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PythonExecutor.class);
 
 	private Process pythonProcess;
-	private List<String> cmdLine = new ArrayList<String>();
+	private final List<String> cmdLine = new ArrayList<String>();
 
+	/**
+	 * Instantiates a new python executor for a specified Python script.
+	 * 
+	 * @param pythonScript
+	 *            the python script
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	public PythonExecutor(File pythonScript) throws IOException
 	{
 		this(pythonScript, null);
 	}
 	
+	/**
+	 * Instantiates a new python executor for a specified Python script with command line arguments for the Python interpreter.
+	 * 
+	 * @param pythonScript
+	 *            the python script
+	 * @param pythonSwitches
+	 *            the python switches
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	public PythonExecutor(File pythonScript, String[] pythonSwitches) throws IOException
 	{
 		cmdLine.add(getPythonExe());
@@ -38,11 +61,25 @@ public class PythonExecutor
 		cmdLine.add(pythonScript.getAbsolutePath());
 	}
 
+	/**
+	 * Executes the script with no command line parameters passed to the script.
+	 * 
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	public void execute() throws IOException
 	{
 		execute(null);
 	}
 
+	/**
+	 * Executes the script with command line parameters passed as a String array.
+	 * 
+	 * @param cmdParams
+	 *            command line parameters as String[]
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
 	public void execute(String[] cmdParams) throws IOException
 	{
 		if (cmdParams != null)
@@ -66,7 +103,14 @@ public class PythonExecutor
 		pythonProcess = Runtime.getRuntime().exec(cmdLine.toArray(new String[0]));
 	}
 
-	
+	/**
+	 * Sends bytes from an InputStream to the script's Stdin.
+	 * 
+	 * @param inStream
+	 * InputStream from which data will be read
+	 * @throws IOException
+	 * when unable to read from input stream or write to StdIn
+	 */
 	public void sendStreamToStdIn(InputStream inStream) throws IOException
 	{
 		OutputStream outStream = pythonProcess.getOutputStream();
@@ -86,11 +130,21 @@ public class PythonExecutor
 		}
 	}
 
+	/**
+	 * Gets the StdOut as an InputStream from which data can be read.
+	 * 
+	 * @return StdOut as InputStream
+	 */
 	protected InputStream getStdOutAsInputStream()
 	{
 		return pythonProcess.getInputStream();
 	}
 	
+	/**
+	 * Gets the StdIn stream as OutputStream to which data can be written.
+	 * 
+	 * @return StdIn as OutputStream
+	 */
 	protected OutputStream getStdInAsOutputStream()
 	{
 		return pythonProcess.getOutputStream();
@@ -103,13 +157,18 @@ public class PythonExecutor
 		for (String str = stdout.readLine(); str != null; str = stdout.readLine())
 		{
 			output.append(str);
-			output.append(System.getProperty("line.separator"));
+			output.append(Config.NEWLINE);
 		}
 
 		LOGGER.info("Fido returned: {}", output.toString());
 		return output.toString();
 	}
 	
+	/**
+	 * Reads the location of the python executable from fido.properties file.
+	 * 
+	 * @return Path to Python executable as String
+	 */
 	private String getPythonExe()
 	{
 		Properties fidoProps = new Properties();

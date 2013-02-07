@@ -35,13 +35,16 @@ import au.edu.anu.dcclient.tasks.VerifyBagTask;
 
 import com.sun.jersey.api.client.ClientResponse;
 
+/**
+ * This class implements an Action Listener that gets invoked when a GUI action for getting a Bag is requested. 
+ */
 public class GetPidBagAction extends AbstractAction implements ActionListener
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GetPidBagAction.class);
 	private static final long serialVersionUID = 1L;
 
-	private FileExplorer bagExplorer;
-	private JTextComponent txtPid;
+	private final FileExplorer bagExplorer;
+	private final JTextComponent txtPid;
 	private File localBagFile;
 
 	/**
@@ -208,6 +211,12 @@ public class GetPidBagAction extends AbstractAction implements ActionListener
 		}
 	}
 
+	/**
+	 * Downloads a bag with the progress information being sent to the ProgressDialog.
+	 * 
+	 * @param progDialog
+	 *            ProgressDialog to which progress information will be sent
+	 */
 	private void downloadBag(ProgressDialog progDialog)
 	{
 		// Download bag.

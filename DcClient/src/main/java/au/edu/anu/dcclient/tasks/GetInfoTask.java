@@ -1,30 +1,23 @@
 package au.edu.anu.dcclient.tasks;
 
-import gov.loc.repository.bagit.ProgressListener;
-
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.net.URI;
-import java.util.concurrent.Callable;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.dcclient.Global;
-
-import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
+/**
+ * Represents a task that gets information about a bag associated with a record in Data Commons.
+ */
 public final class GetInfoTask extends AbstractDcBagTask<ClientResponse>
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GetInfoTask.class);
 
-	private URI pidBagUri;
+	private final URI pidBagUri;
 
 	/**
 	 * 

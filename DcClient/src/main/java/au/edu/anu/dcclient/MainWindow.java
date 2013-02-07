@@ -1,44 +1,43 @@
 package au.edu.anu.dcclient;
 
-import java.awt.EventQueue;
+import static java.text.MessageFormat.*;
 
-import javax.swing.JFrame;
-import java.awt.GridBagLayout;
-import javax.swing.JButton;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 import java.awt.BorderLayout;
-import javax.swing.JList;
-import javax.swing.JTextField;
-import javax.swing.JTree;
-import java.awt.Font;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
 
-import javax.swing.JOptionPane;
-import javax.swing.JProgressBar;
-import javax.swing.JMenuBar;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.io.File;
-import java.text.MessageFormat;
-
 import au.edu.anu.dcclient.actions.GetPidBagAction;
 import au.edu.anu.dcclient.actions.SavePidBagAction;
 import au.edu.anu.dcclient.actions.UploadPidBagAction;
 import au.edu.anu.dcclient.explorer.FileExplorer;
 
+/**
+ * This class represents the main application window.
+ */
 public class MainWindow extends JFrame implements ActionListener
 {
 	private static final long serialVersionUID = 1L;
@@ -222,7 +221,6 @@ public class MainWindow extends JFrame implements ActionListener
 		this.txtPid.setColumns(10);
 		this.txtPid.getDocument().addDocumentListener(new DocumentListener()
 		{
-
 			@Override
 			public void insertUpdate(DocumentEvent e)
 			{
@@ -289,6 +287,8 @@ public class MainWindow extends JFrame implements ActionListener
 		this.panel_centre.add(this.btnGet, gbc_btnGet);
 	}
 
+	
+	@Override
 	public void actionPerformed(ActionEvent e)
 	{
 		if (e.getSource() == this.btnRefresh)
@@ -305,11 +305,23 @@ public class MainWindow extends JFrame implements ActionListener
 		}
 	}
 
+	/**
+	 * Method called when the file menu item exit is clicked.
+	 * 
+	 * @param e
+	 *            ActionEvent object
+	 */
 	protected void do_mntmExit_actionPerformed(ActionEvent e)
 	{
 		System.exit(0);
 	}
 
+	/**
+	 * Method called when the Login button is clicked.
+	 * 
+	 * @param e
+	 *            ActionEvent object
+	 */
 	protected void do_btnLogin_actionPerformed(ActionEvent e)
 	{
 		LoginDialog ld = LoginDialog.getInstance();
@@ -319,27 +331,40 @@ public class MainWindow extends JFrame implements ActionListener
 			if (ld.getUserInfo() != null)
 			{
 				enableControls();
-				btnLogin.setText(MessageFormat.format("Switch user ({0}, {1})", ld.getUserInfo()[0], ld.getUserInfo()[1]));
+				btnLogin.setText(format("Switch user ({0}, {1})", ld.getUserInfo()[0], ld.getUserInfo()[1]));
 			}
 		}
 	}
 	
+	/**
+	 * Method called when the refresh button is clicked.
+	 * 
+	 * @param e
+	 *            ActionEvent object
+	 */
+	protected void do_btnRefresh_actionPerformed(ActionEvent e)
+	{
+		bagExplorer.refresh();
+	}
+
+	/**
+	 * Enables the disabled controls on this window.
+	 */
 	private void enableControls()
 	{
-		// Enable controls.
 		txtPid.setEnabled(true);
 		btnRefresh.setEnabled(true);
 		btnSave.setEnabled(true);
 		btnUpload.setEnabled(true);
 	}
 
+	/**
+	 * Gets the singleton instance of this window.
+	 * 
+	 * @return MainWindow instance
+	 */
 	public static MainWindow getInstance()
 	{
 		return instance;
-	}
-
-	protected void do_btnRefresh_actionPerformed(ActionEvent e)
-	{
-		bagExplorer.refresh();
 	}
 }

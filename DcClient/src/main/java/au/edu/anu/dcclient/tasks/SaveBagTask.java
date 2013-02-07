@@ -5,7 +5,6 @@ import gov.loc.repository.bagit.ProgressListener;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +12,14 @@ import org.slf4j.LoggerFactory;
 import au.edu.anu.dcbag.DcBag;
 import au.edu.anu.dcbag.DcBagException;
 
+/**
+ * This class represents a task that saves a bag on the local drive making it ready for upload to Data Commons.
+ */
 public final class SaveBagTask extends AbstractDcBagTask<File>
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SaveBagTask.class);
 	
-	private DcBag dcBag;
+	private final DcBag dcBag;
 	private File targetDir = null;
 	private Bag.Format format = null;
 	private String extId = null;

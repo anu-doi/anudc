@@ -1,15 +1,19 @@
-/*
- * Source: http://www.java-forums.org/blogs/duvanslabbert/92-java-file-explorer.html
- */
 package au.edu.anu.dcclient.explorer;
 
-import java.awt.*;
+import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.channels.FileChannel;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JProgressBar;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -17,17 +21,32 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcclient.MainWindow;
 
+/**
+ * This class implements Runnable interface to copy a file or directory from one location to another.
+ * 
+ * @see <a
+ *      href="http://www.java-forums.org/blogs/duvanslabbert/92-java-file-explorer.html">http://www.java-forums.org/blogs/duvanslabbert/92-java-file-explorer.html</a>
+ */
 public class CopyDialog implements Runnable
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CopyDialog.class);
 	
 	private JDialog dlg;
-	private File sourceLocation, targetLocation;
+	private final File sourceLocation, targetLocation;
 	private JProgressBar progressBar;
-	private boolean removeSource, stopCopy;
+	private final boolean removeSource;
+
+	private boolean stopCopy;
 
 	/**
-	 * @wbp.parser.entryPoint
+	 * Constructor that accepts a source and destination File object and a boolean flag to specify if the source File should be deleted after the copying to target.
+	 * 
+	 * @param sourceLocation
+	 *            the source location
+	 * @param targetLocation
+	 *            the target location
+	 * @param removeSource
+	 *            true if source should be removed after a successful copy, false otherwise.
 	 */
 	CopyDialog(File sourceLocation, File targetLocation, boolean removeSource)
 	{
@@ -37,8 +56,9 @@ public class CopyDialog implements Runnable
 	}
 
 	/**
-	 * @wbp.parser.entryPoint
+	 * Performs the copying process.
 	 */
+	@Override
 	public void run()
 	{
 		dlg = new JDialog();
@@ -63,6 +83,7 @@ public class CopyDialog implements Runnable
 		JButton btn = new JButton("Cancel");
 		btn.addMouseListener(new MouseAdapter()
 		{
+			@Override
 			public void mouseClicked(MouseEvent evt)
 			{
 				stopCopy = true;
@@ -85,6 +106,18 @@ public class CopyDialog implements Runnable
 		}
 	}
 
+	/**
+	 * Copies a source File to target File object, and optionally removes the source File.
+	 * 
+	 * @param sourceFile
+	 *            source File
+	 * @param targetFile
+	 *            target File
+	 * @param removeSource
+	 *            true if the source file should be deleted after copying to target
+	 * @throws IOException
+	 *             when unable to perform the copy operation
+	 */
 	private void moveDirectory(File sourceFile, File targetFile, boolean removeSource) throws IOException
 	{
 		if (sourceFile.isDirectory())
@@ -142,6 +175,13 @@ public class CopyDialog implements Runnable
 			dlg.dispose();
 	}
 
+	/**
+	 * Gets the number of files in a directory and all its subdirectories. If the specified File object is a file, 1 is returned.
+	 * 
+	 * @param dir
+	 *            directory containing the files to be counted.
+	 * @return number of files
+	 */
 	long getDirSize(File dir)
 	{
 		long size = 0;
@@ -161,6 +201,12 @@ public class CopyDialog implements Runnable
 		return size;
 	}
 
+	/**
+	 * Deletes all files within a specified directory and then removes the directory itself.
+	 * 
+	 * @param dir
+	 *            Directory to delete
+	 */
 	public static void clearAndDelDir(File dir)
 	{
 		if (dir.isDirectory())

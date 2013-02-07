@@ -40,8 +40,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.BagPropsTxt.DataSource;
-import au.edu.anu.dcbag.fido.PronomFormat;
 
+/**
+ * This class represents a bag on the location machine containing files in a collection. This class provides the ability to complete a bag after changes have
+ * been made to the payload files, new files have been added, or old files have been removed. A bag must update its manifest and tag files when any of the
+ * payload files or its count changes.
+ */
 public class DcBag implements ProgressListenable
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcBag.class);
@@ -51,37 +55,90 @@ public class DcBag implements ProgressListenable
 	private Bag bag;
 	private Set<ProgressListener> plSet = null;
 
+	/**
+	 * Creates a blank DcBag object to which new payload files can be added.
+	 * 
+	 * @param extIdentifier
+	 *            The record identifier to which this bag belongs.
+	 */
 	public DcBag(String extIdentifier)
 	{
 		this.bag = BAG_FACTORY.createBag();
 		generateTagFiles(extIdentifier);
 	}
 
+	/**
+	 * Creates a DcBag object for a bag that already exists on a local drive.
+	 * 
+	 * @param bagsDir
+	 *            The File object representing the root location of the bag.
+	 * @param extIdentifier
+	 *            The record identifier that this bag belongs to.
+	 * @param loadOption
+	 *            refer to {@link LoadOption}
+	 */
 	public DcBag(File bagsDir, String extIdentifier, LoadOption loadOption)
 	{
 		this.bag = BAG_FACTORY.createBag(getBagFile(bagsDir, convertToDiskSafe(extIdentifier)), loadOption);
 	}
 
+	/**
+	 * Creates a DcBag object for a bag on the local drive that doesn't belong to a collection yet.
+	 * 
+	 * @param bagFile
+	 *            File object representing the root location of the bag.
+	 * 
+	 * @param loadOption
+	 *            refer to {@link LoadOption}
+	 */
 	public DcBag(File bagFile, LoadOption loadOption)
 	{
 		this.bag = BAG_FACTORY.createBag(bagFile, loadOption);
 	}
 
+	/**
+	 * Creates a DcBag object from a Bag object.
+	 * 
+	 * @param bag
+	 *            bag from which to create a DcBag
+	 */
 	public DcBag(Bag bag)
 	{
 		this.bag = BAG_FACTORY.createBag(bag);
 	}
 
+	/**
+	 * Adds a payload file to this DcBag.
+	 * 
+	 * @param fileToAdd
+	 *            File object representing the file to add to payload
+	 */
 	public void addFileToPayload(File fileToAdd)
 	{
 		this.bag.addFileToPayload(fileToAdd);
 	}
 
+	/**
+	 * Removes a payload file from this bag.
+	 * 
+	 * @param filepath
+	 *            path of the payload file relative to the root of the bag
+	 */
 	public void removeBagFile(String filepath)
 	{
 		this.bag.removeBagFile(filepath);
 	}
 
+	/**
+	 * Adds a fetch file entry in this bag.
+	 * 
+	 * @param filename
+	 *            name of file that the url refers to
+	 * @param filesize
+	 *            size of the file
+	 * @param url
+	 *            url of the file
+	 */
 	public void addFetchEntry(String filename, long filesize, String url)
 	{
 		// Fetch file
@@ -90,6 +147,15 @@ public class DcBag implements ProgressListenable
 		bag.getFetchTxt().add(new FilenameSizeUrl(filename, filesize, url));
 	}
 
+	/**
+	 * Saves a bag if previously saved to disk.
+	 * 
+	 * @return the File object to which this bag is saved
+	 * @throws IOException
+	 *             when unable to save bag to disk
+	 * @throws DcBagException
+	 *             when this bag doesn't validate against ANUDC requirements
+	 */
 	public File save() throws IOException, DcBagException
 	{
 		if (this.bag.getFile() == null)
@@ -101,6 +167,21 @@ public class DcBag implements ProgressListenable
 		return saveAs(bag.getFile().getParentFile(), convertToDiskSafe(this.bag.getBagInfoTxt().getExternalIdentifier()), bag.getFormat());
 	}
 
+	/**
+	 * Saves a previously unsaved bag to a local disk.
+	 * 
+	 * @param bagsDir
+	 *            location where the bag is to be saved
+	 * @param bagName
+	 *            filename to save the bag under
+	 * @param format
+	 *            format to save the bag in - zip file or file system
+	 * @return File object representing the saved bag's location
+	 * @throws IOException
+	 *             when unable to save bag
+	 * @throws DcBagException
+	 *             when this bag doesn't validate against ANUDC requirements
+	 */
 	public File saveAs(File bagsDir, String bagName, Format format) throws IOException, DcBagException
 	{
 		customValidate();
@@ -150,16 +231,33 @@ public class DcBag implements ProgressListenable
 		return bagFile;
 	}
 
+	/**
+	 * Gets the payload file list.
+	 * 
+	 * @return the payload file list
+	 */
 	public Set<Entry<String, String>> getPayloadFileList()
 	{
 		return this.bag.getPayloadManifest(BAGS_ALGORITHM).entrySet();
 	}
 
+	/**
+	 * Gets the bag info txt.
+	 * 
+	 * @return the bag info txt
+	 */
 	public BagInfoTxt getBagInfoTxt()
 	{
 		return bag.getBagInfoTxt();
 	}
 
+	/**
+	 * Gets the file stream of a file.
+	 * 
+	 * @param baggedFile
+	 *            the bagged file
+	 * @return the file stream of the bag
+	 */
 	public InputStream getBagFileStream(String baggedFile)
 	{
 		if (this.bag.getBagFile(baggedFile) != null)
@@ -168,16 +266,41 @@ public class DcBag implements ProgressListenable
 			return null;
 	}
 
+	/**
+	 * Gets the bag file size.
+	 * 
+	 * @param baggedFile
+	 *            the bagged file
+	 * @return the bag file size
+	 */
 	public long getBagFileSize(String baggedFile)
 	{
 		return this.bag.getBagFile(baggedFile).getSize();
 	}
 
+	/**
+	 * Gets the bag file hash.
+	 * 
+	 * @param baggedFile
+	 *            the bagged file
+	 * @return the bag file hash
+	 */
 	public String getBagFileHash(String baggedFile)
 	{
 		return this.bag.getChecksums(baggedFile).get(BAGS_ALGORITHM);
 	}
 
+	/**
+	 * Extracts a file from this bag.
+	 * 
+	 * @param bagFilePath
+	 *            the bag file path
+	 * @param extractDir
+	 *            the extract dir
+	 * @return the extracted file
+	 * @throws Exception
+	 *             when unable to extract file
+	 */
 	public File extractFile(String bagFilePath, File extractDir) throws Exception
 	{
 		BagFile bagFile = bag.getBagFile(bagFilePath);
@@ -226,6 +349,14 @@ public class DcBag implements ProgressListenable
 		return outputFile;
 	}
 
+	/**
+	 * Generates essential tag files for a blank DcBag. Creates standard tag files as required by the Bagit
+	 * specifications. Also includes the requirement that bag contains the record identifier of the record it belongs
+	 * to.
+	 * 
+	 * @param extIdentifier
+	 *            record identifier
+	 */
 	public void generateTagFiles(String extIdentifier)
 	{
 		// BagItTxt
@@ -246,31 +377,60 @@ public class DcBag implements ProgressListenable
 		bag.getBagInfoTxt().addExternalIdentifier(extIdentifier);
 	}
 
+	/**
+	 * Gets the File object representing the root of this bag.
+	 * 
+	 * @return File object pointing to root of this bag.
+	 */
 	public File getFile()
 	{
 		return this.bag.getFile();
 	}
 
+	/**
+	 * Returns the result of running a completion check on this bag.
+	 * 
+	 * @return SimpleResult containing list of issues rendering this bag incomplete.
+	 */
 	public SimpleResult verifyComplete()
 	{
 		return this.bag.verifyComplete();
 	}
 
+	/**
+	 * Returns the result of running a validation check on this bag.
+	 * 
+	 * @return SimpleResult containing list of issues rendering this bag invalid.
+	 */
 	public SimpleResult verifyValid()
 	{
 		return this.bag.verifyValid();
 	}
 
+	/**
+	 * Closes this bag.
+	 */
 	public void close()
 	{
 		IOUtils.closeQuietly(this.bag);
 	}
 
+	/**
+	 * Returns the bag this DcBag is wrapping.
+	 * 
+	 * @return bag object
+	 */
 	public Bag getBag()
 	{
 		return bag;
 	}
 
+	/**
+	 * Sets the bag this DcBag object wraps.
+	 * 
+	 * @param bag
+	 *            The new bag this object will wrap
+	 */
 	public void setBag(Bag bag)
 	{
 		this.bag = bag;

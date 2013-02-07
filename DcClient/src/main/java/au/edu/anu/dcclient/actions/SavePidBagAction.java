@@ -1,18 +1,13 @@
 package au.edu.anu.dcclient.actions;
 
-import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
-import gov.loc.repository.bagit.BagInfoTxt;
-import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.swing.AbstractAction;
@@ -30,13 +25,16 @@ import au.edu.anu.dcclient.ThreadPoolManager;
 import au.edu.anu.dcclient.explorer.FileExplorer;
 import au.edu.anu.dcclient.tasks.SaveBagTask;
 
+/**
+ * This class implements an Action Listener that gets invoked when a GUI action for saving a Bag is requested.
+ */
 public class SavePidBagAction extends AbstractAction implements ActionListener
 {
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
 
-	private FileExplorer bagExplorer;
-	private JTextComponent txtPid;
+	private final FileExplorer bagExplorer;
+	private final JTextComponent txtPid;
 
 	/**
 	 * SavePidBagAction

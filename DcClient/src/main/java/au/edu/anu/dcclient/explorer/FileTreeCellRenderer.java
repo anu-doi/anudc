@@ -18,9 +18,15 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("serial")
+/**
+ * This class extends the DefaultTreeCellRenderer class to implement how a tree cell gets rendered.
+ * 
+ * @see <a
+ *      href="http://www.java-forums.org/blogs/duvanslabbert/92-java-file-explorer.html">http://www.java-forums.org/blogs/duvanslabbert/92-java-file-explorer.html</a>
+ */
 class FileTreeCellRenderer extends DefaultTreeCellRenderer
 {
+	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
 	private static final FileSystemView fileSystemView = FileSystemView.getFileSystemView();
 	

@@ -1,6 +1,6 @@
 package au.edu.anu.dcclient.tasks;
 
-import static java.text.MessageFormat.format;
+import static java.text.MessageFormat.*;
 import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.ProgressListener;
 
@@ -8,11 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.net.URI;
-import java.text.MessageFormat;
-import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
@@ -23,22 +19,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.DcBag;
-import au.edu.anu.dcclient.Global;
 
-import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
+/**
+ * This class represents a task that uploads a bag to Data Commons.
+ */
 public class UploadBagTask extends AbstractDcBagTask<ClientResponse>
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
 
-	private DcBag dcBag;
-	private URI bagBaseUri;
+	private final DcBag dcBag;
+	private final URI bagBaseUri;
 
 	/**
 	 * UploadBagTask

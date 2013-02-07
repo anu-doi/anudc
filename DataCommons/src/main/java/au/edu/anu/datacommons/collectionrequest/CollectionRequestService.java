@@ -1,10 +1,9 @@
 package au.edu.anu.datacommons.collectionrequest;
 
-import static java.text.MessageFormat.format;
+import static java.text.MessageFormat.*;
 import gov.loc.repository.bagit.BagFile;
 
 import java.net.URI;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -678,7 +677,7 @@ public class CollectionRequestService
 			CollectionDropbox dropbox = dropboxDAO.getSingleByAccessCode(dropboxAccessCode);
 
 			if (dropbox == null)
-				throw new NotFoundException(format("Dropbox with Access Code {0} doesn't exist.", dropbox.getAccessCode().toString()));
+				throw new NotFoundException(format("Dropbox with Access Code {0} doesn't exist.", dropboxAccessCode.toString()));
 
 			LOGGER.debug("Dropbox found.");
 			model.put("dropbox", dropbox);

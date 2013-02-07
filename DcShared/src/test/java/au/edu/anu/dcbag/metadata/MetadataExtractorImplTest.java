@@ -25,9 +25,6 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import com.adobe.xmp.XMPMeta;
-import com.adobe.xmp.impl.XMPMetaImpl;
-
 import au.edu.anu.dcbag.fido.FidoParserTest;
 
 public class MetadataExtractorImplTest

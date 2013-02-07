@@ -1,9 +1,6 @@
 package au.edu.anu.dcclient.tasks;
 
 import gov.loc.repository.bagit.utilities.SimpleResult;
-import gov.loc.repository.bagit.verify.Verifier;
-
-import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +11,7 @@ public final class VerifyBagTask extends AbstractDcBagTask<SimpleResult>
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VerifyBagTask.class);
 	
-	private DcBag dcBag;
+	private final DcBag dcBag;
 
 	/**
 	 * VerifyBagTask

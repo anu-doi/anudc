@@ -1,15 +1,11 @@
 package au.edu.anu.dcclient.actions;
 
-import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
-import gov.loc.repository.bagit.writer.impl.ZipWriter;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,8 +14,6 @@ import java.util.concurrent.Future;
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 import javax.swing.text.JTextComponent;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
 
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -33,26 +27,18 @@ import au.edu.anu.dcclient.explorer.FileExplorer;
 import au.edu.anu.dcclient.tasks.SaveBagTask;
 import au.edu.anu.dcclient.tasks.UploadBagTask;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.LoggingFilter;
-import com.sun.jersey.core.header.ContentDisposition;
-import com.sun.jersey.core.header.ContentDisposition.ContentDispositionBuilder;
-import com.sun.jersey.multipart.FormDataMultiPart;
-import com.sun.jersey.multipart.file.FileDataBodyPart;
 
+/**
+ * This class implements an Action Listener that gets invoked when a GUI action for uploading a Bag is requested.
+ */
 public class UploadPidBagAction extends AbstractAction implements ActionListener
 {
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
 
-	private JTextComponent txtPid;
-	private FileExplorer bagExplorer;
+	private final JTextComponent txtPid;
+	private final FileExplorer bagExplorer;
 
 	/**
 	 * UploadPidBagAction
@@ -135,6 +121,5 @@ public class UploadPidBagAction extends AbstractAction implements ActionListener
 				}
 			}
 		});
-
 	}
 }

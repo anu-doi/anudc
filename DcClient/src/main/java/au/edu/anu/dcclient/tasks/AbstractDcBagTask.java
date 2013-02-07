@@ -7,12 +7,17 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-import com.sun.jersey.api.client.Client;
-
 import au.edu.anu.dcclient.CustomClient;
 import au.edu.anu.dcclient.stopwatch.StopWatch;
 import au.edu.anu.dcclient.stopwatch.Timeable;
 
+import com.sun.jersey.api.client.Client;
+
+/**
+ * Represents an abstract task that performs an action related to a bag containing a set of files.
+ *
+ * @param <T> the type of the object returned by the task which is specific to each class that extends this class. 
+ */
 public abstract class AbstractDcBagTask<T> implements Callable<T>, ProgressListenable, Timeable
 {
 	protected Set<ProgressListener> plSet = null;

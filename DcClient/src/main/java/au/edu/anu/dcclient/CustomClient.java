@@ -7,6 +7,9 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
+/**
+ * This class is a wrapper for a singleton Client object to be used throughout the application for sending HTTP requests to Data Commons.
+ */
 public class CustomClient
 {
 	private static Client client = null;
@@ -15,7 +18,12 @@ public class CustomClient
 	protected CustomClient()
 	{
 	}
-	
+
+	/**
+	 * Gets the Client object instance. If one doesn't exist, creates one for subsequent getInstance requests.
+	 * 
+	 * @return Client object
+	 */
 	public static Client getInstance()
 	{
 		if (client == null)
@@ -35,6 +43,14 @@ public class CustomClient
 		return client;
 	}
 
+	/**
+	 * Adds a Basic Authentication filter to the client. The filter adds the Basic Web Authentication header to all outgoing HTTP requests.
+	 * 
+	 * @param username
+	 *            Username as String
+	 * @param password
+	 *            Password as String
+	 */
 	public static void setAuth(String username, String password)
 	{
 		if (authFilter != null)

@@ -4,32 +4,32 @@ import gov.loc.repository.bagit.ProgressListener;
 import gov.loc.repository.bagit.progresslistener.ProgressListenerHelper;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.FlowLayout;
-import java.lang.reflect.InvocationTargetException;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.DefaultCaret;
-import javax.swing.JTextPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JProgressBar;
 
+/**
+ * This class extends the JDialog class to display a dialog box with a progress bar indicating the details of the task being performed.
+ */
 public class ProgressDialog extends JDialog implements ProgressListener
 {
+	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
 	private final JPanel contentPanel = new JPanel();
 
-	private JTextPane logTextPane;
-	private JPanel buttonPane;
-	private JProgressBar progressBar;
+	private final JTextPane logTextPane;
+	private final JPanel buttonPane;
+	private final JProgressBar progressBar;
 
 	/**
 	 * ProgressDialog
@@ -112,6 +112,7 @@ public class ProgressDialog extends JDialog implements ProgressListener
 		});
 	}
 	
+	@Override
 	public void setVisible(boolean b)
 	{
 		this.setLocationRelativeTo(MainWindow.getInstance());

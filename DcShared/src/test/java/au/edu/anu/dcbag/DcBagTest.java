@@ -1,17 +1,12 @@
 package au.edu.anu.dcbag;
 
 import static org.junit.Assert.*;
-
 import gov.loc.repository.bagit.Bag.Format;
-import gov.loc.repository.bagit.BagFactory;
-import gov.loc.repository.bagit.BagFile;
-import gov.loc.repository.bagit.ProgressListener;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
-import gov.loc.repository.bagit.v0_97.impl.BagImpl;
+import gov.loc.repository.bagit.ProgressListener;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -27,8 +22,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.anu.dcbag.DcBag;
 
 public class DcBagTest
 {

@@ -3,10 +3,8 @@ package au.edu.anu.datacommons.config;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Date;
 import java.util.Properties;
 
 import org.junit.After;

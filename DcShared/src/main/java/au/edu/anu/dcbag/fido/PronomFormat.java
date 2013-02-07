@@ -8,6 +8,20 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.PronomFormatsTxt;
 
+/**
+ * This class contains properties that correspond to individual elements of a String returned for a file by the Fido Script. The String as per Fido 1.0 will be
+ * in the format:
+ * 
+ * <pre>
+ * printmatch: 
+ *     "OK,%(info.time)s,%(info.puid)s,%(info.formatname)s,%(info.signaturename)s,%(info.filesize)s,\"%(info.filename)s\",\"%(info.mimetype)s\",\"%(info.matchtype)s\"\n"
+ * 
+ *   printnomatch:
+ *     "KO,%(info.time)s,,,,%(info.filesize)s,\"%(info.filename)s\",,\"%(info.matchtype)s\"\n"
+ * </pre>
+ * 
+ * @see <a href="https://github.com/openplanets/fido">https://github.com/openplanets/fido</a>
+ */
 public class PronomFormat
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
@@ -28,11 +42,25 @@ public class PronomFormat
 	private String mimeType;
 	private String matchType;
 
+	/**
+	 * Creates a PronomFormat object by parsing a specified String.
+	 * 
+	 * @param fidoStr
+	 *            the fido string to parse
+	 */
 	public PronomFormat(String fidoStr)
 	{
 		parseFidoStr(fidoStr);
 	}
 	
+	/**
+	 * Creates a PronomFormat object by parsing a fido string already stored in the PronomFormatsTxt file of a bag.
+	 * 
+	 * @param bag
+	 *            Bag containing the file whose Fido String is to be read
+	 * @param bf
+	 *            File within the bag whose Fido String is to be read from PronomFormatsTxt tag file
+	 */
 	public PronomFormat(Bag bag, BagFile bf)
 	{
 		BagFile pronomFormatsTxt = bag.getBagFile(PronomFormatsTxt.FILEPATH);
@@ -46,6 +74,12 @@ public class PronomFormat
 			parseFidoStr("");
 	}
 	
+	/**
+	 * Parses a Fido String to extract its individual elements.
+	 * 
+	 * @param fidoStr
+	 *            Fido String to parse
+	 */
 	private void parseFidoStr(String fidoStr)
 	{
 		if (fidoStr == null || fidoStr.length() == 0)
@@ -81,51 +115,103 @@ public class PronomFormat
 		}
 	}
 
+	/**
+	 * Gets the match status.
+	 * 
+	 * @return the match status
+	 */
 	public MatchStatus getMatchStatus()
 	{
 		return matchStatus;
 	}
 
+	/**
+	 * Gets the time to parse.
+	 * 
+	 * @return the time to parse
+	 */
 	public long getTimeToParse()
 	{
 		return timeToParse;
 	}
 
+	/**
+	 * Gets the puid.
+	 * 
+	 * @return the puid
+	 */
 	public String getPuid()
 	{
 		return puid;
 	}
 
+	/**
+	 * Gets the format name.
+	 * 
+	 * @return the format name
+	 */
 	public String getFormatName()
 	{
 		return formatName;
 	}
 
+	/**
+	 * Gets the sig name.
+	 * 
+	 * @return the sig name
+	 */
 	public String getSigName()
 	{
 		return sigName;
 	}
 
+	/**
+	 * Gets the file size.
+	 * 
+	 * @return the file size
+	 */
 	public long getFileSize()
 	{
 		return fileSize;
 	}
 
+	/**
+	 * Gets the file name.
+	 * 
+	 * @return the file name
+	 */
 	public String getFileName()
 	{
 		return fileName;
 	}
 
+	/**
+	 * Gets the mime type.
+	 * 
+	 * @return the mime type
+	 */
 	public String getMimeType()
 	{
 		return mimeType;
 	}
 
+	/**
+	 * Gets the match type.
+	 * 
+	 * @return the match type
+	 */
 	public String getMatchType()
 	{
 		return matchType;
 	}
 
+	/**
+	 * Strips leading and trailing double quotes in a string.
+	 * 
+	 * @param str
+	 *            the string from which to strip double quotes
+	 * @return the string String without quotes
+	 */
 	private String stripQuotes(String str)
 	{
 		StringBuilder sb = new StringBuilder(str);

@@ -7,14 +7,12 @@ import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.ProgressListener;
 import gov.loc.repository.bagit.transfer.BagFetcher;
 import gov.loc.repository.bagit.transfer.BagTransferException;
-import gov.loc.repository.bagit.transfer.FetchProtocol;
 import gov.loc.repository.bagit.transfer.fetch.HttpFetchProtocol;
 import gov.loc.repository.bagit.utilities.SimpleResult;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -26,12 +24,15 @@ import au.edu.anu.dcbag.DcBag;
 import au.edu.anu.dcbag.DcBagException;
 import au.edu.anu.dcclient.Global;
 
+/**
+ * Represents a task that downloads a bag from Data Commons.
+ */
 public final class DownloadBagTask extends AbstractDcBagTask<File>
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadBagTask.class);
 
-	private URI pidBagUri;
-	private File localBagFile;
+	private final URI pidBagUri;
+	private final File localBagFile;
 
 	/**
 	 * DownloadBagTask
@@ -137,6 +138,11 @@ public final class DownloadBagTask extends AbstractDcBagTask<File>
 		return localBagFile;
 	}
 
+	/**
+	 * Returns a BagFetcher object that is used to download bags from Data Commons.
+	 * 
+	 * @return BagFetcher
+	 */
 	private BagFetcher createFetcher()
 	{
 		BagFetcher bagFetcher = new BagFetcher(new BagFactory());

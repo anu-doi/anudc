@@ -110,21 +110,41 @@ public abstract class Global
 		return new File(getLocalBagStoreAsString());
 	}
 	
+	/**
+	 * Gets the Create URI as specified in the properties file against the key <code>app.server.createUri</code>.
+	 * 
+	 * @return URI to be used for creating records.
+	 */
 	public static URI getCreateUri()
 	{
 		return UriBuilder.fromUri(getAppServerUriAsString()).path(globalProperties.getProperty("app.server.createUri")).build();
 	}
 	
+	/**
+	 * Gets the base application URI as specified in the properties file against the key <code>app.server</code>.
+	 * 
+	 * @return Base URI of Data Commons
+	 */
 	public static String getAppServerUriAsString()
 	{
 		return System.getProperty("app.server", globalProperties.getProperty("app.server"));
 	}
 	
+	/**
+	 * Gets the URI from where information about a User can be obtained as specified against the key <code>app.server.userInfoUri</code>.
+	 * 
+	 * @return URI of user information
+	 */
 	public static URI getUserInfoUri()
 	{
 		return UriBuilder.fromUri(getAppServerUriAsString()).path(globalProperties.getProperty("app.server.userInfoUri")).build();
 	}
 	
+	/**
+	 * Gets the URI to be used for adding links between records as specified in the properties file against the key <code>app.server.addLinkUri</code>.
+	 * 
+	 * @return URI to be used for adding links to records
+	 */
 	public static URI getAddLinkUri()
 	{
 		return UriBuilder.fromUri(getAppServerUriAsString()).path(globalProperties.getProperty("app.server.addLinkUri")).build();

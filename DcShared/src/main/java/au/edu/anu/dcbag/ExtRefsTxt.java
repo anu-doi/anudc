@@ -3,6 +3,9 @@ package au.edu.anu.dcbag;
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.utilities.namevalue.impl.AbstractNameValueBagFile;
 
+/**
+ * This class represents the tag file containing URL references to resources not stored within the ANU Data Commons.
+ */
 public class ExtRefsTxt extends AbstractNameValueBagFile
 {
 	private static final long serialVersionUID = 1L;

@@ -1,6 +1,6 @@
 package au.edu.anu.dcclient;
 
-import static java.text.MessageFormat.format;
+import static java.text.MessageFormat.*;
 import gov.loc.repository.bagit.Bag.Format;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.progresslistener.ConsoleProgressListener;
@@ -26,8 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.config.PropertiesFile;
-import au.edu.anu.dcbag.DcBag;
 import au.edu.anu.dcbag.BagPropsTxt;
+import au.edu.anu.dcbag.DcBag;
 import au.edu.anu.dcclient.collection.CollectionInfo;
 import au.edu.anu.dcclient.stopwatch.StopWatch;
 import au.edu.anu.dcclient.tasks.CreateCollectionTask;
@@ -40,6 +40,15 @@ import au.edu.anu.dcclient.tasks.VerifyBagTask;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
 
+/**
+ * Executes bag-related tasks based on the specified command line arguments. The following tasks are supported:
+ * <ul>
+ * <li>Creates/updates a record on DataCommons and uploads files specified in a parameter file against it replacing any existing files on Data Commons.</li>
+ * <li>Downloads a bag from Data Commons along with the files it contains.</li>
+ * <li>Packages files into a bag making them ready for upload.</li>
+ * <li>Uploads a bag to Data Commons.</li>
+ * </ul>
+ */
 public final class CmdMgr
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmdMgr.class);
@@ -69,8 +78,14 @@ public final class CmdMgr
 	}
 
 	private int exitCode = 0;
-	private TaskSummary summary = new TaskSummary();
+	private final TaskSummary summary = new TaskSummary();
 
+	/**
+	 * Constructor which takes the command line parameters as a String array.
+	 * 
+	 * @param args
+	 *            Command line arguments
+	 */
 	public CmdMgr(String[] args)
 	{
 		CommandLineParser parser = new PosixParser();
@@ -118,6 +133,12 @@ public final class CmdMgr
 		}
 	}
 
+	/**
+	 * Extracts credentials provided in the command line and sets them for requests sent to Data Commons.
+	 * 
+	 * @param cmdLine
+	 *            Parsed command line as CommandLine
+	 */
 	private void setCredentials(CommandLine cmdLine)
 	{
 		String username = null;
@@ -151,11 +172,22 @@ public final class CmdMgr
 		Authenticator.setDefault(new DcAuthenticator(username, password));
 	}
 
+	/**
+	 * Returns the exit code set representing the status of tasks performed.
+	 * 
+	 * @return 0 if successful, 1 if error
+	 */
 	public int getExitCode()
 	{
 		return exitCode;
 	}
 
+	/**
+	 * Print the help for options with the specified command line syntax.
+	 * 
+	 * @param options
+	 *            Options object containing valid command line switches and help text.
+	 */
 	private void dispHelp(Options options)
 	{
 		HelpFormatter hf = new HelpFormatter();
@@ -165,6 +197,12 @@ public final class CmdMgr
 		writer = null;
 	}
 
+	/**
+	 * Processes a parameter file and sends the required requests to Data Commons.
+	 * 
+	 * @param cmdLine
+	 *            Parsed command line
+	 */
 	private void processParamFile(CommandLine cmdLine)
 	{
 		// Create FedoraObject and then upload files.
@@ -288,6 +326,12 @@ public final class CmdMgr
 		}
 	}
 
+	/**
+	 * Uploads a bag to Data Commons.
+	 * 
+	 * @param cmdLine
+	 *            Parsed command line
+	 */
 	private void upload(CommandLine cmdLine)
 	{
 		String pid = cmdLine.getOptionValue('l');
@@ -341,9 +385,14 @@ public final class CmdMgr
 		}
 	}
 
+	/**
+	 * Saves a bag or packages a group of files into a bag if one doesn't exist making it ready for upload.
+	 * 
+	 * @param cmdLine
+	 *            Parsed command line
+	 */
 	private void saveBag(CommandLine cmdLine)
 	{
-		// Save the bag.
 		String pid = cmdLine.getOptionValue('s');
 		DcBag bag = new DcBag(Global.getLocalBagStoreAsFile(), pid, LoadOption.BY_FILES);
 		System.out.println("Saving bag...");
@@ -375,6 +424,12 @@ public final class CmdMgr
 		}
 	}
 
+	/**
+	 * Downloads a file from Data Commons.
+	 * 
+	 * @param cmdLine
+	 *            Parsed command line
+	 */
 	private void download(CommandLine cmdLine)
 	{
 		String pid = cmdLine.getOptionValue('d');
@@ -430,11 +485,24 @@ public final class CmdMgr
 		}
 	}
 
+	/**
+	 * Sets the data source attribute of a bag.
+	 * 
+	 * @param dcBag
+	 *            Bag whose attribute to set
+	 */
 	private void setDataSource(DcBag dcBag)
 	{
 		dcBag.setBagProperty(BagPropsTxt.FIELD_DATASOURCE, BagPropsTxt.DataSource.INSTRUMENT.toString());
 	}
 
+	/**
+	 * Returns the sum of all files in a directory and its subdirectories.
+	 * 
+	 * @param sourceDir
+	 *            Directory whose size to calculate
+	 * @return Size in Bytes
+	 */
 	static long getDirSizeInBytes(File sourceDir)
 	{
 		long sizeInBytes = 0L;
@@ -456,6 +524,13 @@ public final class CmdMgr
 		return sizeInBytes;
 	}
 
+	/**
+	 * Counts the number of files in a directory and all its subdirectories.
+	 * 
+	 * @param sourceDir
+	 *            Directory containing files to count
+	 * @return Number of files
+	 */
 	static long countFilesInDir(File sourceDir)
 	{
 		long numFilesInDir = 0L;

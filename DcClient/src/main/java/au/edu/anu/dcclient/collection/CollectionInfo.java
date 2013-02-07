@@ -1,59 +1,79 @@
 package au.edu.anu.dcclient.collection;
 
+import static java.text.MessageFormat.*;
+
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
+/**
+ * This class represents a Collection Info file. This class provides methods to read key value pairs from the collection information file.
+ */
 public class CollectionInfo
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CollectionInfo.class);
 	private static final String NEWLINE = System.getProperty("line.separator");
 
-	private File sourceFile;
+	private final File sourceFile;
 	private File filesDir = null;
 	private String pid = null;
 	
-	private MultivaluedMap<String, String> createCollMap = new MultivaluedMapImpl();
-	private Set<String[]> relationSet = new HashSet<String[]>();  
+	private final MultivaluedMap<String, String> createCollMap = new MultivaluedMapImpl();
+	private final Set<String[]> relationSet = new HashSet<String[]>();  
 
+	/**
+	 * Constructor that instantiates a CollectionInfo object for a specified Collection Information file.
+	 * 
+	 * @param sourceFile
+	 *            Collection Info file to read data from
+	 * @throws IOException
+	 *             when unable to read the collection information file
+	 */
 	public CollectionInfo(File sourceFile) throws IOException
 	{
 		if (!sourceFile.isFile())
-			throw new IOException(MessageFormat.format("{0} is not a file.", sourceFile.getAbsolutePath()));
+			throw new IOException(format("{0} is not a file.", sourceFile.getAbsolutePath()));
 		if (!sourceFile.canRead())
-			throw new IOException(MessageFormat.format("Unable to read {0}. Ensure read permission.", sourceFile.getAbsolutePath()));
+			throw new IOException(format("Unable to read {0}. Ensure read permission.", sourceFile.getAbsolutePath()));
 		if (!sourceFile.canWrite())
-			throw new IOException(MessageFormat.format("Unable to write {0}. Ensure write permission.", sourceFile.getAbsolutePath()));
+			throw new IOException(format("Unable to write {0}. Ensure write permission.", sourceFile.getAbsolutePath()));
 		
 		this.sourceFile = sourceFile;
 		readMap(this.sourceFile);
 	}
 
+	/**
+	 * Gets the pid as specified in the collection file. If not specified in file, null is returned.
+	 * 
+	 * @return Pid as String if present in Collection Information file, null otherwise.
+	 */
 	public String getPid()
 	{
 		return pid;
 	}
 
+	/**
+	 * Sets the pid only if it doesn't already exist in the collection.
+	 * 
+	 * @param pid
+	 *            Pid as String
+	 * @throws IOException
+	 *             when unable to write the Pid in the collection information file.
+	 */
 	public void setPid(String pid) throws IOException
 	{
 		if (createCollMap.containsKey("pid"))
@@ -70,7 +90,7 @@ public class CollectionInfo
 		try
 		{
 			writer = new FileWriter(this.sourceFile, true);
-			writer.write(MessageFormat.format("{0}pid={1}{0}", NEWLINE, pid));
+			writer.write(format("{0}pid={1}{0}", NEWLINE, pid));
 		}
 		finally
 		{
@@ -78,21 +98,44 @@ public class CollectionInfo
 		}
 	}
 
+	/**
+	 * Gets the location of payload files.
+	 * 
+	 * @return Location of payload files as File
+	 */
 	public File getFilesDir()
 	{
 		return filesDir;
 	}
 
+	/**
+	 * Returns a {@code MultivaluedMap<String, String>} representation of the data in the collection information file.
+	 * 
+	 * @return MultivaluedMap object
+	 */
 	public MultivaluedMap<String, String> getCreateCollMap()
 	{
 		return createCollMap;
 	}
 
+	/**
+	 * Gets the list of relations specified in the collection file as a {@code Set<String[]>}. For each set element, the String[0] contains relationship type
+	 * and String[1] contains the pid of the related record.
+	 * 
+	 * @return
+	 */
 	public Set<String[]> getRelationSet()
 	{
 		return relationSet;
 	}
 
+	/**
+	 * Reads the contents of the collection information file and parses it to extract data as key-value pairs.
+	 * 
+	 * @param sourceFile
+	 * 
+	 * @throws IOException
+	 */
 	private void readMap(File sourceFile) throws IOException
 	{
 		FileInputStream fis = null;

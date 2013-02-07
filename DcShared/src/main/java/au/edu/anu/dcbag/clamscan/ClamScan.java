@@ -1,5 +1,3 @@
-// Source: https://github.com/philvarner/clamavj
-
 package au.edu.anu.dcbag.clamscan;
 
 import java.io.ByteArrayInputStream;
@@ -13,6 +11,11 @@ import java.net.SocketException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class provides methods to can a file for viruses.
+ * 
+ * @see <a href="https://github.com/philvarner/clamavj/">https://github.com/philvarner/clamavj/</a>
+ */
 public class ClamScan {
 
     private static final Logger log = LoggerFactory.getLogger(ClamScan.class);
@@ -45,25 +48,47 @@ public class ClamScan {
     //    may close an IDSESSION connection too if you don't follow the protocol's requirements.
 
     private int timeout = 3000;
-    private String host;
-    private int port;
+    private final String host;
+    private final int port;
 
-    public ClamScan() {
-    }
-
+    /**
+	 * Instantiates a new clam scan object.
+	 * 
+	 * @param host
+	 *            the hostname of the server running ClamAV scanning service
+	 * @param port
+	 *            the port of the the server running ClamAV scanning service
+	 */
     public ClamScan(String host, int port) {
-        setHost(host);
-        setPort(port);
+        this.host = host;
+        this.port = port;
     }
 
+	/**
+	 * Sends a STATS request to the ClamAV service.
+	 * 
+	 * @return Response from service as String
+	 */
     public String stats() {
         return cmd(STATS);
     }
-
+    
+	/**
+	 * Sends a Ping request to the ClamAV service to ensure it's up and running.
+	 * 
+	 * @return true, if successful, false otherwise
+	 */
     public boolean ping() {
         return "PONG\0".equals(cmd(PING));
     }
 
+	/**
+	 * Sends a command to the ClamAV service.
+	 * 
+	 * @param cmd
+	 *            Command to send
+	 * @return Response as String
+	 */
     public String cmd(byte[] cmd) {
 
         Socket socket = new Socket();
@@ -144,24 +169,25 @@ public class ClamScan {
         return response.toString();
     }
 
-    /**
-     * The method to call if you already have the content to scan in-memory as a byte array.
-     *
-     * @param in the byte array to scan
-     * @return the result of the scan
-     * @throws IOException
-     */
+	/**
+	 * The method to call if you already have the content to scan in-memory as a byte array.
+	 * 
+	 * @param in
+	 *            the byte array to scan
+	 * @return the result of the scan
+	 * @throws IOException
+	 */
     public ScanResult scan(byte[] in) throws IOException {
         return scan(new ByteArrayInputStream(in));
     }
 
-    /**
-     * The preferred method to call. This streams the contents of the InputStream to clamd, so
-     * the entire content is not loaded into memory at the same time.
-     *
-     * @param in the InputStream to read.  The stream is NOT closed by this method.
-     * @return a ScanResult representing the server response
-     */
+	/**
+	 * The preferred method to call. This streams the contents of the InputStream to clamd, so the entire content is not loaded into memory at the same time.
+	 * 
+	 * @param in
+	 *            the InputStream to read. The stream is NOT closed by this method.
+	 * @return a ScanResult representing the server response
+	 */
     public ScanResult scan(InputStream in) {
 
         Socket socket = new Socket();
@@ -259,22 +285,29 @@ public class ClamScan {
         return new ScanResult(response.trim());
     }
 
+    /**
+	 * Gets the host.
+	 * 
+	 * @return the host
+	 */
     public String getHost() {
         return host;
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
-
+    /**
+	 * Gets the port.
+	 * 
+	 * @return the port
+	 */
     public int getPort() {
         return port;
     }
 
-    public void setPort(int port) {
-        this.port = port;
-    }
-
+    /**
+	 * Gets the timeout.
+	 * 
+	 * @return the timeout
+	 */
     public int getTimeout() {
         return timeout;
     }

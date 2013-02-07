@@ -6,25 +6,30 @@ import gov.loc.repository.bagit.Manifest.Algorithm;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.net.URI;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.imageio.stream.FileImageOutputStream;
-
 import org.apache.commons.io.FileUtils;
-import org.apache.tika.exception.TikaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 import au.edu.anu.dcbag.clamscan.ScanResult;
 import au.edu.anu.dcbag.clamscan.ScanResult.Status;
 import au.edu.anu.dcbag.fido.PronomFormat;
-import au.edu.anu.dcbag.metadata.MetadataExtractor;
-import au.edu.anu.dcbag.metadata.MetadataExtractorImpl;
 
+/**
+ * Represents the summary of a single file in a bag associated with a record. Provides the following details of each file in a bag:
+ * <ul>
+ * <li>Path of file relative to root of bag. For example, data/abc.txt</li>
+ * <li>Size of file in bytes</li>
+ * <li>Pronom format name of file. For example, "Acrobat PDF 1.6 - Portable Document Format"</li>
+ * <li>Pronom format ID of file. For example, "fmt/20"</li>
+ * <li>MD5 hash value of the file contents</li>
+ * <li>Technical metadata of the file.</li>
+ * <li>Virus scan result of the file</li>
+ * </ul>
+ */
 public class FileSummary
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileSummary.class);
@@ -37,6 +42,14 @@ public class FileSummary
 	private Map<String, String[]> metadata;
 	private String scanResult;
 
+	/**
+	 * Instantiates a new file summary.
+	 * 
+	 * @param bag
+	 *            the bag containing file whose summary will be read
+	 * @param bf
+	 *            the bag file whose summary will be read
+	 */
 	public FileSummary(Bag bag, BagFile bf)
 	{
 		this.path = bf.getFilepath();
@@ -55,7 +68,7 @@ public class FileSummary
 			if (bag.getBagFile(serMetadataFilename) != null)
 			{
 				ObjectInputStream objInStream = new ObjectInputStream(bag.getBagFile(serMetadataFilename).newInputStream());
-				this.metadata = (Map<String, String[]>) objInStream.readObject();
+				this.metadata = readMetadata(objInStream);
 			}
 		}
 		catch (Exception e)
@@ -88,36 +101,71 @@ public class FileSummary
 		}
 	}
 
+	/**
+	 * Gets the path.
+	 * 
+	 * @return the path
+	 */
 	public String getPath()
 	{
 		return path;
 	}
 
+	/**
+	 * Gets the size in bytes.
+	 * 
+	 * @return the size in bytes
+	 */
 	public long getSizeInBytes()
 	{
 		return sizeInBytes;
 	}
 
+	/**
+	 * Gets the format.
+	 * 
+	 * @return the format
+	 */
 	public String getFormat()
 	{
 		return format;
 	}
 
+	/**
+	 * Gets the format puid.
+	 * 
+	 * @return the format puid
+	 */
 	public String getFormatPuid()
 	{
 		return formatPuid;
 	}
 
+	/**
+	 * Gets the md5.
+	 * 
+	 * @return the md5
+	 */
 	public String getMd5()
 	{
 		return md5;
 	}
 
+	/**
+	 * Gets the metadata.
+	 * 
+	 * @return the metadata
+	 */
 	public Map<String, String[]> getMetadata()
 	{
 		return metadata;
 	}
 
+	/**
+	 * Gets the friendly size.
+	 * 
+	 * @return the friendly size
+	 */
 	public String getFriendlySize()
 	{
 		String friendlySize;
@@ -134,8 +182,30 @@ public class FileSummary
 		return friendlySize.toString();
 	}
 
+	/**
+	 * Gets the scan result.
+	 * 
+	 * @return the scan result
+	 */
 	public String getScanResult()
 	{
 		return scanResult;
+	}
+
+	/**
+	 * Read metadata.
+	 * 
+	 * @param objInStream
+	 *            the inputstream containing serialised object
+	 * @return the map metadata as a {@code Map<String, String[]>}
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred
+	 * @throws ClassNotFoundException
+	 *             the class not found exception
+	 */
+	@SuppressWarnings("unchecked")
+	private Map<String, String[]> readMetadata(ObjectInputStream objInStream) throws IOException, ClassNotFoundException
+	{
+		return (Map<String, String[]>) objInStream.readObject();
 	}
 }
