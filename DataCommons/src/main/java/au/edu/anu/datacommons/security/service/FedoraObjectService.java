@@ -328,4 +328,8 @@ public interface FedoraObjectService {
 	 *             When unable to generate a DOI
 	 */
 	public void generateDoi(String pid, String tmplt, Long rid) throws FedoraObjectException;
+
+	boolean isFilesPublic(String pid);
+
+	void setFilesPublic(String pid, boolean isFilesPublic);
 }

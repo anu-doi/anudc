@@ -45,12 +45,14 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -75,8 +77,10 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -93,6 +97,9 @@ import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.AccessLogRecord;
+import au.edu.anu.datacommons.security.acl.CustomACLPermission;
+import au.edu.anu.datacommons.security.acl.PermissionService;
+import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.util.Util;
@@ -132,6 +139,12 @@ public class UploadService
 	@Context
 	private HttpHeaders httpHeaders;
 
+	@Resource(name = "fedoraObjectServiceImpl")
+	private FedoraObjectService fedoraObjectService;
+	
+	@Resource(name="permissionService")
+	private PermissionService permissionService;
+	
 	/**
 	 * doGetAsHtml
 	 * 
@@ -370,22 +383,28 @@ public class UploadService
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@Path("bag/{pid}")
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doGetBagFileListingAsHtml(@PathParam("pid") String pid)
-	{
+	public Response doGetBagFileListingAsHtml(@PathParam("pid") String pid) {
 		Response resp = null;
 		Map<String, Object> model = new HashMap<String, Object>();
 
-		// Check if user's got read access to fedora object.
-		FedoraObject fo = getFedoraObjectReadAccess(pid);
+		FedoraObject fo = null;
+		if (hasRole(new String[] { "ROLE_ANU_USER" })) {
+			// Check if user's got read access to fedora object.
+			fo = getFedoraObjectReadAccess(pid);
+		} else if (hasRole(new String[] { "ROLE_ANONYMOUS" })) {
+			// Check if data files are public
+			fo = fedoraObjectService.getItemByPid(pid);
+			if (!fo.getPublished() || !fo.isFilesPublic()) {
+				throw new AccessDeniedException("No access");
+			}
+		}
 		model.put("fo", fo);
 
 		if (!dcStorage.bagExists(pid))
-			throw new NotFoundException("Bag not found for " + pid);
+			throw new NotFoundException(format("Bag not found for ", pid));
 
 		BagSummary bagSummary;
-		try
-		{
+		try {
 			bagSummary = dcStorage.getBagSummary(pid);
 			model.put("bagSummary", bagSummary);
 			model.put("bagInfoTxt", bagSummary.getBagInfoTxt().entrySet());
@@ -395,9 +414,8 @@ public class UploadService
 					.path(UploadService.class, "doGetFileInBagAsOctetStream2");
 			model.put("dlBaseUri", uriBuilder.build(pid, "").toString());
 			model.put("downloadAsZipUrl", uriBuilder.build(pid, "zip").toString());
-		}
-		catch (DcStorageException e)
-		{
+			model.put("isFilesPublic", fo.isFilesPublic().booleanValue());
+		} catch (DcStorageException e) {
 			LOGGER.error(e.getMessage(), e);
 			PageMessages messages = new PageMessages();
 			messages.add(MessageType.ERROR, e.getMessage(), model);
@@ -484,27 +502,41 @@ public class UploadService
 	 * 
 	 * @param pid
 	 *            Pid of the collection containing the file
-	 * @param fileInBag
+	 * @param fileRequested
 	 *            File being requested. E.g. "data/File.txt"
 	 * @return File contents as InputStream in Response
 	 */
 	@GET
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}/{fileInBag:.*}")
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doGetFileInBagAsOctetStream2(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag)
+	public Response doGetFileInBagAsOctetStream2(@PathParam("pid") String pid, @PathParam("fileInBag") String fileRequested)
 	{
-		LOGGER.trace("pid: {}, filename: {}", pid, fileInBag);
+		LOGGER.trace("pid: {}, filename: {}", pid, fileRequested);
 		Response resp = null;
 		// Check for read access.
 		getFedoraObjectReadAccess(pid);
+		
+		FedoraObject fo = null;
+		if (hasRole(new String[] { "ROLE_ANU_USER" })) {
+			// Check if user's got read access to fedora object.
+			fo = getFedoraObjectReadAccess(pid);
+		} else if (hasRole(new String[] { "ROLE_ANONYMOUS" })) {
+			// Check if data files are public
+			fo = fedoraObjectService.getItemByPid(pid);
+			if (!fo.getPublished() || !fo.isFilesPublic()) {
+				throw new AccessDeniedException("No access");
+			}
+		}
 
 		try
 		{
-			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
-					AccessLogRecord.Operation.READ));
-			// Create a log record.
-			if (fileInBag.equals("zip"))
+			Users curUser = getCurUser();
+			if (curUser != null) {
+				AccessLogRecord accessLogRecord = new AccessLogRecord(uriInfo.getPath(), curUser,
+						request.getRemoteAddr(), AccessLogRecord.Operation.READ);
+				new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessLogRecord);
+			}
+			if (fileRequested.equals("zip"))
 			{
 				Set<String> fileSet = new HashSet<String>();
 				FileSummaryMap fsMap = dcStorage.getBagSummary(pid).getFileSummaryMap();
@@ -514,9 +546,9 @@ public class UploadService
 			}
 			else
 			{
-				if (!dcStorage.fileExistsInBag(pid, fileInBag))
-					throw new NotFoundException(format("File {0} not found in {1}", fileInBag, pid));
-				resp = getBagFileOctetStreamResp(pid, fileInBag);
+				if (!dcStorage.fileExistsInBag(pid, fileRequested))
+					throw new NotFoundException(format("File {0} not found in {1}", fileRequested, pid));
+				resp = getBagFileOctetStreamResp(pid, fileRequested);
 			}
 		}
 		catch (DcStorageException e)
@@ -712,6 +744,36 @@ public class UploadService
 		return resp;
 	}
 	
+	@GET
+	@Produces(MediaType.TEXT_PLAIN)
+	@Path("bag/{pid}/ispublic")
+	public Response doGetIsFilesPublic(@PathParam("pid") String pid) {
+		Response resp = null;
+		boolean isFilesPublic = fedoraObjectService.isFilesPublic(pid);
+		resp = Response.ok(Boolean.toString(isFilesPublic)).build();
+		return resp;
+	}
+	
+	@PUT
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.TEXT_PLAIN)
+	@Path("bag/{pid}/ispublic")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response doPutSetFilesPublic(@PathParam("pid") String pid, String isFilesPublic) {
+		Response resp = null;
+		if (isFilesPublic == null || isFilesPublic.length() == 0) {
+			resp = Response.status(Status.BAD_REQUEST).build();
+		} else {
+			FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
+			if (!permissionService.checkPermission(fedoraObject, CustomACLPermission.PUBLISH)) {
+				throw new AccessDeniedException("User does not have Publish permissions.");
+			}
+			fedoraObjectService.setFilesPublic(pid, Boolean.parseBoolean(isFilesPublic));
+			resp = Response.ok().build();
+		}
+		return resp;
+	}
+	
 	/**
 	 * Returns information about the current logged on user in the format username:displayName. E.g. "u1234567:John Smith"
 	 * 
@@ -732,7 +794,7 @@ public class UploadService
 		resp = Response.ok(respEntity.toString()).build();
 		return resp;
 	}
-
+	
 	/**
 	 * Saves an InputStream to a File on disk.
 	 * 
@@ -1182,5 +1244,24 @@ public class UploadService
 		for (Entry<Object, Object> entry : uploadProps.entrySet())
 			uploadPropsStr.append(format("{0}={1}\r\n", entry.getKey(), entry.getValue()));
 		LOGGER.debug("Upload properties:\r\n{}", uploadPropsStr.toString());
+	}
+	
+	protected boolean hasRole(String[] roles) {
+	    boolean hasRole = false;
+	    for (GrantedAuthority authority : SecurityContextHolder.getContext().getAuthentication().getAuthorities()) {
+	        String userRole = authority.getAuthority();
+	        for (String role : roles) {
+	            if (role.equals(userRole)) {
+	                hasRole = true;
+	                break;
+	            }
+	        }
+
+	        if (hasRole) {
+	            break;
+	        }
+	    }
+
+	    return hasRole;
 	}
 }

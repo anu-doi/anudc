@@ -159,6 +159,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param id The fedora object pid
 	 * @return Returns the FedoraObject of the given pid
 	 */
+	@Override
 	public FedoraObject getItemByPid(String pid) {
 		LOGGER.debug("Retrieving object for: {}", pid);
 		String decodedpid = null;
@@ -166,9 +167,9 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		if (decodedpid == null) {
 			return null;
 		}
-		LOGGER.debug("Decoded pid: {}", decodedpid);
+		LOGGER.trace("Decoded pid: {}", decodedpid);
 		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
-		FedoraObject item = (FedoraObject) object.getSingleByName(decodedpid);
+		FedoraObject item = object.getSingleByName(decodedpid);
 		return item;
 	}
 
@@ -188,6 +189,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param tmplt The template that determines the fields on the screen
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
+	@Override
 	public Map<String, Object> getViewPage(FedoraObject fedoraObject, String layout, String tmplt) {
 		Map<String, Object> values = getPage(layout, tmplt, fedoraObject, false);
 		return values;
@@ -208,6 +210,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param tmplt The template that determines the fields on the screen
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
+	@Override
 	public Map<String, Object> getNewPage(String layout, String tmplt) {
 		Map<String, Object> values = getPage(layout, tmplt, null, false);
 		return values;
@@ -235,6 +238,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @throws JAXBException 
 	 * @throws FedoraClientException 
 	 */
+	@Override
 	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException
 	{
 		FedoraObject fedoraObject = null;
@@ -293,6 +297,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @throws JAXBException 
 	 * @throws FedoraClientException 
 	 */
+	@Override
 	public FedoraObject saveNew(FedoraItem item, Long rid) throws FedoraClientException, JAXBException
 	{
 		FedoraObject fedoraObject = null;
@@ -317,6 +322,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param fieldName
 	 * @return
 	 */
+	@Override
 	public String getEditItem(FedoraObject fedoraObject, String layout, String tmplt, String fieldName) {
 		LOGGER.info("In get edit item");
 		String fields = "";
@@ -347,6 +353,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param editMode Whether the returned information contains does or does not contained published information (false for only the unpublished information to be returned)
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
+	@Override
 	public Map<String, Object> getEditPage(FedoraObject fedoraObject, String layout, String tmplt, boolean editMode) {
 		Map<String, Object> values = getPage(layout, tmplt, fedoraObject, editMode);
 		try {
@@ -389,6 +396,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param rid The request id
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
+	@Override
 	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String tmplt, 
 			Map<String, List<String>> form, Long rid) {
 		Map<String, Object> values = new HashMap<String, Object>();
@@ -438,6 +446,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @throws JAXBException
 	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#saveEdit(au.edu.anu.datacommons.webservice.bindings.FedoraItem, java.lang.Long)
 	 */
+	@Override
 	public FedoraObject saveEdit(FedoraItem item, Long rid) throws FedoraClientException, JAXBException
 	{
 		ViewTransform viewTransform = new ViewTransform();
@@ -462,6 +471,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @return A response for the web page
 	 * @throws FedoraClientException 
 	 */
+	@Override
 	public void addLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException {
 		String link = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI);
 		
@@ -506,6 +516,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @throws FedoraClientException
 	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#removeLink(au.edu.anu.datacommons.data.db.model.FedoraObject, java.lang.String, java.lang.String)
 	 */
+	@Override
 	public void removeLink(FedoraObject fedoraObject, String linkType, String itemId)
 			throws FedoraClientException {
 		String link = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI);
@@ -638,6 +649,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param fedoraObject The object to retrieve the links for
 	 * @return The results of the query
 	 */
+	@Override
 	public List<Result> getLinks(FedoraObject fedoraObject) {
 		SparqlQuery sparqlQuery = new SparqlQuery();
 		
@@ -765,6 +777,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @return Returns a list of fedora objects
 	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#getListInformation(java.util.List)
 	 */
+	@Override
 	public List<Result> getListInformation(List<FedoraObject> fedoraObjects) {
 		if (fedoraObjects.size() == 0) {
 			return null;
@@ -845,10 +858,12 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param fedoraObject The fedora object to verify
 	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#hasReportPermission(au.edu.anu.datacommons.data.db.model.FedoraObject)
 	 */
+	@Override
 	public void hasReportPermission(FedoraObject fedoraObject) {
 		// do nothing
 	}
 	
+	@Override
 	public void generateDoi(String pid, String tmplt, Long rid) throws FedoraObjectException
 	{
 		InputStream datastream = null;
@@ -905,5 +920,25 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		{
 			IOUtils.closeQuietly(datastream);
 		}
+	}
+	
+	@Override
+	public boolean isFilesPublic(String pid) {
+		boolean isFilesPublic = false;
+		FedoraObjectDAOImpl dao = new FedoraObjectDAOImpl(FedoraObject.class);
+		FedoraObject item = dao.getSingleByName(pid);
+		Boolean filesPublicObj = item.isFilesPublic();
+		if (filesPublicObj != null) {
+			isFilesPublic = filesPublicObj.booleanValue();
+		}
+		return isFilesPublic;
+	}
+	
+	@Override
+	public void setFilesPublic(String pid, boolean isFilesPublic) {
+		FedoraObjectDAOImpl dao = new FedoraObjectDAOImpl(FedoraObject.class);
+		FedoraObject item = dao.getSingleByName(pid);
+		item.setFilesPublic(new Boolean(isFilesPublic));
+		dao.update(item);
 	}
 }

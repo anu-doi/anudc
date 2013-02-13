@@ -88,3 +88,23 @@ function addExtRef(pid)
 		});
 	}
 }
+
+function toggleIsFilesPublic(pid, curFlag) {
+	var newFlag;
+	if (curFlag == "false")
+		newFlag = "true";
+	else
+		newFlag = "false";
+	
+	jQuery.ajax({
+			url: "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/ispublic",
+			type: "PUT",
+			contentType: "text/plain",
+			data: newFlag
+	}).done(function(msg, status) {
+		isFilesPublic = msg;
+	}).fail(function(msg, status) {
+		alert("Unable to retrieve Files Public status");
+	});
+	return isFilesPublic;
+}
