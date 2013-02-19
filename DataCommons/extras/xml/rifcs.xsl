@@ -4,6 +4,8 @@
 	<xsl:param name="external" />
 	<xsl:variable name="anukey">http://anu.edu.au/</xsl:variable>
 	<xsl:variable name="anuidentifier">https://datacommons.anu.edu.au:8443/DataCommons/item/</xsl:variable>
+	<xsl:variable name="ucLetters" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'" />
+	<xsl:variable name="lcLetters" select="'abcdefghijklmnopqrstuvwxyz'" />
 	<xsl:template match="/">
 		<registryObjects xmlns="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			xsi:schemaLocation="http://ands.org.au/standards/rif-cs/registryObjects http://services.ands.org.au/documentation/rifcs/schema/registryObjects.xsd">
@@ -11,7 +13,7 @@
 				<key><xsl:value-of select="$anukey" /><xsl:value-of select="$key" /></key>
 				<originatingSource>http://anu.edu.au</originatingSource>
 				<xsl:choose>
-					<xsl:when test="data/type/text() = 'Collection'">
+					<xsl:when test="translate(data/type/text(), $ucLetters, $lcLetters) = 'collection'">
 						<collection>
 							<xsl:attribute name="type">
 								<xsl:value-of select="data/subType" />
@@ -19,7 +21,7 @@
 							<xsl:call-template name="process" />
 						</collection>
 					</xsl:when>
-					<xsl:when test="data/type/text() = 'Activity'">
+					<xsl:when test="translate(data/type/text(), $ucLetters, $lcLetters) = 'activity'">
 						<activity>
 							<xsl:attribute name="type">
 								<xsl:value-of select="data/subType/text()" />
@@ -27,7 +29,7 @@
 							<xsl:call-template name="process" />
 						</activity>
 					</xsl:when>
-					<xsl:when test="data/type/text() = 'Party'">
+					<xsl:when test="translate(data/type/text(), $ucLetters, $lcLetters) = 'party'">
 						<party>
 							<xsl:attribute name="type">
 								<xsl:value-of select="data/subType/text()" />
@@ -35,7 +37,7 @@
 							<xsl:call-template name="process" />
 						</party>
 					</xsl:when>
-					<xsl:when test="data/type/text() = 'Service'">
+					<xsl:when test="translate(data/type/text(), $ucLetters, $lcLetters) = 'service'">
 						<service>
 							<xsl:attribute name="type">
 								<xsl:value-of select="data/subType/text()" />
@@ -54,6 +56,9 @@
 		</xsl:if>
 		<xsl:if test="data/nlaIdentifier">
 			<identifier type="AU-ANL:PEAU"><xsl:value-of select="data/nlaIdentifier" /></identifier>
+		</xsl:if>
+		<xsl:if test="data/doi">
+			<identifier type="doi"><xsl:value-of select="data/doi" /></identifier>
 		</xsl:if>
 		<xsl:choose>
 			<xsl:when test="data/lastName or data/givenName">
@@ -207,6 +212,13 @@
 				</location>
 			</xsl:for-each>
 		</xsl:if>
+		<location>
+			<address>
+				<electronic type="url">
+					<value><xsl:value-of select="$anuidentifier" /><xsl:value-of select="$key" /></value>
+				</electronic>
+			</address>
+		</location>
 		<xsl:if test="data/coverageDates">
 			<xsl:for-each select="data/coverageDates">
 				<coverage>
@@ -284,6 +296,7 @@
 				<xsl:if test="data/dataExtent">
 					<xsl:value-of select="data/dataExtent" />
 					<xsl:if test="not(substring(data/dataExtent, string-length(data/dataExtent)) = '.')">.</xsl:if>
+					&lt;br/&gt;
 				</xsl:if>
 				<xsl:if test="data/dataSize">
 					<xsl:value-of select="data/dataSize" />
@@ -310,48 +323,38 @@
 				</rights>
 			</xsl:for-each>
 		</xsl:if>
-		<xsl:if test="data/licenceType">
-			<xsl:for-each select="data/licenceType">
+		<xsl:if test="data/licenceType or data/licence">
 				<rights>
-					<licence type="{text()}">
+					<licence type="{data/licenceType}">
 						<xsl:choose>
-							<xsl:when test="text() = 'CC-BY'">
+							<xsl:when test="data/licenceType = 'CC-BY'">
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by/3.0/au/deed.en</xsl:attribute>
 							</xsl:when>
-							<xsl:when test="text() = 'CC-BY-SA'">
+							<xsl:when test="data/licenceType = 'CC-BY-SA'">
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-sa/3.0/au/deed.en</xsl:attribute>
 							</xsl:when>
-							<xsl:when test="text() = 'CC-BY-ND'">
+							<xsl:when test="data/licenceType = 'CC-BY-ND'">
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nd/3.0/au/deed.en</xsl:attribute>
 							</xsl:when>
-							<xsl:when test="text() = 'CC-BY-NC'">
+							<xsl:when test="data/licenceType = 'CC-BY-NC'">
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nc/3.0/au/deed.en</xsl:attribute>
 							</xsl:when>
-							<xsl:when test="text() = 'CC-BY-NC-SA'">
+							<xsl:when test="data/licenceType = 'CC-BY-NC-SA'">
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nc-sa/3.0/au/deed.en</xsl:attribute>
 							</xsl:when>
-							<xsl:when test="text() = 'CC-BY-NC-ND'">
+							<xsl:when test="data/licenceType = 'CC-BY-NC-ND'">
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nc-nd/3.0/au/deed.en</xsl:attribute>
 							</xsl:when>
-							<xsl:when test="text() = 'GPL'"> 
+							<xsl:when test="data/licenceType = 'GPL'"> 
 								<xsl:attribute name="rightsUri">http://www.gnu.org/licenses/gpl.html</xsl:attribute>
 							</xsl:when>
-							<xsl:when test="text() = 'AusGoalRestrictive'">
+							<xsl:when test="data/licenceType = 'AusGoalRestrictive'">
 								<xsl:attribute name="rightsUri">http://www.ausgoal.gov.au/restrictive-licence-template</xsl:attribute>
 							</xsl:when>
 						</xsl:choose>
+						<xsl:value-of select="data/licence" />
 					</licence>
 				</rights>
-			</xsl:for-each>
-		</xsl:if>
-		<xsl:if test="data/licence">
-			<xsl:for-each select="data/licence">
-				<rights>
-					<licence>
-						<xsl:value-of select="text()" />
-					</licence>
-				</rights>
-			</xsl:for-each>
 		</xsl:if>
 		<xsl:if test="data/accessRights">
 			<xsl:for-each select="data/accessRights">
@@ -375,6 +378,7 @@
 						<xsl:value-of select="pubValue" />
 					</identifier>
 					<title><xsl:value-of select="pubTitle" /></title>
+					<notes><xsl:value-of select="pubNotes" /></notes>
 				</relatedInfo>
 			</xsl:for-each>
 		</xsl:if>
@@ -417,18 +421,24 @@
 							<xsl:when test="data/citCreator">
 								<xsl:for-each select="data/citCreator">
 									<contributor seq="{position()}">
-										<xsl:if test="citCreatorSurname">
-											<namePart type="family"><xsl:value-of select="citCreatorSurname" /></namePart>
-										</xsl:if>
-										<xsl:if test="citCreatorGiven">
-											<namePart type="given"><xsl:value-of select="citCreatorGiven" /></namePart>
-										</xsl:if>
+										<xsl:choose>
+											<xsl:when test="citCreatorSurname and citCreatorGiven">
+												<namePart type="family"><xsl:value-of select="citCreatorSurname" /></namePart>
+												<namePart type="given"><xsl:value-of select="citCreatorGiven" /></namePart>
+											</xsl:when>
+											<xsl:when test="citCreatorSurname">
+												<namePart type="superior"><xsl:value-of select="citCreatorSurname" /></namePart>
+											</xsl:when>
+											<xsl:when test="citCreatorGiven">
+												<namePart type="superior"><xsl:value-of select="citCreatorGiven" /></namePart>
+											</xsl:when>
+										</xsl:choose>
 									</contributor>
 								</xsl:for-each>
 							</xsl:when>
 							<xsl:otherwise>
 								<contributor seq="1">
-									<namePart>The Australian National University</namePart>
+									<namePart type="superior">The Australian National University</namePart>
 								</contributor>
 							</xsl:otherwise>
 						</xsl:choose>

@@ -84,9 +84,10 @@ public class LinkRelationDAOImpl extends GenericDAOImpl<LinkRelation, Long> impl
 		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
 		List<LinkRelation> linkRelations = null;
 		try {
-			Query query = entityManager.createQuery("from LinkRelation lr where lr.id.category1 = :category1 and lr.id.category2 = :category2");
-			query.setParameter("category1", category1);
-			query.setParameter("category2", category2);
+			//Query query = entityManager.createQuery("from LinkRelation lr where lr.id.category1 = :category1 and lr.id.category2 = :category2");
+			Query query = entityManager.createQuery("from LinkRelation lr where lower(lr.id.category1) = :category1 and lower(lr.id.category2) = :category2");
+			query.setParameter("category1", category1.toLowerCase());
+			query.setParameter("category2", category2.toLowerCase());
 			
 			linkRelations = query.getResultList();
 		}
