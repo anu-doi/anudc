@@ -44,6 +44,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
@@ -54,6 +55,8 @@ import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.publish.service.LocationValidationMessage;
 import au.edu.anu.datacommons.publish.service.PublishService;
 import au.edu.anu.datacommons.search.SolrSearchResult;
+import au.edu.anu.datacommons.security.acl.CustomACLPermission;
+import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.services.ListResource;
 import au.edu.anu.datacommons.util.Util;
@@ -94,6 +97,9 @@ public class PublishResource {
 	
 	@Resource(name="publishServiceImpl")
 	private PublishService publishService;
+	
+	@Resource(name="permissionService")
+	private PermissionService permissionService;
 	
 	/**
 	 * getPublishers
@@ -177,6 +183,10 @@ public class PublishResource {
 	{
 		Response resp = null;
 		UriBuilder redirUri = UriBuilder.fromPath("/display").path(pid).queryParam("layout", "def:display").queryParam("tmplt", tmplt);
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
+		if (!permissionService.checkPermission(fedoraObject, CustomACLPermission.PUBLISH)) {
+			throw new AccessDeniedException("User does not have Publish permissions.");
+		}
 
 		try
 		{

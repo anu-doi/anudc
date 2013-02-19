@@ -69,9 +69,11 @@ public class FedoraObject {
 	private ReviewReady reviewReady;
 	private PublishReady publishReady;
 	private ReviewReject reviewReject;
+	private Boolean isFilesPublic;
 	
 	public FedoraObject() {
 		publishedLocations = new ArrayList<PublishLocation>();
+		isFilesPublic = false;
 	}
 	
 	/**
@@ -351,5 +353,25 @@ public class FedoraObject {
 	 */
 	public void setReviewReject(ReviewReject reviewReject) {
 		this.reviewReject = reviewReject;
+	}
+
+	/**
+	 * Returns if files in this record, if any, are public after the record's published.
+	 * 
+	 * @return true if public, false otherwise
+	 */
+	@Column(name = "is_files_public", nullable = false)
+	public Boolean isFilesPublic() {
+		return isFilesPublic;
+	}
+
+	/**
+	 * Sets if files in this record, if any, are public after the record's published.
+	 * 
+	 * @param isFilesPublic
+	 *            true if public, false otherwise
+	 */
+	public void setFilesPublic(Boolean isFilesPublic) {
+		this.isFilesPublic = isFilesPublic;
 	}
 }

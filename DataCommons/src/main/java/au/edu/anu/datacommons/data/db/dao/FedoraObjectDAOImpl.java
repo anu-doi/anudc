@@ -76,7 +76,8 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param name The pid of the object to return
+	 * @param name
+	 *            The pid of the object to return
 	 * @return The Object returned from the query.
 	 */
 	public FedoraObject getSingleByName(String name) {
@@ -86,11 +87,9 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 			Query query = entityManager.createQuery("from FedoraObject where object_id = :pid");
 			query.setParameter("pid", name);
 			fedoraObject = (FedoraObject) query.getSingleResult();
-		}
-		catch (NoResultException e) {
+		} catch (NoResultException e) {
 			LOGGER.warn("No entity found for pid {}", name);
-		}
-		finally {
+		} finally {
 			entityManager.close();
 		}
 		return fedoraObject;
@@ -100,7 +99,7 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	 * getAllReadyForReview
 	 * 
 	 * Gets all objects that are ready for review
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.3		25/07/2012	Genevieve Turner(GT)	Initial
@@ -112,14 +111,14 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	public List<FedoraObject> getAllReadyForReview() {
 		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
 		List<FedoraObject> fedoraObjects = null;
-		
+
 		try {
-			fedoraObjects = entityManager.createQuery("SELECT fo FROM FedoraObject fo join fo.reviewReady rr").getResultList();
-		}
-		finally {
+			fedoraObjects = entityManager.createQuery("SELECT fo FROM FedoraObject fo join fo.reviewReady rr",
+					FedoraObject.class).getResultList();
+		} finally {
 			entityManager.close();
 		}
-		
+
 		return fedoraObjects;
 	}
 	
@@ -127,7 +126,7 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	 * getAllReadyForPublish
 	 * 
 	 * Gets all objects that are ready for publish
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.3		25/07/2012	Genevieve Turner(GT)	Initial
@@ -139,14 +138,14 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	public List<FedoraObject> getAllReadyForPublish() {
 		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
 		List<FedoraObject> fedoraObjects = null;
-		
+
 		try {
-			fedoraObjects = entityManager.createQuery("SELECT fo FROM FedoraObject fo join fo.publishReady pr").getResultList();
-		}
-		finally {
+			fedoraObjects = entityManager.createQuery("SELECT fo FROM FedoraObject fo join fo.publishReady pr",
+					FedoraObject.class).getResultList();
+		} finally {
 			entityManager.close();
 		}
-		
+
 		return fedoraObjects;
 	}
 	
@@ -154,7 +153,7 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	 * getAllRejected
 	 * 
 	 * Gets all objects that have been rejected
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.3		25/07/2012	Genevieve Turner(GT)	Initial
@@ -166,14 +165,14 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	public List<FedoraObject> getAllRejected() {
 		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
 		List<FedoraObject> fedoraObjects = null;
-		
+
 		try {
-			fedoraObjects = entityManager.createQuery("SELECT fo FROM FedoraObject fo join fo.reviewReject rr").getResultList();
-		}
-		finally {
+			fedoraObjects = entityManager.createQuery("SELECT fo FROM FedoraObject fo join fo.reviewReject rr",
+					FedoraObject.class).getResultList();
+		} finally {
 			entityManager.close();
 		}
-		
+
 		return fedoraObjects;
 	}
 }
