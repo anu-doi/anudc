@@ -328,9 +328,9 @@ public class UploadService
 
 			// Create access log.
 			if (dcStorage.bagExists(pid))
-				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.UPDATE);
+				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), request.getHeader("User-Agent"), AccessLogRecord.Operation.UPDATE);
 			else
-				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.CREATE);
+				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), request.getHeader("User-Agent"), AccessLogRecord.Operation.CREATE);
 
 			// Add files to bag.
 			uploadedFilesDir = new File(GlobalProps.getUploadDirAsFile(), DcStorage.convertToDiskSafe(pid));
@@ -461,7 +461,7 @@ public class UploadService
 			LOGGER.info("Dropbox details valid. ID: {}, Access Code: {}. Returning file requested.", dropbox.getId().toString(), dropbox.getAccessCode()
 					.toString());
 			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
-					AccessLogRecord.Operation.READ));
+					request.getHeader("User-Agent"), AccessLogRecord.Operation.READ));
 			Set<CollectionRequestItem> items = dropbox.getCollectionRequest().getItems();
 			if (filename.equalsIgnoreCase("zip"))
 			{
@@ -533,7 +533,7 @@ public class UploadService
 			Users curUser = getCurUser();
 			if (curUser != null) {
 				AccessLogRecord accessLogRecord = new AccessLogRecord(uriInfo.getPath(), curUser,
-						request.getRemoteAddr(), AccessLogRecord.Operation.READ);
+						request.getRemoteAddr(), request.getHeader("User-Agent"), AccessLogRecord.Operation.READ);
 				new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessLogRecord);
 			}
 			if (fileRequested.equals("zip"))
@@ -584,10 +584,10 @@ public class UploadService
 		{
 			if (dcStorage.fileExistsInBag(pid, fileInBag))
 				new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
-						AccessLogRecord.Operation.UPDATE));
+						request.getHeader("User-Agent"), AccessLogRecord.Operation.UPDATE));
 			else
 				new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
-						AccessLogRecord.Operation.CREATE));
+						request.getHeader("User-Agent"), AccessLogRecord.Operation.CREATE));
 
 			uploadedFile = File.createTempFile("Rep", null, GlobalProps.getUploadDirAsFile());
 			saveInputStreamAsFile(is, uploadedFile);
@@ -624,7 +624,7 @@ public class UploadService
 		try
 		{
 			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
-					AccessLogRecord.Operation.DELETE));
+					request.getHeader("User-Agent"), AccessLogRecord.Operation.DELETE));
 			dcStorage.deleteFileFromBag(pid, fileInBag);
 			resp = Response.ok(format("File {0} deleted from {1}", fileInBag, pid)).build();
 		}
@@ -716,12 +716,12 @@ public class UploadService
 			if (dcStorage.bagExists(pid))
 			{
 				LOGGER.info("A bag exists for {}. Replacing it with the file uploaded...", pid);
-				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.UPDATE);
+				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), request.getHeader("User-Agent"), AccessLogRecord.Operation.UPDATE);
 			}
 			else
 			{
 				LOGGER.info("No bag exists for {}. Storing Bag...", pid);
-				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), AccessLogRecord.Operation.CREATE);
+				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(), request.getHeader("User-Agent"), AccessLogRecord.Operation.CREATE);
 			}
 			dcStorage.storeBag(pid, uploadedFile);
 			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessRec);
