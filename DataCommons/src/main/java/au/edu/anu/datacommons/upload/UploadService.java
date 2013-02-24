@@ -342,11 +342,11 @@ public class UploadService
 			}
 
 			// Add External Reference URLs.
-			for (int i = 0; uploadProps.containsKey("url" + i); i++)
-			{
-				dcStorage.addExtRef(pid, uploadProps.getProperty("url" + i));
-				LOGGER.debug("Added URL {} as external reference.", uploadProps.getProperty("url" + i));
+			Set<String> urls = new HashSet<String>(); 
+			for (int i = 0; uploadProps.containsKey("url" + i); i++) {
+				urls.add(uploadProps.getProperty("url" + i));
 			}
+			dcStorage.addExtRefs(pid, urls);
 
 			// Save the access log record created earlier for the activity performed.
 			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessRec);
@@ -664,13 +664,10 @@ public class UploadService
 		getFedoraObjectWriteAccess(pid);
 		try
 		{
-			if (addUrlSet != null)
-				for (String url : addUrlSet)
-					dcStorage.addExtRef(pid, url);
-
-			if (deleteUrlSet != null)
-				for (String url : deleteUrlSet)
-					dcStorage.deleteExtRef(pid, url);
+			if (addUrlSet != null && !addUrlSet.isEmpty())
+				dcStorage.addExtRefs(pid, addUrlSet);
+			if (deleteUrlSet != null && deleteUrlSet.isEmpty())
+				dcStorage.deleteExtRefs(pid, deleteUrlSet);
 
 			resp = Response.ok(format("Added {0} to {1}.", addUrlSet, pid)).build();
 		}
@@ -1186,7 +1183,7 @@ public class UploadService
 	private List<FileItem> parseUploadRequest(HttpServletRequest request) throws FileUploadException
 	{
 		// Create a new file upload handler.
-		ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory(GlobalProps.getMaxSizeInMem(), GlobalProps.getTempDirAsFile()));
+		ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory(GlobalProps.getMaxSizeInMem(), GlobalProps.getUploadDirAsFile()));
 		return (List<FileItem>) upload.parseRequest(request);
 	}
 
@@ -1218,7 +1215,6 @@ public class UploadService
 		// Iterate each item in the request, and extract the form fields first.
 		for (FileItem iFileItem : uploadedItems)
 		{
-			LOGGER.debug("Processing all form fields in this request.");
 			if (iFileItem.isFormField() && Util.isNotEmpty(iFileItem.getString()))
 			{
 				// TODO Only include valid properties. Skip over props not required. Determine which ones are not required. 

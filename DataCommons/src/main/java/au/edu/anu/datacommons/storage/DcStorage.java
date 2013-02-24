@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.storage;
 
-import static java.text.MessageFormat.format;
+import static java.text.MessageFormat.*;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
@@ -34,7 +34,6 @@ import gov.loc.repository.bagit.transformer.impl.ChainingCompleter;
 import gov.loc.repository.bagit.transformer.impl.DefaultCompleter;
 import gov.loc.repository.bagit.transformer.impl.TagManifestCompleter;
 import gov.loc.repository.bagit.transformer.impl.UpdateCompleter;
-import gov.loc.repository.bagit.transformer.impl.UpdatePayloadOxumCompleter;
 import gov.loc.repository.bagit.utilities.SimpleResult;
 import gov.loc.repository.bagit.verify.FailModeSupporting.FailMode;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
@@ -48,22 +47,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
-import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -76,42 +71,37 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.dcbag.BagPropsTxt.DataSource;
 import au.edu.anu.dcbag.BagSummary;
 import au.edu.anu.dcbag.ExtRefsTxt;
 import au.edu.anu.dcbag.FileSummaryMap;
-import au.edu.anu.dcbag.BagPropsTxt.DataSource;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
 public final class DcStorage implements Closeable
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorage.class);
-
-	private static ExecutorService execSvc;
 	private static final int CONNECTION_TIMEOUT_MS = 30000;
 	private static final int READ_TIMEOUT_MS = 30000;
+	private static DcStorage inst = null;
+
+	private ExecutorService execSvc;
 
 	private Set<Manifest.Algorithm> algorithms;
-	private static DcStorage inst = null;
-	private final Set<String> lockedPids = Collections.synchronizedSet(new HashSet<String>());
-	private static File bagsDir = null;
+	// private final Set<String> lockedPids = Collections.synchronizedSet(new HashSet<String>());
+	private File bagsDir = null;
 
 	public static final BagFactory bagFactory = new BagFactory();
 
 	/**
 	 * Constructor for DcStorage. Initialises the hashing algorithm(s) to use, completers, and writers.
 	 */
-	protected DcStorage()
+	protected DcStorage(File bagsDir, ExecutorService execSvc)
 	{
-		// Algorithms for manifest files.
 		algorithms = new HashSet<Manifest.Algorithm>();
 		algorithms.add(Manifest.Algorithm.MD5);
-
-		execSvc = Executors.newSingleThreadExecutor();
-
-		// Set storage location if not set already.
-		if (bagsDir == null)
-			bagsDir = GlobalProps.getBagsDirAsFile();
+		this.bagsDir = bagsDir;
+		this.execSvc = execSvc;
 
 		// If the directory specified doesn't exist, create it.
 		if (!bagsDir.exists() && !bagsDir.mkdirs())
@@ -125,47 +115,15 @@ public final class DcStorage implements Closeable
 	 */
 	public static synchronized DcStorage getInstance()
 	{
-		if (inst == null)
-			inst = new DcStorage();
+		if (inst == null) {
+			inst = new DcStorage(GlobalProps.getBagsDirAsFile(), Executors.newSingleThreadExecutor());
+		}
 		return inst;
 	}
 
-	static File getLocation()
+	File getLocation()
 	{
 		return bagsDir;
-	}
-
-	public static void setLocation(File newBagsDir)
-	{
-		if (inst == null)
-			bagsDir = newBagsDir;
-		else
-			throw new RuntimeException("Can't change storage location after instantiation.");
-	}
-
-	/**
-	 * Downloads a file from a specified URL and adds it to the bag of a specified collection.
-	 * 
-	 * @param pid
-	 *            Pid of the collection record
-	 * @param filename
-	 *            Filename to save as
-	 * @param fileUrl
-	 *            URL of the externally hosted file as String
-	 * @throws DcStorageException
-	 */
-	public void addFileToBag(String pid, String filename, String fileUrl) throws DcStorageException
-	{
-		try
-		{
-			addFileToBag(pid, filename, new URL(fileUrl));
-		}
-		catch (MalformedURLException e)
-		{
-			DcStorageException dce = new DcStorageException(e.getMessage(), e);
-			LOGGER.error(e.getMessage(), dce);
-			throw dce;
-		}
 	}
 
 	/**
@@ -198,7 +156,6 @@ public final class DcStorage implements Closeable
 		catch (IOException e)
 		{
 			DcStorageException dce = new DcStorageException(e);
-			LOGGER.error(e.getMessage(), dce);
 			throw dce;
 		}
 		finally
@@ -218,54 +175,33 @@ public final class DcStorage implements Closeable
 	 *            File object
 	 * @throws DcStorageException
 	 */
-	public void addFileToBag(final String pid, final File file) throws DcStorageException
-	{
+	public void addFileToBag(final String pid, final File file) throws DcStorageException {
 		// TODO Lock Pid
 		Bag bag = null;
-		try
-		{
+		try {
 			bag = getBag(pid);
 			if (bag == null)
 				bag = createBlankBag(pid);
-			else
-			{
+			else {
 				archiveBag(bag, false);
 				// Reload bag instance because now it points to the archived bag.
 				bag = getBag(pid);
 			}
 			moveFileToPayload(pid, file, file.getName());
 
-			execSvc.execute(new Runnable() {
-				@Override
-				public void run()
-				{
-					// Complete bag.
-					Bag bag = getBag(pid);
-					UpdateCompleter updateCompleter = new UpdateCompleter(bagFactory);
-					updateCompleter.setLimitAddPayloadFilepaths(Arrays.asList("data/" + file.getName()));
-					updateCompleter.setLimitUpdatePayloadFilepaths(Arrays.asList("data/" + file.getName()));
-					DcStorageCompleter dcStorageCompleter = new DcStorageCompleter();
-					Completer completer = new ChainingCompleter(dcStorageCompleter, updateCompleter);
-					bag = bag.makeComplete(completer);
-
-					// Write bag.
-					FileSystemWriter writer = new FileSystemWriter(bagFactory);
-					writer.setTagFilesOnly(true);
-					bag = writer.write(bag, bag.getFile());
-				}
-			});
-		}
-		catch (IOException e)
-		{
+			bag = getBag(pid);
+			CompleterTask compTask = new CompleterTask(bagFactory, bag);
+			compTask.addPayloadFileAddedUpdated("data/" + file.getName());
+			execSvc.submit(compTask);
+		} catch (IOException e) {
 			DcStorageException dce = new DcStorageException(e);
 			LOGGER.error(e.getMessage(), dce);
 			throw dce;
-		}
-		finally
-		{
+		} finally {
 			IOUtils.closeQuietly(bag);
 		}
 	}
+	
 
 	/**
 	 * Deletes a file from the bag of a specified record. The bag itself is then completed in a separate request.
@@ -277,13 +213,11 @@ public final class DcStorage implements Closeable
 	 * @throws DcStorageException
 	 *             when unable to delete the file
 	 */
-	public void deleteFileFromBag(final String pid, final String bagFilePath) throws DcStorageException
-	{
+	public void deleteFileFromBag(final String pid, final String bagFilePath) throws DcStorageException {
 		Bag bag = null;
 		if (!bagExists(pid))
 			throw new DcStorageException(format("No files present in pid {0}.", bagFilePath));
-		try
-		{
+		try {
 			bag = getBag(pid);
 			if (!fileExistsInBag(pid, bagFilePath))
 				throw new DcStorageException(format("File {0} doesn't exist in pid {1}.", bagFilePath, pid));
@@ -293,34 +227,16 @@ public final class DcStorage implements Closeable
 			if (!fileToDelete.delete())
 				throw new DcStorageException(format("Unable to delete file {0} from {1}", bagFilePath, pid));
 
-			execSvc.execute(new Runnable() {
-				@Override
-				public void run()
-				{
-					// Complete bag.
-					Bag bag = getBag(pid);
-					UpdateCompleter updateCompleter = new UpdateCompleter(bagFactory);
-					updateCompleter.setLimitDeletePayloadFilepaths(Arrays.asList(bagFilePath));
-					Completer completer = new ChainingCompleter(new DcStorageCompleter(), updateCompleter);
-					bag = bag.makeComplete(completer);
-
-					// Write Bag.
-					FileSystemWriter writer = new FileSystemWriter(bagFactory);
-					writer.setTagFilesOnly(true);
-					bag = writer.write(bag, bag.getFile());
-				}
-			});
-		}
-		catch (IOException e)
-		{
+			CompleterTask task = new CompleterTask(bagFactory, bag);
+			task.addPayloadFileDeleted(bagFilePath);
+			execSvc.submit(task);
+		} catch (IOException e) {
 			throw new DcStorageException(e.getMessage(), e);
-		}
-		finally
-		{
+		} finally {
 			IOUtils.closeQuietly(bag);
 		}
 	}
-
+	
 	/**
 	 * Adds a reference to an external URL in a bag.
 	 * 
@@ -330,11 +246,9 @@ public final class DcStorage implements Closeable
 	 *            External URL as String
 	 * @throws DcStorageException
 	 */
-	public void addExtRef(String pid, String url) throws DcStorageException
-	{
+	public void addExtRefs(String pid, Collection<String> urls) throws DcStorageException {
 		Bag bag = null;
-		try
-		{
+		try {
 			bag = getBag(pid);
 			if (bag == null)
 				bag = createBlankBag(pid);
@@ -347,9 +261,11 @@ public final class DcStorage implements Closeable
 			else
 				extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, extRefsFile, getCharacterEncoding(bag));
 
-			// Convert the URL to Base64 string to be used as a key. Urls have ':' which cannot be present in keys. Encoding the url makes the key unique ensuring
-			// each url appears only once.
-			extRefsTxt.put(base64Encode(url), url);
+			// Convert the URL to Base64 string to be used as a key. Urls have ':' which cannot be present in keys.
+			// Encoding the url makes the key unique ensuring each url appears only once.
+			for (String url : urls) {
+				extRefsTxt.put(base64Encode(url), url);
+			}
 			bag.putBagFile(extRefsTxt);
 			TagManifestCompleter tagManifestCompleter = new TagManifestCompleter(bagFactory);
 			bag = bag.makeComplete(tagManifestCompleter);
@@ -358,9 +274,7 @@ public final class DcStorage implements Closeable
 			FileSystemWriter writer = new FileSystemWriter(bagFactory);
 			writer.setTagFilesOnly(true);
 			bag = writer.write(bag, bag.getFile());
-		}
-		finally
-		{
+		} finally {
 			IOUtils.closeQuietly(bag);
 		}
 	}
@@ -375,22 +289,25 @@ public final class DcStorage implements Closeable
 	 * @throws DcStorageException
 	 *             when unable to delete the external reference
 	 */
-	public void deleteExtRef(String pid, String url) throws DcStorageException
-	{
+	public void deleteExtRefs(String pid, Collection<String> urls) throws DcStorageException {
 		if (!bagExists(pid))
-			throw new DcStorageException(format("Unable to delete external reference {0}. Bag for pid {1} doesn't exist.", url, pid));
+			throw new DcStorageException(format("Unable to delete external references. Bag for pid {0} doesn't exist.",
+					pid));
 		Bag bag = null;
-		try
-		{
+		try {
 			bag = getBag(pid);
 			BagFile extRefsFile = bag.getBagFile(ExtRefsTxt.FILEPATH);
 			if (extRefsFile == null)
-				throw new DcStorageException(format("Unable to delete external reference {0}. No external references exist for pid {1}", url, pid));
+				throw new DcStorageException(format(
+						"Unable to delete external references. No external references exist for pid {0}", pid));
 			ExtRefsTxt extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, extRefsFile, getCharacterEncoding(bag));
-			String base64EncodedUrl = base64Encode(url);
-			if (!extRefsTxt.containsKey(base64EncodedUrl))
-				throw new DcStorageException(format("External reference {0} not found in pid {1}", url, pid));
-			extRefsTxt.remove(base64EncodedUrl);
+			for (String url : urls) {
+				String base64EncodedUrl = base64Encode(url);
+				if (!extRefsTxt.containsKey(base64EncodedUrl)) {
+					throw new DcStorageException(format("External reference {0} not found in pid {1}", url, pid));
+				}
+				extRefsTxt.remove(base64EncodedUrl);
+			}
 			bag.putBagFile(extRefsTxt);
 
 			// Complete bag.
@@ -401,9 +318,7 @@ public final class DcStorage implements Closeable
 			FileSystemWriter writer = new FileSystemWriter(bagFactory);
 			writer.setTagFilesOnly(true);
 			bag = writer.write(bag, bag.getFile());
-		}
-		finally
-		{
+		} finally {
 			IOUtils.closeQuietly(bag);
 		}
 	}
@@ -748,27 +663,27 @@ public final class DcStorage implements Closeable
 	 * @throws IOException
 	 *             when unable to move the file
 	 */
-	private void moveFileToPayload(String pid, File fileToMove, String filename) throws IOException
-	{
+	private void moveFileToPayload(String pid, File fileToMove, String filename) throws IOException {
 		File payloadDir = new File(getBagDir(pid), "data/");
 		File targetFile = new File(payloadDir, filename);
-		if (targetFile.exists())
-		{
+		if (targetFile.exists()) {
 			LOGGER.debug("File {} already exists. Deleting.", targetFile);
-			if (!targetFile.delete())
-			{
-				LOGGER.error("Unable to delete preexisting {} in bag for {}. Check permissions.", targetFile.getName(), pid);
+			if (!targetFile.delete()) {
+				LOGGER.error("Unable to delete preexisting {} in bag for {}. Check permissions.", targetFile.getName(),
+						pid);
 				throw new IOException(format("Unable to delete file {0} in {1}", targetFile.getName(), pid));
 			}
 		}
 		LOGGER.debug("Moving {} to {} and saving as {}.", fileToMove.getAbsolutePath(), payloadDir, filename);
-		if (!fileToMove.renameTo(targetFile))
-		{
-			LOGGER.error("Unable to move {} to {} to save as {}. Check permissions", fileToMove.getAbsolutePath(), payloadDir, filename);
-			throw new IOException(format("Unable to move file {0} to payload directory of {1}", fileToMove.getAbsolutePath(), pid));
+		if (!fileToMove.renameTo(targetFile)) {
+			LOGGER.error("Unable to move {} to {} to save as {}. Check permissions", fileToMove.getAbsolutePath(),
+					payloadDir, filename);
+			throw new IOException(format("Unable to move file {0} to payload directory of {1}",
+					fileToMove.getAbsolutePath(), pid));
 		}
 		LOGGER.debug("Succesfully moved {} to {} and saved as {}.", fileToMove.getAbsolutePath(), payloadDir, filename);
 	}
+	
 
 	/**
 	 * Performs a high speed copy from one File to another.
@@ -919,6 +834,7 @@ public final class DcStorage implements Closeable
 	{
 		File curBagFile = bag.getFile();
 		Date dateNow = new Date();
+		
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
 		bag.close();
 		File archivedBagFile = new File(bagsDir, curBagFile.getName() + "-" + dateFormat.format(dateNow));

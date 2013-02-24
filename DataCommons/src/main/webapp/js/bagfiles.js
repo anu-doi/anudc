@@ -23,9 +23,6 @@ function deleteFile(url)
 		{
 			url : url,
 			type : "DELETE",
-		}).done(function()
-		{
-			alert('Deleted successfully.');
 		}).fail(function()
 		{
 			alert('Unable to delete file.');
@@ -49,9 +46,6 @@ function deleteExtRef(pid, extRefUrl)
 			{
 				"deleteUrl" : extRefUrl
 			}
-		}).done(function()
-		{
-			alert('Deleted successfully.');
 		}).fail(function()
 		{
 			alert('Unable to delete file.');
@@ -76,9 +70,6 @@ function addExtRef(pid)
 			{
 				"addUrl" : url
 			}
-		}).done(function()
-		{
-			alert('Added successfully.');
 		}).fail(function()
 		{
 			alert('Unable to add url.');
