@@ -110,17 +110,21 @@ public class DcStorageCompleter implements Completer {
 				pFormats.remove(filepath);
 			}
 		}
-		
+
 		// Get Fido Output for each payload file.
 		for (BagFile iBagFile : bag.getPayload()) {
 			if (isLimited(this.limitAddUpdatePayloadFilepaths, iBagFile.getFilepath())) {
 				FidoParser fido;
+				InputStream fileStream = null;
 				try {
-					fido = new FidoParser(iBagFile.newInputStream());
+					fileStream = iBagFile.newInputStream();
+					fido = new FidoParser(fileStream);
 					LOGGER.trace("Fido result for {}: {}", iBagFile.getFilepath(), fido.getOutput());
 					pFormats.put(iBagFile.getFilepath(), fido.getOutput());
 				} catch (IOException e) {
 					LOGGER.warn("Unable to get Fido output for file {}", iBagFile.getFilepath());
+				} finally {
+					IOUtils.closeQuietly(fileStream);
 				}
 			}
 		}
@@ -145,15 +149,20 @@ public class DcStorageCompleter implements Completer {
 				vsTxt.remove(filepath);
 			}
 		}
-		
+
 		// Get scan result for each payload file.
 		ClamScan cs = new ClamScan("localhost", 3310);
 		if (cs.ping() == true) {
 			for (BagFile iBagFile : bag.getPayload()) {
 				if (isLimited(this.limitAddUpdatePayloadFilepaths, iBagFile.getFilepath())) {
-					InputStream is = iBagFile.newInputStream();
-					ScanResult sr = cs.scan(is);
-					vsTxt.put(iBagFile.getFilepath(), sr.getResult());
+					InputStream is = null;
+					try {
+						is = iBagFile.newInputStream();
+						ScanResult sr = cs.scan(is);
+						vsTxt.put(iBagFile.getFilepath(), sr.getResult());
+					} finally {
+						IOUtils.closeQuietly(is);
+					}
 				}
 			}
 		}

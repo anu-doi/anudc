@@ -21,6 +21,8 @@
 
 package au.edu.anu.datacommons.security.service;
 
+import static java.text.MessageFormat.*;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -268,7 +270,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 				}
 			}
 			if (groupFound == false) {
-				throw new AccessDeniedException("You do not have permissions to create in this group");
+				throw new AccessDeniedException(format("You do not have permissions to create in group {0}", ownerGroup));
 			}
 		}
 		else {

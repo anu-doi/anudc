@@ -137,32 +137,22 @@ public final class DcStorage implements Closeable
 	 *            URL from where to download the file
 	 * @throws DcStorageException
 	 */
-	public void addFileToBag(String pid, String filename, URL fileUrl) throws DcStorageException
-	{
-		File tempFile = null;
-		File tempRenamedFile = null;
-		try
-		{
-			tempFile = File.createTempFile("DcTempFile", null);
-			tempRenamedFile = new File(tempFile.getParentFile(), filename);
-			if (!tempFile.renameTo(tempRenamedFile))
-				throw new IOException(format("Unable to rename {0} to {1}.", tempFile.getAbsolutePath(), tempRenamedFile.getAbsolutePath()));
+	public void addFileToBag(String pid, String filename, URL fileUrl) throws DcStorageException {
+		File downloadedFile = null;
+		try {
+			TempFileTask dlTask = new TempFileTask(fileUrl);
+			try {
+				downloadedFile = dlTask.call();
+			} catch (Exception e) {
+				throw new IOException(e);
+			}
 
-			LOGGER.debug("Saving {} as {}...", fileUrl.toString(), tempRenamedFile.getAbsolutePath());
-			// Connection and read timeout set to 30 seconds.
-			FileUtils.copyURLToFile(fileUrl, tempRenamedFile, CONNECTION_TIMEOUT_MS, READ_TIMEOUT_MS);
-			addFileToBag(pid, tempRenamedFile);
-		}
-		catch (IOException e)
-		{
+			addFileToBag(pid, downloadedFile, filename);
+		} catch (IOException e) {
 			DcStorageException dce = new DcStorageException(e);
 			throw dce;
-		}
-		finally
-		{
-			// Delete the file downloaded from URL.
-			FileUtils.deleteQuietly(tempFile);
-			FileUtils.deleteQuietly(tempRenamedFile);
+		} finally {
+			FileUtils.deleteQuietly(downloadedFile);
 		}
 	}
 
@@ -175,8 +165,7 @@ public final class DcStorage implements Closeable
 	 *            File object
 	 * @throws DcStorageException
 	 */
-	public void addFileToBag(final String pid, final File file) throws DcStorageException {
-		// TODO Lock Pid
+	public void addFileToBag(String pid, File file, String filename) throws DcStorageException {
 		Bag bag = null;
 		try {
 			bag = getBag(pid);
@@ -187,11 +176,11 @@ public final class DcStorage implements Closeable
 				// Reload bag instance because now it points to the archived bag.
 				bag = getBag(pid);
 			}
-			moveFileToPayload(pid, file, file.getName());
+			moveFileToPayload(pid, file, filename);
 
 			bag = getBag(pid);
 			CompleterTask compTask = new CompleterTask(bagFactory, bag);
-			compTask.addPayloadFileAddedUpdated("data/" + file.getName());
+			compTask.addPayloadFileAddedUpdated("data/" + filename);
 			execSvc.submit(compTask);
 		} catch (IOException e) {
 			DcStorageException dce = new DcStorageException(e);
@@ -684,45 +673,6 @@ public final class DcStorage implements Closeable
 		LOGGER.debug("Succesfully moved {} to {} and saved as {}.", fileToMove.getAbsolutePath(), payloadDir, filename);
 	}
 	
-
-	/**
-	 * Performs a high speed copy from one File to another.
-	 * 
-	 * @param source
-	 *            The source File to copy
-	 * @param target
-	 *            The target File
-	 * @throws IOException
-	 *             when unable to copy
-	 */
-	private void copyFile(File source, File target) throws IOException
-	{
-		if (!source.exists())
-			throw new FileNotFoundException(format("File {0} not found. Check the file exists and has read permissions", source.getAbsolutePath()));
-		LOGGER.debug("Copying {} of size {} to {}.", source.getAbsolutePath(), source.length(), target.getAbsolutePath());
-		FileInputStream sourceStream = null;
-		FileChannel sourceChannel = null;
-		FileOutputStream targetStream = null;
-		FileChannel targetChannel = null;
-
-		try
-		{
-			sourceStream = new FileInputStream(source);
-			targetStream = new FileOutputStream(target);
-			sourceChannel = sourceStream.getChannel();
-			targetChannel = targetStream.getChannel();
-			targetChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
-		}
-		finally
-		{
-			IOUtils.closeQuietly(sourceChannel);
-			IOUtils.closeQuietly(sourceStream);
-			IOUtils.closeQuietly(targetChannel);
-			IOUtils.closeQuietly(targetStream);
-			if (target.exists())
-				FileUtils.deleteQuietly(target);
-		}
-	}
 
 	/**
 	 * Updates or creates the FILE0 datastream of a specified record to indicate that a record has files stored against it.

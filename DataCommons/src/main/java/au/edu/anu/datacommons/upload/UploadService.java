@@ -338,7 +338,7 @@ public class UploadService
 			for (int i = 0; (filename = uploadProps.getProperty("file" + i)) != null; i++)
 			{
 				LOGGER.debug("Adding file {} to Bag {}.", filename, pid);
-				dcStorage.addFileToBag(pid, new File(uploadedFilesDir, filename));
+				dcStorage.addFileToBag(pid, new File(uploadedFilesDir, filename), filename);
 			}
 
 			// Add External Reference URLs.
@@ -593,7 +593,7 @@ public class UploadService
 			saveInputStreamAsFile(is, uploadedFile);
 			File renamedFile = new File(uploadedFile.getParentFile(), getFilenameFromPath(fileInBag));
 			uploadedFile.renameTo(renamedFile);
-			dcStorage.addFileToBag(pid, renamedFile);
+			dcStorage.addFileToBag(pid, renamedFile, renamedFile.getName());
 			resp = Response.ok().build();
 		}
 		catch (Exception e)

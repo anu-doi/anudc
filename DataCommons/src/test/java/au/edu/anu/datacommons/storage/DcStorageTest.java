@@ -144,7 +144,7 @@ public class DcStorageTest
 			assertTrue(file1.length() == testStr1.length());
 
 			// Add temp file to a new bag.
-			dcStorage.addFileToBag(pid, file1);
+			dcStorage.addFileToBag(pid, file1, file1.getName());
 
 			// Verify bag contains only 1 file.
 			bag = dcStorage.getBag(pid);
@@ -233,7 +233,7 @@ public class DcStorageTest
 			assertNull(bag);
 
 			// Add the first file to a bag.
-			dcStorage.addFileToBag(pid, file1);
+			dcStorage.addFileToBag(pid, file1, file1.getName());
 
 			// Check the contents of the file against the original string that was written to it.
 			String textInFile = IOUtils.toString(dcStorage.getFileStream(pid, "data/" + file1.getName()), "UTF-8");
@@ -277,7 +277,7 @@ public class DcStorageTest
 			// Create temp file.
 			File file1 = tempDir.newFile();
 			TestUtil.fillRandomData(file1, TestUtil.RANDOM.nextInt(5) + 1);
-			dcStorage.addFileToBag(pid, file1);
+			dcStorage.addFileToBag(pid, file1, file1.getName());
 
 			// Add one external references.
 			String url1 = "http://www.google.com.au:8080/";
@@ -368,7 +368,7 @@ public class DcStorageTest
 			fWriter.write("Test String");
 			fWriter.close();
 
-			dcStorage.addFileToBag(pid, file1);
+			dcStorage.addFileToBag(pid, file1, file1.getName());
 			bag = dcStorage.getBag(pid);
 
 			// Verify file exists in bag.
@@ -473,9 +473,9 @@ public class DcStorageTest
 			File file2 = tempDir.newFile();
 			TestUtil.fillRandomData(file2, 3);
 			LOGGER.info("Adding {} to {}", file1.getAbsolutePath(), pid);
-			dcStorage.addFileToBag(pid, file1);
+			dcStorage.addFileToBag(pid, file1, file1.getName());
 			LOGGER.info("Adding {} to {}", file2.getAbsolutePath(), pid);
-			dcStorage.addFileToBag(pid, file2);
+			dcStorage.addFileToBag(pid, file2, file2.getName());
 			File fileToDelete = new File(dcStorage.getBagDir(pid), "data/" + file1.getName());
 			while (!fileToDelete.exists())
 				;
@@ -507,7 +507,7 @@ public class DcStorageTest
 			for (int i = 0; i < NUM_FILES; i++) {
 				sourceFiles[i] = tempDir.newFile();
 				TestUtil.fillRandomData(sourceFiles[i], TestUtil.RANDOM.nextInt(20) + 1);
-				dcStorage.addFileToBag(pid, sourceFiles[i]);
+				dcStorage.addFileToBag(pid, sourceFiles[i], sourceFiles[i].getName());
 			}
 		} catch (DcStorageException e) {
 			failOnException(e);
@@ -572,12 +572,12 @@ public class DcStorageTest
 				TestUtil.fillRandomData(file1, TestUtil.RANDOM.nextInt(4) + 1);
 				String md5sum1 = calcMD5(file1);
 				LOGGER.info("Adding {} to {}...", file1, pid);
-				dcStorage.addFileToBag(pid, file1);
+				dcStorage.addFileToBag(pid, file1, file1.getName());
 				
 				File file2 = tempDir.newFile();
 				TestUtil.fillRandomData(file2, TestUtil.RANDOM.nextInt(4) + 1);
 				String md5sum2 = calcMD5(file2);
-				dcStorage.addFileToBag(pid, file2);
+				dcStorage.addFileToBag(pid, file2, file2.getName());
 
 				File replacementFile1 = tempDir.newFile();
 				TestUtil.fillRandomData(replacementFile1, TestUtil.RANDOM.nextInt(4) + 1);
@@ -585,7 +585,7 @@ public class DcStorageTest
 				if (!replacementFile1.renameTo(file1))
 					fail(MessageFormat.format("Unable to rename {0} to {1}.", replacementFile1.getAbsolutePath(), file1.getAbsolutePath()));
 				String md5sumReplacement1 = calcMD5(file1);
-				dcStorage.addFileToBag(pid, file1);
+				dcStorage.addFileToBag(pid, file1, file1.getName());
 				
 //				assertEquals(md5sum1, calcMD5(dcStorage.getFileStream(pid, "data/" + file1.getName())));
 				assertEquals(md5sum2, calcMD5(dcStorage.getFileStream(pid, "data/" + file2.getName())));
