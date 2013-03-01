@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -88,9 +87,21 @@ public class DcStorageCompleter implements Completer {
 	 */
 	@Override
 	public Bag complete(Bag bag) {
-		bag = handlePronomTxt(bag);
-		bag = handleAvScan(bag);
-		bag = handleMetadata(bag);
+		try {
+			bag = handlePronomTxt(bag);
+		} catch (Throwable e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+		try {
+			bag = handleAvScan(bag);
+		} catch (Throwable e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+		try {
+			bag = handleMetadata(bag);
+		} catch (Throwable e) {
+			LOGGER.error(e.getMessage(), e);
+		}
 		return bag;
 	}
 
@@ -103,11 +114,16 @@ public class DcStorageCompleter implements Completer {
 	 * @return Bag object with pronom-formats.txt containing Fido Strings for each payload file.
 	 */
 	private Bag handlePronomTxt(Bag bag) {
+		LOGGER.debug("Updating Pronom IDs in bag {}...", bag.getFile().getAbsolutePath());
 		PronomFormatsTxt pFormats = getOrCreatePronomFormats(bag);
 
-		for (String filepath : this.limitDeletePayloadFilepaths) {
-			if (pFormats.containsKey(filepath)) {
-				pFormats.remove(filepath);
+		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
+			pFormats.clear();
+		} else if (this.limitDeletePayloadFilepaths != null) {
+			for (String filepath : this.limitDeletePayloadFilepaths) {
+				if (pFormats.containsKey(filepath)) {
+					pFormats.remove(filepath);
+				}
 			}
 		}
 
@@ -128,7 +144,7 @@ public class DcStorageCompleter implements Completer {
 				}
 			}
 		}
-
+		LOGGER.debug("Finished updating Pronom IDs in bag {}.", bag.getFile().getAbsolutePath());
 		bag.putBagFile(pFormats);
 		return bag;
 	}
@@ -142,11 +158,16 @@ public class DcStorageCompleter implements Completer {
 	 * @return Bag with the updated virus-scan.txt tagfile
 	 */
 	private Bag handleAvScan(Bag bag) {
+		LOGGER.debug("Updating Virus Scan statuses in bag {}...", bag.getFile().getAbsolutePath());
 		VirusScanTxt vsTxt = getOrCreateVirusScan(bag);
 
-		for (String filepath : this.limitDeletePayloadFilepaths) {
-			if (vsTxt.containsKey(filepath)) {
-				vsTxt.remove(filepath);
+		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
+			vsTxt.clear();
+		} else if (this.limitDeletePayloadFilepaths != null) {
+			for (String filepath : this.limitDeletePayloadFilepaths) {
+				if (vsTxt.containsKey(filepath)) {
+					vsTxt.remove(filepath);
+				}
 			}
 		}
 
@@ -166,7 +187,7 @@ public class DcStorageCompleter implements Completer {
 				}
 			}
 		}
-
+		LOGGER.debug("Finished updating Virus Scan statuses in bag {}.", bag.getFile().getAbsolutePath());
 		bag.putBagFile(vsTxt);
 		return bag;
 	}
@@ -181,22 +202,34 @@ public class DcStorageCompleter implements Completer {
 	 * @return Bag with tagfiles containing metadata about each payload file.
 	 */
 	private Bag handleMetadata(Bag bag) {
-		for (String filepath : this.limitDeletePayloadFilepaths) {
-			String metaFilepath = createMetaFilepath(filepath);
-			bag.removeBagFile(metaFilepath);
-			new File(bag.getFile(), metaFilepath).delete(); 
-			
-			String xmpFilepath = createXmpFilepath(filepath);
-			bag.removeBagFile(xmpFilepath);
-			new File(bag.getFile(), xmpFilepath).delete();
+		LOGGER.debug("Updating File Metadata in bag {}...", bag.getFile().getAbsolutePath());
+		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
+			bag.removeTagDirectory("metadata/");
+		} else if (this.limitDeletePayloadFilepaths != null) {
+			for (String filepath : this.limitDeletePayloadFilepaths) {
+				String metaFilepath = createMetaFilepath(filepath);
+				bag.removeBagFile(metaFilepath);
+				new File(bag.getFile(), metaFilepath).delete();
+
+				String xmpFilepath = createXmpFilepath(filepath);
+				bag.removeBagFile(xmpFilepath);
+				new File(bag.getFile(), xmpFilepath).delete();
+			}
 		}
-		
+
 		// Extract metadata and save serialize Metadata object.
 		for (BagFile iBagFile : bag.getPayload()) {
 			if (isLimited(this.limitAddUpdatePayloadFilepaths, iBagFile.getFilepath())) {
 				MetadataExtractor me;
 				try {
-					me = new MetadataExtractorImpl(iBagFile.newInputStream());
+					InputStream dataStream = null;
+					try {
+						dataStream = iBagFile.newInputStream();
+						me = new MetadataExtractorImpl(dataStream);
+					} finally {
+						IOUtils.closeQuietly(dataStream);
+					}
+
 					try {
 						handleTikaXmp(bag, iBagFile, me);
 					} catch (TikaException e) {
@@ -216,7 +249,7 @@ public class DcStorageCompleter implements Completer {
 				}
 			}
 		}
-
+		LOGGER.debug("Finished updating File Metadata in bag {}.", bag.getFile().getAbsolutePath());
 		return bag;
 	}
 

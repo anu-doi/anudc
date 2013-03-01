@@ -43,11 +43,15 @@ public class CompleterTask implements Callable<Bag> {
 	public void addPayloadFileDeleted(String filepath) {
 		deletePayloadFilepaths.add(filepath);
 	}
+	
+	public void setCompleteAllFiles() {
+		addUpdatePayloadFilepaths = null;
+		deletePayloadFilepaths = null;
+	}
 
 	@Override
 	public Bag call() throws Exception {
 		bag = bagFactory.createBag(bag.getFile(), LoadOption.BY_FILES);
-		LOGGER.debug("Completing bag at {}", this.bag.getFile().getAbsolutePath());
 		if (addUpdatePayloadFilepaths != null && !addUpdatePayloadFilepaths.isEmpty()) {
 			LOGGER.debug("Files Added/updated: {}", addUpdatePayloadFilepaths.toString());
 		}
@@ -71,8 +75,10 @@ public class CompleterTask implements Callable<Bag> {
 	}
 	
 	private void completeBag() {
+		LOGGER.debug("Completing bag at {}...", this.bag.getFile().getAbsolutePath());
 		Completer completer = getCompleter();
-		this.bag = bag.makeComplete(completer); 
+		this.bag = bag.makeComplete(completer);
+		LOGGER.debug("Completed bag at {}", this.bag.getFile().getAbsolutePath());
 	}
 
 	private Completer getCompleter() {
@@ -111,8 +117,10 @@ public class CompleterTask implements Callable<Bag> {
 	}
 
 	private void writeBag() {
+		LOGGER.debug("Writing bag at {}...", this.bag.getFile().getAbsolutePath());
 		Writer writer = createWriter();
 		bag = writer.write(bag, bag.getFile());
+		LOGGER.debug("Finished writing bag at {}", this.bag.getFile().getAbsolutePath());
 	}
 
 	private Writer createWriter() {

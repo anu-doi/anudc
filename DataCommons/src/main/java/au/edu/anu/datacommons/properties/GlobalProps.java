@@ -21,6 +21,8 @@
 
 package au.edu.anu.datacommons.properties;
 
+import static java.text.MessageFormat.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -58,11 +60,11 @@ import au.edu.anu.datacommons.config.PropertiesFile;
  * 0.5		12/05/2012	Genevieve Turner (GT)	Changed case of properties, related uri and save namespace
  * 0.6		08/06/2012	Genevieve Turner (GT)	Added solr location
  * 0.7		13/06/2012	Genevieve Turner (GT)	Added solr standard return fields
+ * 
  * <pre>
  * 
  */
-public final class GlobalProps
-{
+public final class GlobalProps {
 	private static final PropertiesFile globalProperties;
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalProps.class);
 
@@ -90,7 +92,7 @@ public final class GlobalProps
 	public static final String PROP_SEARCH_SOLR = "search.solr";
 	public static final String PROP_SEARCH_SOLR_RETURNFIELDS = "search.solr.returnFields";
 	public static final String PROP_UPLOAD_DIR = "upload.uploadDir";
-	public static final String PROP_UPLOAD_TEMPDIR = "upload.tempDir";
+	public static final String PROP_UPLOAD_ARCHIVEBASEDIR = "upload.archiveBaseDir";
 	public static final String PROP_UPLOAD_MAXSIZEINMEM = "upload.maxSizeInMemInBytes";
 	public static final String PROP_UPLOAD_HTTPBASEURI = "upload.uploadHttpBaseURI";
 	public static final String PROP_UPLOAD_BAGSDIR = "upload.bagsDir";
@@ -105,14 +107,10 @@ public final class GlobalProps
 	public static final String PROP_ORCA_RIFCS = "orca.rifcs.location";
 	public static final String PROP_ORCA_XSL = "orca.transform.xsl";
 
-	static
-	{
-		try
-		{
+	static {
+		try {
 			globalProperties = new PropertiesFile(new File(Config.DIR, "datacommons/datacommons.properties"));
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -122,8 +120,7 @@ public final class GlobalProps
 	 * @param key
 	 * @return value of the key, null if the key doesn't exist.
 	 */
-	public static String getProperty(String key)
-	{
+	public static String getProperty(String key) {
 		return globalProperties.getProperty(key);
 	}
 
@@ -133,83 +130,72 @@ public final class GlobalProps
 	 * @param defaultValue
 	 * @return value of the key or defaultValue if key doesn't exist.
 	 */
-	public static String getProperty(String key, String defaultValue)
-	{
+	public static String getProperty(String key, String defaultValue) {
 		return globalProperties.getProperty(key, defaultValue);
 	}
 
-	public static String getUploadDirAsString()
-	{
+	public static String getUploadDirAsString() {
 		return getProperty(PROP_UPLOAD_DIR);
 	}
 
-	public static File getUploadDirAsFile()
-	{
+	public static File getUploadDirAsFile() {
 		File uploadDir = new File(getUploadDirAsString());
-		if (!uploadDir.exists())
-			if (uploadDir.mkdirs())
-				LOGGER.error("The upload directory doesn't exist. Unable to create it.");
+		createIfNotExists(uploadDir);
 		return uploadDir;
 	}
 
-	public static String getBagsDirAsString()
-	{
+	public static String getBagsDirAsString() {
 		return getProperty(PROP_UPLOAD_BAGSDIR);
 	}
 
-	public static File getBagsDirAsFile()
-	{
+	public static File getBagsDirAsFile() {
 		File bagsDir = new File(getBagsDirAsString());
-		if (!bagsDir.exists())
-			if (bagsDir.mkdirs())
-				LOGGER.error("The bags directory doesn't exist. Unable to create it.");
+		createIfNotExists(bagsDir);
 		return bagsDir;
 	}
 
-	public static String getTempDirAsString()
-	{
-		return getProperty(PROP_UPLOAD_TEMPDIR);
+	public static String getArchiveBaseDirAsString() {
+		return getProperty(PROP_UPLOAD_ARCHIVEBASEDIR);
 	}
 
-	public static File getTempDirAsFile()
-	{
-		File tempDir = new File(getTempDirAsString());
-		if (!tempDir.exists())
-			if (tempDir.mkdirs())
-				LOGGER.error("The bags directory doesn't exist. Unable to create it.");
-		
-		return tempDir;
+	public static File getArchiveBaseDirAsFile() {
+		File archiveBaseDir = new File(getArchiveBaseDirAsString());
+		createIfNotExists(archiveBaseDir);
+		return archiveBaseDir;
 	}
 
-	public static boolean getEmailDebugSend()
-	{
+	public static boolean getEmailDebugSend() {
 		String emailDebugSendString = getProperty(PROP_EMAIL_DEBUG_SEND);
 		boolean emailDebugSend = false;
 
 		if (emailDebugSendString != null)
 			emailDebugSend = Boolean.parseBoolean(getProperty(PROP_EMAIL_DEBUG_SEND));
 		else
-			LOGGER.warn("Property " + PROP_EMAIL_DEBUG_SEND + " not specified in Global Properties. Using Default: false");
+			LOGGER.warn("Property {} not specified in Global Properties. Using default: false", PROP_EMAIL_DEBUG_SEND);
 
 		return emailDebugSend;
 	}
 
-	public static int getMaxSizeInMem()
-	{
-		try
-		{
+	public static int getMaxSizeInMem() {
+		try {
 			return Integer.parseInt(getProperty(PROP_UPLOAD_MAXSIZEINMEM));
-		}
-		catch (NumberFormatException e)
-		{
+		} catch (NumberFormatException e) {
 			LOGGER.warn("Property " + PROP_UPLOAD_MAXSIZEINMEM + " not specified in Global Properties.");
 			return DiskFileItemFactory.DEFAULT_SIZE_THRESHOLD;
 		}
 	}
-	
-	public static URI getCasServerUri()
-	{
+
+	public static URI getCasServerUri() {
 		URI casUri = UriBuilder.fromUri(getProperty(PROP_CAS_SERVER)).build();
 		return casUri;
+	}
+
+	private static void createIfNotExists(File dir) {
+		if (!dir.exists()) {
+			if (!dir.mkdirs()) {
+				throw new RuntimeException(format("The directory {0} doesn't exist. Unable to create it.",
+						dir.getAbsolutePath()));
+			}
+		}
 	}
 }

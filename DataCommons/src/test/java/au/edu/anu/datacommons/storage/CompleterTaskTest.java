@@ -59,6 +59,7 @@ public class CompleterTaskTest {
 
 	private static BagFactory bf;
 	private Bag bag;
+	private CompleterTask compTask;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -106,7 +107,7 @@ public class CompleterTaskTest {
 		}
 
 		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
-		CompleterTask compTask = new CompleterTask(bf, bag);
+		compTask = new CompleterTask(bf, bag);
 		compTask.addPayloadFileAddedUpdated(format("data/{0}", payloadFile1.getName()));
 		try {
 			bag = compTask.call();
@@ -135,7 +136,6 @@ public class CompleterTaskTest {
 	 */
 	@Test
 	public void testCompleterTaskDelete() {
-		CompleterTask compTask;
 		Collection<BagFile> payload;
 		Manifest manifest;
 		File payloadDir = bagRootFolder.newFolder("data");
@@ -195,6 +195,38 @@ public class CompleterTaskTest {
 		assertTrue(manifest.containsKey(format("data/{0}", payloadFile1.getName())));
 		assertFalse(manifest.containsKey(format("data/{0}", payloadFile2.getName())));
 		assertTrue(bag.verifyValid().isSuccess());
+	}
+	
+	@Test
+	public void testCompleterTaskNotLimited() {
+		Collection<BagFile> payload;
+		Manifest manifest;
+		File payloadDir = bagRootFolder.newFolder("data");
+		LOGGER.info("Payload directory of bag at: {}", payloadDir.getAbsolutePath());
+		File payloadFile1 = new File(payloadDir, "FirstFile.txt");
+		File payloadFile2 = new File(payloadDir, "Second File.txt");
+		try {
+			assertTrue(payloadFile1.createNewFile());
+			createAndFill(payloadFile1, 512L);
+		} catch (IOException e) {
+			failOnException(e);
+		}
+		try {
+			assertTrue(payloadFile2.createNewFile());
+			createAndFill(payloadFile2, 256L);
+		} catch (IOException e) {
+			failOnException(e);
+		}
+
+		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
+		compTask = new CompleterTask(bf, bag);
+		try {
+			bag = compTask.call();
+		} catch (Exception e) {
+			failOnException(e);
+		}
+
+		LOGGER.trace("Done");
 	}
 
 	private boolean fileExistsInPayload(Collection<BagFile> payload, String filepath) {

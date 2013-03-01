@@ -1,19 +1,26 @@
 package au.edu.anu.datacommons.storage;
 
 import static java.text.MessageFormat.*;
+import gov.loc.repository.bagit.Manifest;
+import gov.loc.repository.bagit.Manifest.Algorithm;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 import java.util.concurrent.Callable;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -34,42 +41,81 @@ public class TempFileTask implements Callable<File> {
 	private InputStream inputStream = null;
 	private File savedFile = null;
 
+	private Manifest.Algorithm mdAlgorithm = null;
+	private String expectedMd = null;
+	private String calculatedMd = null;
+	private MessageDigest md = null;
+
 	public TempFileTask(URL fileUrl) {
 		this.fileUrl = fileUrl;
 	}
-	
+
 	public TempFileTask(InputStream inputStream) {
 		this.inputStream = inputStream;
 	}
-	
+
+	public void setExpectedMessageDigest(Manifest.Algorithm mdAlgorithm, String messageDigest) {
+		this.mdAlgorithm = mdAlgorithm;
+		this.expectedMd = messageDigest.toLowerCase();
+	}
+
 	@Override
 	public File call() throws Exception {
+		InputStream digestInputStream = null;
 		if (fileUrl != null) {
-			saveUrlToTempFile();
+			digestInputStream = createDigestInputStream(fileUrl);
 		} else if (inputStream != null) {
-			saveInputStreamToTempFile();
+			digestInputStream = createDigestInputStream(inputStream);
 		}
-		return savedFile;
-	}
+		saveInputStreamToTempFile(digestInputStream);
 
-	public File saveUrlToTempFile() throws IOException {
-		savedFile = createTempFile();
-		try {
-			LOGGER.debug("Downloading {} and saving as {}...", fileUrl.toString(), savedFile.getAbsolutePath());
-			FileUtils.copyURLToFile(fileUrl, savedFile, CONNECTION_TIMEOUT_MS, READ_TIMEOUT_MS);
-			LOGGER.debug("Downloaded {} successfully and saved as {} ({}).", new Object[] { fileUrl.toString(),
-					savedFile.getAbsolutePath(), FileUtils.byteCountToDisplaySize(savedFile.length()) });
-		} catch (IOException e) {
-			LOGGER.error("Unable to download {}. {}", fileUrl.toString(), e.getMessage());
-			if (!savedFile.delete()) {
-				LOGGER.warn("Unable to delete {}", savedFile.getAbsolutePath());
+		if (expectedMd != null) {
+			if (!expectedMd.equals(calculatedMd)) {
+				String errorMsg = format("Calculated {0} {1} does not match expected {2}.", md.getAlgorithm(),
+						calculatedMd, expectedMd);
+				LOGGER.error(errorMsg);
+				savedFile.delete();
+				throw new IOException(errorMsg);
+			} else {
+				LOGGER.debug("Calculated {} {} matches expected {}", md.getAlgorithm(), calculatedMd, expectedMd);
 			}
-			throw e;
+		} else {
+			LOGGER.debug("Calculated {}: {}", md.getAlgorithm(), calculatedMd);
 		}
 		return savedFile;
 	}
 
-	public File saveInputStreamToTempFile() throws IOException {
+	public String getCalculatedMd() {
+		return calculatedMd;
+	}
+
+	private InputStream createDigestInputStream(URL fileUrl) throws IOException {
+		createMessageDigest();
+		URLConnection connection = fileUrl.openConnection();
+		connection.setConnectTimeout(CONNECTION_TIMEOUT_MS);
+		connection.setReadTimeout(READ_TIMEOUT_MS);
+		LOGGER.debug("Opened InputStream from {}", fileUrl);
+		return new DigestInputStream(connection.getInputStream(), md);
+	}
+
+	private InputStream createDigestInputStream(InputStream inputStream) {
+		createMessageDigest();
+		return new DigestInputStream(inputStream, md);
+	}
+
+	private void createMessageDigest() {
+		try {
+			if (mdAlgorithm != null && expectedMd != null) {
+				md = MessageDigest.getInstance(mdAlgorithm.javaSecurityAlgorithm);
+			} else {
+				md = MessageDigest.getInstance(Algorithm.MD5.javaSecurityAlgorithm);
+			}
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e.getMessage());
+		}
+	}
+
+	private File saveInputStreamToTempFile(InputStream inputStream) throws IOException {
 		savedFile = createTempFile();
 
 		FileChannel targetChannel = null;
@@ -105,8 +151,12 @@ public class TempFileTask implements Callable<File> {
 			IOUtils.closeQuietly(targetChannel);
 			IOUtils.closeQuietly(fos);
 		}
-
+		calcMessageDigest();
 		return savedFile;
+	}
+
+	private void calcMessageDigest() {
+		calculatedMd = new String(Hex.encodeHex(md.digest())).toLowerCase();
 	}
 
 	private File createTempFile() {
