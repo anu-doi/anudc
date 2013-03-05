@@ -30,60 +30,50 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedCredentialsNotFoundException;
-import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 
 import au.edu.anu.datacommons.config.Config;
 import au.edu.anu.datacommons.config.PropertiesFile;
 
 /**
- * This class allows for token-based authentication where a token specified in the HTTP request header 'X-Auth-Token' allows the request to be authenticated to a
- * predefined user. Usernames and their associated tokens are stored in a properties file.  
+ * This class allows for token-based authentication where a token specified in the HTTP request header 'X-Auth-Token'
+ * allows the request to be authenticated to a predefined user. Usernames and their associated tokens are stored in a
+ * properties file.
  */
-public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter
-{
+public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TokenHeaderAuthenticationFilter.class);
-	
+
 	private static final String TOKEN_HEADER = "X-Auth-Token";
 	private static Properties tokens;
-	
-	static
-	{
-		try
-		{
+
+	static {
+		try {
 			tokens = new PropertiesFile(new File(Config.DIR, "datacommons/tokens.properties"));
-		}
-		catch (IOException e)
-		{
-			LOGGER.warn("tokens.properties doesn't exist or unreadable. No tokens will be authenticated.");
+		} catch (IOException e) {
+			LOGGER.info("tokens.properties doesn't exist or unreadable. No tokens will be authenticated.");
 		}
 	}
 
 	/**
-	 * Extracts the token value from the HTTP header key, looks up if the token is associated with a username. If yes, then that user is authenticated. If not
-	 * then the request will be authenticated using another filter.
+	 * Extracts the token value from the HTTP header key, looks up if the token is associated with a username. If yes,
+	 * then that user is authenticated. If not then the request will be authenticated using another filter.
 	 */
 	@Override
-	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request)
-	{
+	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
 		// Principal = Uni Id of user
 		String token = request.getHeader(TOKEN_HEADER);
 		String principal;
-		if (token != null && tokens != null)
-		{
+		if (token != null && tokens != null) {
 			principal = tokens.getProperty(token);
 			if (principal != null)
 				principal = principal.toLowerCase();
-		}
-		else
+		} else
 			principal = null;
 
 		return principal;
 	}
 
 	@Override
-	protected Object getPreAuthenticatedCredentials(HttpServletRequest request)
-	{
+	protected Object getPreAuthenticatedCredentials(HttpServletRequest request) {
 		// Credentials not required.
 		return "N/A";
 	}

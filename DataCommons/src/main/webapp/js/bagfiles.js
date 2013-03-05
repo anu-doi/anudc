@@ -1,17 +1,47 @@
-function tabSelect(el, containerId)
-{
-	jQuery('.pagetabs-nav > ul > li > a[href]').removeClass('pagetabs-select');
-	jQuery(el).addClass('pagetabs-select');
 
-	// Hide containers for tabs.
-	jQuery('#info').hide();
-	jQuery('#files').hide();
-	jQuery('#extRefs').hide();
+// jQuery(document).ready(function() {
+//	    var hashVal = window.location.hash.split("#")[1];
+//	    if(hashVal == 'live') {
+//	        $("#live").show();
+//	    }
+// });
 
-	// Show the container corresponding to the tab selected.
-	jQuery(containerId).show();
+function documentReady() {
+	jQuery('div.pagetabs-nav > ul').each(function(){
+	    // For each set of tabs, we want to keep track of
+	    // which tab is active and it's associated content
+	    var $active, $content, $links = jQuery(this).find('a');
 
-	return;
+	    // If the location.hash matches one of the links, use that as the active tab.
+	    // If no match is found, use the first link as the initial active tab.
+	    $active = jQuery($links.filter('[href="'+location.hash+'"]')[0] || $links[0]);
+	    $active.addClass('pagetabs-select');
+	    $content = jQuery($active.attr('href'));
+
+	    // Hide the remaining content
+	    $links.not($active).each(function () {
+	        jQuery(jQuery(this).attr('href')).hide();
+	    });
+
+	    // Bind the click event handler
+	    jQuery(this).on('click', 'a', function(e){
+	        // Make the old tab inactive.
+	        $active.removeClass('pagetabs-select');
+	        $content.hide();
+
+	        // Update the variables with the new link and content
+	        $active = jQuery(this);
+	        $content = jQuery(jQuery(this).attr('href'));
+
+	        // Make the tab active.
+	        $active.addClass('pagetabs-select');
+	        $content.show();
+
+	        // Prevent the anchor's default click action
+	        e.preventDefault();
+	    });
+	});
+	jQuery('div.pagetabs-nav > ul > li > a')[0].click();
 }
 
 function deleteFile(url)

@@ -22,7 +22,6 @@
 package au.edu.anu.datacommons.collectionrequest;
 
 import static java.text.MessageFormat.*;
-import gov.loc.repository.bagit.BagFile;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -229,7 +228,7 @@ public class CollectionRequestService
 			// Add files in payload to model.
 			if (dcStorage.bagExists(collReq.getPid()))
 			{
-				Map<BagFile, FileSummary> downloadables = dcStorage.getBagSummary(collReq.getPid()).getFileSummaryMap();
+				Map<String, FileSummary> downloadables = dcStorage.getBagSummary(collReq.getPid()).getFileSummaryMap();
 				model.put("downloadables", downloadables);
 			}
 		}

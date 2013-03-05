@@ -47,6 +47,8 @@ public class CompleterTask implements Callable<Bag> {
 	public void setCompleteAllFiles() {
 		addUpdatePayloadFilepaths = null;
 		deletePayloadFilepaths = null;
+		addUpdatePayloadDirs = null;
+		deletePayloadDirs = null;
 	}
 
 	@Override

@@ -115,8 +115,6 @@ public class PronomFormat
 			fileName = "";
 			mimeType = "";
 			matchType = "";
-			
-			LOGGER.warn("Fido String is null. Assigning default properties.");
 		}
 		else
 		{
