@@ -38,36 +38,30 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PropertiesFileTest
-{
+public class PropertiesFileTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesFileTest.class);
 
 	@Rule
 	public TemporaryFolder tempDir = new TemporaryFolder();
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
+	public static void setUpBeforeClass() throws Exception {
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
+	public static void tearDownAfterClass() throws Exception {
 	}
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
+	public void tearDown() throws Exception {
 	}
 
 	@Test
-	public void testGetPropertyString()
-	{
+	public void testGetPropertyString() {
 		// Create properties.
 		Properties prop = new Properties();
 		prop.setProperty("Key1", "Value1");
@@ -76,8 +70,7 @@ public class PropertiesFileTest
 		// Save to file.
 		File propFile = new File(tempDir.getRoot(), "test.properties");
 		Properties propsF = null;
-		try
-		{
+		try {
 			writePropsToFile(prop, propFile);
 
 			assertTrue(propFile.exists());
@@ -92,42 +85,30 @@ public class PropertiesFileTest
 			// If this test case fails here, increase sleep value.
 			Thread.sleep(100);
 			writePropsToFile(prop, propFile);
-			
+
 			assertEquals("New Value1", propsF.getProperty("Key1"));
 			assertNull(propsF.getProperty("Key2"));
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			failOnException(e);
-		}
-		catch (InterruptedException e)
-		{
+		} catch (InterruptedException e) {
 			failOnException(e);
 		}
 	}
 
-	private void writePropsToFile(Properties prop, File file) throws IOException
-	{
+	private void writePropsToFile(Properties prop, File file) throws IOException {
 		FileOutputStream fos = null;
-		try
-		{
+		try {
 			fos = new FileOutputStream(file);
 			prop.store(fos, null);
-		}
-		finally
-		{
-			try
-			{
+		} finally {
+			try {
 				fos.close();
-			}
-			catch (IOException e)
-			{
+			} catch (IOException e) {
 			}
 		}
 	}
 
-	private void failOnException(Throwable e)
-	{
+	private void failOnException(Throwable e) {
 		LOGGER.error(e.getMessage(), e);
 		fail(e.getMessage());
 	}

@@ -21,10 +21,8 @@
 
 package au.edu.anu.datacommons.security;
 
-import java.net.URI;
 import java.util.Date;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -49,6 +47,7 @@ public class AccessLogRecord
 	private Date timestamp;
 	private String ipAddr;
 	private Operation op;
+	private String userAgent;
 	
 	public enum Operation
 	{
@@ -59,17 +58,13 @@ public class AccessLogRecord
 	{
 	}
 	
-	public AccessLogRecord(URI uri, Users user, String ipAddr, Operation op)
-	{
-		this(uri.toString(), user, ipAddr, op);
-	}
-	
-	public AccessLogRecord(String uri, Users user, String ipAddr, Operation op)
+	public AccessLogRecord(String uri, Users user, String ipAddr, String userAgent, Operation op)
 	{
 		this.uri = uri;
 		this.user = user;
 		this.ipAddr = ipAddr;
 		this.op = op;
+		this.userAgent = userAgent;
 	}
 	
 	@Id
@@ -140,6 +135,15 @@ public class AccessLogRecord
 	protected void setOp(Operation op)
 	{
 		this.op = op;
+	}
+
+	@Column(name = "user_agent")
+	public String getUserAgent() {
+		return userAgent;
+	}
+
+	public void setUserAgent(String userAgent) {
+		this.userAgent = userAgent;
 	}
 
 	@PrePersist

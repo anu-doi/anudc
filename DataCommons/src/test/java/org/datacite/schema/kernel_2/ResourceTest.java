@@ -24,6 +24,7 @@ package org.datacite.schema.kernel_2;
 import static org.junit.Assert.*;
 
 import java.io.StringWriter;
+import java.util.Collections;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -32,6 +33,7 @@ import javax.xml.bind.Unmarshaller;
 
 import org.datacite.schema.kernel_2.Resource.Creators;
 import org.datacite.schema.kernel_2.Resource.Creators.Creator;
+import org.datacite.schema.kernel_2.Resource.Sizes;
 import org.datacite.schema.kernel_2.Resource.Titles;
 import org.datacite.schema.kernel_2.Resource.Titles.Title;
 import org.junit.After;
@@ -122,6 +124,57 @@ public class ResourceTest
 		{
 			failOnException(e);
 		}
+	}
+	
+	@Test
+	public void testCreateXml()
+	{
+		Resource metadata = new Resource();
+
+		addTitle(metadata, "Impact of Colonoscopy Bowel Preparation on Intestinal Microbiota");
+		addCreator(metadata, "Claire L O’Brien");
+		addCreator(metadata, "Gwen E Allison");
+		addCreator(metadata, "Florian Grimpen");
+		addCreator(metadata, "Paul Pavli");
+		setPublisher(metadata, "The Australian National University Data Commons");
+		setPublicationYear(metadata, "2013");
+		addSize(metadata, "1.7 GB");
+		
+		try {
+			System.out.println(getMetadataAsStr(metadata));
+		} catch (JAXBException e) {
+			failOnException(e);
+		}
+	}
+	
+	private void addTitle(Resource res, String titleStr) {
+		Title title = new Title();
+		title.setValue(titleStr);
+		if (res.getTitles() == null)
+			res.setTitles(new Titles());
+		res.getTitles().getTitle().add(title);
+	}
+	
+	private void addCreator(Resource res, String creatorStr) {
+		Creator creator = new Creator();
+		creator.setCreatorName(creatorStr);
+		if (res.getCreators() == null)
+			res.setCreators(new Creators());
+		res.getCreators().getCreator().add(creator);
+	}
+	
+	private void setPublisher(Resource res, String publisher) {
+		res.setPublisher(publisher);
+	}
+	
+	private void setPublicationYear(Resource res, String year) {
+		res.setPublicationYear(year);
+	}
+	
+	private void addSize(Resource res, String sizeStr) {
+		Sizes sizes = new Sizes();
+		sizes.getSize().add(sizeStr);
+		res.setSizes(sizes);
 	}
 	
 	private String getMetadataAsStr(Resource metadata) throws JAXBException

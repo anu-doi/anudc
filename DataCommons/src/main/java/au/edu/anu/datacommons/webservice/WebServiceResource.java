@@ -27,6 +27,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -244,10 +247,10 @@ public class WebServiceResource
 								try
 								{
 									LOGGER.info("Beginning download of file {} from {} to add to {}...", filename, fileUrl, item.getPid());
-									dcStorage.addFileToBag(item.getPid(), filename, fileUrl);
+									dcStorage.addFileToBag(item.getPid(), filename, new URL(fileUrl));
 									LOGGER.info("Successfully downloaded file {} from {} and added to {}.", filename, fileUrl, item.getPid());
 								}
-								catch (DcStorageException e)
+								catch (Exception e)
 								{
 									LOGGER.error("Failed to download file {} from {} to add to {}.", filename, fileUrl, item.getPid());
 									LOGGER.error(e.getMessage(), e);
@@ -259,7 +262,7 @@ public class WebServiceResource
 					else
 					{
 						// Refer to the url.
-						dcStorage.addExtRef(item.getPid(), iLink.getUrl());
+						dcStorage.addExtRefs(item.getPid(), Arrays.asList(iLink.getUrl()));
 					}
 				}
 			}

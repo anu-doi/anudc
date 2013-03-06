@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<data xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns4="http://www.w3.org/2001/sw/DataAccess/rf1/result" xmlns:ns5="http://ands.org.au/standards/rif-cs/registryObjects" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+	<phone>123456789</phone>
+	<dataSize>1 MB</dataSize>
+	<dataExtent>Quantity</dataExtent>
+	<fullDesc>Full Description</fullDesc>
+	<type>Collection</type>
+	<anzseoSubject>810104</anzseoSubject>
+	<significanceStatement>Significance Statement</significanceStatement>
+	<locSubject>keyword 1</locSubject>
+	<locSubject>keyword 2</locSubject>
+	<collaborator>Collaborator 1</collaborator>
+	<collaborator>Collaborator 2</collaborator>
+	<ownerGroup>1</ownerGroup>
+	<createdDate>2013</createdDate>
+	<coverageDateText>World War II</coverageDateText>
+	<principalInvestigator>Principal Investigator</principalInvestigator>
+	<anztoaSubject>pbr</anztoaSubject>
+	<licenceType>CC-BY-NC-SA</licenceType>
+	<licence>License</licence>
+	<fax>987654312</fax>
+	<dataMgmtPlan>yes</dataMgmtPlan>
+	<relatedWebsites>
+		<relatedWebURL>http://anusf.anu.edu.au/index.php</relatedWebURL>
+		<relatedWebTitle>ANU Supercomputing Facility</relatedWebTitle>
+	</relatedWebsites>
+	<citationYear>2013</citationYear>
+	<metaLang>en</metaLang>
+	<email>someemail@email.com</email>
+	<supervisor>Supervisor 1</supervisor>
+	<supervisor>Supervisor 2</supervisor>
+	<dataLocation>Data Location</dataLocation>
+	<briefDesc>A brief description about this dataset that will be used for DOI testing.</briefDesc>
+	<dataRetention>Idefinitely</dataRetention>
+	<citCreator>
+		<citCreatorSurname>Smith</citCreatorSurname>
+		<citCreatorGiven>John</citCreatorGiven>
+	</citCreator>
+	<citCreator>
+		<citCreatorSurname>Smith</citCreatorSurname>
+		<citCreatorGiven>Jane</citCreatorGiven>
+	</citCreator>
+	<externalId>OthrRelatedId</externalId>
+	<citationPublisher>The Australian National University Data Commons</citationPublisher>
+	<name>Collection for DOI Testing</name>
+	<coverageDates>
+		<dateTo>2011-12-31</dateTo>
+		<dateFrom>2011-05-29</dateFrom>
+	</coverageDates>
+	<dataLang>en</dataLang>
+	<publication>
+		<pubTitle>Some publication Reference</pubTitle>
+		<pubType>infouri</pubType>
+		<pubValue>info:fedora/abc</pubValue>
+	</publication>
+	<anzforSubject>180123</anzforSubject>
+	<rightsStatement>Rights held in and over the data</rightsStatement>
+	<disposalDate>Disp Date</disposalDate>
+	<accessRights>Access Rights</accessRights>
+	<websiteAddress>http://abc.com</websiteAddress>
+	<altName>Alt Title</altName>
+	<subType>dataset</subType>
+	<abbrName>Brief Title</abbrName>
+	<postalAddress>Contact Address</postalAddress>
+	<doi>10.5072/something</doi>
+</data>

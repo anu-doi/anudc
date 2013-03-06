@@ -81,7 +81,7 @@ public class AccessLogRecordTest
 		// Add an access log
 		UsersDAO usersDao = new UsersDAOImpl(Users.class);
 		Users user = usersDao.getUserByName("u4465201");
-		AccessLogRecord recAdded = new AccessLogRecord("http://abc.com", user, "127.0.0.1", Operation.CREATE);
+		AccessLogRecord recAdded = new AccessLogRecord("http://abc.com", user, "127.0.0.1", "DataCommons", Operation.CREATE);
 		entityManager.getTransaction().begin();
 		entityManager.persist(recAdded);
 		entityManager.getTransaction().commit();
