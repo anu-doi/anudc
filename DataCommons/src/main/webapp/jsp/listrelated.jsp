@@ -20,7 +20,7 @@
 				${predicateVal}: <a href='<c:url value="/rest/display/${itemVal}?layout=def:display" />' title="${predicateVal}">${result.fields.title.value}</a> [${itemVal}]
 			</c:when>
 			<c:otherwise>
-				<a href='${result.fields.item.value}' title="${predicateVal}">${result.fields.item.value}</a>
+				${predicateVal}: <a href='${result.fields.item.value}' title="${predicateVal}">${result.fields.item.value}</a>
 			</c:otherwise>
 		</c:choose>
 		</li>

@@ -41,7 +41,11 @@ function documentReady() {
 	        e.preventDefault();
 	    });
 	});
-	jQuery('div.pagetabs-nav > ul > li > a')[0].click();
+	if (window.location.hash == "") {
+		jQuery('div.pagetabs-nav > ul > li > a')[0].click();
+	} else {
+		jQuery('div.pagetabs-nav > ul > li > a[href=' + window.location.hash + ']').click();
+	}
 }
 
 function deleteFile(url)
