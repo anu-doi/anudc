@@ -27,6 +27,7 @@ import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.log4j.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
@@ -53,6 +54,10 @@ public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedPro
 		}
 	}
 
+	public TokenHeaderAuthenticationFilter() {
+		org.apache.log4j.Logger.getLogger(getClass()).setLevel(Level.WARN);
+	}
+	
 	/**
 	 * Extracts the token value from the HTTP header key, looks up if the token is associated with a username. If yes,
 	 * then that user is authenticated. If not then the request will be authenticated using another filter.
