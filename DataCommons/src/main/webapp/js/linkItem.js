@@ -227,7 +227,7 @@ function editLink(item, row) {
 	var title = getItemTitle(item);
 	var relation = getRelationshipType(item.predicate);
 	
-	linkPopupStatus = disablePopup("#popupEditLink", editLinkPopupStatus);
+	editLinkPopupStatus = disablePopup("#popupEditLink", editLinkPopupStatus);
 	jQuery("#linkItemType").val(item.type);
 	jQuery("#linkItemType").trigger('change');
 	var pid = getPidFromInfo(item.item);
