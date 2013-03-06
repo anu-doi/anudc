@@ -89,6 +89,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.12		12/11/2012	Genevieve Turner (GT)	Updated to with the request id fields of null
  * 0.13		13/11/2012	Genevieve Turner (GT)	Updated the retrieval of the edit page with the mode.
  * 0.14		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
+ * 0.15		06/03/2013	Genevieve Turner (GT)	Updated to remove then add links in editLink
  * </pre>
  */
 @Component
@@ -521,6 +522,7 @@ public class DisplayResource
 	 * Version	Date		Developer				Description
 	 * 0.11		22/10/2012	Genevieve Turner(GT)	Initial
 	 * 0.14		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
+	 * 0.15		06/03/2013	Genevieve Turner (GT)	Updated to remove then add links in editLink
 	 * </pre>
 	 * 
 	 * @param item The item to edit the links for
@@ -546,8 +548,8 @@ public class DisplayResource
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		
 		try {
-			fedoraObjectService.addLink(fedoraObject, linkType, itemId);
 			fedoraObjectService.removeLink(fedoraObject, removeLinkType, itemId);
+			fedoraObjectService.addLink(fedoraObject, linkType, itemId);
 		}
 		catch (FedoraClientException e) {
 			LOGGER.error("Exception removing link", e);
