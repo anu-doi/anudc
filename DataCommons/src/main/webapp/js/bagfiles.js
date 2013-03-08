@@ -1,11 +1,3 @@
-
-// jQuery(document).ready(function() {
-//	    var hashVal = window.location.hash.split("#")[1];
-//	    if(hashVal == 'live') {
-//	        $("#live").show();
-//	    }
-// });
-
 function documentReady() {
 	jQuery('div.pagetabs-nav > ul').each(function(){
 	    // For each set of tabs, we want to keep track of

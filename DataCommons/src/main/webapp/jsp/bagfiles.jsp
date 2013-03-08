@@ -59,7 +59,7 @@
 							<c:when test="${not empty iFile.value.pronomFormat.formatName}">
 								<td><c:out value="${iFile.value.pronomFormat.formatName}" /></td>
 								<td><a class="link-ext" target="_blank"
-									href="http://www.nationalarchives.gov.uk/pronom/${iFile.value.pronomFormat.formatName}">${iFile.value.pronomFormat.puid}</a></td>
+									href="http://www.nationalarchives.gov.uk/pronom/${iFile.value.pronomFormat.puid}">${iFile.value.pronomFormat.puid}</a></td>
 							</c:when>
 							<c:otherwise>
 								<td>Unknown</td>
