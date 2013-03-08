@@ -300,7 +300,6 @@ public class PermissionService {
 			hasPermission = acl.isGranted(permissionList, sidList, false);
 		}
 		catch(NotFoundException e) {
-			LOGGER.info("User does not have permissions for {}", group.getGroup_name());
 		}
 		
 		return hasPermission;

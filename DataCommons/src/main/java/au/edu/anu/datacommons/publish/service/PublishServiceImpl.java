@@ -293,7 +293,6 @@ public class PublishServiceImpl implements PublishService {
 		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
 		QueryResponse queryResponse = solrServer.query(solrQuery);
 		SolrDocumentList documentList = queryResponse.getResults();
-		LOGGER.info("Number of results found: {}", documentList.getNumFound());
 		SolrSearchResult results = new SolrSearchResult(documentList);
 		
 		return results;
