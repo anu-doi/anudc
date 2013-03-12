@@ -9,6 +9,7 @@ import gov.loc.repository.bagit.transformer.impl.UpdateCompleter;
 import gov.loc.repository.bagit.writer.Writer;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -20,7 +21,7 @@ public class CompleterTask implements Callable<Bag> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorageCompleter.class);
 
 	private BagFactory bagFactory;
-	private Bag bag;
+	private File bagDir;
 	private List<String> addUpdatePayloadFilepaths;
 	private List<String> deletePayloadFilepaths;
 	private List<String> addUpdatePayloadDirs;
@@ -30,9 +31,9 @@ public class CompleterTask implements Callable<Bag> {
 	private List<String> addUpdateTagDirs;
 	private List<String> deleteTagDirs;
 
-	public CompleterTask(BagFactory bagFactory, Bag bagToComplete) {
+	public CompleterTask(BagFactory bagFactory, File bagToComplete) {
 		this.bagFactory = bagFactory;
-		this.bag = bagToComplete;
+		this.bagDir = bagToComplete;
 		initLimitLists();
 	}
 
@@ -53,15 +54,20 @@ public class CompleterTask implements Callable<Bag> {
 
 	@Override
 	public Bag call() throws Exception {
-		bag = bagFactory.createBag(bag.getFile(), LoadOption.BY_FILES);
-		if (addUpdatePayloadFilepaths != null && !addUpdatePayloadFilepaths.isEmpty()) {
-			LOGGER.debug("Files Added/updated: {}", addUpdatePayloadFilepaths.toString());
+		Bag bag = null;
+		try {
+			bag = bagFactory.createBag(bagDir, LoadOption.BY_FILES);
+			if (addUpdatePayloadFilepaths != null && !addUpdatePayloadFilepaths.isEmpty()) {
+				LOGGER.debug("Files Added/updated: {}", addUpdatePayloadFilepaths.toString());
+			}
+			if (deletePayloadFilepaths != null && !deletePayloadFilepaths.isEmpty()) {
+				LOGGER.debug("Files Deleted: {}", deletePayloadFilepaths.toString());
+			}
+			bag = completeBag(bag);
+			bag = writeBag(bag);
+		} finally {
+			bag.close();
 		}
-		if (deletePayloadFilepaths != null && !deletePayloadFilepaths.isEmpty()) {
-			LOGGER.debug("Files Deleted: {}", deletePayloadFilepaths.toString());
-		}
-		completeBag();
-		writeBag();
 		return bag;
 	}
 
@@ -76,11 +82,12 @@ public class CompleterTask implements Callable<Bag> {
 		deleteTagDirs = null;
 	}
 	
-	private void completeBag() {
-		LOGGER.debug("Completing bag at {}...", this.bag.getFile().getAbsolutePath());
+	private Bag completeBag(Bag bag) {
+		LOGGER.debug("Completing bag at {}...", this.bagDir.getAbsolutePath());
 		Completer completer = getCompleter();
-		this.bag = bag.makeComplete(completer);
-		LOGGER.debug("Completed bag at {}", this.bag.getFile().getAbsolutePath());
+		bag = bag.makeComplete(completer);
+		LOGGER.debug("Completed bag at {}", this.bagDir.getAbsolutePath());
+		return bag;
 	}
 
 	private Completer getCompleter() {
@@ -118,11 +125,12 @@ public class CompleterTask implements Callable<Bag> {
 		return dcStorageCompleter;
 	}
 
-	private void writeBag() {
-		LOGGER.debug("Writing bag at {}...", this.bag.getFile().getAbsolutePath());
+	private Bag writeBag(Bag bag) {
+		LOGGER.debug("Writing bag at {}...", this.bagDir.getAbsolutePath());
 		Writer writer = createWriter();
-		bag = writer.write(bag, bag.getFile());
-		LOGGER.debug("Finished writing bag at {}", this.bag.getFile().getAbsolutePath());
+		bag = writer.write(bag, bagDir);
+		LOGGER.debug("Finished writing bag at {}", this.bagDir.getAbsolutePath());
+		return bag;
 	}
 
 	private Writer createWriter() {

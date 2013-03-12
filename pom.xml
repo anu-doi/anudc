@@ -21,6 +21,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jersey.version>1.13</jersey.version>
+		<bagit.version>4.4.ANUDC</bagit.version>
 	</properties>
 
 	<dependencies>

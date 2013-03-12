@@ -17,7 +17,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>3.0.5.RELEASE</spring.version>
 		<jasperreports.version>4.7.0</jasperreports.version>
-		<jersey.version>1.13</jersey.version>
 	</properties>
 
 	<repositories>
@@ -210,11 +209,6 @@
 			<groupId>javax.mail</groupId>
 			<artifactId>mail</artifactId>
 			<version>1.4.5</version>
-		</dependency>
-		<dependency>
-			<groupId>gov.loc</groupId>
-			<artifactId>bagit</artifactId>
-			<version>4.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
