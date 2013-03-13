@@ -26,7 +26,6 @@ import static java.text.MessageFormat.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Properties;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -188,6 +187,14 @@ public final class GlobalProps {
 	public static URI getCasServerUri() {
 		URI casUri = UriBuilder.fromUri(getProperty(PROP_CAS_SERVER)).build();
 		return casUri;
+	}
+	
+	public static String getClamScanHost() {
+		return getProperty("clamscan.host");
+	}
+	
+	public static int getClamScanPort() {
+		return Integer.parseInt(getProperty("clamscan.port"));
 	}
 
 	private static void createIfNotExists(File dir) {
