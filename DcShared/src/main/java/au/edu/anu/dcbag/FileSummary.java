@@ -21,9 +21,11 @@
 
 package au.edu.anu.dcbag;
 
+import static java.text.MessageFormat.*;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.Manifest.Algorithm;
+import gov.loc.repository.bagit.utilities.FilenameHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +35,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,41 +78,9 @@ public class FileSummary {
 		this.filepath = bf.getFilepath();
 		this.file = new File(bag.getFile(), bf.getFilepath());
 		this.messageDigests = bag.getChecksums(bf.getFilepath());
-
-		// Fido - Pronom format.
 		pronomFormat = new PronomFormat(bag, bf);
-
-		// Serialised metadata.
-		try {
-			String serMetadataFilename = "metadata/" + bf.getFilepath().substring(bf.getFilepath().indexOf('/') + 1)
-					+ ".ser";
-			if (bag.getBagFile(serMetadataFilename) != null) {
-				ObjectInputStream objInStream = new ObjectInputStream(bag.getBagFile(serMetadataFilename)
-						.newInputStream());
-				this.metadata = readMetadata(objInStream);
-			}
-		} catch (Exception e) {
-			LOGGER.warn(e.getMessage(), e);
-			this.metadata = new HashMap<String, String[]>();
-		}
-
-		// Virus scan results.
-		BagFile virusScanTxt = bag.getBagFile(VirusScanTxt.FILEPATH);
-		if (virusScanTxt != null) {
-			VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.FILEPATH, virusScanTxt, bag.getBagItTxt()
-					.getCharacterEncoding());
-			String scanResultStr = vs.get(bf.getFilepath());
-			if (scanResultStr == null || scanResultStr.length() == 0) {
-				this.scanResult = "NOT SCANNED";
-			} else {
-				ScanResult sr = new ScanResult(scanResultStr);
-				this.scanResult = sr.getStatus().toString();
-				if (sr.getStatus() == Status.FAILED)
-					this.scanResult += ", " + sr.getSignature();
-			}
-		} else {
-			this.scanResult = "NOT SCANNED";
-		}
+		readSerialisedMetadata(bag, bf);
+		readVirusScanStr(bag, bf);
 	}
 
 	/**
@@ -186,6 +157,47 @@ public class FileSummary {
 		return scanResult;
 	}
 
+	private void readSerialisedMetadata(Bag bag, BagFile bf) {
+		ObjectInputStream objInStream = null;
+		try {
+			String serMetadataFilename = getSerialisedMetadataFilename(bf);
+			BagFile serMetadataBagFile = bag.getBagFile(serMetadataFilename);
+			if (serMetadataBagFile != null) {
+				objInStream = new ObjectInputStream(serMetadataBagFile.newInputStream());
+				this.metadata = readMetadata(objInStream);
+			}
+		} catch (Exception e) {
+			LOGGER.warn(e.getMessage(), e);
+			this.metadata = new HashMap<String, String[]>();
+		} finally {
+			IOUtils.closeQuietly(objInStream);
+		}
+
+	}
+
+	private String getSerialisedMetadataFilename(BagFile bf) {
+		return format("metadata/{0}.ser", FilenameHelper.getName(bf.getFilepath()));
+	}
+
+	private void readVirusScanStr(Bag bag, BagFile bf) {
+		BagFile virusScanTxt = bag.getBagFile(VirusScanTxt.FILEPATH);
+		if (virusScanTxt != null) {
+			VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.FILEPATH, virusScanTxt, bag.getBagItTxt()
+					.getCharacterEncoding());
+			String scanResultStr = vs.get(bf.getFilepath());
+			if (scanResultStr == null || scanResultStr.length() == 0) {
+				this.scanResult = "NOT SCANNED";
+			} else {
+				ScanResult sr = new ScanResult(scanResultStr);
+				this.scanResult = sr.getStatus().toString();
+				if (sr.getStatus() == Status.FAILED)
+					this.scanResult += ", " + sr.getSignature();
+			}
+		} else {
+			this.scanResult = "NOT SCANNED";
+		}
+	}
+
 	/**
 	 * Read metadata.
 	 * 
@@ -200,6 +212,12 @@ public class FileSummary {
 	@SuppressWarnings("unchecked")
 	private Map<String, String[]> readMetadata(ObjectInputStream objInStream) throws IOException,
 			ClassNotFoundException {
-		return (Map<String, String[]>) objInStream.readObject();
+		Map<String, String[]> metadataObj;
+		try {
+			metadataObj = (Map<String, String[]>) objInStream.readObject();
+		} finally {
+			IOUtils.closeQuietly(objInStream);
+		}
+		return metadataObj;
 	}
 }

@@ -69,12 +69,13 @@
 						<td><c:out value="${iFile.value.friendlySize}" /></td>
 						<td><c:out value="${iFile.value.md5}" /></td>
 						<td><c:out value="${iFile.value.scanResult}" /></td>
-						<td onclick="jQuery('#${iFile.value.md5}').slideToggle()"><a
-							href="#" onclick="return false">Expand</a></td>
+						<td onclick="jQuery('tr[id=\'meta-${iFile.key}\']').slideToggle()"><a
+							href="javascript:void(0)" onclick="return false">Expand</a></td>
 						<td><a href="javascript:void(0);"
 							onclick="deleteFile('<c:url value='${it.dlBaseUri}${iFile.key}' />', '${iFile.key}')">X</a>
+						</td>
 					</tr>
-					<tr id="<c:out value='${iFile.value.md5}' />"
+					<tr id="meta-<c:out value='${iFile.key}' />"
 						style="display: none;">
 						<td colspan="7">
 							<table class=small>
