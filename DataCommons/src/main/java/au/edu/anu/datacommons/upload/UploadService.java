@@ -379,7 +379,7 @@ public class UploadService {
 		model.put("fo", fo);
 
 		if (!dcStorage.bagExists(pid))
-			throw new NotFoundException(format("Bag not found for ", pid));
+			throw new NotFoundException(format("Bag not found for {0}", pid));
 
 		BagSummary bagSummary;
 		try {
@@ -400,6 +400,28 @@ public class UploadService {
 		}
 
 		resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
+		return resp;
+	}
+	
+	@GET
+	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Path("bag/{pid}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response doGetBagSummary(@PathParam("pid") String pid) {
+		Response resp = null;
+		
+		getFedoraObjectReadAccess(pid);
+		if (!dcStorage.bagExists(pid)) {
+			throw new NotFoundException(format("Bag not found for {0}", pid));
+		}
+		
+		try {
+			BagSummary bagSummary = dcStorage.getBagSummary(pid);
+			resp = Response.ok(bagSummary).build();
+		} catch (DcStorageException e) {
+			resp = Response.serverError().build();
+		}
+		
 		return resp;
 	}
 

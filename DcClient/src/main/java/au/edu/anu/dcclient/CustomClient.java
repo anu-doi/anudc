@@ -25,8 +25,12 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientRequest;
 import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import com.sun.jersey.api.client.filter.LoggingFilter;
+import com.sun.jersey.api.json.JSONConfiguration;
 
 /**
  * This class is a wrapper for a singleton Client object to be used throughout the application for sending HTTP requests to Data Commons.
@@ -45,10 +49,12 @@ public class CustomClient
 	 * 
 	 * @return Client object
 	 */
-	public static Client getInstance()
+	public static synchronized Client getInstance()
 	{
 		if (client == null)
 		{
+			ClientConfig clientConfig = new DefaultClientConfig();
+			clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
 			client = Client.create();
 			client.setChunkedEncodingSize(1024 * 1024);
 			client.addFilter(new ClientFilter() {
@@ -59,6 +65,7 @@ public class CustomClient
 					return getNext().handle(cr);
 				}
 			});
+			client.addFilter(new LoggingFilter(System.out));
 		}
 		
 		return client;

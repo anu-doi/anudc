@@ -345,14 +345,15 @@ public class MainWindow extends JFrame implements ActionListener
 	 */
 	protected void do_btnLogin_actionPerformed(ActionEvent e)
 	{
-		LoginDialog ld = LoginDialog.getInstance();
+		LoginDialog ld = new LoginDialog();
 		if (ld.display() == JOptionPane.OK_OPTION)
 		{
 			LOGGER.debug("OK button clicked in Login Dialog.");
-			if (ld.getUserInfo() != null)
+			String[] userInfo = ld.getUserInfo();
+			if (userInfo != null)
 			{
 				enableControls();
-				btnLogin.setText(format("Switch user ({0}, {1})", ld.getUserInfo()[0], ld.getUserInfo()[1]));
+				btnLogin.setText(format("Switch user ({0}, {1})", userInfo[0], userInfo[1]));
 			}
 		}
 	}

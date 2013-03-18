@@ -53,7 +53,7 @@ import au.edu.anu.dcclient.collection.CollectionInfo;
 import au.edu.anu.dcclient.stopwatch.StopWatch;
 import au.edu.anu.dcclient.tasks.CreateCollectionTask;
 import au.edu.anu.dcclient.tasks.DownloadBagTask;
-import au.edu.anu.dcclient.tasks.GetInfoTask;
+import au.edu.anu.dcclient.tasks.GetBagSummaryTask;
 import au.edu.anu.dcclient.tasks.SaveBagTask;
 import au.edu.anu.dcclient.tasks.UploadBagTask;
 import au.edu.anu.dcclient.tasks.VerifyBagTask;
@@ -457,7 +457,7 @@ public final class CmdMgr
 		DcBag bag = null;
 
 		System.out.println("Getting bag information...");
-		GetInfoTask getInfoTask = new GetInfoTask(Global.getBagUploadUri(), pid);
+		GetBagSummaryTask getInfoTask = new GetBagSummaryTask(Global.getBagUploadUri(), pid);
 		getInfoTask.addProgressListener(new ConsoleProgressListener());
 		try
 		{

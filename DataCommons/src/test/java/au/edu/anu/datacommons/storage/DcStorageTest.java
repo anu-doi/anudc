@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -237,7 +238,7 @@ public class DcStorageTest {
 		String pid = getNextPid();
 		Bag bag = null;
 		BagSummary bagSummary;
-		ExtRefsTxt extRefsTxt;
+		Map<String, String> extRefsTxt;
 		try {
 			// Add 2 URLs
 			List<String> urlList = Arrays.asList("http://first.com", "http://second.com");
