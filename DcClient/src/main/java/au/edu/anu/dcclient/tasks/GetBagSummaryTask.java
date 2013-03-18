@@ -21,12 +21,22 @@
 
 package au.edu.anu.dcclient.tasks;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.anu.dcbag.BagSummary;
+import au.edu.anu.dcbag.FileSummary;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -34,9 +44,8 @@ import com.sun.jersey.api.client.WebResource;
 /**
  * Represents a task that gets information about a bag associated with a record in Data Commons.
  */
-public final class GetInfoTask extends AbstractDcBagTask<ClientResponse>
-{
-	private static final Logger LOGGER = LoggerFactory.getLogger(GetInfoTask.class);
+public final class GetBagSummaryTask extends AbstractDcBagTask<BagSummary, List<FileSummary>> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(GetBagSummaryTask.class);
 
 	private final URI pidBagUri;
 
@@ -55,49 +64,47 @@ public final class GetInfoTask extends AbstractDcBagTask<ClientResponse>
 	 * 
 	 * @param pidBagUri
 	 */
-	public GetInfoTask(URI bagBaseUri, String pid)
-	{
+	public GetBagSummaryTask(URI bagBaseUri, String pid) {
 		super();
 		this.pidBagUri = UriBuilder.fromUri(bagBaseUri).path(pid).build();
 	}
 
-	/**
-	 * call
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * Gets basic information about a collection's bag.
-	 * 
-	 * @see java.util.concurrent.Callable#call()
-	 * 
-	 *      <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		26/06/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 * 
-	 * @return Response of the request as ClientResponse
-	 * @throws Exception
-	 */
 	@Override
-	public ClientResponse call() throws Exception
-	{
-		stopWatch.start();
-
-		ClientResponse response;
-		try
-		{
-			updateProgress("Getting Pid Info", pidBagUri.toString(), 1L, 1L);
-			WebResource webResource = client.resource(UriBuilder.fromUri(pidBagUri).path("bagit.txt").build());
-			response = webResource.get(ClientResponse.class);
-			updateProgress("Pid Info received", pidBagUri.toString(), 1L, 1L);
-		}
-		finally
-		{
-			updateProgress("done", null, null, null);
+	protected BagSummary doInBackground() throws Exception {
+		BagSummary bagSummary = null;
+		try {
+			stopWatch.start();
+			WebResource webResource = client.resource(UriBuilder.fromUri(pidBagUri).build());
+			ClientResponse response = webResource.accept(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
+			String entity = response.getEntity(String.class);
+			bagSummary = mapJsonToBagSummary(entity);
+			System.out.println(bagSummary.getNumFiles());
+		} finally {
 			stopWatch.end();
 			LOGGER.info("Time - Get Bag Info Task: {}", stopWatch.getFriendlyElapsed());
 		}
 
-		return response;
+		return bagSummary;
+	}
+	
+	@Override
+	protected void done() {
+		super.done();
+		try {
+			get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	BagSummary mapJsonToBagSummary(String jsonStr) throws JsonParseException, JsonMappingException, IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(org.codehaus.jackson.map.DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		BagSummary bagSummary = mapper.readValue(jsonStr, BagSummary.class);
+		return bagSummary;
 	}
 }

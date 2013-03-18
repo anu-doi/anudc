@@ -33,11 +33,10 @@ import com.sun.jersey.api.client.WebResource;
 /**
  * This class represents a task that gets information about a user from DataCommons.
  */
-public class GetUserInfoTask extends AbstractDcBagTask<String[]>
-{
+public class GetUserInfoTask extends AbstractDcBagTask<String[], Object> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GetUserInfoTask.class);
 
-	private final URI userInfoUri;
+	private URI userInfoUri;
 
 	/**
 	 * Instantiates a new gets the user info task.
@@ -45,35 +44,50 @@ public class GetUserInfoTask extends AbstractDcBagTask<String[]>
 	 * @param userInfoUri
 	 *            the user info uri
 	 */
-	public GetUserInfoTask(URI userInfoUri)
-	{
+	public GetUserInfoTask(URI userInfoUri) {
 		this.userInfoUri = userInfoUri;
 	}
-
+	
 	@Override
-	public String[] call()
-	{
+	protected String[] doInBackground() throws Exception {
 		String[] userInfo = null;
 
-		stopWatch.start();
-		try
-		{
+		ClientResponse response = null;
+		try {
+			stopWatch.start();
+			setProgress(10);
 			WebResource webResource = client.resource(this.userInfoUri);
-			ClientResponse response = webResource.get(ClientResponse.class);
+			setProgress(20);
+			response = webResource.get(ClientResponse.class);
+			setProgress(80);
 			LOGGER.info("Server returned: HTTP {}", response.getStatus());
-			if (response.getClientResponseStatus() == Status.OK)
-			{
-				String respStr = response.getEntity(String.class);
-				int separatorIndex = respStr.indexOf(':');
-				userInfo = new String[] { respStr.substring(0, separatorIndex), respStr.substring(separatorIndex + 1) };
+			if (response.getClientResponseStatus() == Status.OK) {
+				userInfo = extractUserInfo(response);
 			}
-		}
-		finally
-		{
+		} finally {
+			try {
+				response.close();
+			} catch (Exception e) {
+				//No op
+			}
 			stopWatch.end();
 			LOGGER.info("Time - Get User Info Task: {}", stopWatch.getFriendlyElapsed());
 		}
 
+		return userInfo;
+	}
+	
+	@Override
+	protected void done() {
+		super.done();
+		setProgress(100);
+	}
+	
+	private String[] extractUserInfo(ClientResponse response) {
+		String[] userInfo;
+		String respStr = response.getEntity(String.class);
+		int separatorIndex = respStr.indexOf(':');
+		userInfo = new String[] { respStr.substring(0, separatorIndex), respStr.substring(separatorIndex + 1) };
 		return userInfo;
 	}
 }

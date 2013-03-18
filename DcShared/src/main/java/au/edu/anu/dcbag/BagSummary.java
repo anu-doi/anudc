@@ -23,7 +23,10 @@ package au.edu.anu.dcbag;
 
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFile;
-import gov.loc.repository.bagit.BagInfoTxt;
+
+import java.util.Collections;
+import java.util.Map;
+
 import au.edu.anu.dcbag.BagPropsTxt.DataSource;
 import au.edu.anu.dcbag.BagPropsTxt.Key;
 
@@ -38,11 +41,15 @@ import au.edu.anu.dcbag.BagPropsTxt.Key;
  */
 public class BagSummary
 {
-	private final Bag bag;
 	private BagPropsTxt bagPropsTxt = null;
 	private FileSummaryMap fsMap = null;
-	private BagInfoTxt bagInfoTxt = null;
-	private ExtRefsTxt extRefsTxt = null;
+	private Map<String, String> bagInfoTxt = null;
+	private Map<String, String> extRefsTxt = null;
+	private long numFiles;
+	
+	protected BagSummary() {
+		super();
+	}
 	
 	/**
 	 * Instantiates a new bag summary.
@@ -52,15 +59,15 @@ public class BagSummary
 	 */
 	public BagSummary(Bag bag)
 	{
-		this.bag = bag;
-		
 		// Read bag properties file.
 		BagFile bagPropsTxtFile = bag.getBagFile(BagPropsTxt.FILEPATH);
 		if (bagPropsTxtFile != null)
 			this.bagPropsTxt = new BagPropsTxt(BagPropsTxt.FILEPATH, bagPropsTxtFile, bag.getBagItTxt().getCharacterEncoding());
 		
 		// File summary map.
-		this.fsMap = new FileSummaryMap(this.bag);
+		this.fsMap = new FileSummaryMap(bag);
+		
+		this.numFiles = bag.getPayload().size();
 		
 		// Bag Info Txt
 		this.bagInfoTxt = bag.getBagInfoTxt();
@@ -78,7 +85,7 @@ public class BagSummary
 	 */
 	public String getFriendlySize()
 	{
-		return bag.getBagInfoTxt().getBagSize();
+		return bagInfoTxt.get("Bag-Size");
 	}
 	
 	/**
@@ -88,7 +95,7 @@ public class BagSummary
 	 */
 	public long getNumFiles()
 	{
-		return bag.getPayload().size();
+		return this.numFiles;
 	}
 	
 	/**
@@ -98,7 +105,7 @@ public class BagSummary
 	 */
 	public String getPid()
 	{
-		return bag.getBagInfoTxt().getExternalIdentifier();
+		return bagInfoTxt.get("External-Identifier");
 	}
 	
 	/**
@@ -130,15 +137,19 @@ public class BagSummary
 	{
 		return fsMap;
 	}
-
+	
+	protected void setFileSummaryMap(FileSummaryMap fsMap) {
+		this.fsMap = fsMap;
+	}
+	
 	/**
 	 * Gets the bag info txt.
 	 * 
 	 * @return the bag info txt
 	 */
-	public BagInfoTxt getBagInfoTxt()
+	public Map<String, String> getBagInfoTxt()
 	{
-		return bagInfoTxt;
+		return Collections.unmodifiableMap(bagInfoTxt);
 	}
 
 	/**
@@ -146,7 +157,7 @@ public class BagSummary
 	 * 
 	 * @return ExtRefsTxt
 	 */
-	public ExtRefsTxt getExtRefsTxt()
+	public Map<String, String> getExtRefsTxt()
 	{
 		return extRefsTxt;
 	}

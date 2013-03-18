@@ -30,7 +30,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.Authenticator;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -54,8 +53,6 @@ public class LoginDialog extends JDialog
 {
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(LoginDialog.class);
-
-	private static LoginDialog instance = null;
 
 	private int optionSelected = JOptionPane.CANCEL_OPTION;
 	private String[] userInfo = null;
@@ -139,44 +136,30 @@ public class LoginDialog extends JDialog
 						optionSelected = JOptionPane.OK_OPTION;
 						Authenticator.setDefault(new DcAuthenticator(LoginDialog.this.txtUser.getText(), LoginDialog.this.txtPassword.getText()));
 
-						GetUserInfoTask task = new GetUserInfoTask(Global.getUserInfoUri());
-						final Future<String[]> userInfoResult = ThreadPoolManager.getExecSvc().submit(task);
-						ThreadPoolManager.getExecSvc().submit(new Runnable()
-						{
+						GetUserInfoTask task = new GetUserInfoTask(Global.getUserInfoUri()) {
 							@Override
-							public void run()
-							{
-								try
-								{
-									userInfo = userInfoResult.get();
-									if (userInfo == null)
-									{
-										JOptionPane.showMessageDialog(MainWindow.getInstance(), "Invalid username and/or password",
-												"Invalid username/password", JOptionPane.ERROR_MESSAGE);
+							protected void done() {
+								super.done();
+								try {
+									userInfo = get();
+									if (userInfo == null) {
+										JOptionPane.showMessageDialog(MainWindow.getInstance(),
+												"Invalid username and/or password", "Invalid username/password",
+												JOptionPane.ERROR_MESSAGE);
 										Authenticator.setDefault(null);
 									}
-								}
-								catch (InterruptedException e)
-								{
+								} catch (InterruptedException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
-								}
-								catch (ExecutionException e)
-								{
-									LOGGER.error("Execution exception while authenticating credentials.", e);
-									JOptionPane.showMessageDialog(MainWindow.getInstance(), "Unable to connect to server: \r\n\r\n" + e.getMessage(), "Error",
-											JOptionPane.ERROR_MESSAGE);
-									Authenticator.setDefault(null);
-								}
-								finally
-								{
-									progressBar.setIndeterminate(false);
-									progressBar.setVisible(false);
+								} catch (ExecutionException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} finally {
 									LoginDialog.this.setVisible(false);
 								}
 							}
-
-						});
+						};
+						task.execute();
 					}
 				});
 
@@ -222,18 +205,6 @@ public class LoginDialog extends JDialog
 	{
 		setVisible(true);
 		return this.optionSelected;
-	}
-
-	/**
-	 * Returns the singleton instance of LoginDialog.
-	 * 
-	 * @return LoginDialog object
-	 */
-	public static LoginDialog getInstance()
-	{
-		if (instance == null)
-			instance = new LoginDialog();
-		return instance;
 	}
 
 	/**

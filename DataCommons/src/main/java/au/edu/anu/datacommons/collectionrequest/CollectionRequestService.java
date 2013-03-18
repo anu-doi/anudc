@@ -92,7 +92,6 @@ import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Util;
-import au.edu.anu.dcbag.ExtRefsTxt;
 import au.edu.anu.dcbag.FileSummary;
 
 import com.sun.jersey.api.NotFoundException;
@@ -750,11 +749,11 @@ public class CollectionRequestService
 
 			// External references list.
 
-			ExtRefsTxt extRefsTxt = dcStorage.getBagSummary(dropbox.getCollectionRequest().getPid()).getExtRefsTxt();
-			if (extRefsTxt != null && extRefsTxt.entrySet().size() > 0)
+			Map<String, String> extRefs = dcStorage.getBagSummary(dropbox.getCollectionRequest().getPid()).getExtRefsTxt();
+			if (extRefs != null && extRefs.entrySet().size() > 0)
 			{
 				Map<String, String> fetchables = new HashMap<String, String>();
-				for (Entry<String, String> extRefEntry : extRefsTxt.entrySet())
+				for (Entry<String, String> extRefEntry : extRefs.entrySet())
 					fetchables.put(extRefEntry.getValue(), extRefEntry.getValue());
 				model.put("fetchables", fetchables);
 			}

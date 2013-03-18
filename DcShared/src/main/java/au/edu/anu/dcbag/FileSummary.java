@@ -59,12 +59,17 @@ import au.edu.anu.dcbag.fido.PronomFormat;
 public class FileSummary {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileSummary.class);
 
-	private final String filepath;
-	private final File file;
-	private final PronomFormat pronomFormat;
-	private final Map<Algorithm, String> messageDigests;
+	private String filepath;
+	private PronomFormat pronomFormat;
+	private Map<Algorithm, String> messageDigests;
 	private Map<String, String[]> metadata;
 	private String scanResult;
+	private String filename;
+	private long lastModified;
+	private long sizeInBytes;
+	
+	protected FileSummary() {
+	}
 
 	/**
 	 * Instantiates a new file summary.
@@ -76,7 +81,12 @@ public class FileSummary {
 	 */
 	public FileSummary(Bag bag, BagFile bf) {
 		this.filepath = bf.getFilepath();
-		this.file = new File(bag.getFile(), bf.getFilepath());
+		
+		File file = new File(bag.getFile(), bf.getFilepath());
+		this.filename = file.getName();
+		this.lastModified = file.lastModified();
+		this.sizeInBytes = file.length();
+		
 		this.messageDigests = bag.getChecksums(bf.getFilepath());
 		pronomFormat = new PronomFormat(bag, bf);
 		readSerialisedMetadata(bag, bf);
@@ -98,7 +108,7 @@ public class FileSummary {
 	 * @return the size in bytes
 	 */
 	public long getSizeInBytes() {
-		return file.length();
+		return this.sizeInBytes;
 	}
 	
 	public PronomFormat getPronomFormat() {
@@ -123,11 +133,11 @@ public class FileSummary {
 	}
 	
 	public String getFilename() {
-		return file.getName();
+		return this.filename;
 	}
 	
 	public long getLastModified() {
-		return file.lastModified();
+		return this.lastModified;
 	}
 
 	/**
