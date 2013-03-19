@@ -104,7 +104,7 @@
 					<th>Public</th>
 					<td><c:out value="${it.isFilesPublic}" />&nbsp;
 						<sec:accesscontrollist hasPermission="PUBLISH" domainObject="${it.fedoraObject}">
-							<a href="javascript:void(0);" onclick="toggleIsFilesPublic('${it.fo.object_id}', ${it.isFilesPublic})">Change</a>
+							<a href="javascript:void(0);" onclick="toggleIsFilesPublic('${it.fo.object_id}', '${it.isFilesPublic}')">Change</a>
 						</sec:accesscontrollist>
 					</td>
 				</tr>

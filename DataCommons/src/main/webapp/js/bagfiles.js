@@ -119,9 +119,8 @@ function toggleIsFilesPublic(pid, curFlag) {
 			contentType: "text/plain",
 			data: newFlag
 	}).done(function(msg, status) {
-		isFilesPublic = msg;
+		window.location = window.location.href.split("?")[0];
 	}).fail(function(msg, status) {
-		alert("Unable to retrieve Files Public status");
+		alert("Unable to change Files Public status");
 	});
-	return isFilesPublic;
 }
