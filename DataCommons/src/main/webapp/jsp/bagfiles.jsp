@@ -120,8 +120,9 @@
 		<div class="doublewide nopadtop" id="extRefs" style="display: none;">
 			<div class="small w-doublewide">
 				<!-- External relations -->
-				<button onclick="addExtRef('${it.bagSummary.pid}')">Add
-					External Reference</button>
+				<sec:accesscontrollist hasPermission="WRITE" domainObject="${it.fedoraObject}">
+					<button onclick="addExtRef('${it.bagSummary.pid}')">Add	External Reference</button>
+				</sec:accesscontrollist>
 				<c:if test="${not empty it.extRefsTxt}">
 					<ul>
 						<c:forEach var="iEntry" items="${it.extRefsTxt}">
