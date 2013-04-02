@@ -53,7 +53,7 @@
 					Records to Validate:<br/>
 					<label for="ids" class="error">Please select record(s) to validate<br/></label>
 					<c:forEach items="${it.results.documentList}" var="row"> 
-						<input type="checkbox" name="ids" value="${row['id']}" class="required" />${row['unpublished.name']} <br/>
+						<input type="checkbox" name="ids" value="${row['id']}" class="required" />${row['unpublished.name']}&nbsp;&nbsp;<span class="text-grey50">[${row['id']}]</span><br/>
 					</c:forEach>
 				</form>
 				

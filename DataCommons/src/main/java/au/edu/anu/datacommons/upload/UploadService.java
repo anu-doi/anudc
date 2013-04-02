@@ -22,7 +22,6 @@
 package au.edu.anu.datacommons.upload;
 
 import static java.text.MessageFormat.*;
-import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.Manifest;
 
 import java.io.BufferedInputStream;
@@ -171,21 +170,9 @@ public class UploadService {
 	}
 
 	/**
-	 * doPostAsHtml
-	 * 
-	 * Australian National University Data Commons
-	 * 
 	 * Accepts POST requests from a JUpload applet and saves the files on the server for further processing. Creates a
 	 * placeholder datastream in the fedora object preventing reuploading to the same datastream.
 	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		14/05/2012	Rahul Khanna (RK)		Initial
-	 * 0.2		13/07/2012	Genevieve Turner (GT)	Added pre-authorization
-	 * </pre>
-	 * 
-	 * @param request
-	 *            HTTPServletRequest object.
 	 * @return A response with status information.
 	 */
 	@POST
@@ -193,7 +180,7 @@ public class UploadService {
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doPostAsHtml() {
+	public Response doPostJUploadFilePart() {
 		Response resp = null;
 		Properties uploadProps = new Properties();
 		List<FileItem> uploadedItems;
@@ -523,8 +510,8 @@ public class UploadService {
 			if (fileRequested.equals("zip")) {
 				Set<String> fileSet = new HashSet<String>();
 				FileSummaryMap fsMap = dcStorage.getBagSummary(pid).getFileSummaryMap();
-				for (BagFile iFile : fsMap.keySet())
-					fileSet.add(iFile.getFilepath());
+				for (String iFilepath : fsMap.keySet())
+					fileSet.add(iFilepath);
 				resp = getBagFilesAsZip(pid, fileSet, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), ".zip"));
 			} else {
 				if (!dcStorage.fileExistsInBag(pid, fileRequested))
@@ -925,13 +912,11 @@ public class UploadService {
 	 * @return
 	 */
 	private FedoraObject getFedoraObject(String pid) {
-		LOGGER.debug("Retrieving object for: {}", pid);
 		String decodedpid = null;
 		decodedpid = Util.decodeUrlEncoded(pid);
 		if (decodedpid == null) {
 			return null;
 		}
-		LOGGER.debug("Decoded pid: {}", decodedpid);
 		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
 		FedoraObject fo = (FedoraObject) object.getSingleByName(decodedpid);
 		return fo;

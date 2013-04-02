@@ -28,6 +28,8 @@ jQuery(document).ready(function()
 		jQuery('#anzseoSubject2').combobox();
 	});
 
+	document.title = jQuery("#body > #content > .doublenarrow > h1").text();
+	
 	jQuery.validator.setDefaults({
 		ignore: "",
 		showErrors: function(errorMap, errorList) {

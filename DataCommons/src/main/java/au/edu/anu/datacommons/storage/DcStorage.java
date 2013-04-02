@@ -180,8 +180,7 @@ public final class DcStorage implements Closeable {
 				DcStorageException dce = new DcStorageException(e);
 				throw dce;
 			}
-			bag = getBag(pid);
-			CompleterTask compTask = new CompleterTask(bagFactory, bag);
+			CompleterTask compTask = new CompleterTask(bagFactory, getBagDir(pid));
 			compTask.addPayloadFileAddedUpdated("data/" + filename);
 			execSvc.submit(compTask);
 		} finally {
@@ -222,7 +221,7 @@ public final class DcStorage implements Closeable {
 				throw new DcStorageException(format("Unable to archive {0}", fileToDelete.getName()), e);
 			}
 
-			CompleterTask task = new CompleterTask(bagFactory, bag);
+			CompleterTask task = new CompleterTask(bagFactory, getBagDir(pid));
 			task.addPayloadFileDeleted(bagFilePath);
 			execSvc.submit(task);
 		} finally {
@@ -319,15 +318,9 @@ public final class DcStorage implements Closeable {
 		if (!bagExists(pid)) {
 			throw new DcStorageException(format("No bag exists for {0}", pid));
 		}
-		Bag bag = null;
-		try {
-			bag = getBag(pid);
-			CompleterTask compTask = new CompleterTask(bagFactory, bag);
-			compTask.setCompleteAllFiles();
-			execSvc.submit(compTask);
-		} finally {
-			IOUtils.closeQuietly(bag);
-		}
+		CompleterTask compTask = new CompleterTask(bagFactory, getBagDir(pid));
+		compTask.setCompleteAllFiles();
+		execSvc.submit(compTask);
 	}
 	
 

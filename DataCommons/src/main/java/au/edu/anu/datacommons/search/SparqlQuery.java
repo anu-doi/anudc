@@ -550,9 +550,7 @@ public final class SparqlQuery
 
 		// WHERE clause for triples.
 		sparqlQuery.append(Config.NEWLINE);
-		sparqlQuery.append("WHERE");
-		sparqlQuery.append(Config.NEWLINE);
-		sparqlQuery.append("{");
+		sparqlQuery.append("WHERE {");
 		sparqlQuery.append(Config.NEWLINE);
 		sparqlQuery.append("");
 		for (String iTriple : triples)
@@ -565,9 +563,7 @@ public final class SparqlQuery
 		// FILTER clause for Filters.
 		if (filters.size() > 0)
 		{
-			sparqlQuery.append("FILTER");
-			sparqlQuery.append(Config.NEWLINE);
-			sparqlQuery.append("(");
+			sparqlQuery.append("FILTER (");
 			sparqlQuery.append(Config.NEWLINE);
 
 			for (String iFilter : filters)
@@ -596,7 +592,7 @@ public final class SparqlQuery
 			sparqlQuery.append(limit);
 		}
 
-		LOGGER.debug("Returning SPARQL query: {}", sparqlQuery);
+		LOGGER.trace("Returning SPARQL query: {}", sparqlQuery);
 		return sparqlQuery.toString();
 	}
 }

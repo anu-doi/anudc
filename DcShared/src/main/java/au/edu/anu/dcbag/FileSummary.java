@@ -21,17 +21,21 @@
 
 package au.edu.anu.dcbag;
 
+import static java.text.MessageFormat.*;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.Manifest.Algorithm;
+import gov.loc.repository.bagit.utilities.FilenameHelper;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +44,8 @@ import au.edu.anu.dcbag.clamscan.ScanResult.Status;
 import au.edu.anu.dcbag.fido.PronomFormat;
 
 /**
- * Represents the summary of a single file in a bag associated with a record. Provides the following details of each file in a bag:
+ * Represents the summary of a single file in a bag associated with a record. Provides the following details of each
+ * file in a bag:
  * <ul>
  * <li>Path of file relative to root of bag. For example, data/abc.txt</li>
  * <li>Size of file in bytes</li>
@@ -51,15 +56,13 @@ import au.edu.anu.dcbag.fido.PronomFormat;
  * <li>Virus scan result of the file</li>
  * </ul>
  */
-public class FileSummary
-{
+public class FileSummary {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileSummary.class);
 
-	private final String path;
-	private final long sizeInBytes;
-	private final String format;
-	private final String formatPuid;
-	private final String md5;
+	private final String filepath;
+	private final File file;
+	private final PronomFormat pronomFormat;
+	private final Map<Algorithm, String> messageDigests;
 	private Map<String, String[]> metadata;
 	private String scanResult;
 
@@ -71,55 +74,13 @@ public class FileSummary
 	 * @param bf
 	 *            the bag file whose summary will be read
 	 */
-	public FileSummary(Bag bag, BagFile bf)
-	{
-		this.path = bf.getFilepath();
-		this.sizeInBytes = bf.getSize();
-		this.md5 = bag.getChecksums(bf.getFilepath()).get(Algorithm.MD5);
-
-		// Fido - Pronom format.
-		PronomFormat pFmt = new PronomFormat(bag, bf);
-		this.format = pFmt.getFormatName();
-		this.formatPuid = pFmt.getPuid();
-
-		// Serialised metadata.
-		try
-		{
-			String serMetadataFilename = "metadata/" + bf.getFilepath().substring(bf.getFilepath().indexOf('/') + 1) + ".ser";
-			if (bag.getBagFile(serMetadataFilename) != null)
-			{
-				ObjectInputStream objInStream = new ObjectInputStream(bag.getBagFile(serMetadataFilename).newInputStream());
-				this.metadata = readMetadata(objInStream);
-			}
-		}
-		catch (Exception e)
-		{
-			LOGGER.warn(e.getMessage(), e);
-			this.metadata = new HashMap<String, String[]>();
-		}
-
-		// Virus scan results.
-		BagFile virusScanTxt = bag.getBagFile(VirusScanTxt.FILEPATH);
-		if (virusScanTxt != null)
-		{
-			VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.FILEPATH, virusScanTxt, bag.getBagItTxt().getCharacterEncoding());
-			String scanResultStr = vs.get(bf.getFilepath());
-			if (scanResultStr == null || scanResultStr.length() == 0)
-			{
-				this.scanResult = "NOT SCANNED";
-			}
-			else
-			{
-				ScanResult sr = new ScanResult(scanResultStr);
-				this.scanResult = sr.getStatus().toString();
-				if (sr.getStatus() == Status.FAILED)
-					this.scanResult += ", " + sr.getSignature();
-			}
-		}
-		else
-		{
-			this.scanResult = "NOT SCANNED";
-		}
+	public FileSummary(Bag bag, BagFile bf) {
+		this.filepath = bf.getFilepath();
+		this.file = new File(bag.getFile(), bf.getFilepath());
+		this.messageDigests = bag.getChecksums(bf.getFilepath());
+		pronomFormat = new PronomFormat(bag, bf);
+		readSerialisedMetadata(bag, bf);
+		readVirusScanStr(bag, bf);
 	}
 
 	/**
@@ -127,9 +88,8 @@ public class FileSummary
 	 * 
 	 * @return the path
 	 */
-	public String getPath()
-	{
-		return path;
+	public String getFilepath() {
+		return filepath;
 	}
 
 	/**
@@ -137,29 +97,12 @@ public class FileSummary
 	 * 
 	 * @return the size in bytes
 	 */
-	public long getSizeInBytes()
-	{
-		return sizeInBytes;
+	public long getSizeInBytes() {
+		return file.length();
 	}
-
-	/**
-	 * Gets the format.
-	 * 
-	 * @return the format
-	 */
-	public String getFormat()
-	{
-		return format;
-	}
-
-	/**
-	 * Gets the format puid.
-	 * 
-	 * @return the format puid
-	 */
-	public String getFormatPuid()
-	{
-		return formatPuid;
+	
+	public PronomFormat getPronomFormat() {
+		return pronomFormat;
 	}
 
 	/**
@@ -167,9 +110,24 @@ public class FileSummary
 	 * 
 	 * @return the md5
 	 */
-	public String getMd5()
-	{
-		return md5;
+	public String getMd5() {
+		return messageDigests.get(Algorithm.MD5);
+	}
+	
+	public Map<String, String> getMessageDigests() {
+		Map<String, String> messageDigests = new HashMap<String, String>();
+		for (Entry<Algorithm, String> entry : this.messageDigests.entrySet()) {
+			messageDigests.put(entry.getKey().javaSecurityAlgorithm, entry.getValue());
+		}
+		return messageDigests;
+	}
+	
+	public String getFilename() {
+		return file.getName();
+	}
+	
+	public long getLastModified() {
+		return file.lastModified();
 	}
 
 	/**
@@ -177,8 +135,7 @@ public class FileSummary
 	 * 
 	 * @return the metadata
 	 */
-	public Map<String, String[]> getMetadata()
-	{
+	public Map<String, String[]> getMetadata() {
 		return metadata;
 	}
 
@@ -187,20 +144,8 @@ public class FileSummary
 	 * 
 	 * @return the friendly size
 	 */
-	public String getFriendlySize()
-	{
-		String friendlySize;
-		MessageFormat msgFmt = new MessageFormat("{0,number,integer} {1}");
-		if (sizeInBytes >= FileUtils.ONE_GB)
-			friendlySize = msgFmt.format(new Object[] { sizeInBytes / FileUtils.ONE_GB, "GB" });
-		else if (sizeInBytes >= FileUtils.ONE_MB)
-			friendlySize = msgFmt.format(new Object[] { sizeInBytes / FileUtils.ONE_MB, "MB" });
-		else if (sizeInBytes >= FileUtils.ONE_KB)
-			friendlySize = msgFmt.format(new Object[] { sizeInBytes / FileUtils.ONE_KB, "KB" });
-		else
-			friendlySize = msgFmt.format(new Object[] { sizeInBytes, "bytes" });
-
-		return friendlySize.toString();
+	public String getFriendlySize() {
+		return FileUtils.byteCountToDisplaySize(getSizeInBytes());
 	}
 
 	/**
@@ -208,9 +153,49 @@ public class FileSummary
 	 * 
 	 * @return the scan result
 	 */
-	public String getScanResult()
-	{
+	public String getScanResult() {
 		return scanResult;
+	}
+
+	private void readSerialisedMetadata(Bag bag, BagFile bf) {
+		ObjectInputStream objInStream = null;
+		try {
+			String serMetadataFilename = getSerialisedMetadataFilename(bf);
+			BagFile serMetadataBagFile = bag.getBagFile(serMetadataFilename);
+			if (serMetadataBagFile != null) {
+				objInStream = new ObjectInputStream(serMetadataBagFile.newInputStream());
+				this.metadata = readMetadata(objInStream);
+			}
+		} catch (Exception e) {
+			LOGGER.warn(e.getMessage(), e);
+			this.metadata = new HashMap<String, String[]>();
+		} finally {
+			IOUtils.closeQuietly(objInStream);
+		}
+
+	}
+
+	private String getSerialisedMetadataFilename(BagFile bf) {
+		return format("metadata/{0}.ser", FilenameHelper.getName(bf.getFilepath()));
+	}
+
+	private void readVirusScanStr(Bag bag, BagFile bf) {
+		BagFile virusScanTxt = bag.getBagFile(VirusScanTxt.FILEPATH);
+		if (virusScanTxt != null) {
+			VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.FILEPATH, virusScanTxt, bag.getBagItTxt()
+					.getCharacterEncoding());
+			String scanResultStr = vs.get(bf.getFilepath());
+			if (scanResultStr == null || scanResultStr.length() == 0) {
+				this.scanResult = "NOT SCANNED";
+			} else {
+				ScanResult sr = new ScanResult(scanResultStr);
+				this.scanResult = sr.getStatus().toString();
+				if (sr.getStatus() == Status.FAILED)
+					this.scanResult += ", " + sr.getSignature();
+			}
+		} else {
+			this.scanResult = "NOT SCANNED";
+		}
 	}
 
 	/**
@@ -225,8 +210,14 @@ public class FileSummary
 	 *             the class not found exception
 	 */
 	@SuppressWarnings("unchecked")
-	private Map<String, String[]> readMetadata(ObjectInputStream objInStream) throws IOException, ClassNotFoundException
-	{
-		return (Map<String, String[]>) objInStream.readObject();
+	private Map<String, String[]> readMetadata(ObjectInputStream objInStream) throws IOException,
+			ClassNotFoundException {
+		Map<String, String[]> metadataObj;
+		try {
+			metadataObj = (Map<String, String[]>) objInStream.readObject();
+		} finally {
+			IOUtils.closeQuietly(objInStream);
+		}
+		return metadataObj;
 	}
 }

@@ -30,6 +30,7 @@ import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.ManifestHelper;
+import gov.loc.repository.bagit.utilities.SimpleResult;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
 import java.io.BufferedOutputStream;
@@ -107,7 +108,7 @@ public class CompleterTaskTest {
 		}
 
 		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
-		compTask = new CompleterTask(bf, bag);
+		compTask = new CompleterTask(bf, bag.getFile());
 		compTask.addPayloadFileAddedUpdated(format("data/{0}", payloadFile1.getName()));
 		try {
 			bag = compTask.call();
@@ -115,6 +116,7 @@ public class CompleterTaskTest {
 			failOnException(e);
 		}
 		
+		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
 		Collection<BagFile> payload = bag.getPayload();
 		assertEquals(payload.size(), 2);
 		assertTrue(fileExistsInPayload(payload, format("data/{0}", payloadFile1.getName())));
@@ -156,7 +158,7 @@ public class CompleterTaskTest {
 		}
 
 		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
-		compTask = new CompleterTask(bf, bag);
+		compTask = new CompleterTask(bf, bag.getFile());
 		compTask.addPayloadFileAddedUpdated(format("data/{0}", payloadFile1.getName()));
 		compTask.addPayloadFileAddedUpdated(format("data/{0}", payloadFile2.getName()));
 		try {
@@ -165,6 +167,8 @@ public class CompleterTaskTest {
 			failOnException(e);
 		}
 
+		
+		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
 		payload = bag.getPayload();
 		assertEquals(payload.size(), 2);
 		assertTrue(fileExistsInPayload(payload, format("data/{0}", payloadFile1.getName())));
@@ -177,7 +181,7 @@ public class CompleterTaskTest {
 		
 		assertTrue(payloadFile2.delete());
 		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
-		compTask = new CompleterTask(bf, bag);
+		compTask = new CompleterTask(bf, bag.getFile());
 		compTask.addPayloadFileDeleted(format("data/{0}", payloadFile2.getName()));
 		try {
 			bag = compTask.call();
@@ -185,6 +189,7 @@ public class CompleterTaskTest {
 			failOnException(e);
 		}
 		
+		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
 		payload = bag.getPayload();
 		assertEquals(payload.size(), 1);
 		assertTrue(fileExistsInPayload(payload, format("data/{0}", payloadFile1.getName())));
@@ -219,12 +224,21 @@ public class CompleterTaskTest {
 		}
 
 		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
-		compTask = new CompleterTask(bf, bag);
+		compTask = new CompleterTask(bf, bag.getFile());
+		compTask.setCompleteAllFiles();
 		try {
 			bag = compTask.call();
 		} catch (Exception e) {
 			failOnException(e);
 		}
+		
+		
+		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
+		SimpleResult validationResult = bag.verifyValid();
+		for (String msg : validationResult.getMessages()) {
+			LOGGER.trace(msg);
+		}
+		assertTrue(validationResult.isSuccess());
 
 		LOGGER.trace("Done");
 	}

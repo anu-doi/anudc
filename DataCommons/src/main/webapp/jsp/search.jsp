@@ -22,7 +22,7 @@
 			<c:forEach items="${it.resultSet.documentList}" var="row">
 				<c:choose>
 					<c:when test="${not empty row['published.name']}">
-						<a href="<c:url value="/rest/display/${row['id']}?layout=def:display" />"><c:out value="${row['published.name']}" /></a> <br />
+						<a href="<c:url value="/rest/display/${row['id']}?layout=def:display" />"><c:out value="${row['published.name']}" /></a>&nbsp;&nbsp;<span class="text-grey50">[${row['id']}]</span><br />
 						${row['published.briefDesc'][0]}
 						<c:if test="${empty row['published.briefDesc'][0]}">
 							${row['published.fullDesc'][0]}
@@ -30,7 +30,7 @@
 						<br />
 					</c:when>
 					<c:when test="${not empty row['unpublished.name']}">
-						<a href="<c:url value="/rest/display/${row['id']}?layout=def:display" />"><c:out value="${row['unpublished.name']}" /></a> <br />
+						<a href="<c:url value="/rest/display/${row['id']}?layout=def:display" />"><c:out value="${row['unpublished.name']}" /></a>&nbsp;&nbsp;<span class="text-grey50">[${row['id']}]</span><br />
 						${row['unpublished.briefDesc'][0]}
 						<c:if test="${empty row['unpublished.briefDesc'][0]}">
 							${row['unpublished.fullDesc'][0]}

@@ -64,13 +64,13 @@
 							<!-- Files for approval -->
 						<ul>
 							<c:forEach var="iFile" items="${it.downloadables}">
-								<li><input type="checkbox" name="file" value="${iFile.key.filepath}"
+								<li><input type="checkbox" name="file" value="${iFile.key}"
 										<c:forEach items="${it.collReq.items}" var="iCurItem">
-								<c:if test="${iCurItem.item == iFile.key.filepath}">
+								<c:if test="${iCurItem.item == iFile.key}">
 									checked="checked"
 								</c:if>
 							</c:forEach> />
-									<c:out value="${iFile.key.filepath} (${iFile.value.friendlySize})" /></li>
+									<c:out value="${iFile.key} (${iFile.value.friendlySize})" /></li>
 							</c:forEach>
 						</ul>
 						</p>

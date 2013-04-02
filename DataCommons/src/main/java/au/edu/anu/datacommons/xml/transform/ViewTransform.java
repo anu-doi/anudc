@@ -166,7 +166,6 @@ public class ViewTransform
 			throws FedoraClientException
 	{
 		Map<String, Object> values = new HashMap<String, Object>();
-		LOGGER.debug("In getPage");
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		InputStream xmlStream = getXMLInputStream(template, fedoraObject);
 
@@ -212,7 +211,6 @@ public class ViewTransform
 				boolean hasXMLReview = false;
 				for (DatastreamType datastream : datastreamList) {
 					String dsId = datastream.getDsid();
-					LOGGER.debug("Data Source id: {}", dsId);
 					if (dsId.equals(Constants.XML_SOURCE)) {
 						hasXMLSource = true;
 					}

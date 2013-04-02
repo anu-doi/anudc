@@ -1,17 +1,43 @@
-function tabSelect(el, containerId)
-{
-	jQuery('.pagetabs-nav > ul > li > a[href]').removeClass('pagetabs-select');
-	jQuery(el).addClass('pagetabs-select');
+function documentReady() {
+	jQuery('div.pagetabs-nav > ul').each(function(){
+	    // For each set of tabs, we want to keep track of
+	    // which tab is active and it's associated content
+	    var $active, $content, $links = jQuery(this).find('a');
 
-	// Hide containers for tabs.
-	jQuery('#info').hide();
-	jQuery('#files').hide();
-	jQuery('#extRefs').hide();
+	    // If the location.hash matches one of the links, use that as the active tab.
+	    // If no match is found, use the first link as the initial active tab.
+	    $active = jQuery($links.filter('[href="'+location.hash+'"]')[0] || $links[0]);
+	    $active.addClass('pagetabs-select');
+	    $content = jQuery($active.attr('href'));
 
-	// Show the container corresponding to the tab selected.
-	jQuery(containerId).show();
+	    // Hide the remaining content
+	    $links.not($active).each(function () {
+	        jQuery(jQuery(this).attr('href')).hide();
+	    });
 
-	return;
+	    // Bind the click event handler
+	    jQuery(this).on('click', 'a', function(e){
+	        // Make the old tab inactive.
+	        $active.removeClass('pagetabs-select');
+	        $content.hide();
+
+	        // Update the variables with the new link and content
+	        $active = jQuery(this);
+	        $content = jQuery(jQuery(this).attr('href'));
+
+	        // Make the tab active.
+	        $active.addClass('pagetabs-select');
+	        $content.show();
+
+	        // Prevent the anchor's default click action
+	        e.preventDefault();
+	    });
+	});
+	if (window.location.hash == "") {
+		jQuery('div.pagetabs-nav > ul > li > a')[0].click();
+	} else {
+		jQuery('div.pagetabs-nav > ul > li > a[href=' + window.location.hash + ']').click();
+	}
 }
 
 function deleteFile(url)
@@ -93,9 +119,8 @@ function toggleIsFilesPublic(pid, curFlag) {
 			contentType: "text/plain",
 			data: newFlag
 	}).done(function(msg, status) {
-		isFilesPublic = msg;
+		window.location = window.location.href.split("?")[0];
 	}).fail(function(msg, status) {
-		alert("Unable to retrieve Files Public status");
+		alert("Unable to change Files Public status");
 	});
-	return isFilesPublic;
 }

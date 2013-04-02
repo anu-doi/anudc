@@ -24,12 +24,12 @@ package au.edu.anu.dcbag;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFile;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 
 /**
  * Represents a Map of FileSummary for each BagFile in a specified Bag.
  */
-public class FileSummaryMap extends HashMap<BagFile, FileSummary>
+public class FileSummaryMap extends TreeMap<String, FileSummary>
 {
 	private static final long serialVersionUID = 1L;
 
@@ -42,7 +42,7 @@ public class FileSummaryMap extends HashMap<BagFile, FileSummary>
 	public FileSummaryMap(Bag bag)
 	{
 		for (BagFile iBagFile : bag.getPayload())
-			this.put(iBagFile, new FileSummary(bag, iBagFile));
+			this.put(iBagFile.getFilepath(), new FileSummary(bag, iBagFile));
 	}
 	
 	/**
@@ -54,9 +54,9 @@ public class FileSummaryMap extends HashMap<BagFile, FileSummary>
 	 */
 	public FileSummary getFileSummary(String bagFilePath)
 	{
-		for (BagFile bagFile : this.keySet())
-			if (bagFile.getFilepath().equals(bagFilePath))
-				return this.get(bagFile);
+		for (String iFilepath : this.keySet())
+			if (iFilepath.equals(bagFilePath))
+				return this.get(iFilepath);
 		return null;
 	}
 }

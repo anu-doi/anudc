@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.dcbag.PronomFormatsTxt;
 import au.edu.anu.dcbag.VirusScanTxt;
 import au.edu.anu.dcbag.clamscan.ClamScan;
@@ -172,17 +173,17 @@ public class DcStorageCompleter implements Completer {
 		}
 
 		// Get scan result for each payload file.
-		ClamScan cs = new ClamScan("localhost", 3310);
+		ClamScan cs = new ClamScan(GlobalProps.getClamScanHost(), GlobalProps.getClamScanPort());
 		if (cs.ping() == true) {
 			for (BagFile iBagFile : bag.getPayload()) {
 				if (isLimited(this.limitAddUpdatePayloadFilepaths, iBagFile.getFilepath())) {
-					InputStream is = null;
+					InputStream streamToScan = null;
 					try {
-						is = iBagFile.newInputStream();
-						ScanResult sr = cs.scan(is);
+						streamToScan = iBagFile.newInputStream();
+						ScanResult sr = cs.scan(streamToScan);
 						vsTxt.put(iBagFile.getFilepath(), sr.getResult());
 					} finally {
-						IOUtils.closeQuietly(is);
+						IOUtils.closeQuietly(streamToScan);
 					}
 				}
 			}
