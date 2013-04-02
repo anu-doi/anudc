@@ -1,0 +1,19 @@
+<assembly>
+	<id>bin</id>
+	<formats>
+		<format>jar</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+	<dependencySets>
+		<dependencySet>
+			<outputDirectory>/</outputDirectory>
+			<useProjectArtifact>true</useProjectArtifact>
+			<unpack>true</unpack>
+			<excludes>
+				<exclude>org.slf4j:slf4j-log4j12</exclude>
+				<exclude>org.slf4j:slf4j-api</exclude>
+				<exclude>log4j:log4j</exclude>
+			</excludes>
+		</dependencySet>
+	</dependencySets>
+</assembly>

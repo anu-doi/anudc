@@ -206,7 +206,14 @@
 			<option value="">
 				- No Value Selected -
 			</option>
-			<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option, $mValue)"/>
+			<xsl:choose>
+				<xsl:when test="$data = '' and @defaultValue != ''">
+					<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option, @defaultValue)"/>
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option, $mValue)"/>
+				</xsl:otherwise>
+			</xsl:choose>
 		</select>
 	</xsl:template>
 	
@@ -227,6 +234,11 @@
 					</option>
 				</xsl:for-each>
 			</xsl:if>
+			<xsl:if test="$data = '' and @defaultValue != ''">
+				<option value="{@defaultValue}">
+					<xsl:value-of select="options:getOptionValue($mName, $mCurrent/option, @defaultValue)"/>
+				</option>
+			</xsl:if>
 		</select>
 		<br />
 		<input type="button" value="Remove Selected" onClick="removeSelected('{@name}')" />
@@ -234,10 +246,11 @@
 	
 	<xsl:template name="RadioButton">
 		<xsl:param name="mValue" />
+		<xsl:variable name="mCurrent" select="." />
 		<xsl:variable name="mName" select="@name" />
 		<xsl:for-each select="option">
 			<input type="radio" name="{$mName}" value="{@value}">
-				<xsl:if test="@value = $mValue">
+				<xsl:if test="@value = $mValue or $data = '' and @value = $mCurrent/@defaultValue">
 					<xsl:attribute name="checked">checked</xsl:attribute>
 				</xsl:if>
 			</input>

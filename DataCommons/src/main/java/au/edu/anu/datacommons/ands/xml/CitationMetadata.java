@@ -293,7 +293,7 @@ public class CitationMetadata {
 	 */
 	@Valid
 	@Size(min=1, message="Citation Metadata requires at least one date")
-	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
+	@XmlElement(name="date", namespace=Constants.ANDS_RIF_CS_NS)
 	public List<ANDSDate> getDates() {
 		return dates;
 	}

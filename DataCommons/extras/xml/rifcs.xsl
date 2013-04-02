@@ -89,7 +89,7 @@
 			</xsl:when>
 		</xsl:choose>
 		<xsl:if test="data/altLastName or data/altGivenName"> 
-			<name type="primary">
+			<name type="alternative">
 				<xsl:if test="data/altTitle">
 					<namePart type="title">
 						<xsl:value-of select="data/altTitle" />
@@ -108,7 +108,7 @@
 			</name>
 		</xsl:if>
 		<xsl:if test="data/abbrLastName or data/abbrGivenName">
-			<name type="primary">
+			<name type="abbreviated">
 				<xsl:if test="data/altTitle">
 					<namePart type="title">
 						<xsl:value-of select="data/altTitle" />

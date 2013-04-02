@@ -26,8 +26,10 @@ import java.util.List;
 
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.PublishIris;
 import au.edu.anu.datacommons.data.db.model.PublishIrisPK;
+import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.exception.ValidateException;
 
 /**
@@ -44,11 +46,13 @@ import au.edu.anu.datacommons.exception.ValidateException;
  * Version	Date		Developer				Description
  * 0.1		20/11/2012	Genevieve Turner (GT)	Initial
  * 0.2		11/12/2012	Genevieve Turner (GT)	Added the thrwoing of the validation exception for publish
+ * 0.3		28/03/2013	Genevieve Turner(GT)	Updated input parameters
  * </pre>
  *
  */
 public class IRISPublish extends GenericPublish implements Publish {
 	/**
+	 * 
 	 * publish
 	 * 
 	 * Set in place the parts to publish to iris
@@ -56,21 +60,21 @@ public class IRISPublish extends GenericPublish implements Publish {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		20/11/2012	Genevieve Turner(GT)	Initial
-	 * 0.2		11/12/2012	Genevieve Turner (GT)	Added the thrwoing of the validation exception
+	 * 0.3		28/03/2013	Genevieve Turner(GT)	Updated input parameters
 	 * </pre>
 	 * 
-	 * @param pid The pid of the object to publish
-	 * @param publishCode The code to publish to
+	 * @param fedoraObject The fedora object to publish
+	 * @param publishLocation The location to publish to
 	 * @throws ValidateException
-	 * @see au.edu.anu.datacommons.publish.GenericPublish#publish(java.lang.String, java.lang.String)
+	 * @see au.edu.anu.datacommons.publish.GenericPublish#publish(au.edu.anu.datacommons.data.db.model.FedoraObject, au.edu.anu.datacommons.data.db.model.PublishLocation)
 	 */
 	@Override
-	public void publish(String pid, String publishCode) throws ValidateException{
-		super.publish(pid, publishCode);
+	public void publish(FedoraObject fedoraObject, PublishLocation publishLocation) throws ValidateException{
+		super.publish(fedoraObject, publishLocation);
 		
 		PublishIris publishIris = new PublishIris();
 		PublishIrisPK publishIrisPK = new PublishIrisPK();
-		publishIrisPK.setPid(pid);
+		publishIrisPK.setPid(fedoraObject.getObject_id());
 		publishIrisPK.setPublishDate(new Date());
 		
 		publishIris.setId(publishIrisPK);
@@ -83,19 +87,20 @@ public class IRISPublish extends GenericPublish implements Publish {
 	/**
 	 * unpublish
 	 * 
-	 * Unpublish from iris
+	 * Unpublish from IRIS
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		20/11/2012	Genevieve Turner(GT)	Initial
+	 * 0.3		28/03/2013	Genevieve Turner(GT)	Updated input parameters
 	 * </pre>
 	 * 
-	 * @param pid The object to unpublish
-	 * @param publishCode The object code to unpublish
-	 * @see au.edu.anu.datacommons.publish.GenericPublish#unpublish(java.lang.String, java.lang.String)
+	 * @param fedoraObject The fedora object to unpublish
+	 * @param publishLocation The location to unpublish from
+	 * @see au.edu.anu.datacommons.publish.GenericPublish#unpublish(au.edu.anu.datacommons.data.db.model.FedoraObject, au.edu.anu.datacommons.data.db.model.PublishLocation)
 	 */
 	@Override
-	public void unpublish(String pid, String publishCode) {
+	public void unpublish(FedoraObject fedoraObject, PublishLocation publishLocation) {
 		//TODO implement
 	}
 	

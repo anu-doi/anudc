@@ -32,6 +32,22 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
+/**
+ * PublishLocation
+ * 
+ * Australian National University Data Commons
+ * 
+ * A publish location
+ *
+ * JUnit Coverage:
+ * PublishLocationDAOTest
+ * 
+ * <pre>
+ * Version	Date		Developer				Description
+ * 0.1		XX/XX/XXXX	Genevieve Turner (GT)	Initial
+ * </pre>
+ *
+ */
 @Entity
 @Table(name="publish_location")
 public class PublishLocation {

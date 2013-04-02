@@ -23,6 +23,8 @@ package au.edu.anu.datacommons.publish;
 
 import java.util.List;
 
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.exception.ValidateException;
 
 /**
@@ -41,6 +43,7 @@ import au.edu.anu.datacommons.exception.ValidateException;
  * 0.2		08/06/2012	Genevieve Turner (GT)	Renamed to Publish from GenericPublish
  * 0.3		15/10/2012	Genevieve Turner (GT)	Added checkValidity function
  * 0.4		11/12/2012	Genevieve Turner (GT)	Added isAllowedToPublish method
+ * 0.5		28/03/2013	Genevieve Turner(GT)	Updated the paremeters
  * </pre>
  * 
  */
@@ -57,22 +60,39 @@ public interface Publish {
 	 * 
 	 * @param pid The pid of the object to publish
 	 */
-	public void publish(String pid, String publishCode) throws ValidateException;
-	
-
+	//public void publish(String pid, String publishCode) throws ValidateException;
 	/**
-	 * unpublish
-	 * 
-	 * Unpublishes data to the appropriate service
-	 * 
+	 * publish
+	 *
+	 * Placeholder
+	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		15/05/2012	Genevieve Turner (GT)	Initial build
+	 * 0.5		28/03/2013	Genevieve Turner(GT)	Updated the paremeters
 	 * </pre>
 	 * 
-	 * @param pid The id of the object to unpublish
+	 * @param fedoraObject The fedora object to publish
+	 * @param publishLocation The location to publish to
+	 * @throws ValidateException
 	 */
-	public void unpublish(String pid, String publishCode);
+	public void publish(FedoraObject fedoraObject, PublishLocation publishLocation) throws ValidateException;
+	
+	/**
+	 * unpublish
+	 *
+	 * Placeholder
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.1		15/05/2012	Genevieve Turner (GT)	Initial build
+	 * 0.5		28/03/2013	Genevieve Turner(GT)	Updated the paremeters
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedora object to unpublish
+	 * @param publishLocation The location to unpublish from
+	 */
+	public void unpublish(FedoraObject fedoraObject, PublishLocation publishLocation);
 	
 	/**
 	 * checkValidity

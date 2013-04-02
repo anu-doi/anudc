@@ -21,11 +21,18 @@
 
 package au.edu.anu.datacommons.publish;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO;
+import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.PublishLocationDAO;
+import au.edu.anu.datacommons.data.db.dao.PublishLocationDAOImpl;
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.exception.ValidateException;
@@ -63,45 +70,87 @@ public class GenericPublish implements Publish {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		08/06/2012	Genevieve Turner(GT)	Initial
+	 * 0.4		28/03/2013	Genevieve Turner(GT)	Updated the input parameters
 	 * </pre>
 	 * 
-	 * @param pid The pid to publish to
-	 * @param publishCode The code of the location to publish to
-	 * @see au.edu.anu.datacommons.publish.Publish#publish(java.lang.String, java.lang.String)
+	 * @param fedoraObject The fedora object to publish
+	 * @param publishLocation The location to publish to
+	 * @throws ValidateException
+	 * @see au.edu.anu.datacommons.publish.Publish#publish(au.edu.anu.datacommons.data.db.model.FedoraObject, au.edu.anu.datacommons.data.db.model.PublishLocation)
 	 */
 	@Override
-	public void publish(String pid, String publishCode) throws ValidateException {
-		LOGGER.debug("Publishing to {}", publishCode);
+	public void publish(FedoraObject fedoraObject, PublishLocation publishLocation) throws ValidateException {
+		LOGGER.debug("Publishing to {}", publishLocation.getCode());
+		List<FedoraReference> references = new ArrayList<FedoraReference>();
 		FedoraReference reference = new FedoraReference();
 		reference.setPredicate_("http://anu.edu.au/publish");
-		reference.setObject_(publishCode);
+		reference.setObject_(publishLocation.getCode());
 		reference.setIsLiteral_(Boolean.TRUE);
+		references.add(reference);
+		
+		FedoraReference reference2 = new FedoraReference();
+		reference2.setPredicate_("info:fedora/fedora-system:def/model#hasModel");
+		reference2.setObject_("info:fedora/def:DCContentModel");
+		reference2.setIsLiteral_(Boolean.FALSE);
+		references.add(reference2);
 		try {
-			FedoraBroker.addRelationship(pid, reference);
+			FedoraBroker.addRelationship(fedoraObject.getObject_id(), reference);
+			//addPublishLocation(fedoraObject.getObject_id(), publishLocation.getCode());
+			addPublishLocation(fedoraObject, publishLocation);
+			FedoraBroker.addRelationship(fedoraObject.getObject_id(), reference2);
+			//FedoraBroker.addRelationships(pid, references);
 		}
 		catch (FedoraClientException e) {
-			LOGGER.error("Exception publishing to " + publishCode + " for " + pid, e);
+			LOGGER.error("Exception publishing to " + publishLocation.getCode() + " for " + fedoraObject.getObject_id(), e);
 		}
 	}
-
+	
+	/**
+	 * 
+	 * addPublishLocation
+	 *
+	 * The add the publish location to the fedora object
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.4		28/03/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The fedora object to add the published location to
+	 * @param publishLocation The location to add
+	 */
+	private void addPublishLocation(FedoraObject fedoraObject, PublishLocation publishLocation) {
+		boolean addPublisher = true;
+		for (int i = 0; addPublisher && i < fedoraObject.getPublishedLocations().size(); i++) {
+			PublishLocation loc = fedoraObject.getPublishedLocations().get(i);
+			if (loc.equals(publishLocation) || loc.getId().equals(publishLocation.getId())) {
+				addPublisher = false;
+			}
+		}
+		if (addPublisher) {
+			fedoraObject.getPublishedLocations().add(publishLocation);
+		}
+	}
+	
 	/**
 	 * unpublish
 	 * 
-	 * Unpublishes from the specified lcoation
+	 * Placeholder
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		08/06/2012	Genevieve Turner(GT)	Initial
+	 * 0.4		28/03/2013	Genevieve Turner(GT)	Updated the input parameters
 	 * </pre>
 	 * 
-	 * @param pid The pid to unpublish from
-	 * @param publishCode  THe code of the location to unpublish from
-	 * @see au.edu.anu.datacommons.publish.Publish#unpublish(java.lang.String, java.lang.String)
+	 * @param fedoraObject The fedora object to unpublish
+	 * @param publishLocation The location to unpublish
+	 * @see au.edu.anu.datacommons.publish.Publish#unpublish(au.edu.anu.datacommons.data.db.model.FedoraObject, au.edu.anu.datacommons.data.db.model.PublishLocation)
 	 */
 	@Override
-	public void unpublish(String pid, String publishCode) {
+	public void unpublish(FedoraObject fedoraObject, PublishLocation publishLocation) {
 		// TODO Auto-generated method stub
-		LOGGER.info("Unpublishing from {}", publishCode);
+		LOGGER.info("Unpublishing from {}", publishLocation.getCode());
 		
 	}
 

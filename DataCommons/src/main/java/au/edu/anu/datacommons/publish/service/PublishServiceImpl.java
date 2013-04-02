@@ -92,6 +92,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * Version	Date		Developer				Description
  * 0.1		11/12/2012	Genevieve Turner (GT)	Initial
  * 0.2		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
+ * 0.3		28/03/2012	Genevieve Turner (GT)	Moved the addPublishLocation method to the publication area in the publishObject method
  * </pre>
  *
  */
@@ -449,6 +450,7 @@ public class PublishServiceImpl implements PublishService {
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		10/12/2012	Genevieve Turner(GT)	Initial
+	 * 0.3		28/03/2012	Genevieve Turner (GT)	Moved the addPublishLocation method to the publication area
 	 * </pre>
 	 * 
 	 * @param fedoraObject The object to publish
@@ -465,13 +467,11 @@ public class PublishServiceImpl implements PublishService {
 			for (PublishLocation publishLocation : publishers) {
 				try {
 					Publish publish = (Publish) Class.forName(publishLocation.getExecute_class()).newInstance();
-					publish.publish(fedoraObject.getObject_id(), publishLocation.getCode());
+					publish.publish(fedoraObject, publishLocation);
 					if (!fedoraObject.getPublished()) {
 						fedoraObject.setPublished(Boolean.TRUE);
 					}
 					locations.add(publishLocation.getName());
-					
-					addPublishLocation(fedoraObject, publishLocation);
 				}
 				catch (ClassNotFoundException e) {
 					LOGGER.error("Class not found class: " + publishLocation.getExecute_class(), e);
@@ -599,36 +599,6 @@ public class PublishServiceImpl implements PublishService {
 		}
 		catch (FedoraClientException e) {
 			LOGGER.info("Exception publishing to ANU: ", e);
-		}
-	}
-	
-	/**
-	 * addPublishLocation
-	 *
-	 * Adds a publish location to the database for an item
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		10/12/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @param fedoraObject The object to publish to
-	 * @param publishLocation The location the object is being published to
-	 */
-	private void addPublishLocation(FedoraObject fedoraObject, PublishLocation publishLocation) {
-		boolean addPublisher = true;
-		for (int i = 0; addPublisher && i < fedoraObject.getPublishedLocations().size(); i++) {
-			PublishLocation loc = fedoraObject.getPublishedLocations().get(i);
-			if (loc.equals(publishLocation)) {
-				addPublisher = false;
-			}
-			else if (loc.getId().equals(publishLocation.getId()) &&
-					loc.getName().equals(publishLocation.getName())) {
-				addPublisher = false;
-			}
-		}
-		if (addPublisher) {
-			fedoraObject.getPublishedLocations().add(publishLocation);
 		}
 	}
 	

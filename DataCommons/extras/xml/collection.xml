@@ -117,9 +117,6 @@
 	<item name="citationYear" label="Year of data publication" fieldType="TextField" saveType="single" class="date" tab="description">
 		<tooltip>The year the data was first published for citation purposes. If this field is not populated when publishing it will default to the year it is published in ANU Data Commons</tooltip>
 	</item>
-	<item name="citationCreator" label="Creator(s) for Citation" fieldType="TextField" saveType="single" tab="description">
-		<tooltip>The creator(s) of the data for citation purposes. This field indicates who should be considered named in a citation.  Defaults to 'The Australian National University'. For example:&#xA;&#xA;Irino, T; Tada, R&#xA;Geofon operator&#xA;Denhard, Michael</tooltip>
-	</item>
 	<item name="citCreator" label="Creator(s) for Citation" fieldType="Table" saveType="table" tab="description">
 		<tooltip>The creator(s) of the data for citation purposes. This field indicates who should be considered named in a citation.  Defaults to 'The Australian National University'. For example:&#xA;&#xA;T Irino; R Tada&#xA;Geofon operator&#xA;Michael Denhard</tooltip>
 		<column name="citCreatorGiven" label="Given Name" fieldType="TextField" />
@@ -147,7 +144,8 @@
 			<option value="urn" label="Uniform Resource Name" />
 		</column>
 		<column name="pubValue" label="Identifier Value" fieldType="TextField" />
-		<column name="pubTitle" label="Publication Reference" fieldType="TextArea" />
+		<column name="pubTitle" label="Publication Title" fieldType="TextArea" />
+		<column name="pubNotes" label="Publication Reference" fieldType="TextArea" />
 	</item>
 	<item name="relatedWebsites" label="Related Websites" fieldType="Table" saveType="table" tab="description">
 		<tooltip>If appropriate, please include a URL and Notes for any websites that relate to the resource being described. For example:&#xA;&#xA;URL: http://anusf.anu.edu.au/index.php&#xA;&#xA;Title: ANU Supercomputing Facility</tooltip>

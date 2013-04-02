@@ -27,6 +27,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.exception.ValidateException;
@@ -51,10 +53,11 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.4		15/10/2012	Genevieve Turner(GT)	Added checkValidity		
  * 0.5		10/12/2012	Genevieve Turner (GT)	Updated to use the default validation functions and added the isAllowedToPublish field
  * 0.6		02/01/2012	Genevieve Turner (GT)	Updated to allow for changes to error handling
+ * 0.7		28/03/2013	Genevieve Turner (GT)	Updated input parameters for publish and unpublish
  * </pre>
  * 
  */
-public class ANDSPublish extends GenericPublish implements Publish {
+public class ANDSPublish extends ANUEnhancedPublish implements Publish {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ANDSPublish.class);
 	
 	private boolean isAllowedToPublish = false;
@@ -62,8 +65,8 @@ public class ANDSPublish extends GenericPublish implements Publish {
 	/**
 	 * publish
 	 * 
-	 * Publishes to ANDS (Australian National Data Service)
-	 * 
+	 * Placeholder
+	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		15/05/2012	Genevieve Turner (GT)	Initial build
@@ -71,49 +74,56 @@ public class ANDSPublish extends GenericPublish implements Publish {
 	 * 0.3		17/06/2012	Genevieve Turner (GT)	Added validation prior to publishing
 	 * 0.5		10/12/2012	Genevieve Turner (GT)	Updated to use isAllowedToPublish
 	 * 0.6		02/01/2012	Genevieve Turner (GT)	Updated to allow for changes to error handling
+	 * 0.7		28/03/2012	Genevieve Turner (GT)	Updated input parameters
 	 * </pre>
 	 * 
-	 * @param pid The id of the object to publish
+	 * @param fedoraObject The fedora object to unpublish
+	 * @param publishLocation The location to unpublish from
+	 * @throws ValidateException
+	 * @see au.edu.anu.datacommons.publish.ANUEnhancedPublish#publish(au.edu.anu.datacommons.data.db.model.FedoraObject, au.edu.anu.datacommons.data.db.model.PublishLocation)
 	 */
 	@Override
-	public void publish(String pid, String publishCode) throws ValidateException {
+	public void publish(FedoraObject fedoraObject, PublishLocation publishLocation) throws ValidateException {
 		//Validate validate = new ANDSValidate();
-		List<String> errorMessages = checkValidity(pid);
+		List<String> errorMessages = checkValidity(fedoraObject.getObject_id());
 		if (!isAllowedToPublish) {
 			List<String> messages = new ArrayList<String>(errorMessages);
-			messages.add(0, "Error publishing to " + publishCode);
+			messages.add(0, "Error publishing to " + publishLocation.getCode());
 			throw new ValidateException(messages);
 		}
 		
-		super.publish(pid, publishCode);
+		super.publish(fedoraObject, publishLocation);
 		FedoraReference reference = new FedoraReference();
 		reference.setPredicate_("info:fedora/fedora-system:def/model#hasModel");
 		reference.setObject_("info:fedora/def:RIFCSContentModel");
 		reference.setIsLiteral_(Boolean.FALSE);
 		
 		try {
-			FedoraBroker.addRelationship(pid, reference);
+			FedoraBroker.addRelationship(fedoraObject.getObject_id(), reference);
 		}
 		catch (FedoraClientException e) {
-			LOGGER.error("Exception adding content model to " + pid, e);
+			LOGGER.error("Exception adding content model to " + fedoraObject.getObject_id(), e);
 		}
 	}
-
+	
 	/**
+	 * 
 	 * unpublish
 	 * 
 	 * Unpublishes from ANDS (Australian National Data Service)
-	 * 
+	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * 0.1		15/05/2012	Genevieve Turner (GT)	Initial build
+	 * 0.1		15/05/2012	Genevieve Turner(GT)	Initial
+	 * 0.7		28/03/2013	Genevieve Turner(GT)	Updated parameters
 	 * </pre>
 	 * 
-	 * @param pid The id of the object to publish
+	 * @param fedoraObject The fedora object to unpublish
+	 * @param publishLocation The location to unpublish from
+	 * @see au.edu.anu.datacommons.publish.GenericPublish#unpublish(au.edu.anu.datacommons.data.db.model.FedoraObject, au.edu.anu.datacommons.data.db.model.PublishLocation)
 	 */
 	@Override
-	public void unpublish(String pid, String publishCode) {
-		//TODO Create information for unpublishing
+	public void unpublish(FedoraObject fedoraObject, PublishLocation publishLocation) {
 		LOGGER.info("unpublishing from ands");
 	}
 

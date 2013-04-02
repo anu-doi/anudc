@@ -16,6 +16,7 @@
 		<module>report-datasource</module>
 		<module>ws-digitalhumanities</module>
 		<module>ws-geoscience</module>
+		<module>saxon-query</module>
 	</modules>
 
 	<properties>
