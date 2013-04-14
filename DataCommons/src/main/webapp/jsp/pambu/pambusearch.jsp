@@ -43,7 +43,10 @@
 					<strong>PAMBU HOLDING:</strong><br />
 					<input type="radio" name="pmbHolding" value="ms" />Manuscript Series<br />
 					<input type="radio" name="pmbHolding" value="doc" />Printed Document Series<br />
-					<input type="radio" name="pmbHolding" value="all" checked />Manuscripts &amp; Document Series
+					<input type="radio" name="pmbHolding" value="all" checked />Manuscripts &amp; Document Series<br/>
+					<input type="radio" name="pmbHolding" value="audio" />Sound Recordings<br/>
+					<input type="radio" name="pmbHolding" value="map" />Maps<br/>
+					<input type="radio" name="pmbHolding" value="pic" />Photographs<br/>
 				</p>
 			</div>
 			<div class="left" style="width: 140px;">

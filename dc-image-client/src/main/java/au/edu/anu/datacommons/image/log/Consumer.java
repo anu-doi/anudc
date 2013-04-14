@@ -19,39 +19,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.data.db.dao;
-
-import au.edu.anu.datacommons.data.db.model.PublishLocation;
+package au.edu.anu.datacommons.image.log;
 
 /**
- * PublishLocationDAO
+ * Consumer
  * 
  * Australian National University Data Commons
  * 
- * PublishLocationDAOTest
+ * Consumer interface to append text.  This class has been created to log information
  *
  * JUnit Coverage:
  * None
  * 
  * <pre>
  * Version	Date		Developer				Description
- * 0.1		28/03/2013	Genevieve Turner (GT)	Initial
+ * 0.1		12/04/2013	Genevieve Turner (GT)	Initial
  * </pre>
  *
  */
-public interface PublishLocationDAO extends GenericDAO<PublishLocation, Long> {
+public interface Consumer {
 	/**
-	 * getByCode
+	 * appendText
 	 *
-	 * Gets the Publish Location by with the given code
+	 * Append text to something
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * 0.1		28/03/2013	Genevieve Turner(GT)	Initial
+	 * 0.1		12/04/2013	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @param code The code to retrieve the publish location for
-	 * @return The publish location
+	 * @param text The text to append
 	 */
-	public PublishLocation getByCode(String code);
+	public void appendText(String text);
 }

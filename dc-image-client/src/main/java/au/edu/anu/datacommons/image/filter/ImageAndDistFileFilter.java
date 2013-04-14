@@ -19,39 +19,63 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.data.db.dao;
+package au.edu.anu.datacommons.image.filter;
 
-import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import java.io.File;
+import java.io.FileFilter;
+import java.util.Arrays;
+import java.util.List;
+
+import au.edu.anu.datacommons.image.main.DefaultProperties;
 
 /**
- * PublishLocationDAO
+ * ImageAndDistFileFilter
  * 
  * Australian National University Data Commons
  * 
- * PublishLocationDAOTest
+ * Filters image files
  *
  * JUnit Coverage:
  * None
  * 
  * <pre>
  * Version	Date		Developer				Description
- * 0.1		28/03/2013	Genevieve Turner (GT)	Initial
+ * 0.1		12/04/2013	Genevieve Turner (GT)	Initial
  * </pre>
  *
  */
-public interface PublishLocationDAO extends GenericDAO<PublishLocation, Long> {
+public class ImageAndDistFileFilter implements FileFilter {
+	private static final List<String> acceptableFormats = Arrays.asList(DefaultProperties.getProperty("image.types").split(","));
+
 	/**
-	 * getByCode
-	 *
-	 * Gets the Publish Location by with the given code
+	 * accept
+	 * 
+	 * Placeholder
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * 0.1		28/03/2013	Genevieve Turner(GT)	Initial
+	 * X.X		12/04/2013	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @param code The code to retrieve the publish location for
-	 * @return The publish location
+	 * @param file
+	 * @return
+	 * @see java.io.FileFilter#accept(java.io.File)
 	 */
-	public PublishLocation getByCode(String code);
+	@Override
+	public boolean accept(File file) {
+		if (!file.isFile()) {
+			return false;
+		}
+		String name = file.getName();
+		if (name.contains("-dist.")) {
+			return false;
+		}
+		String suffix = name.substring(name.lastIndexOf("."));
+		if (acceptableFormats.contains(suffix.toLowerCase())) {
+			return true;
+		}
+		
+		return false;
+	}
+
 }

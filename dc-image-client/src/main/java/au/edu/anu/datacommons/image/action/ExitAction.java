@@ -19,39 +19,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.data.db.dao;
+package au.edu.anu.datacommons.image.action;
 
-import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import java.awt.event.ActionEvent;
 
-/**
- * PublishLocationDAO
- * 
- * Australian National University Data Commons
- * 
- * PublishLocationDAOTest
- *
- * JUnit Coverage:
- * None
- * 
- * <pre>
- * Version	Date		Developer				Description
- * 0.1		28/03/2013	Genevieve Turner (GT)	Initial
- * </pre>
- *
- */
-public interface PublishLocationDAO extends GenericDAO<PublishLocation, Long> {
-	/**
-	 * getByCode
-	 *
-	 * Gets the Publish Location by with the given code
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		28/03/2013	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @param code The code to retrieve the publish location for
-	 * @return The publish location
-	 */
-	public PublishLocation getByCode(String code);
+import javax.swing.AbstractAction;
+
+public class ExitAction extends AbstractAction {
+	private static final long serialVersionUID = 1L;
+	
+	public ExitAction() {
+		super("Exit");
+	}
+	
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		// TODO Update this to be more graceful!
+		System.exit(0);
+	}
+
 }

@@ -38,6 +38,7 @@ import au.edu.anu.datacommons.collectionrequest.Question;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		29/06/2012	Genevieve Turner (GT)	Initial
+ * 0.2		04/04/2013	Genevieve Turner (GT)	Updated to allow for questions also potentially having a group or domain
  * </pre>
  *
  */
@@ -45,7 +46,7 @@ public interface QuestionDAO extends GenericDAO<Question, Long> {
 	/**
 	 * getQuestionsByPid
 	 *
-	 * Retrieves a list of questsions associated with the pid
+	 * Retrieves a list of questions associated with the pid
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
@@ -55,5 +56,52 @@ public interface QuestionDAO extends GenericDAO<Question, Long> {
 	 * @param pid The pid of the fedora object to retireve questions for
 	 * @return A list of questsions associated with the pid
 	 */
-	public List<Question> getQuestionsByPid(String pid);
+	public List<Question> getQuestionsByPid(String pid, Boolean required);
+	
+	/**
+	 * getQuestionsByGroup
+	 *
+	 * Retrieves a list of questions associated with the group id
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		04/04/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param groupId The group id
+	 * @return The list of associated questions
+	 */
+	public List<Question> getQuestionsByGroup(Long groupId, Boolean required);
+	
+	/**
+	 * getQuestionsByDomain
+	 *
+	 * Retrieves a list of questions associated with the domain
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		04/04/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param domainId The domain id
+	 * @return The list of associated questions
+	 */
+	public List<Question> getQuestionsByDomain(Long domainId, Boolean required);
+	
+	/**
+	 * getQuestionsForObject
+	 *
+	 * Retrieves a list of questions with the given pid, group or domain
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		04/04/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param pid The pid
+	 * @param groupId The group id
+	 * @param domainId The domain id
+	 * @return A list of associated questions
+	 */
+	public List<Question> getQuestionsForObject(String pid, Long groupId, Long domainId, Boolean required);
 }

@@ -19,39 +19,56 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.data.db.dao;
+package au.edu.anu.datacommons.image.main;
 
-import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
- * PublishLocationDAO
+ * DefaultProperties
  * 
  * Australian National University Data Commons
  * 
- * PublishLocationDAOTest
+ * Default Properties class
  *
  * JUnit Coverage:
  * None
  * 
  * <pre>
  * Version	Date		Developer				Description
- * 0.1		28/03/2013	Genevieve Turner (GT)	Initial
+ * 0.1		12/04/2013	Genevieve Turner (GT)	Initial
  * </pre>
  *
  */
-public interface PublishLocationDAO extends GenericDAO<PublishLocation, Long> {
+public class DefaultProperties {
+	private static Properties defaultProperties;
+	
+	static {
+		try {
+			InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("default.properties");
+			defaultProperties = new Properties();
+			defaultProperties.load(is);
+		}
+		catch(IOException e) {
+			System.out.println("Error loading properties file default.properties");
+		}
+	}
+	
 	/**
-	 * getByCode
+	 * getProperty
 	 *
-	 * Gets the Publish Location by with the given code
+	 * Return the property with the given name
 	 *
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * 0.1		28/03/2013	Genevieve Turner(GT)	Initial
+	 * 0.1		12/04/2013	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @param code The code to retrieve the publish location for
-	 * @return The publish location
+	 * @param property The property to retrieve
+	 * @return The property value
 	 */
-	public PublishLocation getByCode(String code);
+	public static String getProperty(String property) {
+		return defaultProperties.getProperty(property);
+	}
 }

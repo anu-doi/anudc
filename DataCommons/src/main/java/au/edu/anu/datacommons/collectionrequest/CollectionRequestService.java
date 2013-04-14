@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.collectionrequest;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -56,6 +56,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +80,7 @@ import au.edu.anu.datacommons.data.db.dao.QuestionMapDAO;
 import au.edu.anu.datacommons.data.db.dao.QuestionMapDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.UsersDAO;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
+import au.edu.anu.datacommons.data.db.model.Domains;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.Users;
@@ -116,6 +118,7 @@ import com.sun.jersey.api.view.Viewable;
  * 0.1		1/05/2012	Rahul Khanna (RK)		Initial
  * 0.2		25/06/2012	Genevieve Turner (GT)	Updated to filter out requests to either the logged in user or those they have review access to
  * 0.3		29/06/2012	Genevieve Turner (GT)	Updated to use DAO and for filtering out records with permissions
+ * 0.4		08/04/2012	Genevieve Turner (GT)	Updated to allow for required and optional questions
  * </pre>
  * 
  */
@@ -258,6 +261,7 @@ public class CollectionRequestService
 	 * 0.1		1/05/2012	Rahul Khanna (RK)		Initial
 	 * 0.2		27/06/2012	Genevieve Turner (GT)	Updated to associated fedoraObject
 	 * 0.3		27/06/2012	Genevieve Turner (GT)	Updated to use DAO pattern and limit those authorised
+	 * 0.4		08/04/2012	Genevieve Turner (GT)	Updated to allow for required and optional questions
 	 * </pre>
 	 * 
 	 * @param pid
@@ -291,11 +295,11 @@ public class CollectionRequestService
 
 			// Get a list of questions assigned to the Pid.
 			QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
-			List<Question> questionList = questionDAO.getQuestionsByPid(pid);
+			List<Question> reqQuestionList = questionDAO.getQuestionsByPid(pid, true);
 
 			// Iterate through the questions that need to be answered for the pid, get the answers for those questions and add to CR.
 			// If an answer for a question doesn't exist throw exception.
-			for (Question iQuestion : questionList)
+			for (Question iQuestion : reqQuestionList)
 			{
 				// Check if the answer to the current question is provided. If yes, save the answer, else throw exception.
 				if (allFormParams.containsKey("q" + iQuestion.getId()) && Util.isNotEmpty(allFormParams.getFirst("q" + iQuestion.getId())))
@@ -308,7 +312,19 @@ public class CollectionRequestService
 					throw new Exception("All questions must be answered. The question '" + iQuestion.getQuestionText() + "' has been left blank.");
 				}
 			}
-			LOGGER.debug("All questions answered for this Pid.");
+			
+			// Iterate through the optional questions for the pid, and add the answers for those questions to the Collection Request
+			List<Question> optQuestionList = questionDAO.getQuestionsByPid(pid, false);
+			for (Question iQuestion : optQuestionList)
+			{
+				if (allFormParams.containsKey("q" + iQuestion.getId()) && Util.isNotEmpty(allFormParams.getFirst("q" + iQuestion.getId())))
+				{
+					CollectionRequestAnswer ans = new CollectionRequestAnswer(iQuestion, allFormParams.getFirst("q" + iQuestion.getId()));
+					newCollReq.addAnswer(ans);
+				}
+			}
+			
+			LOGGER.debug("All mandatory questions answered for this Pid.");
 
 			// Save the newly created CR and add success message to message set.
 			CollectionRequestDAO requestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
@@ -801,8 +817,11 @@ public class CollectionRequestService
 			// Add a warning to the message set to let the user know that there aren't any questions in the question bank.
 			if (questions.size() == 0)
 				messages.add(MessageType.WARNING, "No questions found in the question bank.", model);
-
+			
 			model.put("questions", questions);
+			
+			List<Groups> groups = groupService.getReviewGroups();
+			model.put("groups", groups);
 		}
 		catch (Exception e)
 		{
@@ -829,6 +848,7 @@ public class CollectionRequestService
 	 * Version	Date		Developer				Description
 	 * 0.1		2/05/2012	Rahul Khanna (RK)		Initial
 	 * 0.2		29/06/2012	Genevieve Turner (GT)	Updated to use the DAO pattern and limit those authorised
+	 * 0.4		04/04/2012	Genevieve Turner (GT)	Updated to allow for questions against groups and domains
 	 * </pre>
 	 * 
 	 * @param submit
@@ -848,7 +868,7 @@ public class CollectionRequestService
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostQuestionAsHtml(@Context UriInfo uriInfo, @FormParam("submit") String submit, @FormParam("q") String questionText,
-			@FormParam("pid") String pid, @FormParam("qid") Set<Long> qIdSet)
+			@FormParam("pid") String pid, @FormParam("qid") Set<Long> qIdSet, @FormParam("group") Long groupId, @FormParam("domain") Long domainId)
 	{
 		Response resp = null;
 		UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(CollectionRequestService.class).path(CollectionRequestService.class, "doGetQuestionsAsHtml");
@@ -894,14 +914,14 @@ public class CollectionRequestService
 					QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
 					QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl(QuestionMap.class);
 
-					// Get list of questions currently assigned to the pid.
-					List<Question> curQuestionsPid = questionDAO.getQuestionsByPid(pid);
+					// Get list of questions currently assigned to the pid, group, or domain
+					List<Question> curQuestions = questionDAO.getQuestionsForObject(pid, groupId, domainId, true);
 
 					// Check if each question Id provided as query parameters already exist. If not, add them.
 					for (Long iUpdatedId : qIdSet)
 					{
 						boolean isAlreadyMapped = false;
-						for (Question iCurQuestion : curQuestionsPid)
+						for (Question iCurQuestion : curQuestions)
 						{
 							if (iCurQuestion.getId() == iUpdatedId.longValue())
 							{
@@ -914,29 +934,44 @@ public class CollectionRequestService
 						{
 							Question question = questionDAO.getSingleById(iUpdatedId);
 							LOGGER.debug("Adding Question '{}' against Pid {}", question.getQuestionText(), pid);
-							QuestionMap qm = new QuestionMap(pid, question);
-
-							questionMapDAO.create(qm);
+							QuestionMap qm = null;
+							//Create the question map for the pid, group or domain
+							if (pid != null && pid.trim().length() > 0) {
+								qm = new QuestionMap(pid, question, true);
+							}
+							else if (groupId != null) {
+								GenericDAO genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
+								Groups group = (Groups) genericDAO.getSingleById(groupId);
+								qm = new QuestionMap(group, question, true);
+							}
+							else if (domainId != null) {
+								GenericDAO genericDAO = new GenericDAOImpl<Domains, Long>(Domains.class);
+								Domains domain = (Domains) genericDAO.getSingleById(domainId);
+								qm = new QuestionMap(domain, question, true);
+							}
+							if (qm != null) {
+								questionMapDAO.create(qm);
+							}
 						}
 					}
 
-					// Check if each question for a pid is provided in the updated list. If not, delete it.
-					for (Question iCurQuestion : curQuestionsPid)
+					// Check if each question for a pid, group, or domain is provided in the updated list. If not, delete it.
+					for (Question iCurQuestion : curQuestions)
 					{
 						if (!qIdSet.contains(iCurQuestion.getId()))
 						{
 							LOGGER.debug("Mapping of Question ID" + iCurQuestion.getId() + "to be deleted...");
-							QuestionMap questionMap = questionMapDAO.getSingleByPidAndQuestion(pid, iCurQuestion);
+							QuestionMap questionMap = questionMapDAO.getSingleByObjectAndQuestion(iCurQuestion, pid, groupId, domainId);
 							questionMapDAO.delete(questionMap.getId());
 						}
 					}
 
-					uriBuilder = uriBuilder.queryParam("smsg", "Question List updated for this Collection.");
+					uriBuilder = uriBuilder.queryParam("smsg", "Question List updated for this Item.");
 				}
 				catch (Exception e)
 				{
 					LOGGER.error("Unable to update questions for Pid " + pid, e);
-					uriBuilder = uriBuilder.queryParam("emsg", "Unable to update questions for this Collection.");
+					uriBuilder = uriBuilder.queryParam("emsg", "Unable to update questions for this Item.");
 				}
 
 				resp = Response.seeOther(uriBuilder.build()).build();
@@ -967,6 +1002,7 @@ public class CollectionRequestService
 	 * Version	Date		Developer				Description
 	 * 0.1		8/05/2012	Rahul Khanna (RK)		Initial
 	 * 0.3		27/06/2012	Genevieve Turner (GT)	Updated to use DAO pattern and limit those authorised
+	 * 0.4		04/04/2012	Genevieve Turner (GT)	Updated to allow for questions against groups and domains and to allow for optional and required questions
 	 * </pre>
 	 * 
 	 * @return JSON object
@@ -975,34 +1011,50 @@ public class CollectionRequestService
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("json")
 	@PreAuthorize("hasRole('ROLE_REGISTERED')")
-	public Response doGetCollReqInfoAsJson(@QueryParam("task") String task, @QueryParam("pid") String pid)
+	public Response doGetCollReqInfoAsJson(@QueryParam("task") String task, @QueryParam("pid") String pid, @QueryParam("group") Long groupId, @QueryParam("domain") Long domainId)
 	{
 		Response resp = null;
+		Boolean required = true;
 
 		LOGGER.trace("In doGetDsListAsJson. Params task={}, pid={}.", task, pid);
 
 		// Gets a list of Questions assigned to a Pid.
 		if (task.equals("listPidQuestions"))
 		{
-			JSONObject questionsJson = new JSONObject();
 			try
 			{
-				// Get all Questions assigned to the specified Pid.
 				QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
-				List<Question> curQuestionsPid = questionDAO.getQuestionsByPid(pid);
-
-				// Add the Id and question (String) for each Question (Object) into a JSONObject. 
-				for (Question iQuestion : curQuestionsPid)
-				{
-					questionsJson.put(iQuestion.getId().toString(), iQuestion.getQuestionText());
-				}
-				LOGGER.info("JSON Array: {}", questionsJson.toString());
-				// Convert the JSONObject into a JSON String and include it in the Response object.
-				resp = Response.ok(questionsJson.toString(), MediaType.APPLICATION_JSON_TYPE).build();
+				List<Question> reqQuestions = questionDAO.getQuestionsByPid(pid, true);
+				List<Question> optQuestions = questionDAO.getQuestionsByPid(pid, false);
+				resp = processQuestionsJsonResponse(reqQuestions, optQuestions);
 			}
 			catch (Exception e)
 			{
 				LOGGER.error("Unable to get list of questions for Pid " + pid, e);
+				resp = Response.serverError().build();
+			}
+		}
+		else if ("listGroupQuestions".equals(task)) {
+			try {
+				QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
+				List<Question> reqQuestions = questionDAO.getQuestionsByGroup(groupId, true);
+				List<Question> optQuestions = questionDAO.getQuestionsByGroup(groupId, false);
+				resp = processQuestionsJsonResponse(reqQuestions, optQuestions);
+			}
+			catch (Exception e) {
+				LOGGER.error("Unable to get list of questions for group id ", groupId, e);
+				resp = Response.serverError().build();
+			}
+		}
+		else if ("listDomainQuestions".equals(task)) {
+			try {
+				QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
+				List<Question> reqQuestions = questionDAO.getQuestionsByDomain(domainId, true);
+				List<Question> optQuestions = questionDAO.getQuestionsByDomain(domainId, false);
+				resp = processQuestionsJsonResponse(reqQuestions, optQuestions);
+			}
+			catch (Exception e) {
+				LOGGER.error("Unable to get list of questions for group id ", groupId, e);
 				resp = Response.serverError().build();
 			}
 		}
@@ -1068,6 +1120,28 @@ public class CollectionRequestService
 	{
 		List<Question> questions = new QuestionDAOImpl(Question.class).getAll();
 		return questions;
+	}
+	
+	private Response processQuestionsJsonResponse(List<Question> reqQuestions, List<Question> optQuestions) throws JSONException {
+		JSONObject questionsJson = new JSONObject();
+		
+		JSONObject reqQuestionsJson = new JSONObject();
+		// Add the Id and question (String) for each Question (Object) into a JSONObject. 
+		for (Question iQuestion : reqQuestions)
+		{
+			reqQuestionsJson.put(iQuestion.getId().toString(), iQuestion.getQuestionText());
+		}
+		questionsJson.put("required", reqQuestionsJson);
+		
+		JSONObject optQuestionsJson = new JSONObject();
+		for (Question iQuestion : optQuestions) {
+			optQuestionsJson.put(iQuestion.getId().toString(), iQuestion.getQuestionText());
+		}
+		questionsJson.put("optional", optQuestionsJson);
+		
+		LOGGER.info("JSON Array: {}", questionsJson.toString());
+		// Convert the JSONObject into a JSON String and include it in the Response object.
+		return Response.ok(questionsJson.toString(), MediaType.APPLICATION_JSON_TYPE).build();
 	}
 
 	private List<String> getEmails(String pid)

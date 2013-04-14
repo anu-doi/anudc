@@ -119,8 +119,10 @@
 	<item name="citationYear" label="Year of data publication" fieldType="TextField" saveType="single" tab="description">
 		<tooltip>The year the data was first published for citation purposes. If this field is not populated when publishing it will default to the year it is published in ANU Data Commons</tooltip>
 	</item>
-	<item name="citationCreator" label="Creator for Citation" fieldType="TextField" saveType="single" tab="description">
-		<tooltip>The creator(s) of the data for citation purposes. This field indicates who should be considered named in a citation.  Defaults to 'The Australian National University'. For example:&#xA;&#xA;Irino, T; Tada, R&#xA;Geofon operator&#xA;Denhard, Michael</tooltip>
+	<item name="citCreator" label="Creator(s) for Citation" fieldType="Table" saveType="table" tab="description">
+		<tooltip>The creator(s) of the data for citation purposes. This field indicates who should be considered named in a citation.  Defaults to 'The Australian National University'. For example:&#xA;&#xA;T Irino; R Tada&#xA;Geofon operator&#xA;Michael Denhard</tooltip>
+		<column name="citCreatorGiven" label="Given Name" fieldType="TextField" />
+		<column name="citCreatorSurname" label="Surname" fieldType="TextField" />
 	</item>
 	<item name="citationPublisher" label="Publisher for Citation" fieldType="TextField" saveType="single" tab="description">
 		<tooltip>The publisher of the data.  Defaults to 'The Australian National University Data Commons'. For example:&#xA;&#xA;Australian Data Archive&#xA;Incorporated Research Institutions for Seismology</tooltip>

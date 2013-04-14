@@ -37,6 +37,7 @@ import au.edu.anu.datacommons.collectionrequest.QuestionMap;
  * <pre>
  * Version	Date		Developer				Description
  * 0.1		29/06/2012	Genevieve Turner (GT)	Initial
+ * 0.2		04/04/2012	Genevieve Turner (GT)	Updated to allow for questions against groups and domains
  * </pre>
  *
  */
@@ -56,4 +57,22 @@ public interface QuestionMapDAO extends GenericDAO<QuestionMap, Long> {
 	 * @return The question map
 	 */
 	public QuestionMap getSingleByPidAndQuestion(String pid, Question question);
+	
+	/**
+	 * getSingleByObjectAndQuestion
+	 *
+	 * Retrieve the QuestionMap with the given pid, group or domain
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		04/04/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param question The question to retrieve the map for
+	 * @param pid The pid to potentially retrieve the map for
+	 * @param groupId The group to potentially retrieve the map for
+	 * @param domainId The domain to potentially retrieve the map for
+	 * @return The question map for the given information
+	 */
+	public QuestionMap getSingleByObjectAndQuestion(Question question, String pid, Long groupId, Long domainId);
 }

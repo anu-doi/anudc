@@ -31,9 +31,29 @@ import au.edu.anu.datacommons.collectionrequest.Question;
 import au.edu.anu.datacommons.collectionrequest.QuestionMap;
 import au.edu.anu.datacommons.data.db.PersistenceManager;
 
+/**
+ * QuestionMapDAOImpl
+ * 
+ * Australian National University Data Commons
+ * 
+ * Placeholder
+ *
+ * JUnit Coverage:
+ * None
+ * 
+ * <pre>
+ * Version	Date		Developer				Description
+ * 0.1		04/04/2013	Genevieve Turner (GT)	Initial
+ * </pre>
+ *
+ */
 public class QuestionMapDAOImpl extends GenericDAOImpl<QuestionMap, Long> implements
 		QuestionMapDAO {
 	static final Logger LOGGER = LoggerFactory.getLogger(QuestionDAOImpl.class);
+	
+	private static final String fedoraObjectQueryStr = "SELECT qm FROM QuestionMap qm WHERE qm.pid = :pid AND qm.question = :question";
+	private static final String groupQueryStr = "SELECT qm FROM QuestionMap qm WHERE qm.group.id = :groupId AND qm.question = :question";
+	private static final String domainQueryStr = "SELECT qm FROM QuestionMap qm WHERE qm.domain.id = :domainId AND qm.question = :question";
 
 	/**
 	 * Constructor
@@ -69,11 +89,59 @@ public class QuestionMapDAOImpl extends GenericDAOImpl<QuestionMap, Long> implem
 	public QuestionMap getSingleByPidAndQuestion(String pid, Question question) {
 		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
 		
-		Query query = entityManager.createQuery("SELECT qm FROM QuestionMap qm WHERE qm.pid = :pid AND qm.question = :question", QuestionMap.class);
+		//Query query = entityManager.createQuery("SELECT qm FROM QuestionMap qm WHERE qm.pid = :pid AND qm.question = :question", QuestionMap.class);
+		Query query = entityManager.createQuery(fedoraObjectQueryStr, QuestionMap.class);
 		query.setParameter("pid", pid);
 		query.setParameter("question", question);
 		
 		QuestionMap questionMap = (QuestionMap) query.getSingleResult();
+		
+		return questionMap;
+	}
+	
+	/**
+	 * getSingleByObjectAndQuestion
+	 * 
+	 * Retrieve the QuestionMap with the given pid, group or domain
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * X.X		04/04/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param question The question to retrieve the map for
+	 * @param pid The pid to potentially retrieve the map for
+	 * @param groupId The group to potentially retrieve the map for
+	 * @param domainId The domain to potentially retrieve the map for
+	 * @return The question map for the given information
+	 * @see au.edu.anu.datacommons.data.db.dao.QuestionMapDAO#getSingleByObjectAndQuestion(au.edu.anu.datacommons.collectionrequest.Question, java.lang.String, java.lang.Long, java.lang.Long)
+	 */
+	public QuestionMap getSingleByObjectAndQuestion(Question question, String pid, Long groupId, Long domainId) {
+		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		QuestionMap questionMap = null;
+		try {
+			if (pid != null && pid.trim().length() > 0) {
+				Query query = entityManager.createQuery(fedoraObjectQueryStr, QuestionMap.class);
+				query.setParameter("pid", pid);
+				query.setParameter("question", question);
+				questionMap = (QuestionMap) query.getSingleResult();
+			}
+			else if (groupId != null) {
+				Query query = entityManager.createQuery(groupQueryStr, QuestionMap.class);
+				query.setParameter("groupId", groupId);
+				query.setParameter("question", question);
+				questionMap = (QuestionMap) query.getSingleResult();
+			}
+			else if (domainId != null) {
+				Query query = entityManager.createQuery(domainQueryStr);
+				query.setParameter("domainId", domainId);
+				query.setParameter("question", question);
+				questionMap = (QuestionMap) query.getSingleResult();
+			}
+		}
+		finally {
+			entityManager.close();
+		}
 		
 		return questionMap;
 	}

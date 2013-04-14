@@ -27,26 +27,43 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import au.edu.anu.datacommons.data.db.model.Domains;
+import au.edu.anu.datacommons.data.db.model.Groups;
+
 @Entity
 @Table(name = "question_map", uniqueConstraints = @UniqueConstraint(columnNames =
-{ "pid", "question_fk" }))
+{ "pid", "question_fk", "group_fk", "domain_fk" }))
 public class QuestionMap
 {
 	private Long id;
 	private String pid;
 	private Question question;
+	private Groups group;
+	private Domains domain;
+	private Boolean required;
 
 	protected QuestionMap()
 	{
 	}
 
-	public QuestionMap(String pid, Question question)
+	public QuestionMap(String pid, Question question, Boolean required)
 	{
 		this.pid = pid;
+		this.question = question;
+	}
+	
+	public QuestionMap(Groups group, Question question, Boolean required) {
+		this.group = group;
+		this.question = question;
+	}
+	
+	public QuestionMap(Domains domain, Question question, Boolean required) {
+		this.domain = domain;
 		this.question = question;
 	}
 
@@ -63,7 +80,7 @@ public class QuestionMap
 		this.id = id;
 	}
 
-	@Column(name = "pid", nullable = false)
+	@Column(name = "pid")
 	public String getPid()
 	{
 		return pid;
@@ -84,6 +101,106 @@ public class QuestionMap
 	public void setQuestion(Question question)
 	{
 		this.question = question;
+	}
+
+	/**
+	 * getGroup
+	 *
+	 * Get the group
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		03/04/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return the group
+	 */
+	@ManyToOne
+	@JoinColumn(name = "group_fk", referencedColumnName="id")
+	public Groups getGroup() {
+		return group;
+	}
+
+	/**
+	 * setGroup
+	 *
+	 * Set the group
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		03/04/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param group the group to set
+	 */
+	public void setGroup(Groups group) {
+		this.group = group;
+	}
+
+	/**
+	 * getDomain
+	 *
+	 * Get the domain
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		03/04/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return the domain
+	 */
+	@ManyToOne
+	@JoinColumn(name = "domain_fk", referencedColumnName="id")
+	public Domains getDomain() {
+		return domain;
+	}
+
+	/**
+	 * setDomain
+	 *
+	 * Set the domain
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		03/04/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param domain the domain to set
+	 */
+	public void setDomain(Domains domain) {
+		this.domain = domain;
+	}
+
+	/**
+	 * getRequired
+	 *
+	 * Get whether it is a required question
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		05/04/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @return the required
+	 */
+	public Boolean getRequired() {
+		return required;
+	}
+
+	/**
+	 * setRequired
+	 *
+	 * Set whether it is a required question
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.2		05/04/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param required the required to set
+	 */
+	public void setRequired(Boolean required) {
+		this.required = required;
 	}
 
 }

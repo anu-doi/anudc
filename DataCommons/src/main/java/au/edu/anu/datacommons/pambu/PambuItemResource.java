@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -158,6 +159,7 @@ public class PambuItemResource {
 		solrQuery.addField("unpublished.name");
 		solrQuery.addField("unpublished.briefDesc");
 		solrQuery.addField("unpublished.serialNum");
+		solrQuery.setSortField("unpublished.sortVal", ORDER.asc);
 
 		StringBuilder fq = new StringBuilder();
 		for (String id : parts) {

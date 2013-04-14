@@ -17,6 +17,7 @@
 		<module>ws-digitalhumanities</module>
 		<module>ws-geoscience</module>
 		<module>saxon-query</module>
+		<module>dc-image-client</module>
 	</modules>
 
 	<properties>
