@@ -1,0 +1,63 @@
+#backgroundPopup {
+	display:none;
+	position:fixed;
+	height:100%;
+	width:100%;
+	top:0;
+	left:0;
+	background:#000000;
+	border:1px solid #cecece;
+	z-index:1;
+}
+
+#popupFindData {
+	display: none;
+	position:fixed;
+	height:450px;
+	width:400px;
+	background:#FFFFFF;
+	border: 2px solid #cecece;
+	z-index:2;
+	padding:12px;
+	font-size:13px;
+}
+
+#popupFindData {
+	text-align: left;
+}
+
+#popupFindDataClose {
+	float: right;
+	font-size: 14px;
+	line-height: 14px;
+	right:6px;
+	top:4px;
+	position:abolute;
+	color:#6fa5fd;
+	font-weight:700;
+	display:block;
+}
+
+#popupFindData label {
+	float: left;
+	width: 80px;
+}
+
+#popupFindData input[type='text'] {
+	width: 300px;
+}
+
+#popupFindData .hidden {
+	display: none;
+}
+
+#findDataContent {
+	height: 250px;
+	overflow-y: auto;
+	width: 400px;
+}
+
+#findDataContent table {
+	border-collapse: collapse;
+	width: 383px;
+}

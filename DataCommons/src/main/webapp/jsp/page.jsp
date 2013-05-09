@@ -6,10 +6,13 @@
 	ssl="true">
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/default.css' />" />
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/jquery-ui-1.8.20.custom.css' />" />
+	<link rel="stylesheet" type="text/css" href="<c:url value='/css/find_data.css' />" />
 	<script type="text/javascript" src="<c:url value='/js/jquery.validate.min.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/jquery-ui-1.8.20.custom.min.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/global.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/page.js' />"></script>
+	<script type="text/javascript" src="<c:url value='/js/find_data.js' />"></script>
+	<script type="text/javascript" src="<c:url value='/js/popup.js' />"></script>
 </anu:header>
 
 <jsp:include page="header.jsp" />

@@ -32,4 +32,21 @@
 <c:out escapeXml="false" value="${it.page}" />
 
 <input type="hidden" readonly="readonly" name="itemType" id="itemType" value="${it.itemType}" />
+
+<div id="popupFindData">
+	<a id="popupFindDataClose">x</a>
+	<h1>Import Metadata</h1>
+	<label for="findEmail">Email:</label><input type="text" id="findEmail" name="findEmail" /><br/>
+	<label for="findGiven">Given Name:</label><input type="text" id="findGiven" name="findGiven" /><br/>
+	<label for="findSurname">Surname:</label><input type="text" id="findSurname" name="findSurname" /><br/>
+	<input type="button" id="searchData" name="searchData" value="Find"/></p>
+	<p>
+		<div id="findDataContent">
+			Search For Data
+		</div>
+	</p>
+	<p><input type="button" id="selectData" name="selectData" value="Select" /></p>
+</div>
+<div id="backgroundPopup"></div>
+
 </anu:content>
