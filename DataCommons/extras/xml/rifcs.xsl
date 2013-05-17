@@ -314,15 +314,22 @@
 				</xsl:if>
 			</existenceDates>
 		</xsl:if>
-		<xsl:if test="data/rightsStatement">
-			<xsl:for-each select="data/rightsStatement">
+		<xsl:choose>
+			<xsl:when test="data/rightsStatement">
+				<xsl:for-each select="data/rightsStatement">
+					<rights>
+						<rightsStatement>
+							<xsl:value-of select="text()" />
+						</rightsStatement>
+					</rights>
+				</xsl:for-each>
+			</xsl:when>
+			<xsl:when test="translate(data/type/text(), $ucLetters, $lcLetters) = 'collection'">
 				<rights>
-					<rightsStatement>
-						<xsl:value-of select="text()" />
-					</rightsStatement>
+					<rightsStatement rightsUri="http://legaloffice.weblogs.anu.edu.au/content/copyright/" />
 				</rights>
-			</xsl:for-each>
-		</xsl:if>
+			</xsl:when>
+		</xsl:choose>
 		<xsl:if test="data/licenceType or data/licence">
 				<rights>
 					<licence type="{data/licenceType}">
