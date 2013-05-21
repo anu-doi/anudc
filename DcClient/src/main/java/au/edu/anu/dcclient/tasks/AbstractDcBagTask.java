@@ -21,11 +21,14 @@
 
 package au.edu.anu.dcclient.tasks;
 
+import java.net.URI;
+
 import javax.swing.SwingWorker;
+import javax.ws.rs.core.UriBuilder;
 
 import au.edu.anu.dcclient.CustomClient;
+import au.edu.anu.dcclient.Global;
 import au.edu.anu.dcclient.stopwatch.StopWatch;
-import au.edu.anu.dcclient.stopwatch.Timeable;
 
 import com.sun.jersey.api.client.Client;
 
@@ -35,12 +38,37 @@ import com.sun.jersey.api.client.Client;
  * @param <T>
  *            the type of the object returned by the task which is specific to each class that extends this class.
  */
-public abstract class AbstractDcBagTask<T, V> extends SwingWorker<T, V> implements Timeable {
+public abstract class AbstractDcBagTask<T, V> extends SwingWorker<T, V> {
 	protected StopWatch stopWatch = new StopWatch();
 	protected Client client = CustomClient.getInstance();
 
-	@Override
 	public StopWatch getStopWatch() {
 		return this.stopWatch;
+	}
+	
+	protected URI getBagFileUri(String pid, String filepath) {
+		UriBuilder ub = UriBuilder.fromUri(getBagBaseUri()).path(pid);
+		ub = ub.path(filepath);
+		return ub.build();
+	}
+	
+	protected URI getBagBaseUri() {
+		return Global.getBagUploadUri();
+	}
+	
+	protected URI getCreateUri() {
+		return UriBuilder.fromUri(Global.getCreateUri()).queryParam("layout", "def:display").queryParam("tmplt", "tmplt:1").build();
+	}
+	
+	protected URI getAddLinkUri(String pid) {
+		return UriBuilder.fromUri(Global.getAddLinkUri()).path(pid).build();
+	}
+	
+	protected void taskStart() {
+		stopWatch.start();
+	}
+	
+	protected void taskEnd() {
+		stopWatch.end();
 	}
 }

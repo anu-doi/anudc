@@ -23,8 +23,6 @@ package au.edu.anu.dcclient.tasks;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
@@ -36,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.BagSummary;
-import au.edu.anu.dcbag.FileSummary;
+import au.edu.anu.dcclient.Global;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -44,10 +42,12 @@ import com.sun.jersey.api.client.WebResource;
 /**
  * Represents a task that gets information about a bag associated with a record in Data Commons.
  */
-public final class GetBagSummaryTask extends AbstractDcBagTask<BagSummary, List<FileSummary>> {
+public class GetBagSummaryTask extends AbstractDcBagTask<BagSummary, Void> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GetBagSummaryTask.class);
 
 	private final URI pidBagUri;
+	
+	private BagSummary bagSummary;
 
 	/**
 	 * 
@@ -64,9 +64,9 @@ public final class GetBagSummaryTask extends AbstractDcBagTask<BagSummary, List<
 	 * 
 	 * @param pidBagUri
 	 */
-	public GetBagSummaryTask(URI bagBaseUri, String pid) {
+	public GetBagSummaryTask(String pid) {
 		super();
-		this.pidBagUri = UriBuilder.fromUri(bagBaseUri).path(pid).build();
+		this.pidBagUri = UriBuilder.fromUri(getBagBaseUri()).path(pid).build();
 	}
 
 	@Override
@@ -87,24 +87,14 @@ public final class GetBagSummaryTask extends AbstractDcBagTask<BagSummary, List<
 		return bagSummary;
 	}
 	
-	@Override
-	protected void done() {
-		super.done();
-		try {
-			get();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
 	BagSummary mapJsonToBagSummary(String jsonStr) throws JsonParseException, JsonMappingException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(org.codehaus.jackson.map.DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		BagSummary bagSummary = mapper.readValue(jsonStr, BagSummary.class);
 		return bagSummary;
+	}
+	
+	protected URI getBagBaseUri() {
+		return Global.getBagUploadUri();
 	}
 }

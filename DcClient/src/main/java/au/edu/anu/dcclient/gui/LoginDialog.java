@@ -19,17 +19,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.dcclient;
+package au.edu.anu.dcclient.gui;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.Authenticator;
-import java.util.concurrent.ExecutionException;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -39,42 +37,55 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+
+import net.miginfocom.swing.MigLayout;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcclient.tasks.GetUserInfoTask;
+import au.edu.anu.dcclient.tasks.SetAuthDefaultTask;
 
 /**
- * This class displays a Login dialog box allowing users to enter their username and password for logging into Data Commons.
+ * This class displays a Login dialog box allowing users to enter their username and password for logging into Data
+ * Commons.
  */
-public class LoginDialog extends JDialog
-{
+public class LoginDialog extends JDialog {
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(LoginDialog.class);
 
+	private final Component parent;
 	private int optionSelected = JOptionPane.CANCEL_OPTION;
 	private String[] userInfo = null;
 
-	private final JPanel contentPanel;
-	private final JLabel lblUser;
-	private final JLabel lblPassword;
-	private final JTextField txtUser;
-	private final JTextField txtPassword;
+	private JPanel contentPanel;
+	private JLabel lblUser;
+	private JLabel lblPassword;
+	private JTextField txtUser;
+	private JTextField txtPassword;
 	private JProgressBar progressBar;
+	private JPanel buttonPane;
+	private JButton okButton;
+	private JButton cancelButton;
 
 	/**
 	 * Create the dialog.
 	 */
-	protected LoginDialog()
-	{
+	public LoginDialog(Component parent) {
+		this.parent = parent;
+		initGui();
+	}
+
+	private void initGui() {
 		setResizable(false);
 		setTitle("Login");
 		setSize(293, 128);
 		setModalityType(ModalityType.APPLICATION_MODAL);
-		setLocationRelativeTo(MainWindow.getInstance());
+		setLocationRelativeTo(this.parent);
 		getContentPane().setLayout(new BorderLayout());
+		
 		this.contentPanel = new JPanel();
 		this.contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(this.contentPanel, BorderLayout.CENTER);
@@ -119,78 +130,37 @@ public class LoginDialog extends JDialog
 		gbc_txtPassword.gridx = 1;
 		gbc_txtPassword.gridy = 1;
 		this.contentPanel.add(this.txtPassword, gbc_txtPassword);
-		{
-			JPanel buttonPane = new JPanel();
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
-			{
-				JButton okButton = new JButton("OK");
-				okButton.addActionListener(new ActionListener()
-				{
-					@Override
-					public void actionPerformed(ActionEvent e)
-					{
-						LOGGER.info("Setting credentials: User {}, Password ****.", LoginDialog.this.txtUser.getText());
-						progressBar.setVisible(true);
-						progressBar.setIndeterminate(true);
-						optionSelected = JOptionPane.OK_OPTION;
-						Authenticator.setDefault(new DcAuthenticator(LoginDialog.this.txtUser.getText(), LoginDialog.this.txtPassword.getText()));
+		
+		buttonPane = new JPanel();
+		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
-						GetUserInfoTask task = new GetUserInfoTask(Global.getUserInfoUri()) {
-							@Override
-							protected void done() {
-								super.done();
-								try {
-									userInfo = get();
-									if (userInfo == null) {
-										JOptionPane.showMessageDialog(MainWindow.getInstance(),
-												"Invalid username and/or password", "Invalid username/password",
-												JOptionPane.ERROR_MESSAGE);
-										Authenticator.setDefault(null);
-									}
-								} catch (InterruptedException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								} catch (ExecutionException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								} finally {
-									LoginDialog.this.setVisible(false);
-								}
-							}
-						};
-						task.execute();
-					}
-				});
+		this.progressBar = new JProgressBar();
+		this.progressBar.setVisible(false);
+		buttonPane.setLayout(new MigLayout("", "[146px][47px][65px]", "[23px]"));
+		buttonPane.add(this.progressBar, "cell 0 0,alignx left,aligny center");
 
-				this.progressBar = new JProgressBar();
-				this.progressBar.setVisible(false);
-				buttonPane.add(this.progressBar);
-				okButton.setActionCommand("OK");
-				buttonPane.add(okButton);
-				getRootPane().setDefaultButton(okButton);
+		okButton = new JButton("OK");
+		okButton.addActionListener(new OkButtonActionListener());
+		okButton.setActionCommand("OK");
+		buttonPane.add(okButton, "cell 1 0,alignx left,aligny top");
+		getRootPane().setDefaultButton(okButton);
+
+		cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				optionSelected = JOptionPane.CANCEL_OPTION;
+				LoginDialog.this.setVisible(false);
 			}
-			{
-				JButton cancelButton = new JButton("Cancel");
-				cancelButton.addActionListener(new ActionListener()
-				{
-					@Override
-					public void actionPerformed(ActionEvent e)
-					{
-						optionSelected = JOptionPane.CANCEL_OPTION;
-						LoginDialog.this.setVisible(false);
-					}
-				});
-				cancelButton.setActionCommand("Cancel");
-				buttonPane.add(cancelButton);
-			}
-		}
+		});
+		cancelButton.setActionCommand("Cancel");
+		buttonPane.add(cancelButton, "cell 2 0,alignx left,aligny top");
+		
 	}
 
 	@Override
-	public void setVisible(boolean b)
-	{
-		this.setLocationRelativeTo(MainWindow.getInstance());
+	public void setVisible(boolean b) {
+		this.setLocationRelativeTo(this.parent);
 		this.txtUser.requestFocusInWindow();
 		this.progressBar.setIndeterminate(false);
 		super.setVisible(b);
@@ -201,8 +171,7 @@ public class LoginDialog extends JDialog
 	 * 
 	 * @return Returns JOptionPane.OK_OPTION if user clicked OK, JOptionPane.CANCEL_OPTION if cancelled.
 	 */
-	public int display()
-	{
+	public int display() {
 		setVisible(true);
 		return this.optionSelected;
 	}
@@ -212,8 +181,48 @@ public class LoginDialog extends JDialog
 	 * 
 	 * @return String array
 	 */
-	public String[] getUserInfo()
-	{
+	public String[] getUserInfo() {
 		return userInfo;
+	}
+
+	private class OkButtonActionListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					LOGGER.info("Setting credentials: User {}, Password ****.", LoginDialog.this.txtUser.getText());
+					progressBar.setVisible(true);
+					progressBar.setIndeterminate(true);
+					optionSelected = JOptionPane.OK_OPTION;
+					
+					final SetAuthDefaultTask setAuthTask = new SetAuthDefaultTask(LoginDialog.this.txtUser.getText(),
+							LoginDialog.this.txtPassword.getText());
+					setAuthTask.execute();
+					LOGGER.info("SetAuthTask Created");
+					
+					GetUserInfoTask getUserInfoTask = new GetUserInfoTask() {
+						@Override
+						protected String[] doInBackground() throws Exception {
+							setAuthTask.get();
+							return super.doInBackground();
+						}
+						
+						@Override
+						protected void done() {
+							try {
+								userInfo = get();
+							} catch (Exception e) {
+								userInfo = null;
+							} finally {
+								LoginDialog.this.setVisible(false);
+							}
+							super.done();
+						}
+					};
+					getUserInfoTask.execute();
+				}
+			});
+		}
 	}
 }

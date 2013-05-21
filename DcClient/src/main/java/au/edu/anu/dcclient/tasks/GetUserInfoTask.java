@@ -26,6 +26,8 @@ import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.dcclient.Global;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
 import com.sun.jersey.api.client.WebResource;
@@ -36,18 +38,6 @@ import com.sun.jersey.api.client.WebResource;
 public class GetUserInfoTask extends AbstractDcBagTask<String[], Object> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GetUserInfoTask.class);
 
-	private URI userInfoUri;
-
-	/**
-	 * Instantiates a new gets the user info task.
-	 * 
-	 * @param userInfoUri
-	 *            the user info uri
-	 */
-	public GetUserInfoTask(URI userInfoUri) {
-		this.userInfoUri = userInfoUri;
-	}
-	
 	@Override
 	protected String[] doInBackground() throws Exception {
 		String[] userInfo = null;
@@ -56,7 +46,7 @@ public class GetUserInfoTask extends AbstractDcBagTask<String[], Object> {
 		try {
 			stopWatch.start();
 			setProgress(10);
-			WebResource webResource = client.resource(this.userInfoUri);
+			WebResource webResource = client.resource(getUserInfoUri());
 			setProgress(20);
 			response = webResource.get(ClientResponse.class);
 			setProgress(80);
@@ -68,7 +58,7 @@ public class GetUserInfoTask extends AbstractDcBagTask<String[], Object> {
 			try {
 				response.close();
 			} catch (Exception e) {
-				//No op
+				// No op
 			}
 			stopWatch.end();
 			LOGGER.info("Time - Get User Info Task: {}", stopWatch.getFriendlyElapsed());
@@ -79,8 +69,8 @@ public class GetUserInfoTask extends AbstractDcBagTask<String[], Object> {
 	
 	@Override
 	protected void done() {
-		super.done();
 		setProgress(100);
+		super.done();
 	}
 	
 	private String[] extractUserInfo(ClientResponse response) {
@@ -89,5 +79,9 @@ public class GetUserInfoTask extends AbstractDcBagTask<String[], Object> {
 		int separatorIndex = respStr.indexOf(':');
 		userInfo = new String[] { respStr.substring(0, separatorIndex), respStr.substring(separatorIndex + 1) };
 		return userInfo;
+	}
+	
+	protected URI getUserInfoUri() {
+		return Global.getUserInfoUri();
 	}
 }
