@@ -140,7 +140,7 @@ public class TempFileTask implements Callable<File> {
 			LOGGER.debug("Saved InputStream to {}. ({})", savedFile.getAbsolutePath(),
 					FileUtils.byteCountToDisplaySize(savedFile.length()));
 		} catch (IOException e) {
-			LOGGER.error("Unable to save InputStream.", e.getMessage());
+			LOGGER.error("Unable to save InputStream. {}", e.getMessage());
 			if (!savedFile.delete()) {
 				LOGGER.warn("Unable to delete {}", savedFile.getAbsolutePath());
 			}

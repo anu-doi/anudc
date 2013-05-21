@@ -588,7 +588,7 @@ public class UploadService {
 			}
 			uploadedFile = tfTask.call();
 			dcStorage.addFileToBag(pid, uploadedFile, getFilenameFromPath(fileInBag));
-			resp = Response.ok().build();
+			resp = Response.ok(tfTask.getCalculatedMd()).build();
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage());
 			resp = Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();

@@ -40,7 +40,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.dcclient.MainWindow;
+import au.edu.anu.dcclient.gui.MainWindow;
 
 /**
  * This class implements Runnable interface to copy a file or directory from one location to another.

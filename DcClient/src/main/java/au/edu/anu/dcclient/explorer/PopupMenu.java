@@ -39,7 +39,7 @@ import javax.swing.tree.MutableTreeNode;
 
 import org.apache.commons.io.FileUtils;
 
-import au.edu.anu.dcclient.MainWindow;
+import au.edu.anu.dcclient.gui.MainWindow;
 
 /**
  * This class represents the menu that pops up for directories and files allowing file operations such as rename, delete, cut, copy and paste.
