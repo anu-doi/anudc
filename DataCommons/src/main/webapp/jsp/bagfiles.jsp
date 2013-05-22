@@ -1,8 +1,6 @@
-<%@page language="java" contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8"%>
+<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ taglib prefix="sec"
-	uri="http://www.springframework.org/security/tags"%>
+<%@ taglib prefix="sec"	uri="http://www.springframework.org/security/tags"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 
@@ -35,6 +33,11 @@
 					<li><a href="#files">Files</a></li>
 					<li><a href="#info">Archive Info</a></li>
 					<li><a href="#extRefs">External References</a></li>
+					<sec:authorize access="isAuthenticated()">
+						<sec:accesscontrollist hasPermission="WRITE" domainObject="${it.fo}">
+							<li><a href="#uploadFiles">Upload Files</a></li>
+						</sec:accesscontrollist>
+					</sec:authorize>
 				</ul>
 			</div>
 		</anu:content>
@@ -71,8 +74,7 @@
 						<td><c:out value="${iFile.value.scanResult}" /></td>
 						<td onclick="jQuery('tr[id=\'meta-${iFile.key}\']').slideToggle()"><a
 							href="javascript:void(0)" onclick="return false">Expand</a></td>
-						<td><a href="javascript:void(0);"
-							onclick="deleteFile('<c:url value='${it.dlBaseUri}${iFile.key}' />', '${iFile.key}')">X</a>
+						<td><a href="javascript:void(0);" onclick="deleteFile('<c:url value='${it.dlBaseUri}${iFile.key}' />', '${iFile.key}')">X</a>
 						</td>
 					</tr>
 					<tr id="meta-<c:out value='${iFile.key}' />"
@@ -103,7 +105,7 @@
 				<tr>
 					<th>Public</th>
 					<td><c:out value="${it.isFilesPublic}" />&nbsp;
-						<sec:accesscontrollist hasPermission="PUBLISH" domainObject="${it.fedoraObject}">
+						<sec:accesscontrollist hasPermission="PUBLISH" domainObject="${it.fo}">
 							<a href="javascript:void(0);" onclick="toggleIsFilesPublic('${it.fo.object_id}', '${it.isFilesPublic}')">Change</a>
 						</sec:accesscontrollist>
 					</td>
@@ -120,9 +122,11 @@
 		<div class="doublewide nopadtop" id="extRefs" style="display: none;">
 			<div class="small w-doublewide">
 				<!-- External relations -->
-				<sec:accesscontrollist hasPermission="WRITE" domainObject="${it.fedoraObject}">
-					<button onclick="addExtRef('${it.bagSummary.pid}')">Add	External Reference</button>
-				</sec:accesscontrollist>
+				<sec:authorize access="isAuthenticated()">
+					<sec:accesscontrollist hasPermission="WRITE" domainObject="${it.fo}">
+						<button onclick="addExtRef('${it.bagSummary.pid}')">Add	External Reference</button>
+					</sec:accesscontrollist>
+				</sec:authorize>
 				<c:if test="${not empty it.extRefsTxt}">
 					<ul>
 						<c:forEach var="iEntry" items="${it.extRefsTxt}">
@@ -138,6 +142,37 @@
 			<img id="loading" src="<c:url value='/images/ajax-loader.gif' />"
 				style="display: none"></img>
 		</div>
+
+		<sec:authorize access="isAuthenticated()">
+			<sec:accesscontrollist hasPermission="WRITE" domainObject="${it.fo}">
+				<div class="doublewide nopadtop" id="uploadFiles" style="display: none;">
+					<p>The Java upload applet below may take a few moments to display. When it does, either drag and drop files from your system into the applet, or click on
+						the Browse... button to select files from a dialog box.</p>
+					<form class="anuform" name="uploadForm" id="idUploadForm" enctype="multipart/form-data" method="post" action="/">
+						<input type="hidden" name="pid" value="${it.bagSummary.pid}" />
+						<applet code="wjhk.jupload2.JUploadApplet.class" name="JUpload" archive="<c:url value='/plugins/jupload-5.0.8.jar' />" width="680" height="500" mayscript
+							alt="The java plugin must be installed.">
+							<param name="postURL" value="<c:url value='/rest/upload;jsessionid=${cookie.JSESSIONID.value}' />" />
+							<param name="stringUploadSuccess" value="^SUCCESS$" />
+							<param name="stringUploadError" value="^ERROR: (.*)$" />
+							<param name="stringUploadWarning" value="^WARNING: (.*)$" />
+							<param name="debugLevel" value="1" />
+							<param name="maxChunkSize" value="10485760" />
+							<param name="lang" value="en" />
+							<param name="formdata" value="uploadForm" />
+							<param name="showLogWindow" value="false" />
+							<param name="showStatusBar" value="true" />
+							<param name="sendMD5Sum" value="true" />
+							<param name="readCookieFromNavigator" value="false" />
+							<param name="type" value="application/x-java-applet;version=1.6">
+							<param name="afterUploadURL" value="<c:url value='/rest/upload/bag/${it.bagSummary.pid}' />" />
+							This Java Applet requires Java 1.5 or higher.
+						</applet>
+					</form>
+				</div>
+			</sec:accesscontrollist>
+		</sec:authorize>
+
 	</c:when>
 </c:choose>
 

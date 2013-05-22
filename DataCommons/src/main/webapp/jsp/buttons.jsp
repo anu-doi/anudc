@@ -51,15 +51,6 @@
 					</p>
 				</sec:accesscontrollist>
 				<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
-					<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">
-						<c:url value="/rest/upload" var="uploadLink">
-							<c:param name="pid" value="${it.fedoraObject.object_id}" />
-						</c:url>
-						<p>
-							<input type="button" id="uploadButton" name="uploadButton" value="Upload Files" onclick="window.location='${uploadLink}'" />
-						</p>
-					</sec:accesscontrollist>
-
 					<sec:accesscontrollist hasPermission="REVIEW,PUBLISH,ADMINISTRATION" domainObject="${it.fedoraObject}">
 						<c:url value="/rest/collreq/question" var="questionLink">
 							<c:param name="pid" value="${it.fedoraObject.object_id}" />

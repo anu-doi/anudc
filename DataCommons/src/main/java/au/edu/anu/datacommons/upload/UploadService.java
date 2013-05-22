@@ -36,12 +36,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -177,24 +175,15 @@ public class UploadService {
 	 */
 	@POST
 	@Path("/")
-	@Produces(MediaType.TEXT_HTML)
+	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostJUploadFilePart() {
 		Response resp = null;
-		Properties uploadProps = new Properties();
 		List<FileItem> uploadedItems;
 		int filePartNum = 0;
 		boolean isLastPart = false;
-		boolean isExtRefsOnly = false;
-
-		StringBuilder headersStr = new StringBuilder();
-		Enumeration<String> headerNames = request.getHeaderNames();
-		while (headerNames.hasMoreElements()) {
-			String headerName = headerNames.nextElement();
-			headersStr.append(format("{0}: {1}\r\n", headerName, request.getHeader(headerName)));
-		}
-		LOGGER.debug("HTTP Request Headers:\r\n{}", headersStr.toString());
+		File savedFile = null;
 
 		// Check if this is a part file. Files greater than threshold specified in JUpload params will be split up and
 		// sent as parts.
@@ -210,56 +199,53 @@ public class UploadService {
 			// Get a list of uploaded items. Some may be files, others form fields.
 			uploadedItems = parseUploadRequest(request);
 
-			// Map form fields into a properties object.
-			mapFormFields(uploadedItems, uploadProps);
-
-			// Iterate through each file item and process if it's a file - form fields already processed.
-			StringBuilder formDataStr = new StringBuilder(format("{0} form data items:\r\n", uploadedItems.size()));
-			for (FileItem iItem : uploadedItems) {
-				if (iItem.isFormField()) {
-					formDataStr.append(format("{0}: {1}\r\n", iItem.getFieldName(), iItem.getString()));
-					if (iItem.getFieldName().equalsIgnoreCase("extRefsOnly"))
-						isExtRefsOnly = true;
-				} else {
-					formDataStr.append(format("{0}: {1} ({2})\r\n", iItem.getFieldName(), iItem.getName(),
-							FileUtils.byteCountToDisplaySize(iItem.getSize())));
-					saveFileOnServer(iItem, filePartNum, isLastPart, uploadProps.getProperty("pid"),
-							uploadProps.getProperty("md5sum0"));
-					uploadProps.setProperty(formatFieldName(iItem.getFieldName()), iItem.getName());
+			String md5 = null;
+			String pid = null;
+			for (FileItem i : uploadedItems) {
+				if (i.isFormField()) {
+					if (i.getFieldName().equalsIgnoreCase("md5sum0")) {
+						md5 = i.getString();
+					} else if (i.getFieldName().equalsIgnoreCase("pid")) {
+						pid = i.getString();
+					}
 				}
 			}
-			LOGGER.debug(formDataStr.toString());
-
-			String pid = uploadProps.getProperty("pid").trim().toLowerCase();
-
+			
+			if (md5 == null || md5.length() == 0) {
+				throw new NullPointerException("MD5 cannot be null.");
+			}
+			if (pid == null || pid.length() == 0) {
+				throw new NullPointerException("Record Identifier cannot be null.");
+			}
+			
 			// Check for write access to the fedora object.
 			getFedoraObjectWriteAccess(pid);
-
-			// Check if the properties file '[pid].properties' already exists. If yes, merge the new one with the
-			// existing one.
-			File propFile = new File(GlobalProps.getUploadDirAsFile(), DcStorage.convertToDiskSafe(pid) + ".properties");
-			if (propFile.exists()) {
-				Properties existingProps = new Properties();
-				FileInputStream propFileInStream = new FileInputStream(propFile);
-				existingProps.load(propFileInStream);
-				propFileInStream.close();
-				mergeProperties(existingProps, uploadProps);
-				uploadProps = existingProps;
+			
+			for (FileItem i : uploadedItems) {
+				if (!i.isFormField()) {
+					savedFile = saveFileOnServer(i, filePartNum, isLastPart, pid, md5);
+					break;
+				}
 			}
-
-			// Write the properties to the file.
-			propFileWriter = new FileWriter(propFile);
-			uploadProps.store(propFileWriter, ""); // Blank comment field.
-			propFileWriter.close();
-
-			// Text of response must adhere to param 'stringUploadSuccess' specified in the JUpload applet.
-			if (isExtRefsOnly)
-				resp = Response.seeOther(
-						UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class)
-								.path(UploadService.class, "doGetCreateBag").build(uploadProps.getProperty("pid")))
-						.build();
-			else
-				resp = Response.ok("SUCCESS", MediaType.TEXT_PLAIN_TYPE).build();
+			if (savedFile == null) {
+				throw new NullPointerException("File saved on server is null.");
+			}
+			
+			if (isLastPart || filePartNum == 0) {
+				try {
+					dcStorage.addFileToBag(pid, savedFile, savedFile.getName());
+				} finally {
+					if (!savedFile.delete()) {
+						LOGGER.warn("Unable to delete {}", savedFile.getAbsolutePath());
+					}
+					if (!savedFile.getParentFile().equals(GlobalProps.getUploadDirAsFile()) && savedFile.getParentFile().listFiles().length == 0) {
+						if (!savedFile.getParentFile().delete()) {
+							LOGGER.warn("Unable to delete {}", savedFile.getAbsolutePath());
+						}
+					}
+				}
+			}
+			resp = Response.ok("SUCCESS", MediaType.TEXT_PLAIN_TYPE).build();
 		} catch (Exception e) {
 			LOGGER.error("Unable to process POST request.", e);
 			resp = Response.ok(format("ERROR: Unable to process request. [{0}]", e.getMessage()),
@@ -968,10 +954,10 @@ public class UploadService {
 	 */
 	private File saveFileOnServer(FileItem fileItem, int partNum, boolean isLastPart, String pid, String expectedMd5)
 			throws IOException {
-		String clientFullFilename = fileItem.getName();
-		String serverFilename = getFilenameFromPath(clientFullFilename);
+		String filename = fileItem.getName();
+		String serverFilename = getFilenameFromPath(filename);
 
-		LOGGER.debug("filename: {}, filesize: {}.", clientFullFilename, fileItem.getSize());
+		LOGGER.debug("filename: {}, filesize: {}.", filename, fileItem.getSize());
 
 		// Append .part[n] to the filename if its a part file.
 		if (partNum > 0)
@@ -999,6 +985,7 @@ public class UploadService {
 						throw new IOException(format(
 								"Computed MD5 {0} does not match expected {1} for uploaded file {2}", computedMd5Sum,
 								expectedMd5, mergedFile.getAbsolutePath()));
+					fileOnServer = mergedFile;
 				}
 			} else {
 				LOGGER.warn("File {} exists on server with same size. Not overwriting it.",
@@ -1107,45 +1094,6 @@ public class UploadService {
 	}
 
 	/**
-	 * mergeProperties
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * Merges properties in source into properties in target. If there are conflicting keys, increment the key counter
-	 * until no keys in the target get overridden. For example, if File0 and File1 exists in the target, File0 will be
-	 * renamed to File2 and merged into the target.
-	 * 
-	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		14/05/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 * 
-	 * @param target
-	 *            Properties object the properties are to be merged into.
-	 * @param source
-	 *            Properties object the properties are to be merged from.
-	 */
-	private void mergeProperties(Properties target, Properties source) {
-		// Check for file keys.
-		for (int iSource = 0; source.containsKey("file" + iSource); iSource++) {
-			if (!target.containsValue(source.get("file" + iSource))) {
-				// Find the next available file number.
-				int iNextAvail;
-				for (iNextAvail = 0; target.containsKey("file" + iNextAvail); iNextAvail++)
-					;
-
-				// Pull the properties from the source, change the number suffix and add them to target so they're not
-				// overwriting existing properties in the target.
-				target.put("file" + iNextAvail, source.getProperty("file" + iSource));
-				target.put("mimeType" + iNextAvail, source.getProperty("mimetype" + iSource));
-				target.put("pathinfo" + iNextAvail, source.getProperty("pathinfo" + iSource));
-				target.put("md5sum" + iNextAvail, source.getProperty("md5sum" + iSource));
-				target.put("filemodificationdate" + iNextAvail, source.getProperty("filemodificationdate" + iSource));
-			}
-		}
-	}
-
-	/**
 	 * Parses an HttpServletRequest and returns a list of FileItem objects. A fileItem can contain form data or a file
 	 * that was uploaded by a user.
 	 * 
@@ -1160,55 +1108,6 @@ public class UploadService {
 		ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory(GlobalProps.getMaxSizeInMem(),
 				GlobalProps.getUploadDirAsFile()));
 		return (List<FileItem>) upload.parseRequest(request);
-	}
-
-	/**
-	 * Trims and changes the case of a string.
-	 * 
-	 * @param fieldName
-	 *            The string to format
-	 * @return Formatted fieldname as String
-	 */
-	private String formatFieldName(String fieldName) {
-		if (Util.isNotEmpty(fieldName))
-			return fieldName.toLowerCase().trim();
-		else
-			return "";
-	}
-
-	/**
-	 * Combines bag related information from FileItem objects and merges them into a Properties file.
-	 * 
-	 * @param uploadedItems
-	 *            List of uploadedItems
-	 * @param uploadProps
-	 *            Properties file in which the key-value pairs will be merged.
-	 */
-	private void mapFormFields(List<FileItem> uploadedItems, Properties uploadProps) {
-		// Iterate each item in the request, and extract the form fields first.
-		for (FileItem iFileItem : uploadedItems) {
-			if (iFileItem.isFormField() && Util.isNotEmpty(iFileItem.getString())) {
-				// TODO Only include valid properties. Skip over props not required. Determine which ones are not
-				// required.
-				if (formatFieldName(iFileItem.getFieldName()).equals("url")) {
-					// If the url doesn't exist in the properties file, find the next available index and add it.
-					if (!uploadProps.containsValue(iFileItem.getString())) {
-						int i;
-						for (i = 0; uploadProps.containsKey("url" + i); i++)
-							;
-
-						uploadProps.setProperty(formatFieldName(iFileItem.getFieldName()) + i, iFileItem.getString()
-								.trim());
-					}
-				} else {
-					uploadProps.setProperty(formatFieldName(iFileItem.getFieldName()), iFileItem.getString().trim());
-				}
-			}
-		}
-		StringBuilder uploadPropsStr = new StringBuilder();
-		for (Entry<Object, Object> entry : uploadProps.entrySet())
-			uploadPropsStr.append(format("{0}={1}\r\n", entry.getKey(), entry.getValue()));
-		LOGGER.debug("Upload properties:\r\n{}", uploadPropsStr.toString());
 	}
 
 	protected boolean hasRole(String[] roles) {
