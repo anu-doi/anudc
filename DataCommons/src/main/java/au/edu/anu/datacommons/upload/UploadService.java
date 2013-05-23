@@ -364,25 +364,24 @@ public class UploadService {
 		}
 		model.put("fo", fo);
 
-		if (!dcStorage.bagExists(pid))
-			throw new NotFoundException(format("Bag not found for {0}", pid));
-
-		BagSummary bagSummary;
-		try {
-			bagSummary = dcStorage.getBagSummary(pid);
-			model.put("bagSummary", bagSummary);
-			model.put("bagInfoTxt", bagSummary.getBagInfoTxt().entrySet());
-			if (bagSummary.getExtRefsTxt() != null)
-				model.put("extRefsTxt", bagSummary.getExtRefsTxt().entrySet());
-			UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class)
-					.path(UploadService.class, "doGetFileInBagAsOctetStream2");
-			model.put("dlBaseUri", uriBuilder.build(pid, "").toString());
-			model.put("downloadAsZipUrl", uriBuilder.build(pid, "zip").toString());
-			model.put("isFilesPublic", fo.isFilesPublic().booleanValue());
-		} catch (DcStorageException e) {
-			LOGGER.error(e.getMessage(), e);
-			PageMessages messages = new PageMessages();
-			messages.add(MessageType.ERROR, e.getMessage(), model);
+		if (dcStorage.bagExists(pid)) {
+			BagSummary bagSummary;
+			try {
+				bagSummary = dcStorage.getBagSummary(pid);
+				model.put("bagSummary", bagSummary);
+				model.put("bagInfoTxt", bagSummary.getBagInfoTxt().entrySet());
+				if (bagSummary.getExtRefsTxt() != null)
+					model.put("extRefsTxt", bagSummary.getExtRefsTxt().entrySet());
+				UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class)
+						.path(UploadService.class, "doGetFileInBagAsOctetStream2");
+				model.put("dlBaseUri", uriBuilder.build(pid, "").toString());
+				model.put("downloadAsZipUrl", uriBuilder.build(pid, "zip").toString());
+				model.put("isFilesPublic", fo.isFilesPublic().booleanValue());
+			} catch (DcStorageException e) {
+				LOGGER.error(e.getMessage(), e);
+				PageMessages messages = new PageMessages();
+				messages.add(MessageType.ERROR, e.getMessage(), model);
+			}
 		}
 
 		resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
