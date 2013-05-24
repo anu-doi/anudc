@@ -40,11 +40,14 @@
 	</div>
 </anu:content>
 
+<!-- Files list -->
 <div class="doublewide nopadtop" id="files" style="display: none;">
 	<c:choose>
 		<c:when test="${it.bagSummary != null}">
-			<table class="small w-doublewide">
+			<table class="small w-doublewide" id="tblFiles">
+				<!-- Column headers -->
 				<tr>
+					<th><input type="checkbox" onchange="toggleCheckboxes(this)" /></th>
 					<th>File</th>
 					<th>Format</th>
 					<th>Pronom PUID</th>
@@ -52,12 +55,19 @@
 					<th>MD5</th>
 					<th>Virus</th>
 					<th>Expand</th>
-					<th>Delete File</th>
+					<sec:authorize access="isAuthenticated()"><sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+						<th>Delete File</th>
+					</sec:accesscontrollist></sec:authorize>
 				</tr>
 				<c:forEach var="iFile" items="${it.bagSummary.fileSummaryMap}">
 					<tr>
-						<td><a
-							href="<c:url value='${it.dlBaseUri}${iFile.key}' />">${iFile.value.filename}</a></td>
+						<!-- Selection checkbox. -->
+						<td><input type="checkbox" value="${iFile.key}" onclick="condEnableSelTasks()" />
+						
+						<!-- Filename as download link -->
+						<td><a href="<c:url value='${it.dlBaseUri}${iFile.key}' />">${iFile.value.filename}</a></td>
+						
+						<!-- File format and PUID -->
 						<c:choose>
 							<c:when test="${not empty iFile.value.pronomFormat.formatName}">
 								<td><c:out value="${iFile.value.pronomFormat.formatName}" /></td>
@@ -69,14 +79,41 @@
 								<td>Unknown</td>
 							</c:otherwise>
 						</c:choose>
+						
+						<!-- Friendly Size -->
 						<td><c:out value="${iFile.value.friendlySize}" /></td>
+						
+						<!-- File Message Digest -->
 						<td><c:out value="${iFile.value.md5}" /></td>
-						<td><c:out value="${iFile.value.scanResult}" /></td>
-						<td onclick="jQuery('tr[id=\'meta-${iFile.key}\']').slideToggle()"><a
-							href="javascript:void(0)" onclick="return false">Expand</a></td>
-						<td><a href="javascript:void(0);" onclick="deleteFile('<c:url value='${it.dlBaseUri}${iFile.key}' />', '${iFile.key}')">X</a>
+						
+						<!-- Virus scan result -->
+						<td class="text-center">
+						<c:choose>
+							<c:when test="${fn:toLowerCase(iFile.value.scanResult) eq 'passed'}">
+								<img src="<c:url value='/images/circle_green.png' />" width="12" height="12" title="${iFile.value.scanResult}" alt="${iFile.value.scanResult}" />
+							</c:when>
+							<c:when test="${fn:toLowerCase(iFile.value.scanResult) eq 'not scanned'}">
+								<img src="<c:url value='/images/circle_yellow.png' />" width="12" height="12" title="${iFile.value.scanResult}" alt="${iFile.value.scanResult}" />
+							</c:when>
+							<c:otherwise>
+								<img src="<c:url value='/images/circle_red.png' />" width="12" height="12" title="${iFile.value.scanResult}" alt="${iFile.value.scanResult}" />
+							</c:otherwise>
+						</c:choose>
 						</td>
+						
+						<!-- Metadata slider -->
+						<td onclick="jQuery('tr[id=\'meta-${iFile.key}\']').slideToggle()"><a href="javascript:void(0);">Expand</a></td>
+						
+						<!-- Delete file -->
+						<sec:authorize access="isAuthenticated()"><sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+							<td class="text-center"><a href="javascript:void(0);" onclick="deleteFile('<c:url value='${it.dlBaseUri}${iFile.key}' />', '${iFile.key}')">
+							<img src="<c:url value='/images/delete_red.png' />" width="12" height="12" title="Delete ${iFile.value.filename}" />
+							</a>
+							</td>
+						</sec:accesscontrollist></sec:authorize>
 					</tr>
+
+					<!-- Metadata row for the file above -->
 					<tr id="meta-<c:out value='${iFile.key}' />"
 						style="display: none;">
 						<td colspan="7">
@@ -93,15 +130,16 @@
 						</td>
 					</tr>
 				</c:forEach>
-				<tr class="bg-uni50 text-center">
-					<td colspan="8"><a href="${it.downloadAsZipUrl}">Download
-							all as Zip</a></td>
-				</tr>
 			</table>
+			<p><sec:authorize access="isAuthenticated()"><sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+				<input type="button" id="idDelSelected" value="Delete Selected" onclick="deleteSelected('${it.fo.object_id}')" />
+				</sec:accesscontrollist></sec:authorize>
+				<input type="button" id="idDownloadZipSelected" value="Download Selected as Zip" onclick="downloadAsZip('${it.downloadAsZipUrl}')" />
+			</p>
 		</c:when>
 		<c:otherwise>
-			<p class="msg-info">This collection doesn't contain any files. Click "Upload Files" tab to upload files to this collection, or click
-			"External References" tab to add references to externally hosted resources.</p>
+			<p class="msg-info">This collection doesn't contain any files. Click "Upload Files" tab to upload files to this collection, or
+			click External References tab to add references to externally hosted resources.</p>
 		</c:otherwise>
 	</c:choose>
 </div>

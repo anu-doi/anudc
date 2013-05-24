@@ -38,6 +38,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -489,7 +490,7 @@ public class UploadService {
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}/{fileInBag:.*}")
 	public Response doGetFileInBagAsOctetStream2(@PathParam("pid") String pid,
-			@PathParam("fileInBag") String fileRequested) {
+			@PathParam("fileInBag") String fileRequested, @QueryParam("file") Set<String> filepaths) {
 		LOGGER.trace("pid: {}, filename: {}", pid, fileRequested);
 		Response resp = null;
 		// Check for read access.
@@ -514,12 +515,21 @@ public class UploadService {
 						request.getRemoteAddr(), request.getHeader("User-Agent"), AccessLogRecord.Operation.READ);
 				new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessLogRecord);
 			}
+			
 			if (fileRequested.equals("zip")) {
-				Set<String> fileSet = new HashSet<String>();
 				FileSummaryMap fsMap = dcStorage.getBagSummary(pid).getFileSummaryMap();
-				for (String iFilepath : fsMap.keySet())
-					fileSet.add(iFilepath);
-				resp = getBagFilesAsZip(pid, fileSet, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), ".zip"));
+				
+				if (filepaths == null || filepaths.size() == 0) {
+					filepaths.addAll(fsMap.keySet());
+				} else {
+					for (Iterator<String> it = filepaths.iterator(); it.hasNext(); ) {
+						if (!fsMap.containsKey(it.next())) {
+							it.remove();
+						}
+					}
+				}
+				
+				resp = getBagFilesAsZip(pid, filepaths, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), ".zip"));
 			} else {
 				if (!dcStorage.fileExistsInBag(pid, fileRequested))
 					throw new NotFoundException(format("File {0} not found in {1}", fileRequested, pid));
