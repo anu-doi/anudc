@@ -40,6 +40,7 @@ function documentReady() {
 	}
 	
 	condEnableSelTasks();
+	history.pushState(null, null, window.location.href.split("?")[0]);
 }
 
 function deleteFile(url)
@@ -116,12 +117,12 @@ function toggleIsFilesPublic(pid, curFlag) {
 		newFlag = "false";
 	
 	jQuery.ajax({
-			url: "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/ispublic",
+			url: window.location.href + "/ispublic",
 			type: "PUT",
 			contentType: "text/plain",
 			data: newFlag
 	}).done(function(msg, status) {
-		window.location = window.location.href.split("?")[0];
+		window.location = window.location.href + "?smsg=Files' public status changed successfully.";
 	}).fail(function(msg, status) {
 		alert("Unable to change Files Public status");
 	});
@@ -139,7 +140,7 @@ function deleteSelected(pid) {
 			alert('Unable to delete file.');
 		}).always(function() {
 			if (--activeAjax == 0) {
-				window.location = window.location.href.split("?")[0];
+				window.location = window.location.href;
 			}
 		});
 	});
@@ -171,4 +172,8 @@ function condEnableSelTasks() {
 		jQuery("#idDelSelected").attr("disabled", "disabled");
 		jQuery("#idDownloadZipSelected").attr("disabled", "disabled");
 	}
+}
+
+function recomplete() {
+	window.location = window.location.href.split("?")[0] + "?task=recomplete";
 }

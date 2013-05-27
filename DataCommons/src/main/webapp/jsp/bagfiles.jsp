@@ -84,7 +84,7 @@
 						<td><c:out value="${iFile.value.friendlySize}" /></td>
 						
 						<!-- File Message Digest -->
-						<td><c:out value="${iFile.value.md5}" /></td>
+						<td class="small"><c:out value="${iFile.value.md5}" /></td>
 						
 						<!-- Virus scan result -->
 						<td class="text-center">
@@ -135,6 +135,7 @@
 				<input type="button" id="idDelSelected" value="Delete Selected" onclick="deleteSelected('${it.fo.object_id}')" />
 				</sec:accesscontrollist></sec:authorize>
 				<input type="button" id="idDownloadZipSelected" value="Download Selected as Zip" onclick="downloadAsZip('${it.downloadAsZipUrl}')" />
+				<input type="button" value="Rescan Files" onclick="recomplete()" />
 			</p>
 		</c:when>
 		<c:otherwise>
