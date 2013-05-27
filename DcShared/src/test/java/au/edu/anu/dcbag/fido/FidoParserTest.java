@@ -23,80 +23,121 @@ package au.edu.anu.dcbag.fido;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Random;
 
+import org.apache.tika.io.IOUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcbag.fido.PronomFormat.MatchStatus;
 
-public class FidoParserTest
-{
-	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
+public class FidoParserTest {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FidoParserTest.class);
+	
+	private FidoParser fidoParser;
+	private File fileToId;
+	private Random rand;
+	
+	@Rule
+	public TemporaryFolder tempDir = new TemporaryFolder();
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
+	public static void setUpBeforeClass() throws Exception {
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
+	public static void tearDownAfterClass() throws Exception {
 	}
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
+		rand = new Random();
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
+	public void tearDown() throws Exception {
 	}
 
 	@Test
-	public void testGetFileFormatFromInputStream()
-	{
-		try
-		{
-			FidoParser fidoParser = new FidoParser(FidoParserTest.class.getResourceAsStream("BagIt Specification.pdf"));
+	public void testGetFileFormatFromFile() {
+		try {
+			fileToId = new File(this.getClass().getResource("BagIt Specification.pdf")
+					.toURI());
+			fidoParser = new FidoParser(fileToId);
 			PronomFormat fileFormat = fidoParser.getFileFormat();
 			matchValues(fileFormat);
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
+			failOnException(e);
+		} catch (URISyntaxException e) {
 			failOnException(e);
 		}
 	}
 	
 	@Test
-	public void testGetFileFormatFromFile()
-	{
-		try
-		{
-			FidoParser fidoParser = new FidoParser(new File(FidoParserTest.class.getResource("BagIt Specification.pdf").toURI()));
-			PronomFormat fileFormat = fidoParser.getFileFormat();
-			matchValues(fileFormat);
-		}
-		catch (IOException e)
-		{
-			failOnException(e);
-		}
-		catch (URISyntaxException e)
-		{
-			failOnException(e);
-		}
+	public void testGetFileFormatFromGarbageFile() throws IOException {
+		fileToId = tempDir.newFile();
+		writeRandomData(fileToId);
+		fidoParser = new FidoParser(fileToId);
+		PronomFormat fileFormat = fidoParser.getFileFormat();
+		assertEquals(fileToId.getAbsolutePath(), fileFormat.getFileName());
+		assertEquals(fileToId.length(), fileFormat.getFileSize());
+		assertEquals(MatchStatus.KO, fileFormat.getMatchStatus());
 	}
 	
-	private void matchValues(PronomFormat format)
-	{
+	/** 
+	 * Disabled until Fido bug re contents through stdin is fixed.
+	 * 
+	 * @throws IOException
+	 */
+	@Ignore
+	public void testGetFileFormatFromGarbageStream() throws IOException {
+		fileToId = tempDir.newFile();
+		writeRandomData(fileToId);
+		FileInputStream fileStream = null;
+		try {
+			fileStream = new FileInputStream(fileToId);
+			fidoParser = new FidoParser(fileStream);
+			assertNotNull(fidoParser.getFidoStr());
+			assertTrue(fidoParser.getFidoStr().length() > 0);
+			PronomFormat fileFormat = fidoParser.getFileFormat();
+			assertEquals(fileToId.length(), fileFormat.getFileSize());
+		} finally {
+			IOUtils.closeQuietly(fileStream);
+		}
+	}
+
+	private void writeRandomData(File fileToId) throws FileNotFoundException, IOException {
+		BufferedOutputStream fileStream = null;
+		try {
+			fileStream = new BufferedOutputStream(new FileOutputStream(fileToId));
+			int sizeInMb = rand.nextInt(5) + 1;
+			byte[] buffer = new byte[1024 * 1024];
+			for (int i = 0; i < sizeInMb; i++) {
+				rand.nextBytes(buffer);
+				fileStream.write(buffer);
+			}
+		} finally {
+			IOUtils.closeQuietly(fileStream);
+		}
+	}
+
+	private void matchValues(PronomFormat format) {
 		assertEquals(MatchStatus.OK, format.getMatchStatus());
 		assertEquals("fmt/20", format.getPuid());
 		assertEquals("application/pdf", format.getMimeType());
@@ -104,9 +145,8 @@ public class FidoParserTest
 		assertEquals("PDF 1.6", format.getSigName());
 		assertEquals("Acrobat PDF 1.6 - Portable Document Format", format.getFormatName());
 	}
-	
-	private void failOnException(Throwable e)
-	{
+
+	private void failOnException(Throwable e) {
 		LOGGER.error(e.getMessage(), e);
 		fail(e.getMessage());
 	}
