@@ -51,15 +51,6 @@
 					</p>
 				</sec:accesscontrollist>
 				<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
-					<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">
-						<c:url value="/rest/upload" var="uploadLink">
-							<c:param name="pid" value="${it.fedoraObject.object_id}" />
-						</c:url>
-						<p>
-							<input type="button" id="uploadButton" name="uploadButton" value="Upload Files" onclick="window.location='${uploadLink}'" />
-						</p>
-					</sec:accesscontrollist>
-
 					<sec:accesscontrollist hasPermission="REVIEW,PUBLISH,ADMINISTRATION" domainObject="${it.fedoraObject}">
 						<c:url value="/rest/collreq/question" var="questionLink">
 							<c:param name="pid" value="${it.fedoraObject.object_id}" />
@@ -93,20 +84,23 @@
 	<jsp:include page="listrelated.jsp" />
 
 	<!-- Bag Summary Begin -->
-	<c:if test="${not empty it.bagSummary}">
+	<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
 		<anu:boxheader text="Files" />
-		<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
-			<anu:box style="solid">
+		<anu:box style="solid">
+			<c:if test="${not empty it.bagSummary}">
 				<p>
 					<c:out value="${it.bagSummary.numFiles}" />
 					file(s) in collection. Size
 					<c:out value="${it.bagSummary.friendlySize}" />
 				</p>
-				<p>
-					<a href="<c:url value='/rest/upload/bag/${it.fedoraObject.object_id}' />">View Files</a>
-				</p>
-			</anu:box>
-		</c:if>
+			</c:if>
+			<c:if test="${empty it.bagSummary}">
+				<p>No files in collection.</p>
+			</c:if>
+			<p>
+				<a href="<c:url value='/rest/upload/bag/${it.fedoraObject.object_id}' />">Data Files</a>
+			</p>
+		</anu:box>
 	</c:if>
 	<!-- Bag Summary End -->
 </anu:content>

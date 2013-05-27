@@ -33,6 +33,10 @@ public class FileSummaryMap extends TreeMap<String, FileSummary>
 {
 	private static final long serialVersionUID = 1L;
 
+	protected FileSummaryMap() {
+		super();
+	}
+	
 	/**
 	 * Instantiates a new file summary map.
 	 * 

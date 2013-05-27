@@ -31,20 +31,20 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 public class TempFileTask implements Callable<File> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TempFileTask.class);
 
-	private static final int CONNECTION_TIMEOUT_MS = 30000;
-	private static final int READ_TIMEOUT_MS = 30000;
-	private static final String FILENAME_PREFIX = "AnuDc";
+	protected static final int CONNECTION_TIMEOUT_MS = 30000;
+	protected static final int READ_TIMEOUT_MS = 30000;
+	protected static final String FILENAME_PREFIX = "AnuDc";
 
-	private static Random random = new Random();
+	protected Random random = new Random();
 
-	private URL fileUrl = null;
-	private InputStream inputStream = null;
-	private File savedFile = null;
+	protected URL fileUrl = null;
+	protected InputStream inputStream = null;
+	protected File savedFile = null;
 
-	private Manifest.Algorithm mdAlgorithm = null;
-	private String expectedMd = null;
-	private String calculatedMd = null;
-	private MessageDigest md = null;
+	protected Manifest.Algorithm mdAlgorithm = null;
+	protected String expectedMd = null;
+	protected String calculatedMd = null;
+	protected MessageDigest md = null;
 
 	public TempFileTask(URL fileUrl) {
 		this.fileUrl = fileUrl;
@@ -89,7 +89,7 @@ public class TempFileTask implements Callable<File> {
 		return calculatedMd;
 	}
 
-	private InputStream createDigestInputStream(URL fileUrl) throws IOException {
+	protected InputStream createDigestInputStream(URL fileUrl) throws IOException {
 		createMessageDigest();
 		URLConnection connection = fileUrl.openConnection();
 		connection.setConnectTimeout(CONNECTION_TIMEOUT_MS);
@@ -98,12 +98,12 @@ public class TempFileTask implements Callable<File> {
 		return new DigestInputStream(connection.getInputStream(), md);
 	}
 
-	private InputStream createDigestInputStream(InputStream inputStream) {
+	protected InputStream createDigestInputStream(InputStream inputStream) {
 		createMessageDigest();
 		return new DigestInputStream(inputStream, md);
 	}
 
-	private void createMessageDigest() {
+	protected void createMessageDigest() {
 		try {
 			if (mdAlgorithm != null && expectedMd != null) {
 				md = MessageDigest.getInstance(mdAlgorithm.javaSecurityAlgorithm);
@@ -115,7 +115,7 @@ public class TempFileTask implements Callable<File> {
 		}
 	}
 
-	private File saveInputStreamToTempFile(InputStream inputStream) throws IOException {
+	protected File saveInputStreamToTempFile(InputStream inputStream) throws IOException {
 		savedFile = createTempFile();
 
 		FileChannel targetChannel = null;
@@ -140,7 +140,7 @@ public class TempFileTask implements Callable<File> {
 			LOGGER.debug("Saved InputStream to {}. ({})", savedFile.getAbsolutePath(),
 					FileUtils.byteCountToDisplaySize(savedFile.length()));
 		} catch (IOException e) {
-			LOGGER.error("Unable to save InputStream.", e.getMessage());
+			LOGGER.error("Unable to save InputStream. {}", e.getMessage());
 			if (!savedFile.delete()) {
 				LOGGER.warn("Unable to delete {}", savedFile.getAbsolutePath());
 			}
@@ -155,11 +155,11 @@ public class TempFileTask implements Callable<File> {
 		return savedFile;
 	}
 
-	private void calcMessageDigest() {
+	protected void calcMessageDigest() {
 		calculatedMd = new String(Hex.encodeHex(md.digest())).toLowerCase();
 	}
 
-	private File createTempFile() {
+	protected File createTempFile() {
 		File tempFile;
 		do {
 			tempFile = new File(getTempDir(), generateRandomFilename());
@@ -167,7 +167,7 @@ public class TempFileTask implements Callable<File> {
 		return tempFile;
 	}
 
-	private String generateRandomFilename() {
+	protected String generateRandomFilename() {
 		long n = random.nextLong();
 		if (n == Long.MIN_VALUE) {
 			n = 0; // corner case
@@ -177,7 +177,12 @@ public class TempFileTask implements Callable<File> {
 		return FILENAME_PREFIX + Long.toString(n);
 	}
 
-	private File getTempDir() {
+	/**
+	 * Returns the temporary upload directory as specified in the properties file. If it doesn't exist, creates it.
+	 * 
+	 * @return Temporary directory as File.
+	 */
+	protected File getTempDir() {
 		File tempDir = new File(GlobalProps.getProperty(GlobalProps.PROP_UPLOAD_DIR));
 		if (!tempDir.isDirectory()) {
 			throw new RuntimeException(format("{0} is not a directory.", tempDir.getAbsolutePath()));

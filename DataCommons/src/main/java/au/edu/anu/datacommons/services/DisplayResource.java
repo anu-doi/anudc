@@ -266,7 +266,7 @@ public class DisplayResource
 		try
 		{
 			fedoraObject = fedoraObjectService.saveNew(tmplt, form, null);
-			LOGGER.info("Created fedora object {}. Returning HTTP 301 response.", fedoraObject.getObject_id());
+			LOGGER.info("Created fedora object {}. Returning HTTP 201 response.", fedoraObject.getObject_id());
 			URI createdUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(DisplayResource.class).path(DisplayResource.class, "getItem")
 					.build(fedoraObject.getObject_id());
 			resp = Response.created(createdUri).entity(fedoraObject.getObject_id()).build();

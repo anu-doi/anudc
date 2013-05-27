@@ -63,6 +63,9 @@ public class PronomFormat
 	private String mimeType;
 	private String matchType;
 
+	protected PronomFormat() {
+	}
+	
 	/**
 	 * Creates a PronomFormat object by parsing a specified String.
 	 * 
