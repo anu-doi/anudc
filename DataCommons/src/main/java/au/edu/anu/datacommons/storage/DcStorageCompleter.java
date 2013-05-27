@@ -136,8 +136,8 @@ public class DcStorageCompleter implements Completer {
 				try {
 					fileStream = iBagFile.newInputStream();
 					fido = new FidoParser(fileStream);
-					LOGGER.trace("Fido result for {}: {}", iBagFile.getFilepath(), fido.getOutput());
-					pFormats.put(iBagFile.getFilepath(), fido.getOutput());
+					LOGGER.trace("Fido result for {}: {}", iBagFile.getFilepath(), fido.getFidoStr());
+					pFormats.put(iBagFile.getFilepath(), fido.getFidoStr());
 				} catch (IOException e) {
 					LOGGER.warn("Unable to get Fido output for file {}", iBagFile.getFilepath());
 				} finally {
