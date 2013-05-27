@@ -59,6 +59,7 @@ import au.edu.anu.datacommons.doi.DoiClient;
 import au.edu.anu.datacommons.doi.DoiException;
 import au.edu.anu.datacommons.doi.DoiResourceAdapter;
 import au.edu.anu.datacommons.exception.ValidateException;
+import au.edu.anu.datacommons.metadatastores.DataGenerator;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
@@ -117,6 +118,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.23		26/11/2012	Genevieve Turner (GT)	Added the removal of reverse links
  * 0.24		11/12/2012	Genevieve Turner (GT)	Moved some publishing methods to PublishServiceImpl
  * 0.25		02/01/2012	Genevieve Turner (GT)	Updated to enforce records requriing an ownerGroup, type and name/title for new records
+ * 0.26		27/05/2013	Genevieve Turner (GT)	Updated to allow for finding and importing grant information from metadata stores
  * </pre>
  * 
  */
@@ -230,9 +232,9 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.15		20/08/2012	Genevieve Turner (GT)	Updated to use permissionService rather than aclService
 	 * 0.23		12/11/2012	Genevieve Turner (GT)	Added the request id
 	 * 0.25		02/01/2012	Genevieve Turner (GT)	Updated to enforce records requriing an ownerGroup, type and name/title
+	 * 0.26		27/05/2013	Genevieve Turner (GT)	Moved content to other save new function so that occasionally group permissions can be override
 	 * </pre>
 	 * 
-	 * @param layout The layout to display the page
 	 * @param tmplt The template that determines the fields on the screen
 	 * @param form Contains the parameters from the request
 	 * @param rid The request id
@@ -242,6 +244,31 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 */
 	@Override
 	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException
+	{
+		return saveNew(tmplt, form, rid, false);
+	}
+	
+	/**
+	 * saveNew
+	 *
+	 * There are some cases where we wish to create new objects while ignoring whether the person has permissions
+	 * to create objects against that group. e.g. 
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.26		27/05/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param tmplt The template that determines the fields on the screen
+	 * @param form Contains the parameters from the request
+	 * @param rid The request id
+	 * @param ignoreGroupPermissions true if you the group permissions should be ignored
+	 * @return Returns the viewable for the jsp file to pick up.
+	 * @throws FedoraClientException
+	 * @throws JAXBException
+	 */
+	private FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid, boolean ignoreGroupPermissions) 
+			throws FedoraClientException, JAXBException
 	{
 		FedoraObject fedoraObject = null;
 		ViewTransform viewTransform = new ViewTransform();
@@ -258,19 +285,21 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 		
 		if (messages.size() == 0) {
-			// Check if the user has access to the ownerGroup
-			String ownerGroup = form.get("ownerGroup").get(0);
-			Long ownerGroupId = new Long(ownerGroup);
-			List<Groups> groups = groupService.getCreateGroups();
-			boolean groupFound = false;
-			for (Groups group : groups) {
-				if (group.getId().equals(ownerGroupId)) {
-					groupFound = true;
-					break;
+			// Check if the user has access to the ownerGroup unless we should be ignoring the group permissions
+			if (!ignoreGroupPermissions) {
+				String ownerGroup = form.get("ownerGroup").get(0);
+				Long ownerGroupId = new Long(ownerGroup);
+				List<Groups> groups = groupService.getCreateGroups();
+				boolean groupFound = false;
+				for (Groups group : groups) {
+					if (group.getId().equals(ownerGroupId)) {
+						groupFound = true;
+						break;
+					}
 				}
-			}
-			if (groupFound == false) {
-				throw new AccessDeniedException(format("You do not have permissions to create in group {0}", ownerGroup));
+				if (groupFound == false) {
+					throw new AccessDeniedException(format("You do not have permissions to create in group {0}", ownerGroup));
+				}
 			}
 		}
 		else {
@@ -282,6 +311,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		
 		return fedoraObject;
 	}
+	
 	
 	/**
 	 * Passes the template name and datamap to saveNew.
@@ -468,10 +498,11 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * 0.19		27/09/2012	Genevieve Turner (GT)	Updated to generate reverse links
 	 * </pre>
 	 * 
-	 * @param fedoraObject The item to transform to a display
-	 * @param form Contains the parameters from the request
-	 * @return A response for the web page
-	 * @throws FedoraClientException 
+	 * @param fedoraObject The object ot add the link to
+	 * @param linkType The type of link to add
+	 * @param itemId The item id to link to. e.g. a Fedora Object Reference or a nla/arc/nhmrc identifier 
+	 * @throws FedoraClientException
+	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#addLink(au.edu.anu.datacommons.data.db.model.FedoraObject, java.lang.String, java.lang.String)
 	 */
 	@Override
 	public void addLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException {
@@ -499,6 +530,39 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			reverseReference.setIsLiteral_(Boolean.FALSE);
 			FedoraBroker.addRelationship(referenceItemID, reverseReference);
 		}
+	}
+	
+	/**
+	 * addLink
+	 * 
+	 * Check if there is an existing object to assign a grant to/generate an activity record.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.26		27/05/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The object ot add the link to
+	 * @param linkType The type of link to add
+	 * @param grantCode The grant code to search on information about
+	 * @param fundsProvider The funds provider
+	 * @param referenceNumber The reference number from the funds provider
+	 * @throws FedoraClientException
+	 * @throws JAXBException
+	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#addLink(au.edu.anu.datacommons.data.db.model.FedoraObject, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 */
+	public void addLink(FedoraObject fedoraObject, String linkType, String grantCode, String fundsProvider, String referenceNumber) 
+			throws FedoraClientException, JAXBException {
+		DataGenerator dataGenerator = new DataGenerator();
+		String reference = dataGenerator.getLinkReference(fundsProvider, referenceNumber);
+		LOGGER.info("Reference: {}", reference);
+		if (reference == null || reference.trim().length() == 0) {
+			Map<String, List<String>> activityInfo = dataGenerator.generateActivityFromMetadataStores(grantCode);
+			String activityTmplt = GlobalProps.getProperty("activity.tmplt");
+			FedoraObject newFedoraObject = saveNew(activityTmplt, activityInfo, null, true);
+			reference = "info:fedora/" + newFedoraObject.getObject_id();
+		}
+		addLink(fedoraObject, linkType, reference);
 	}
 	
 	/**

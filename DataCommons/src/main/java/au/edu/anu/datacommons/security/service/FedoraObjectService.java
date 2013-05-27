@@ -59,6 +59,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.10		15/10/2012	Genevieve Turner (GT)	Added validatePublishLocation method
  * 0.11		12/11/2012	Genevieve Turner (GT)	Added the rid parameter for some methods
  * 0.12		11/12/2012	Genevieve Turner (GT)	Moved some publishing methods to PublishService
+ * 0.13		27/05/2012	Genevieve Turner (GT)	Added options for adding references by importing data from metatadata stores
  * </pre>
  * 
  */
@@ -241,12 +242,33 @@ public interface FedoraObjectService {
 	 * 0.1		26/04/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param fedoraObject The item to transform to a display
-	 * @param form Contains the parameters from the request
-	 * @return A response for the web page
+	 * @param fedoraObject The object ot add the link to
+	 * @param linkType The type of link to add
+	 * @param itemId The item id to link to. e.g. a Fedora Object Reference or a nla/arc/nhmrc identifier 
 	 * @throws FedoraClientException 
 	 */
 	public void addLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException;
+	
+	/**
+	 * 
+	 * addLink
+	 * 
+	 * Check if there is an existing object to assign a grant to/generate an activity record.
+	 *
+	 * <pre>
+	 * Version	Date		Developer				Description
+	 * 0.13		27/05/2013	Genevieve Turner(GT)	Initial
+	 * </pre>
+	 * 
+	 * @param fedoraObject The object ot add the link to
+	 * @param linkType The type of link to add
+	 * @param grantCode The grant code to search on information about
+	 * @param fundsProvider The funds provider
+	 * @param referenceNumber The reference number from the funds provider
+	 * @throws FedoraClientException
+	 * @throws JAXBException
+	 */
+	public void addLink(FedoraObject fedoraObject, String linkType, String grantCode, String fundsProvider, String referenceNumber) throws FedoraClientException, JAXBException;
 	
 	/**
 	 * getListInformation

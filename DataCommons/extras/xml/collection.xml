@@ -107,7 +107,7 @@
 			<option value="iso31663" label="ISO 3166-3 Deleted Country Codes" />
 			<option value="iso19139dcmiBox" label="DCMI Box notation conformant with iso 19139" />
 			<option value="kmlPolyCoords" label="Keyhole Markup Language co-ordinates defining a polygon" />
-			<option value="dcmiPpoint" label="Spatial Location Information in DCMI Point Notation" />
+			<option value="dcmiPoint" label="Spatial Location Information in DCMI Point Notation" />
 		</column>
 		<column name="covAreaValue" label="Location Value" fieldType="TextField" />
 	</item>

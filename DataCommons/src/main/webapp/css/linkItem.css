@@ -13,8 +13,8 @@
 #popupLink {
 	display: none;
 	position:fixed;
-	height:400px;
-	width:250px;
+	height:500px;
+	width:300px;
 	background:#FFFFFF;
 	border: 2px solid #cecece;
 	z-index:2;

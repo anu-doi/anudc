@@ -71,6 +71,12 @@ jQuery(document).ready(function() {
 	jQuery("#linkItemType").change(function() {
 		var cat1 = jQuery("#itemType").val();
 		var cat2 = jQuery("#linkItemType").val();
+		if (cat2.toLowerCase() == 'activity') {
+			jQuery("#searchTypeMS").removeClass('hidden');
+		}
+		else {
+			jQuery("#searchTypeMS").addClass('hidden');
+		}
 		
 		jQuery.ajax({
 			type: "GET",
@@ -93,7 +99,67 @@ jQuery(document).ready(function() {
 		});
 	});
 	
+	jQuery("#itemMsSearch").autocomplete({
+		source: function(request, response) {
+			jQuery.ajax({
+				type: "GET",
+				url: "http://localhost:8180/services/rest/grant/search",
+				dataType: "json",
+				data: {
+					title: request.term,
+					jsoncallback: "grants"
+				},
+				success:function(data) {
+					response (
+						jQuery.map( data, function(item) {
+							return {
+								label: item.title,
+								value: item
+							};
+						})
+					);
+				}
+			});
+		},
+		minLength: 2,
+		open: function() {
+			jQuery(this).removeClass("ui-corner-all").addClass("ui-corner-top");
+		},
+		close: function() {
+			jQuery(this).removeClass("ui-corner-top").addClass("ui-corner-all");
+		},
+		select: function(event, ui) {
+			var value = ui.item.value;
+			jQuery("#grantCode").text(value["contract-code"]);
+			jQuery("#grantTitle").text(value["title"]);
+			jQuery("#grantFundingBody").text(value["funds-provider"]);
+			jQuery("#grantRefNum").text(value["reference-number"]);
+			return false;
+		},
+		focus: function(event, ui) {
+			jQuery("#itemMsSearch").val(ui.item.label);
+			return false; // Prevent the widget from inserting the value.
+		}
+	});
+	
 	jQuery("#linkItemType").trigger('change');
+
+	//Ensure that the appropriate fields are shown in the link item dialog box
+	jQuery("#itemDataCommons").addClass('hidden');
+	jQuery("#itemMetadataStores").addClass('hidden');
+	jQuery("#itemExternal").addClass('hidden');
+	jQuery("input[value='itemDataCommons']").attr('checked','checked');
+	var searchTypeVal = jQuery("input[name='searchType']:checked").val();
+	jQuery("#" + searchTypeVal).removeClass('hidden');
+	
+	jQuery("input[name='searchType']").change(function() {
+		var value = jQuery(this).val();
+		jQuery("#itemDataCommons").addClass('hidden');
+		jQuery("#itemMetadataStores").addClass('hidden');
+		jQuery("#itemExternal").addClass('hidden');
+		jQuery("#" + value).removeClass('hidden');
+	});
+	
 });
 
 var linkPopupStatus = 0;
@@ -400,6 +466,9 @@ jQuery("#formAddLink").live('submit', function() {
 	var typeStr = jQuery("#linkType").val();
 	var itemStr = jQuery("#itemId").text();
 	var previousTypeStr = jQuery("#previousLinkType").val();
+	var grantCode = jQuery("#grantCode").text();
+	var grantFundingBody = jQuery("#grantFundingBody").text();
+	var grantRefNum = jQuery("#grantRefNum").text();
 	
 	if (itemStr == '' || itemStr == 'None Selected') {
 		itemStr = jQuery("#linkExternal").val();
@@ -411,7 +480,10 @@ jQuery("#formAddLink").live('submit', function() {
 		data: {
 			linkType: typeStr,
 			itemId: itemStr,
-			removeLinkType: previousTypeStr
+			removeLinkType: previousTypeStr,
+			grantCode: grantCode,
+			grantFundsProvider: grantFundingBody,
+			grantRefNum: grantRefNum
 		},
 		success: function() {
 			linkPopupStatus = disablePopup("#popupLink", linkPopupStatus);

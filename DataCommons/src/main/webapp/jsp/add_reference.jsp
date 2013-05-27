@@ -69,11 +69,33 @@
 					</select>
 				</p>
 				<p>Please either search for an item in ANU Data Commons or provide an External Identifier such as a NLA Identifier or a PURL</p>
-				<p><label for="itemSearch" title="Search for an item to link to from ANU Data Commons">Item Search</label><input type="text" id="itemSearch" name="itemSearch" /></p>
-				<p><label for="itemIdentifier">Item Id</label><div id="itemIdentifier">None Selected</div></p>
-				<p><label for="itemName">Item Name</label><div id="itemName">None Selected</div></p>
-				<p><label class="hidden" for="itemId">Item Full Id</label><div class="hidden" id="itemId">None Selected</div></p>
-				<p><label for="linkExternal">External Identifier</label><input type="text" id="linkExternal" name="linkExternal" />
+				<p>
+					<div id="searchTypeDC">
+						<input type="radio" name="searchType" value="itemDataCommons" />Data Commons
+					</div>
+					<div id="searchTypeMS" >
+						<input type="radio" name="searchType" value="itemMetadataStores" />Grant
+					</div>
+					<div id="searchTypeExt">
+						<input type="radio" name="searchType" value="itemExternal" />External URL
+					</div>
+				</p>
+				<div id="itemDataCommons">
+					<p><label for="itemSearch" title="Search for an item to link to from ANU Data Commons">Item Search</label><input type="text" id="itemSearch" name="itemSearch" /></p>
+					<p><label for="itemIdentifier">Item Id</label><div id="itemIdentifier">None Selected</div></p>
+					<p><label for="itemName">Item Name</label><div id="itemName">None Selected</div></p>
+					<p><label class="hidden" for="itemId">Item Full Id</label><div class="hidden" id="itemId">None Selected</div></p>
+				</div>
+				<div id="itemMetadataStores">
+					<p><label for="itemMsSearch" title="Search for a grant">Grant Search</label><input type="text" id="itemMsSearch" name="itemMsSearch" /></p>
+					<p><label for="grantCode">Contract</label><div id="grantCode">None Selected</div></p>
+					<p><label for="grantTitle">Title</label><div id="grantTitle">None Selected</div></p>
+					<p><label for="grantFundingBody">Funder</label><div id="grantFundingBody">None Selected</div></p>
+					<p><label for="grantRefNum">Reference</label><div id="grantRefNum">None Selected</div></p>
+				</div>
+				<div id="itemExternal">
+					<p><label for="linkExternal">External Identifier</label><input type="text" id="linkExternal" name="linkExternal" />
+				</div>
 				<p><input id="btnAddLink" type="submit" value="Submit" /></p>
 			</form>
 		</div>

@@ -90,6 +90,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  * 0.13		13/11/2012	Genevieve Turner (GT)	Updated the retrieval of the edit page with the mode.
  * 0.14		02/01/2012	Genevieve Turner (GT)	Updated to reflect changes in error handling
  * 0.15		06/03/2013	Genevieve Turner (GT)	Updated to remove then add links in editLink
+ * 0.16		27/05/2013	Genevieve Turner (GT)	Updates to allow the importing of grant data from metadata stores when adding links
  * </pre>
  */
 @Component
@@ -430,6 +431,7 @@ public class DisplayResource
 	 * 0.4		29/03/2012	Genevieve Turner (GT)	Added
 	 * 0.5		26/04/2012	Genevieve Turner (GT)	Updated for security
 	 * 0.7		02/07/2012	Genevieve Turner (GT)	Updated to have the pid in the path
+	 * 0.16		27/05/2013	Genevieve Turner (GT)	Updates to allow the importing of grant data from metadata stores when adding links
 	 * </pre>
 	 * 
 	 * @param item
@@ -481,7 +483,8 @@ public class DisplayResource
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.TEXT_PLAIN)
-	public Response addLinkAsText(@PathParam("item") String relPid, @FormParam("linkType") String linkType, @FormParam("itemId") String itemId)
+	public Response addLinkAsText(@PathParam("item") String relPid, @FormParam("linkType") String linkType, @FormParam("itemId") String itemId, 
+			@FormParam("grantCode") String grantCode, @FormParam("grantFundsProvider") String grantFundsProvider, @FormParam("grantRefNum") String grantRefNum)
 	{
 		Response resp = null;
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(relPid);
@@ -491,13 +494,18 @@ public class DisplayResource
 				throw new IllegalArgumentException(MessageFormat.format("No object exists for the pid {0}", relPid));
 			if (linkType == null || linkType.length() == 0)
 				throw new IllegalArgumentException("linkType not provided.");
-			if (itemId == null || itemId.length() == 0)
-				throw new IllegalArgumentException("itemId not provided.");
-			String nsPrefix = "info:fedora/";
-			if (!itemId.toLowerCase().startsWith("http://") && !itemId.toLowerCase().startsWith(nsPrefix)) {
-				itemId = MessageFormat.format("{0}{1}", nsPrefix, itemId);
+			if ((itemId == null || itemId.length() == 0) && (grantCode == null || grantCode.length() == 0))
+				throw new IllegalArgumentException("Neither the itemId or grant code have been provided.");
+			if (itemId == null || itemId.length() == 0) {
+				fedoraObjectService.addLink(fedoraObject, linkType, grantCode, grantFundsProvider, grantRefNum);
 			}
-			fedoraObjectService.addLink(fedoraObject, linkType, itemId);
+			else {
+				String nsPrefix = "info:fedora/";
+				if (!itemId.toLowerCase().startsWith("http://") && !itemId.toLowerCase().startsWith(nsPrefix)) {
+					itemId = MessageFormat.format("{0}{1}", nsPrefix, itemId);
+				}
+				fedoraObjectService.addLink(fedoraObject, linkType, itemId);
+			}
 			resp = Response.ok("OK", MediaType.TEXT_PLAIN_TYPE).build();
 		}
 		catch (IllegalArgumentException e)
@@ -506,6 +514,11 @@ public class DisplayResource
 			resp = Response.serverError().build();
 		}
 		catch (FedoraClientException e)
+		{
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().build();
+		}
+		catch (JAXBException e)
 		{
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.serverError().build();
