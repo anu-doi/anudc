@@ -26,6 +26,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -34,12 +36,11 @@ import org.slf4j.LoggerFactory;
 /**
  * Represents a Fido Parser object that passes an InputStream or File object to Fido for parsing.
  */
-public class FidoParser
-{
-	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
+public class FidoParser {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FidoParser.class);
 
-	private final String output;
-	private final PronomFormat fileFormat;
+	private String fidoStr = null;
+	private PronomFormat fileFormat = null;
 	private final PythonExecutor pyExec;
 
 	/**
@@ -52,12 +53,12 @@ public class FidoParser
 	 */
 	public FidoParser(InputStream fileStream) throws IOException
 	{
-		pyExec = new PythonExecutor(getFidoScriptFile(), new String[] { "-u" });
-		pyExec.execute(new String[] { "-nocontainer", "-" });
+		if (fileStream == null) {
+			throw new NullPointerException();
+		}
+		pyExec = new PythonExecutor(Arrays.asList("-u", getFidoScriptFile().getAbsolutePath(), "-nocontainer", "-"));
+		pyExec.execute();
 		pyExec.sendStreamToStdIn(fileStream);
-		output = pyExec.getOutputAsString();
-		fileFormat = new PronomFormat(this.output);
-		LOGGER.trace("Fido returned '{}'", output);
 	}
 
 	/**
@@ -68,53 +69,55 @@ public class FidoParser
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	public FidoParser(File fileToId) throws IOException
-	{
-		pyExec = new PythonExecutor(getFidoScriptFile());
-		pyExec.execute(new String[] { "-nocontainer", fileToId.getAbsolutePath() });
-		output = pyExec.getOutputAsString();
-		fileFormat = new PronomFormat(this.output);
-		LOGGER.trace("Fido returned '{}'", output);
-	}
-
-	/**
-	 * Gets the output String returned by Fido.
-	 * 
-	 * @return the output string
-	 */
-	public String getOutput()
-	{
-		return this.output;
+	public FidoParser(File fileToId) throws IOException {
+		if (fileToId == null) {
+			throw new NullPointerException();
+		}
+		List<String> cmdParams = Arrays.asList(getFidoScriptFile().getAbsolutePath(), "-nocontainer",
+				fileToId.getAbsolutePath());
+		pyExec = new PythonExecutor(cmdParams);
+		pyExec.execute();
 	}
 
 	/**
 	 * Gets the PronomFormat object containing file format details.
 	 * 
 	 * @return the file format
+	 * @throws IOException 
 	 */
-	public PronomFormat getFileFormat()
-	{
+	public PronomFormat getFileFormat() throws IOException {
+		if (fileFormat == null) {
+			fileFormat = new PronomFormat(getFidoStr());
+		}
 		return fileFormat;
 	}
 
-	private File getFidoScriptFile()
-	{
+	/**
+	 * Gets the output String returned by Fido.
+	 * 
+	 * @return the output string
+	 * @throws IOException 
+	 */
+	public String getFidoStr() throws IOException {
+		if (fidoStr == null) {
+			fidoStr = pyExec.getOutputAsString();
+		}
+		LOGGER.trace("Fido output string: {}", fidoStr);
+		return fidoStr;
+	}
+
+	private File getFidoScriptFile() {
 		Properties fidoProps = new Properties();
 		File propFile = new File(System.getProperty("user.home"), "fido.properties");
 		FileInputStream fis;
-		try
-		{
+		try {
 			fis = new FileInputStream(propFile);
 			fidoProps.load(fis);
 			fis.close();
-		}
-		catch (FileNotFoundException e)
-		{
+		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

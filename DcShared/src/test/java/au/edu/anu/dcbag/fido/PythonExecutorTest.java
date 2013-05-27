@@ -21,54 +21,81 @@
 
 package au.edu.anu.dcbag.fido;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Arrays;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.dcbag.fido.PythonExecutor;
+public class PythonExecutorTest {
+	private static final Logger LOGGER = LoggerFactory.getLogger(PythonExecutorTest.class);
 
-public class PythonExecutorTest
-{
-	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
+	private PythonExecutor pExec;
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
+	public static void setUpBeforeClass() throws Exception {
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
+	public static void tearDownAfterClass() throws Exception {
 	}
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
+	public void tearDown() throws Exception {
 	}
 
 	@Test
-	public void testGetOutputAsString() throws IOException
-	{
-		String compString = "usage: fido.py [-h] [-v] [-q] [-recurse] [-zip] [-nocontainer] [-input INPUT]";
-		PythonExecutor pExec = new PythonExecutor(new File("C:\\Rahul\\Programs\\Fido\\fido.py"));
+	public void testPythonVersion() throws IOException {
+		pExec = new PythonExecutor(Arrays.asList("--version"));
 		pExec.execute();
-		String outString = pExec.getOutputAsString();
-		LOGGER.info(outString);
-		assertTrue("Output String doesn't match.", outString.substring(0, outString.indexOf(System.getProperty("line.separator"))).equals(compString));
+		logOutputs();
+		assertTrue(pExec.getErrorAsString().startsWith("Python"));
 	}
 
+	@Test
+	public void testPythonProgPassedAsStr() throws IOException {
+		pExec = new PythonExecutor(Arrays.asList("-c", "print 'abc'"));
+		pExec.execute();
+		logOutputs();
+		assertTrue(pExec.getOutputAsString().startsWith("abc"));
+	}
+	
+	@Test
+	public void testPythonScript() throws IOException {
+		File scriptFile = null;
+		try {
+			scriptFile = new File(this.getClass().getResource("pythonexecutortest.py").toURI());
+		} catch (URISyntaxException e) {
+			failOnException(e);
+		} 
+		pExec = new PythonExecutor(Arrays.asList(scriptFile.getAbsolutePath()));
+		pExec.execute();
+		logOutputs();
+		assertTrue(pExec.getOutputAsString().startsWith("Works!"));
+	}
+	
+	private void logOutputs() throws IOException {
+		LOGGER.info("Output: '{}'", pExec.getOutputAsString());
+		LOGGER.info("Error: '{}'", pExec.getErrorAsString());
+	}
+
+	private void failOnException(Throwable e) {
+		LOGGER.error(e.getMessage(), e);
+		fail(e.getMessage());
+	}
 }

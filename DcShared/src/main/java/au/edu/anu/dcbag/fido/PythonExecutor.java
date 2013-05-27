@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -41,77 +40,46 @@ import org.slf4j.LoggerFactory;
 import au.edu.anu.datacommons.config.Config;
 
 /**
- * This class allows for execution of a Python script, passing specified parameters to it, send data through standard input stream (STDIN) and retrieve the
- * output from the Standard Output (STDOUT)
+ * This class allows for execution of a Python script, passing specified parameters to it, send data through standard
+ * input stream (STDIN) and retrieve the output from the Standard Output (STDOUT)
  */
-public class PythonExecutor
-{
+public class PythonExecutor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PythonExecutor.class);
 
 	private Process pythonProcess;
 	private final List<String> cmdLine = new ArrayList<String>();
+	
+	private String stdoutStr = null;
+	private String stderrStr = null;
 
 	/**
-	 * Instantiates a new python executor for a specified Python script.
+	 * Instantiates a new python executor for a specified Python script with command line arguments for the Python
+	 * interpreter.
 	 * 
 	 * @param pythonScript
 	 *            the python script
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
-	public PythonExecutor(File pythonScript) throws IOException
-	{
-		this(pythonScript, null);
-	}
-	
-	/**
-	 * Instantiates a new python executor for a specified Python script with command line arguments for the Python interpreter.
-	 * 
-	 * @param pythonScript
-	 *            the python script
-	 * @param pythonSwitches
+	 * @param cmdParams
 	 *            the python switches
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	public PythonExecutor(File pythonScript, String[] pythonSwitches) throws IOException
-	{
+	public PythonExecutor(List<String> cmdParams) throws IOException {
 		cmdLine.add(getPythonExe());
-		if (pythonSwitches != null)
-			cmdLine.addAll(Arrays.asList(pythonSwitches));
-		cmdLine.add(pythonScript.getAbsolutePath());
+		if (cmdParams != null) {
+			cmdLine.addAll(cmdParams);
+		}
 	}
 
 	/**
-	 * Executes the script with no command line parameters passed to the script.
+	 * Executes the python process.
 	 * 
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	public void execute() throws IOException
-	{
-		execute(null);
-	}
-
-	/**
-	 * Executes the script with command line parameters passed as a String array.
-	 * 
-	 * @param cmdParams
-	 *            command line parameters as String[]
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
-	public void execute(String[] cmdParams) throws IOException
-	{
-		if (cmdParams != null)
-			for (String iParam : cmdParams)
-				cmdLine.add(iParam);
-		
-		if (LOGGER.isDebugEnabled())
-		{
+	public Process execute() throws IOException {
+		if (LOGGER.isDebugEnabled()) {
 			StringBuilder cmdLineAsStr = new StringBuilder();
-			for (String cmdArg : cmdLine)
-			{
+			for (String cmdArg : cmdLine) {
 				if (cmdArg.contains(" "))
 					cmdLineAsStr.append("\"");
 				cmdLineAsStr.append(cmdArg);
@@ -122,30 +90,27 @@ public class PythonExecutor
 			LOGGER.debug("Executing: {}", cmdLineAsStr.toString().trim());
 		}
 		pythonProcess = Runtime.getRuntime().exec(cmdLine.toArray(new String[0]));
+		return pythonProcess;
 	}
 
 	/**
 	 * Sends bytes from an InputStream to the script's Stdin.
 	 * 
 	 * @param inStream
-	 * InputStream from which data will be read
+	 *            InputStream from which data will be read
 	 * @throws IOException
-	 * when unable to read from input stream or write to StdIn
+	 *             when unable to read from input stream or write to StdIn
 	 */
-	public void sendStreamToStdIn(InputStream inStream) throws IOException
-	{
+	public void sendStreamToStdIn(InputStream inStream) throws IOException {
 		OutputStream outStream = pythonProcess.getOutputStream();
 		byte buffer[] = new byte[1024 * 1024];
 		int numBytesRead = 0;
 
-		try
-		{
+		try {
 			while ((numBytesRead = inStream.read(buffer)) != -1)
 				outStream.write(buffer, 0, numBytesRead);
 			outStream.flush();
-		}
-		finally
-		{
+		} finally {
 			IOUtils.closeQuietly(inStream);
 			IOUtils.closeQuietly(outStream);
 		}
@@ -156,9 +121,12 @@ public class PythonExecutor
 	 * 
 	 * @return StdOut as InputStream
 	 */
-	protected InputStream getStdOutAsInputStream()
-	{
+	protected InputStream getStdOutAsInputStream() {
 		return pythonProcess.getInputStream();
+	}
+
+	protected InputStream getStdErrAsInputStream() {
+		return pythonProcess.getErrorStream();
 	}
 	
 	/**
@@ -166,54 +134,73 @@ public class PythonExecutor
 	 * 
 	 * @return StdIn as OutputStream
 	 */
-	protected OutputStream getStdInAsOutputStream()
-	{
+	protected OutputStream getStdInAsOutputStream() {
 		return pythonProcess.getOutputStream();
 	}
+	
 
-	public String getOutputAsString() throws IOException
-	{
+	public String getOutputAsString() throws IOException {
+		try {
+			pythonProcess.waitFor();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (stdoutStr == null) {
+			stdoutStr = streamToString(getStdOutAsInputStream());
+		}
+		return stdoutStr;
+	}
+
+	public String getErrorAsString() throws IOException {
+		try {
+			pythonProcess.waitFor();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (stderrStr == null) {
+			stderrStr = streamToString(getStdErrAsInputStream());
+		}
+		return stderrStr;
+	}
+	
+	private String streamToString(InputStream is) throws IOException {
 		StringBuilder output = new StringBuilder();
-		BufferedReader stdout = new BufferedReader(new InputStreamReader(getStdOutAsInputStream()));
-		for (String str = stdout.readLine(); str != null; str = stdout.readLine())
-		{
+		BufferedReader stdout = new BufferedReader(new InputStreamReader(is));
+		for (String str = stdout.readLine(); str != null; str = stdout.readLine()) {
 			output.append(str);
 			output.append(Config.NEWLINE);
 		}
-
-		LOGGER.info("Fido returned: {}", output.toString());
-		return output.toString();
+		if (output.length() != 0) {
+			return output.substring(0, output.lastIndexOf(Config.NEWLINE));
+		} else
+			return output.toString();
+			
 	}
 	
+
 	/**
 	 * Reads the location of the python executable from fido.properties file.
 	 * 
 	 * @return Path to Python executable as String
 	 */
-	private String getPythonExe()
-	{
+	protected String getPythonExe() {
 		Properties fidoProps = new Properties();
 		File propFile = new File(System.getProperty("user.home"), "fido.properties");
 		FileInputStream fis = null;
 		String pythonExe = "python2.7";
-		try
-		{
+		try {
 			fis = new FileInputStream(propFile);
 			fidoProps.load(fis);
 			pythonExe = fidoProps.getProperty("python.exe");
-		}
-		catch (FileNotFoundException e)
-		{
+		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-		finally
-		{
+		} finally {
 			IOUtils.closeQuietly(fis);
 		}
 
