@@ -54,7 +54,7 @@
 					<th>Size</th>
 					<th>MD5</th>
 					<th>Virus</th>
-					<th>Expand</th>
+					<th>File Metadata</th>
 					<sec:authorize access="isAuthenticated()"><sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
 						<th>Delete File</th>
 					</sec:accesscontrollist></sec:authorize>
