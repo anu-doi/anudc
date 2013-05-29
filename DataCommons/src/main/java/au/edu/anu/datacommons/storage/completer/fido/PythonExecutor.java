@@ -19,25 +19,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.dcbag.fido;
+package au.edu.anu.datacommons.storage.completer.fido;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.config.Config;
+import au.edu.anu.datacommons.properties.GlobalProps;
 
 /**
  * This class allows for execution of a Python script, passing specified parameters to it, send data through standard
@@ -64,7 +61,7 @@ public class PythonExecutor {
 	 *             Signals that an I/O exception has occurred.
 	 */
 	public PythonExecutor(List<String> cmdParams) throws IOException {
-		cmdLine.add(getPythonExe());
+		cmdLine.add(getPythonPath());
 		if (cmdParams != null) {
 			cmdLine.addAll(cmdParams);
 		}
@@ -176,7 +173,6 @@ public class PythonExecutor {
 			return output.substring(0, output.lastIndexOf(Config.NEWLINE));
 		} else
 			return output.toString();
-			
 	}
 	
 
@@ -185,26 +181,9 @@ public class PythonExecutor {
 	 * 
 	 * @return Path to Python executable as String
 	 */
-	protected String getPythonExe() {
-		Properties fidoProps = new Properties();
-		File propFile = new File(System.getProperty("user.home"), "fido.properties");
-		FileInputStream fis = null;
-		String pythonExe = "python2.7";
-		try {
-			fis = new FileInputStream(propFile);
-			fidoProps.load(fis);
-			pythonExe = fidoProps.getProperty("python.exe");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			IOUtils.closeQuietly(fis);
-		}
-
-		LOGGER.debug("Using {} for python executable", pythonExe);
-		return pythonExe;
+	protected String getPythonPath() {
+		String pythonPath = GlobalProps.getPythonPath();
+		LOGGER.trace("Using Python binary {}", pythonPath);
+		return pythonPath;
 	}
 }

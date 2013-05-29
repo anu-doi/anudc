@@ -46,8 +46,6 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import au.edu.anu.dcbag.fido.FidoParserTest;
-
 public class MetadataExtractorImplTest
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataExtractorImplTest.class);
@@ -76,7 +74,7 @@ public class MetadataExtractorImplTest
 	@Test
 	public void testGetMetadataMap() throws IOException, SAXException, TikaException, URISyntaxException
 	{
-		MetadataExtractor mdExtractor = new MetadataExtractorImpl(new File(FidoParserTest.class.getResource("BagIt Specification.pdf").toURI()));
+		MetadataExtractor mdExtractor = new MetadataExtractorImpl(new File(this.getClass().getResource("BagIt Specification.pdf").toURI()));
 		Map<String, String[]> mdMap = mdExtractor.getMetadataMap();
 		LOGGER.trace("Attributes count: {}", mdMap.size());
 		assertEquals(26, mdMap.size());
@@ -94,7 +92,7 @@ public class MetadataExtractorImplTest
 	@Test
 	public void testGetXmpMetadata() throws IOException, SAXException, TikaException, URISyntaxException
 	{
-		MetadataExtractor mdExtractor = new MetadataExtractorImpl(new File(FidoParserTest.class.getResource("BagIt Specification.pdf").toURI()));
+		MetadataExtractor mdExtractor = new MetadataExtractorImpl(new File(this.getClass().getResource("BagIt Specification.pdf").toURI()));
 		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder dBuilder;
 		Document doc = null;

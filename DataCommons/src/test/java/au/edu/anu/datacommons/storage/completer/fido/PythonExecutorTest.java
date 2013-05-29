@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.dcbag.fido;
+package au.edu.anu.datacommons.storage.completer.fido;
 
 import static org.junit.Assert.*;
 
@@ -37,6 +37,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.storage.completer.fido.PythonExecutor;
 
 public class PythonExecutorTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PythonExecutorTest.class);

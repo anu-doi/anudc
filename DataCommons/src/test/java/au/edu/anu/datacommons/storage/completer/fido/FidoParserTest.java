@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.dcbag.fido;
+package au.edu.anu.datacommons.storage.completer.fido;
 
 import static org.junit.Assert.*;
 
@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Random;
@@ -38,13 +37,13 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.dcbag.fido.PronomFormat;
 import au.edu.anu.dcbag.fido.PronomFormat.MatchStatus;
 
 public class FidoParserTest {
@@ -100,12 +99,7 @@ public class FidoParserTest {
 		assertEquals(MatchStatus.KO, fileFormat.getMatchStatus());
 	}
 	
-	/** 
-	 * Disabled until Fido bug re contents through stdin is fixed.
-	 * 
-	 * @throws IOException
-	 */
-	@Ignore
+	@Test
 	public void testGetFileFormatFromGarbageStream() throws IOException {
 		fileToId = tempDir.newFile();
 		writeRandomData(fileToId);

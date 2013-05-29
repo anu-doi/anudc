@@ -19,19 +19,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.dcbag.fido;
+package au.edu.anu.datacommons.storage.completer.fido;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.dcbag.fido.PronomFormat;
 
 /**
  * Represents a Fido Parser object that passes an InputStream or File object to Fido for parsing.
@@ -56,7 +56,7 @@ public class FidoParser {
 		if (fileStream == null) {
 			throw new NullPointerException();
 		}
-		pyExec = new PythonExecutor(Arrays.asList("-u", getFidoScriptFile().getAbsolutePath(), "-nocontainer", "-"));
+		pyExec = new PythonExecutor(Arrays.asList("-u", getFidoPath(), "-nocontainer", "-"));
 		pyExec.execute();
 		pyExec.sendStreamToStdIn(fileStream);
 	}
@@ -73,7 +73,7 @@ public class FidoParser {
 		if (fileToId == null) {
 			throw new NullPointerException();
 		}
-		List<String> cmdParams = Arrays.asList(getFidoScriptFile().getAbsolutePath(), "-nocontainer",
+		List<String> cmdParams = Arrays.asList(getFidoPath(), "-nocontainer",
 				fileToId.getAbsolutePath());
 		pyExec = new PythonExecutor(cmdParams);
 		pyExec.execute();
@@ -106,22 +106,9 @@ public class FidoParser {
 		return fidoStr;
 	}
 
-	private File getFidoScriptFile() {
-		Properties fidoProps = new Properties();
-		File propFile = new File(System.getProperty("user.home"), "fido.properties");
-		FileInputStream fis;
-		try {
-			fis = new FileInputStream(propFile);
-			fidoProps.load(fis);
-			fis.close();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return new File(fidoProps.getProperty("fido.py"));
+	private String getFidoPath() {
+		String fidoPath = GlobalProps.getFidoPath();
+		LOGGER.trace("Using Fido script at {}", fidoPath);
+		return fidoPath;
 	}
 }

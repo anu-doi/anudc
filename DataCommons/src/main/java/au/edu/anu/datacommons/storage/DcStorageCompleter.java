@@ -42,11 +42,11 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.storage.completer.fido.FidoParser;
 import au.edu.anu.dcbag.PronomFormatsTxt;
 import au.edu.anu.dcbag.VirusScanTxt;
 import au.edu.anu.dcbag.clamscan.ClamScan;
 import au.edu.anu.dcbag.clamscan.ScanResult;
-import au.edu.anu.dcbag.fido.FidoParser;
 import au.edu.anu.dcbag.metadata.MetadataExtractor;
 import au.edu.anu.dcbag.metadata.MetadataExtractorImpl;
 
