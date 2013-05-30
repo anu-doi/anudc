@@ -29,7 +29,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import au.edu.anu.dcbag.fido.PronomFormat.MatchStatus;
+import au.edu.anu.datacommons.storage.info.PronomFormat;
+import au.edu.anu.datacommons.storage.info.PronomFormat.MatchStatus;
 
 public class PronomFormatTest
 {

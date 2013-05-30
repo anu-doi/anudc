@@ -66,10 +66,10 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.storage.archive.ArchiveItem;
 import au.edu.anu.datacommons.storage.archive.ArchiveItem.Operation;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask;
-import au.edu.anu.dcbag.BagPropsTxt.DataSource;
-import au.edu.anu.dcbag.BagSummary;
-import au.edu.anu.dcbag.ExtRefsTxt;
-import au.edu.anu.dcbag.FileSummaryMap;
+import au.edu.anu.datacommons.storage.info.BagSummary;
+import au.edu.anu.datacommons.storage.info.ExtRefsTxt;
+import au.edu.anu.datacommons.storage.info.FileSummaryMap;
+import au.edu.anu.datacommons.storage.info.BagPropsTxt.DataSource;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 

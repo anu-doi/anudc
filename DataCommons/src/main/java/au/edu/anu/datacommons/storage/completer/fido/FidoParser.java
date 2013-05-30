@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.dcbag.fido.PronomFormat;
+import au.edu.anu.datacommons.storage.info.PronomFormat;
 
 /**
  * Represents a Fido Parser object that passes an InputStream or File object to Fido for parsing.

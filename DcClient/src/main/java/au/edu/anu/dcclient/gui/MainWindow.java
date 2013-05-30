@@ -78,8 +78,8 @@ import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.dcbag.BagSummary;
-import au.edu.anu.dcbag.FileSummary;
+import au.edu.anu.datacommons.storage.info.BagSummary;
+import au.edu.anu.datacommons.storage.info.FileSummary;
 import au.edu.anu.dcclient.Global;
 import au.edu.anu.dcclient.bagfilesexplorer.BagFilesTree;
 import au.edu.anu.dcclient.tasks.DownloadFilesTask;

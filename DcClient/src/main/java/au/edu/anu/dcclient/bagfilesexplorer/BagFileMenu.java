@@ -22,7 +22,7 @@ import javax.swing.tree.TreePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.dcbag.FileSummary;
+import au.edu.anu.datacommons.storage.info.FileSummary;
 import au.edu.anu.dcclient.gui.MainWindow;
 import au.edu.anu.dcclient.tasks.DeleteFilesTask;
 import au.edu.anu.dcclient.tasks.DownloadFilesTask;

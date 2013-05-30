@@ -33,7 +33,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.dcbag.BagSummary;
+import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.dcclient.Global;
 
 import com.sun.jersey.api.client.ClientResponse;

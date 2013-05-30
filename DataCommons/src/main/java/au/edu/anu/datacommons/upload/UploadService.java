@@ -102,9 +102,9 @@ import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.storage.TempFileTask;
+import au.edu.anu.datacommons.storage.info.BagSummary;
+import au.edu.anu.datacommons.storage.info.FileSummaryMap;
 import au.edu.anu.datacommons.util.Util;
-import au.edu.anu.dcbag.BagSummary;
-import au.edu.anu.dcbag.FileSummaryMap;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;

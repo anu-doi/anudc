@@ -61,10 +61,10 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.info.BagSummary;
+import au.edu.anu.datacommons.storage.info.ExtRefsTxt;
+import au.edu.anu.datacommons.storage.info.VirusScanTxt;
 import au.edu.anu.datacommons.test.util.TestUtil;
-import au.edu.anu.dcbag.BagSummary;
-import au.edu.anu.dcbag.ExtRefsTxt;
-import au.edu.anu.dcbag.VirusScanTxt;
 
 public class DcStorageTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorageTest.class);

@@ -90,9 +90,9 @@ import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.storage.DcStorage;
+import au.edu.anu.datacommons.storage.info.FileSummary;
 import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Util;
-import au.edu.anu.dcbag.FileSummary;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;

@@ -7,7 +7,7 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
-import au.edu.anu.dcbag.FileSummary;
+import au.edu.anu.datacommons.storage.info.FileSummary;
 
 public class BagFilesTreeCellRenderer extends DefaultTreeCellRenderer {
 	private static final long serialVersionUID = 1L;

@@ -65,6 +65,7 @@ import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
+import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
@@ -74,7 +75,6 @@ import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.JAXBTransform;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
-import au.edu.anu.dcbag.BagSummary;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.client.FedoraClientException;

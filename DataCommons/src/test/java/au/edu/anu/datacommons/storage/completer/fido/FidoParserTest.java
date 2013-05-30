@@ -43,8 +43,8 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.dcbag.fido.PronomFormat;
-import au.edu.anu.dcbag.fido.PronomFormat.MatchStatus;
+import au.edu.anu.datacommons.storage.info.PronomFormat;
+import au.edu.anu.datacommons.storage.info.PronomFormat.MatchStatus;
 
 public class FidoParserTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FidoParserTest.class);

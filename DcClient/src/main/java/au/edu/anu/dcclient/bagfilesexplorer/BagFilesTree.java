@@ -15,8 +15,8 @@ import javax.swing.tree.TreeModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.dcbag.BagSummary;
-import au.edu.anu.dcbag.FileSummary;
+import au.edu.anu.datacommons.storage.info.BagSummary;
+import au.edu.anu.datacommons.storage.info.FileSummary;
 
 public class BagFilesTree extends JTree {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BagFilesTree.class);
