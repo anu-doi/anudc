@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.data.db.model;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
@@ -58,7 +58,7 @@ public class UsersTest {
 	 */
 	@Before
 	public void setUp() {
-		entityManagerFactory = Persistence.createEntityManagerFactory("datacommons");
+		entityManagerFactory = Persistence.createEntityManagerFactory("datacommons-test");
 		entityManager = entityManagerFactory.createEntityManager();
 	}
 	

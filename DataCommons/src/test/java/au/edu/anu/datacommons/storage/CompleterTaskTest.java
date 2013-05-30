@@ -285,7 +285,7 @@ public class CompleterTaskTest {
 		}
 		bag.getBagInfoTxt().addExternalIdentifier(PID);
 		bag = bag.makeComplete();
-		File payloadDir = new File(bag.getFile(), "data/");
+		File payloadDir = new File(bagRootFolder.getRoot(), "data/");
 		if (!payloadDir.exists()) {
 			payloadDir.mkdir();
 		}
