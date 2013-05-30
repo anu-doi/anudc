@@ -329,84 +329,11 @@ public class DcStorageTest {
 	}
 
 	@Test
-	public void testReplaceBag() {
-		final String pid = getNextPid();
-		Bag bag = null;
-
-		// Create a bag first.
-		File file1;
-		FileWriter fWriter;
-		try {
-			file1 = bagDir.newFile("First File.txt");
-			fWriter = new FileWriter(file1);
-			fWriter.write("Test String");
-			fWriter.close();
-
-			dcStorage.addFileToBag(pid, file1, file1.getName());
-			bag = dcStorage.getBag(pid);
-
-			// Verify file exists in bag.
-			boolean fileExists = false;
-			for (BagFile plFile : bag.getPayload()) {
-				if (plFile.getFilepath().equalsIgnoreCase("data/" + file1.getName())) {
-					fileExists = true;
-					break;
-				}
-			}
-			assertTrue(fileExists);
-
-			File newBagZipFile = bagDir.newFile("NewBag.zip");
-
-			// Create another bag.
-			Bag newBag = DcStorage.bagFactory.createBag();
-			File file2 = bagDir.newFile("Second File.txt");
-			fWriter = new FileWriter(file2);
-			fWriter.write("Test string in second file.");
-			fWriter.close();
-			newBag.addFileToPayload(file2);
-			newBag.putBagFile(DcStorage.bagFactory.getBagPartFactory().createBagItTxt());
-			newBag.putBagFile(DcStorage.bagFactory.getBagPartFactory().createBagInfoTxt());
-			newBag.getBagInfoTxt().addExternalIdentifier(pid);
-			newBag = newBag.makeComplete();
-			newBag = new ZipWriter(DcStorage.bagFactory).write(newBag, newBagZipFile);
-			assertTrue(newBagZipFile.exists());
-			assertTrue(newBag.verifyValid().isSuccess());
-
-			// Replace existing bag with new one.
-			dcStorage.storeBag(pid, newBag);
-			bag = dcStorage.getBag(pid);
-
-			// Verify the bag.
-			assertTrue(bag.verifyValid().isSuccess());
-
-			// First file shouldn't exist and second file should.
-			for (Manifest plManifest : bag.getPayloadManifests()) {
-				assertFalse(plManifest.containsKey("data/" + file1.getName()));
-				assertTrue(plManifest.containsKey("data/" + file2.getName()));
-			}
-
-			// Verify tag files.
-			for (Manifest tagManifest : bag.getTagManifests()) {
-				assertFalse(tagManifest.containsKey("metadata/" + file1.getName() + ".ser"));
-				assertFalse(tagManifest.containsKey("metadata/" + file1.getName() + ".xmp"));
-				assertTrue(tagManifest.containsKey("metadata/" + file2.getName() + ".ser"));
-				assertTrue(tagManifest.containsKey("metadata/" + file2.getName() + ".xmp"));
-			}
-
-		} catch (IOException e) {
-			failOnException(e);
-		} catch (DcStorageException e) {
-			failOnException(e);
-		} finally {
-			IOUtils.closeQuietly(bag);
-		}
-	}
-
-	@Test
 	public void testThreadedAdditions() {
+		final int NUM_THREADS = 5;
 		ExecutorService tempFileCreatorSvc = Executors.newCachedThreadPool();
 		Set<String> pids = new HashSet<String>();
-		for (int i = 0; i < 50; i++) {
+		for (int i = 0; i < NUM_THREADS; i++) {
 			String pid = getNextPid();
 			pids.add(pid);
 			AddBagFileWorker thread = new AddBagFileWorker(pid);

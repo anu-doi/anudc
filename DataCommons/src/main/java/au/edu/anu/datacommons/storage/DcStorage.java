@@ -29,11 +29,7 @@ import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.ManifestHelper;
-import gov.loc.repository.bagit.transformer.impl.ChainingCompleter;
-import gov.loc.repository.bagit.transformer.impl.DefaultCompleter;
 import gov.loc.repository.bagit.transformer.impl.TagManifestCompleter;
-import gov.loc.repository.bagit.utilities.SimpleResult;
-import gov.loc.repository.bagit.verify.FailModeSupporting.FailMode;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
 import java.io.Closeable;
@@ -66,10 +62,10 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.storage.archive.ArchiveItem;
 import au.edu.anu.datacommons.storage.archive.ArchiveItem.Operation;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask;
+import au.edu.anu.datacommons.storage.info.BagPropsTxt.DataSource;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.ExtRefsTxt;
 import au.edu.anu.datacommons.storage.info.FileSummaryMap;
-import au.edu.anu.datacommons.storage.info.BagPropsTxt.DataSource;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
@@ -323,84 +319,6 @@ public final class DcStorage implements Closeable {
 		execSvc.submit(compTask);
 	}
 	
-
-	/**
-	 * Adds a bag to a collection.
-	 * 
-	 * @see #storeBag(String, Bag)
-	 * @param pid
-	 *            Pid of a collection as String
-	 * @param bagFile
-	 *            Bag as a File object
-	 * @throws DcStorageException
-	 */
-	public void storeBag(String pid, File bagFile) throws DcStorageException {
-		Bag bag = bagFactory.createBag(bagFile, LoadOption.BY_FILES);
-		try {
-			storeBag(pid, bag);
-		} finally {
-			IOUtils.closeQuietly(bag);
-		}
-	}
-	
-	/**
-	 * Adds a bag to a collection.
-	 * 
-	 * @param pid
-	 *            Pid of a collection as String.
-	 * 
-	 * @param bag
-	 *            Bag as Bag object
-	 * @throws DcStorageException
-	 */
-	public void storeBag(String pid, Bag bag) throws DcStorageException {
-		// Verify the bag.
-		LOGGER.info("Verifying replacement bag for {}...", pid);
-		SimpleResult verfResults = bag.verifyValid(FailMode.FAIL_FAST);
-		if (verfResults.isSuccess() == false) {
-			LOGGER.error("Bag validation failed. Bag will not be stored.");
-			throw new DcStorageException("Bag validation failed. Bag will not be stored.");
-		}
-
-		if (!bag.getBagInfoTxt().getExternalIdentifier().equals(pid))
-			throw new DcStorageException("Bag received is not for Pid: " + pid);
-
-		Bag curBag = getBag(pid);
-		if (curBag != null) {
-			try {
-				validateReplacementBag(curBag, bag);
-				archiveBag(curBag, true);
-			} catch (IOException e) {
-				DcStorageException dce = new DcStorageException(e);
-				LOGGER.error(e.getMessage(), dce);
-				throw dce;
-			} finally {
-				IOUtils.closeQuietly(curBag);
-			}
-		}
-
-		try {
-			// Complete bag.
-			DefaultCompleter defaultCompleter = new DefaultCompleter(bagFactory);
-			DcStorageCompleter dcStorageCompleter = new DcStorageCompleter();
-			ChainingCompleter completer = new ChainingCompleter(dcStorageCompleter, defaultCompleter);
-			bag = bag.makeComplete(completer);
-
-			// Write bag.
-			FileSystemWriter writer = new FileSystemWriter(bagFactory);
-			bag = writer.write(bag, getBagDir(pid));
-		} finally {
-			IOUtils.closeQuietly(bag);
-		}
-
-		// Update FILE0 datastream.
-		try {
-			updateDatastream(pid);
-		} catch (FedoraClientException e) {
-			LOGGER.warn(e.getMessage(), e);
-		}
-
-	}
 
 	/**
 	 * Checks if a bag exists for a specified collection.

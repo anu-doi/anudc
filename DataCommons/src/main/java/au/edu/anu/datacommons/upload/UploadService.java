@@ -697,61 +697,6 @@ public class UploadService {
 		return resp;
 	}
 
-	/**
-	 * Accepts a zipped bag for adding to a collection. If the specified collection already has a bag assigned, this bag
-	 * replaces that bag.
-	 * 
-	 * @param pid
-	 *            Pid of collection to which a bag will be added
-	 * 
-	 * @param is
-	 *            Bag contents as InputStream
-	 * @return HTTP OK if successful, HTTP INTERNAL_SERVER_ERROR otherwise.
-	 */
-	@POST
-	@Consumes(MediaType.APPLICATION_OCTET_STREAM)
-	@Path("bag/{pid}")
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doPostBag(@PathParam("pid") String pid, InputStream is) {
-		// Check for write access to the fedora object.
-		getFedoraObjectWriteAccess(pid);
-
-		Response resp = null;
-		AccessLogRecord accessRec = null;
-		File uploadedFile = null;
-		try {
-			uploadedFile = File.createTempFile("Rep", null, GlobalProps.getUploadDirAsFile());
-			LOGGER.info("Saving uploaded file as {}...", uploadedFile.getAbsolutePath());
-			saveInputStreamAsFile(is, uploadedFile);
-			LOGGER.info("Uploaded file saved as {}", uploadedFile.getAbsolutePath());
-
-			// Check if a current bag exists. If yes, replace, else saveAs.
-			if (dcStorage.bagExists(pid)) {
-				LOGGER.info("A bag exists for {}. Replacing it with the file uploaded...", pid);
-				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
-						request.getHeader("User-Agent"), AccessLogRecord.Operation.UPDATE);
-			} else {
-				LOGGER.info("No bag exists for {}. Storing Bag...", pid);
-				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
-						request.getHeader("User-Agent"), AccessLogRecord.Operation.CREATE);
-			}
-			dcStorage.storeBag(pid, uploadedFile);
-			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessRec);
-			LOGGER.info("Bag updated for {}", pid);
-			resp = Response.ok().build();
-		} catch (Exception e) {
-			LOGGER.error("Unable to upload bag.", e);
-			resp = Response.serverError().entity(e.toString()).type(MediaType.TEXT_PLAIN).build();
-		} finally {
-			// Delete uploaded file.
-			if (uploadedFile != null && uploadedFile.exists())
-				if (!FileUtils.deleteQuietly(uploadedFile))
-					LOGGER.warn("Unable to delete temp file {}.", uploadedFile.getAbsolutePath());
-		}
-
-		return resp;
-	}
-
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("bag/{pid}/ispublic")
