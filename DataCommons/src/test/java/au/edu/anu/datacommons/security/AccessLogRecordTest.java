@@ -43,7 +43,7 @@ import au.edu.anu.datacommons.security.AccessLogRecord.Operation;
 
 public class AccessLogRecordTest
 {
-	static final Logger LOGGER = LoggerFactory.getLogger(UsersTest.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(UsersTest.class);
 	EntityManagerFactory entityManagerFactory;
 	EntityManager entityManager;
 
@@ -61,14 +61,13 @@ public class AccessLogRecordTest
 	@Before
 	public void setUp() throws Exception
 	{
-		entityManagerFactory = Persistence.createEntityManagerFactory("datacommons");
+		entityManagerFactory = Persistence.createEntityManagerFactory("datacommons-test");
 		entityManager = entityManagerFactory.createEntityManager();
 	}
 
 	@After
 	public void tearDown() throws Exception
 	{
-		System.out.println("Executing tearDown");
 		if (entityManager != null)
 			entityManager.close();
 		if (entityManagerFactory != null)
