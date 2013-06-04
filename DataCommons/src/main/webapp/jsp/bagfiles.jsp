@@ -50,7 +50,6 @@
 					<th><input type="checkbox" onchange="toggleCheckboxes(this)" /></th>
 					<th>File</th>
 					<th>Format</th>
-					<th>Pronom PUID</th>
 					<th>Size</th>
 					<th>MD5</th>
 					<th>Virus</th>
@@ -70,12 +69,10 @@
 						<!-- File format and PUID -->
 						<c:choose>
 							<c:when test="${not empty iFile.value.pronomFormat.formatName}">
-								<td><c:out value="${iFile.value.pronomFormat.formatName}" /></td>
-								<td><a class="link-ext" target="_blank"
+								<td><c:out value="${iFile.value.pronomFormat.formatName}" /> <a class="link-ext" target="_blank"
 									href="http://www.nationalarchives.gov.uk/pronom/${iFile.value.pronomFormat.puid}">${iFile.value.pronomFormat.puid}</a></td>
 							</c:when>
 							<c:otherwise>
-								<td>Unknown</td>
 								<td>Unknown</td>
 							</c:otherwise>
 						</c:choose>
@@ -106,9 +103,10 @@
 						
 						<!-- Delete file -->
 						<sec:authorize access="isAuthenticated()"><sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
-							<td class="text-center"><a href="javascript:void(0);" onclick="deleteFile('<c:url value='${it.dlBaseUri}${iFile.key}' />', '${iFile.key}')">
-							<img src="<c:url value='/images/delete_red.png' />" width="12" height="12" title="Delete ${iFile.value.filename}" />
-							</a>
+							<td class="text-center">
+								<a href="javascript:void(0);" onclick="deleteFile('<c:url value="${it.dlBaseUri}${iFile.key}" />', '${iFile.key}')">
+									<img src="<c:url value='/images/delete_red.png' />" width="12" height="12" title="Delete ${iFile.value.filename}" />
+								</a>
 							</td>
 						</sec:accesscontrollist></sec:authorize>
 					</tr>
