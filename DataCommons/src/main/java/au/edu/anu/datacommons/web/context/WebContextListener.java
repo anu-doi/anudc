@@ -46,7 +46,7 @@ import com.sun.jersey.core.util.Base64;
 
 /**
  * Application Lifecycle Listener implementation class ShutdownListener
- *
+ * 
  */
 @WebListener
 public final class WebContextListener implements ServletContextListener {
@@ -54,22 +54,23 @@ public final class WebContextListener implements ServletContextListener {
 	protected static final int CONNECTION_TIMEOUT_MS = 30000;
 	protected static final int READ_TIMEOUT_MS = 30000;
 
-    /**
-     * Default constructor. 
-     */
-    public WebContextListener() {
-        // TODO Auto-generated constructor stub
-    }
+	/**
+	 * Default constructor.
+	 */
+	public WebContextListener() {
+		// TODO Auto-generated constructor stub
+	}
 
 	/**
-     * @see ServletContextListener#contextInitialized(ServletContextEvent)
-     */
-    public void contextInitialized(ServletContextEvent sce) {
-        checkPythonPath();
-        checkFidoPath();
-        checkFedoraServer();
-        checkSolrServer();
-    }
+	 * @see ServletContextListener#contextInitialized(ServletContextEvent)
+	 */
+	public void contextInitialized(ServletContextEvent sce) {
+		checkPythonPath();
+		checkFidoPath();
+		// Disabling checks for other web applications as they may not start before this web application.
+//		checkFedoraServer();
+//		checkSolrServer();
+	}
 
 	/**
 	 * @see ServletContextListener#contextDestroyed(ServletContextEvent)
@@ -82,7 +83,8 @@ public final class WebContextListener implements ServletContextListener {
 		String pythonPath = GlobalProps.getPythonPath();
 		File pythonBin = new File(pythonPath);
 		if (!pythonBin.isFile() || !pythonBin.canExecute()) {
-			throw new IllegalStateException(format("Python executable {0} doesn't exist or is not executable.", pythonBin.getAbsolutePath()));
+			throw new IllegalStateException(format("Python executable {0} doesn't exist or is not executable.",
+					pythonBin.getAbsolutePath()));
 		}
 		LOGGER.debug("Python executable exists and is executable.");
 	}
@@ -115,16 +117,16 @@ public final class WebContextListener implements ServletContextListener {
 		}
 		LOGGER.debug("Solr accessible at {}", solrUrl);
 	}
-	
 
 	private void checkService(String urlStr, String respContains, String respEncoding) throws IOException {
 		checkService(urlStr, respContains, respEncoding, null);
 	}
-	
-	private void checkService(String urlStr, String respContains, String respEncoding, String[] credentials) throws IOException {
+
+	private void checkService(String urlStr, String respContains, String respEncoding, String[] credentials)
+			throws IOException {
 		URL url = null;
 		url = createUrl(urlStr);
-		
+
 		// Check if the URL is reachable.
 		InputStream netstream = null;
 		try {
@@ -141,12 +143,12 @@ public final class WebContextListener implements ServletContextListener {
 		} finally {
 			IOUtils.closeQuietly(netstream);
 		}
-		
+
 		if (!svcResp.contains(respContains)) {
 			throw new IllegalStateException(format("Service returned unexpected response: {0}", svcResp));
 		}
 	}
-	
+
 	private URL createUrl(String urlStr) throws MalformedURLException {
 		if (urlStr == null || urlStr.length() == 0) {
 			throw new NullPointerException();
@@ -158,10 +160,10 @@ public final class WebContextListener implements ServletContextListener {
 	private InputStream getInputStream(URL url) throws IOException {
 		return getInputStream(url, null);
 	}
-	
+
 	private InputStream getInputStream(URL url, String[] credentials) throws IOException {
 		InputStream stream = null;
-	
+
 		URLConnection conn = url.openConnection();
 		conn.setConnectTimeout(CONNECTION_TIMEOUT_MS);
 		conn.setReadTimeout(READ_TIMEOUT_MS);
@@ -171,7 +173,7 @@ public final class WebContextListener implements ServletContextListener {
 			conn.setRequestProperty("Authorization", basicAuth);
 		}
 		stream = conn.getInputStream();
-	
+
 		return stream;
 	}
 
@@ -184,5 +186,5 @@ public final class WebContextListener implements ServletContextListener {
 	private void shutdownDcStorage() {
 		DcStorage.getInstance().close();
 	}
-	
+
 }
