@@ -42,11 +42,11 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.storage.completer.fido.FidoParser;
 import au.edu.anu.dcbag.PronomFormatsTxt;
 import au.edu.anu.dcbag.VirusScanTxt;
 import au.edu.anu.dcbag.clamscan.ClamScan;
 import au.edu.anu.dcbag.clamscan.ScanResult;
-import au.edu.anu.dcbag.fido.FidoParser;
 import au.edu.anu.dcbag.metadata.MetadataExtractor;
 import au.edu.anu.dcbag.metadata.MetadataExtractorImpl;
 
@@ -136,8 +136,8 @@ public class DcStorageCompleter implements Completer {
 				try {
 					fileStream = iBagFile.newInputStream();
 					fido = new FidoParser(fileStream);
-					LOGGER.trace("Fido result for {}: {}", iBagFile.getFilepath(), fido.getOutput());
-					pFormats.put(iBagFile.getFilepath(), fido.getOutput());
+					LOGGER.trace("Fido result for {}: {}", iBagFile.getFilepath(), fido.getFidoStr());
+					pFormats.put(iBagFile.getFilepath(), fido.getFidoStr());
 				} catch (IOException e) {
 					LOGGER.warn("Unable to get Fido output for file {}", iBagFile.getFilepath());
 				} finally {

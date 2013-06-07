@@ -105,6 +105,9 @@ public final class GlobalProps {
 	public static final String PROP_PUBLISH_READY_TITLE = "review.publishready.title";
 	public static final String PROP_ORCA_RIFCS = "orca.rifcs.location";
 	public static final String PROP_ORCA_XSL = "orca.transform.xsl";
+	public static final String PROP_PYTHON_PATH = "python.path";
+	public static final String PROP_FIDO_PATH = "fido.path";
+	
 
 	static {
 		try {
@@ -195,6 +198,14 @@ public final class GlobalProps {
 	
 	public static int getClamScanPort() {
 		return Integer.parseInt(getProperty("clamscan.port"));
+	}
+	
+	public static String getPythonPath() {
+		return getProperty(PROP_PYTHON_PATH);
+	}
+	
+	public static String getFidoPath() {
+		return getProperty(PROP_FIDO_PATH);
 	}
 
 	private static void createIfNotExists(File dir) {

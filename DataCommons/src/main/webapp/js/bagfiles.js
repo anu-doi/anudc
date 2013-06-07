@@ -38,6 +38,9 @@ function documentReady() {
 	} else {
 		jQuery('div.pagetabs-nav > ul > li > a[href=' + window.location.hash + ']').click();
 	}
+	
+	condEnableSelTasks();
+	history.pushState(null, null, window.location.href.split("?")[0]);
 }
 
 function deleteFile(url)
@@ -114,13 +117,63 @@ function toggleIsFilesPublic(pid, curFlag) {
 		newFlag = "false";
 	
 	jQuery.ajax({
-			url: "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/ispublic",
+			url: window.location.href + "/ispublic",
 			type: "PUT",
 			contentType: "text/plain",
 			data: newFlag
 	}).done(function(msg, status) {
-		window.location = window.location.href.split("?")[0];
+		window.location = window.location.href + "?smsg=Files' public status changed successfully.";
 	}).fail(function(msg, status) {
 		alert("Unable to change Files Public status");
 	});
+}
+
+function deleteSelected(pid) {
+	var activeAjax = 0;
+	jQuery("#tblFiles input:checkbox:checked").each(function(index) {
+		var url = "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/" + this.value;
+		activeAjax++;
+		jQuery.ajax({
+			url : url,
+			type : "DELETE",
+		}).fail(function() {
+			alert('Unable to delete file.');
+		}).always(function() {
+			if (--activeAjax == 0) {
+				window.location = window.location.href;
+			}
+		});
+	});
+}
+
+
+function toggleCheckboxes(element) {
+	jQuery('#tblFiles input:checkbox').not(element).prop('checked', element.checked);
+	condEnableSelTasks();
+}
+
+function downloadAsZip(zipUrl) {
+	jQuery("#tblFiles input:checkbox:checked").each(function(index) {
+		if (index == 0) {
+			zipUrl += "?";
+		} else {
+			zipUrl += "&";
+		}
+		zipUrl += "file=" + encodeURI(this.value);
+	});
+	window.location = zipUrl;
+}
+
+function condEnableSelTasks() {
+	if (jQuery('#tblFiles input:checkbox:checked').length > 0) {
+		jQuery("#idDelSelected").removeAttr("disabled");
+		jQuery("#idDownloadZipSelected").removeAttr("disabled", "disabled");
+	} else {
+		jQuery("#idDelSelected").attr("disabled", "disabled");
+		jQuery("#idDownloadZipSelected").attr("disabled", "disabled");
+	}
+}
+
+function recomplete() {
+	window.location = window.location.href.split("?")[0] + "?task=recomplete";
 }

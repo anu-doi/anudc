@@ -38,6 +38,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -347,44 +348,58 @@ public class UploadService {
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@Path("bag/{pid}")
-	public Response doGetBagFileListingAsHtml(@PathParam("pid") String pid) {
+	public Response doGetBagFileListingAsHtml(@PathParam("pid") String pid, @QueryParam("task") String task) {
 		Response resp = null;
 		Map<String, Object> model = new HashMap<String, Object>();
+		UriBuilder redirUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class);
 
-		FedoraObject fo = null;
-		if (hasRole(new String[] { "ROLE_ANU_USER" })) {
-			// Check if user's got read access to fedora object.
-			fo = getFedoraObjectReadAccess(pid);
-		} else if (hasRole(new String[] { "ROLE_ANONYMOUS" })) {
-			// Check if data files are public
-			fo = fedoraObjectService.getItemByPid(pid);
-			if (!fo.getPublished() || !fo.isFilesPublic()) {
-				throw new AccessDeniedException("No access");
+		if (task == null || task.length() == 0) {
+			FedoraObject fo = null;
+			if (hasRole(new String[] { "ROLE_ANU_USER" })) {
+				// Check if user's got read access to fedora object.
+				fo = getFedoraObjectReadAccess(pid);
+			} else if (hasRole(new String[] { "ROLE_ANONYMOUS" })) {
+				// Check if data files are public
+				fo = fedoraObjectService.getItemByPid(pid);
+				if (!fo.getPublished() || !fo.isFilesPublic()) {
+					throw new AccessDeniedException("No access");
+				}
 			}
-		}
-		model.put("fo", fo);
+			model.put("fo", fo);
 
-		if (dcStorage.bagExists(pid)) {
-			BagSummary bagSummary;
+			if (dcStorage.bagExists(pid)) {
+				BagSummary bagSummary;
+				try {
+					bagSummary = dcStorage.getBagSummary(pid);
+					model.put("bagSummary", bagSummary);
+					model.put("bagInfoTxt", bagSummary.getBagInfoTxt().entrySet());
+					if (bagSummary.getExtRefsTxt() != null)
+						model.put("extRefsTxt", bagSummary.getExtRefsTxt().entrySet());
+					UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class)
+							.path(UploadService.class, "doGetFileInBagAsOctetStream2");
+					model.put("dlBaseUri", uriBuilder.build(pid, "").toString());
+					model.put("downloadAsZipUrl", uriBuilder.build(pid, "zip").toString());
+					model.put("isFilesPublic", fo.isFilesPublic().booleanValue());
+				} catch (DcStorageException e) {
+					LOGGER.error(e.getMessage(), e);
+					PageMessages messages = new PageMessages();
+					messages.add(MessageType.ERROR, e.getMessage(), model);
+				}
+			}
+
+			resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
+		} else if (task.equals("recomplete")) {
+			getFedoraObjectWriteAccess(pid);
 			try {
-				bagSummary = dcStorage.getBagSummary(pid);
-				model.put("bagSummary", bagSummary);
-				model.put("bagInfoTxt", bagSummary.getBagInfoTxt().entrySet());
-				if (bagSummary.getExtRefsTxt() != null)
-					model.put("extRefsTxt", bagSummary.getExtRefsTxt().entrySet());
-				UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class)
-						.path(UploadService.class, "doGetFileInBagAsOctetStream2");
-				model.put("dlBaseUri", uriBuilder.build(pid, "").toString());
-				model.put("downloadAsZipUrl", uriBuilder.build(pid, "zip").toString());
-				model.put("isFilesPublic", fo.isFilesPublic().booleanValue());
-			} catch (DcStorageException e) {
+				dcStorage.recompleteBag(pid);
+				resp = Response.temporaryRedirect(
+						redirUri.path(UploadService.class, "doGetBagFileListingAsHtml")
+								.queryParam("smsg", "Files rescanning commenced and will run in the background.").build(pid)).build();
+			} catch (Exception e) {
 				LOGGER.error(e.getMessage(), e);
-				PageMessages messages = new PageMessages();
-				messages.add(MessageType.ERROR, e.getMessage(), model);
+				resp = Response.serverError().build();
 			}
 		}
-
-		resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
 		return resp;
 	}
 	
@@ -489,7 +504,7 @@ public class UploadService {
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	@Path("bag/{pid}/{fileInBag:.*}")
 	public Response doGetFileInBagAsOctetStream2(@PathParam("pid") String pid,
-			@PathParam("fileInBag") String fileRequested) {
+			@PathParam("fileInBag") String fileRequested, @QueryParam("file") Set<String> filepaths) {
 		LOGGER.trace("pid: {}, filename: {}", pid, fileRequested);
 		Response resp = null;
 		// Check for read access.
@@ -514,12 +529,21 @@ public class UploadService {
 						request.getRemoteAddr(), request.getHeader("User-Agent"), AccessLogRecord.Operation.READ);
 				new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessLogRecord);
 			}
+			
 			if (fileRequested.equals("zip")) {
-				Set<String> fileSet = new HashSet<String>();
 				FileSummaryMap fsMap = dcStorage.getBagSummary(pid).getFileSummaryMap();
-				for (String iFilepath : fsMap.keySet())
-					fileSet.add(iFilepath);
-				resp = getBagFilesAsZip(pid, fileSet, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), ".zip"));
+				
+				if (filepaths == null || filepaths.size() == 0) {
+					filepaths.addAll(fsMap.keySet());
+				} else {
+					for (Iterator<String> it = filepaths.iterator(); it.hasNext(); ) {
+						if (!fsMap.containsKey(it.next())) {
+							it.remove();
+						}
+					}
+				}
+				
+				resp = getBagFilesAsZip(pid, filepaths, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), "zip"));
 			} else {
 				if (!dcStorage.fileExistsInBag(pid, fileRequested))
 					throw new NotFoundException(format("File {0} not found in {1}", fileRequested, pid));

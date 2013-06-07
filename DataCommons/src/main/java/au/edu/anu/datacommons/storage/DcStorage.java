@@ -536,7 +536,7 @@ public final class DcStorage implements Closeable {
 
 				try {
 					for (String filePath : fileSet) {
-						ZipEntry zipEntry = new ZipEntry(filePath);
+						ZipEntry zipEntry = new ZipEntry(filePath.replaceFirst("data/", ""));
 						BagFile bagFile = bag.getBagFile(filePath);
 						if (bagFile != null) {
 							InputStream bagFileInStream = null;
