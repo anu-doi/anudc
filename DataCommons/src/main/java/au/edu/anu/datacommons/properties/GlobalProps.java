@@ -200,6 +200,16 @@ public final class GlobalProps {
 		return Integer.parseInt(getProperty("clamscan.port"));
 	}
 	
+	public static int getClamScanTimeout() {
+		int timeout;
+		try {
+			timeout = Integer.parseInt(getProperty("clamscan.timeout", "500000"));
+		} catch (NumberFormatException e) {
+			timeout = 500000;
+		}
+		return timeout;
+	}
+	
 	public static String getPythonPath() {
 		return getProperty(PROP_PYTHON_PATH);
 	}

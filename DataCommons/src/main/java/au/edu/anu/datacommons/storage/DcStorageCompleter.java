@@ -173,7 +173,7 @@ public class DcStorageCompleter implements Completer {
 		}
 
 		// Get scan result for each payload file.
-		ClamScan cs = new ClamScan(GlobalProps.getClamScanHost(), GlobalProps.getClamScanPort());
+		ClamScan cs = new ClamScan(GlobalProps.getClamScanHost(), GlobalProps.getClamScanPort(), GlobalProps.getClamScanTimeout());
 		if (cs.ping() == true) {
 			for (BagFile iBagFile : bag.getPayload()) {
 				if (isLimited(this.limitAddUpdatePayloadFilepaths, iBagFile.getFilepath())) {

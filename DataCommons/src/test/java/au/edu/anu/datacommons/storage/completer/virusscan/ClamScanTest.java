@@ -37,7 +37,7 @@ public class ClamScanTest {
 
 	@Before
 	public void setUp() throws Exception {
-		clamScan = new ClamScan("dc7-dev2.anu.edu.au", 3310);
+		clamScan = new ClamScan("dc7-dev2.anu.edu.au", 3310, 120000);
 	}
 
 	@After
