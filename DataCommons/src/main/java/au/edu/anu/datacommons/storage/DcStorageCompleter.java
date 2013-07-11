@@ -174,17 +174,15 @@ public class DcStorageCompleter implements Completer {
 
 		// Get scan result for each payload file.
 		ClamScan cs = new ClamScan(GlobalProps.getClamScanHost(), GlobalProps.getClamScanPort(), GlobalProps.getClamScanTimeout());
-		if (cs.ping() == true) {
-			for (BagFile iBagFile : bag.getPayload()) {
-				if (isLimited(this.limitAddUpdatePayloadFilepaths, iBagFile.getFilepath())) {
-					InputStream streamToScan = null;
-					try {
-						streamToScan = iBagFile.newInputStream();
-						ScanResult sr = cs.scan(streamToScan);
-						vsTxt.put(iBagFile.getFilepath(), sr.getResult());
-					} finally {
-						IOUtils.closeQuietly(streamToScan);
-					}
+		for (BagFile iBagFile : bag.getPayload()) {
+			if (isLimited(this.limitAddUpdatePayloadFilepaths, iBagFile.getFilepath())) {
+				InputStream streamToScan = null;
+				try {
+					streamToScan = iBagFile.newInputStream();
+					ScanResult sr = cs.scan(streamToScan);
+					vsTxt.put(iBagFile.getFilepath(), sr.getResult());
+				} finally {
+					IOUtils.closeQuietly(streamToScan);
 				}
 			}
 		}

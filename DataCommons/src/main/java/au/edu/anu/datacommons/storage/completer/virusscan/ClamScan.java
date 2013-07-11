@@ -188,7 +188,7 @@ public class ClamScan {
             }
         }
 
-        if (LOGGER.isDebugEnabled()) LOGGER.debug("Response: " + response.toString());
+        LOGGER.debug("Ping response from ClamAV: " + response.toString());
 
         return response.toString();
     }

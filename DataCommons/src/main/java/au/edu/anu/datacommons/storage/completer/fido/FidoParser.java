@@ -101,8 +101,8 @@ public class FidoParser {
 	public String getFidoStr() throws IOException {
 		if (fidoStr == null) {
 			fidoStr = pyExec.getOutputAsString();
+			LOGGER.trace("Fido output string: {}", fidoStr);
 		}
-		LOGGER.trace("Fido output string: {}", fidoStr);
 		return fidoStr;
 	}
 

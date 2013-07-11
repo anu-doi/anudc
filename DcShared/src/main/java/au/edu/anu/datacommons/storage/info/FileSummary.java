@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -59,7 +58,7 @@ public class FileSummary {
 
 	private String filepath;
 	private PronomFormat pronomFormat;
-	private Map<Algorithm, String> messageDigests;
+	private Map<String, String> messageDigests;
 	private Map<String, String[]> metadata;
 	private String scanResult;
 	private String filename;
@@ -85,10 +84,20 @@ public class FileSummary {
 		this.lastModified = file.lastModified();
 		this.sizeInBytes = file.length();
 		
+		/*
+		LOGGER.trace("Getting md for {}", bf.getFilepath());
 		this.messageDigests = bag.getChecksums(bf.getFilepath());
-		pronomFormat = new PronomFormat(bag, bf);
+		LOGGER.trace("Getting pronom for {}", bf.getFilepath());
+		try {
+			pronomFormat = new PronomFormat(bag, bf);
+		} catch (Exception e) {
+			pronomFormat = null;
+		}
+		LOGGER.trace("Getting metadata for {}", bf.getFilepath());
 		readSerialisedMetadata(bag, bf);
+		LOGGER.trace("Getting virus for {}", bf.getFilepath());
 		readVirusScanStr(bag, bf);
+		*/
 	}
 
 	/**
@@ -112,6 +121,10 @@ public class FileSummary {
 	public PronomFormat getPronomFormat() {
 		return pronomFormat;
 	}
+	
+	public void setPronomFormat(PronomFormat pf) {
+		this.pronomFormat = pf;
+	}
 
 	/**
 	 * Gets the md5.
@@ -119,13 +132,12 @@ public class FileSummary {
 	 * @return the md5
 	 */
 	public String getMd5() {
-		return messageDigests.get(Algorithm.MD5);
+		return messageDigests.get(Algorithm.MD5.javaSecurityAlgorithm);
 	}
 	
 	public Map<String, String> getMessageDigests() {
-		Map<String, String> messageDigests = new HashMap<String, String>();
-		for (Entry<Algorithm, String> entry : this.messageDigests.entrySet()) {
-			messageDigests.put(entry.getKey().javaSecurityAlgorithm, entry.getValue());
+		if (this.messageDigests == null) {
+			this.messageDigests = new HashMap<String, String>();
 		}
 		return messageDigests;
 	}
@@ -146,6 +158,10 @@ public class FileSummary {
 	public Map<String, String[]> getMetadata() {
 		return metadata;
 	}
+	
+	public void setMetadata(Map<String, String[]> metadata) {
+		this.metadata = metadata;
+	}
 
 	/**
 	 * Gets the friendly size.
@@ -163,6 +179,10 @@ public class FileSummary {
 	 */
 	public String getScanResult() {
 		return scanResult;
+	}
+	
+	public void setScanResult(String scanResult) {
+		this.scanResult = scanResult;
 	}
 
 	private void readSerialisedMetadata(Bag bag, BagFile bf) {
@@ -190,16 +210,20 @@ public class FileSummary {
 	private void readVirusScanStr(Bag bag, BagFile bf) {
 		BagFile virusScanTxt = bag.getBagFile(VirusScanTxt.FILEPATH);
 		if (virusScanTxt != null) {
-			VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.FILEPATH, virusScanTxt, bag.getBagItTxt()
-					.getCharacterEncoding());
-			String scanResultStr = vs.get(bf.getFilepath());
-			if (scanResultStr == null || scanResultStr.length() == 0) {
+			try {
+				VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.FILEPATH, virusScanTxt, bag.getBagItTxt()
+						.getCharacterEncoding());
+				String scanResultStr = vs.get(bf.getFilepath());
+				if (scanResultStr == null || scanResultStr.length() == 0) {
+					this.scanResult = "NOT SCANNED";
+				} else {
+					ScanResult sr = new ScanResult(scanResultStr);
+					this.scanResult = sr.getStatus().toString();
+					if (sr.getStatus() == Status.FAILED)
+						this.scanResult += ", " + sr.getSignature();
+				}
+			} catch (Exception e) {
 				this.scanResult = "NOT SCANNED";
-			} else {
-				ScanResult sr = new ScanResult(scanResultStr);
-				this.scanResult = sr.getStatus().toString();
-				if (sr.getStatus() == Status.FAILED)
-					this.scanResult += ", " + sr.getSignature();
 			}
 		} else {
 			this.scanResult = "NOT SCANNED";

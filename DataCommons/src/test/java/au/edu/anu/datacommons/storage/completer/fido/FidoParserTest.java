@@ -29,6 +29,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.Random;
 
@@ -114,6 +115,23 @@ public class FidoParserTest {
 		} finally {
 			IOUtils.closeQuietly(fileStream);
 		}
+	}
+	
+	@Test
+	public void testLogFileFromStream() throws IOException {
+		InputStream fileStream = this.getClass().getResourceAsStream("test-log.log");
+		try {
+			fidoParser = new FidoParser(fileStream);
+		} finally {
+			IOUtils.closeQuietly(fileStream);
+		}
+		assertNotNull(fidoParser.getFidoStr());
+		assertTrue(fidoParser.getFidoStr().length() > 0);
+		PronomFormat fileFormat = fidoParser.getFileFormat();
+		assertEquals(PronomFormat.MatchStatus.OK, fileFormat.getMatchStatus());
+		assertEquals("test-log.log", fileFormat.getFileName());
+		assertEquals("x-fmt/62", fileFormat.getPuid());
+		LOGGER.trace(fileFormat.getFormatName());
 	}
 
 	private void writeRandomData(File fileToId) throws FileNotFoundException, IOException {
