@@ -21,24 +21,11 @@
 
 package au.edu.anu.datacommons.storage.info;
 
-import static java.text.MessageFormat.*;
-import gov.loc.repository.bagit.Bag;
-import gov.loc.repository.bagit.BagFile;
-import gov.loc.repository.bagit.Manifest.Algorithm;
-import gov.loc.repository.bagit.utilities.FilenameHelper;
-
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import au.edu.anu.datacommons.storage.info.ScanResult.Status;
 
 /**
  * Represents the summary of a single file in a bag associated with a record. Provides the following details of each
@@ -54,50 +41,27 @@ import au.edu.anu.datacommons.storage.info.ScanResult.Status;
  * </ul>
  */
 public class FileSummary {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FileSummary.class);
-
 	private String filepath;
-	private PronomFormat pronomFormat;
-	private Map<String, String> messageDigests;
-	private Map<String, String[]> metadata;
-	private String scanResult;
+	
 	private String filename;
 	private long lastModified;
 	private long sizeInBytes;
+	private String friendlySize;
 	
-	protected FileSummary() {
+	private Map<String, String> messageDigests;
+	private PronomFormat pronomFormat;
+	private Map<String, String[]> metadata;
+	private String scanResult;
+	
+	public FileSummary() {
 	}
-
-	/**
-	 * Instantiates a new file summary.
-	 * 
-	 * @param bag
-	 *            the bag containing file whose summary will be read
-	 * @param bf
-	 *            the bag file whose summary will be read
-	 */
-	public FileSummary(Bag bag, BagFile bf) {
-		this.filepath = bf.getFilepath();
-		
-		File file = new File(bag.getFile(), bf.getFilepath());
+	
+	public FileSummary(String filepath, File file) {
+		this.filepath = filepath;
 		this.filename = file.getName();
-		this.lastModified = file.lastModified();
 		this.sizeInBytes = file.length();
-		
-		/*
-		LOGGER.trace("Getting md for {}", bf.getFilepath());
-		this.messageDigests = bag.getChecksums(bf.getFilepath());
-		LOGGER.trace("Getting pronom for {}", bf.getFilepath());
-		try {
-			pronomFormat = new PronomFormat(bag, bf);
-		} catch (Exception e) {
-			pronomFormat = null;
-		}
-		LOGGER.trace("Getting metadata for {}", bf.getFilepath());
-		readSerialisedMetadata(bag, bf);
-		LOGGER.trace("Getting virus for {}", bf.getFilepath());
-		readVirusScanStr(bag, bf);
-		*/
+		this.friendlySize = FileUtils.byteCountToDisplaySize(getSizeInBytes());
+		this.lastModified = file.lastModified();
 	}
 
 	/**
@@ -109,32 +73,52 @@ public class FileSummary {
 		return filepath;
 	}
 
+	public void setFilepath(String filepath) {
+		this.filepath = filepath;
+	}
+	
+	public String getFilename() {
+		return filename;
+	}
+	
+	public void setFilename(String filename) {
+		this.filename = filename;
+	}
+
 	/**
 	 * Gets the size in bytes.
 	 * 
 	 * @return the size in bytes
 	 */
 	public long getSizeInBytes() {
-		return this.sizeInBytes;
+		return sizeInBytes;
 	}
 	
-	public PronomFormat getPronomFormat() {
-		return pronomFormat;
+	public void setSizeInBytes(long sizeInBytes) {
+		this.sizeInBytes = sizeInBytes;
 	}
 	
-	public void setPronomFormat(PronomFormat pf) {
-		this.pronomFormat = pf;
+	/**
+	 * Gets the friendly size.
+	 * 
+	 * @return the friendly size
+	 */
+	public String getFriendlySize() {
+		return this.friendlySize;
+	}
+	
+	public void setFriendlySize(String friendlySize) {
+		this.friendlySize = friendlySize;
 	}
 
-	/**
-	 * Gets the md5.
-	 * 
-	 * @return the md5
-	 */
-	public String getMd5() {
-		return messageDigests.get(Algorithm.MD5.javaSecurityAlgorithm);
+	public long getLastModified() {
+		return lastModified;
 	}
-	
+
+	public void setLastModified(long lastModified) {
+		this.lastModified = lastModified;
+	}
+
 	public Map<String, String> getMessageDigests() {
 		if (this.messageDigests == null) {
 			this.messageDigests = new HashMap<String, String>();
@@ -142,14 +126,14 @@ public class FileSummary {
 		return messageDigests;
 	}
 	
-	public String getFilename() {
-		return this.filename;
+	public PronomFormat getPronomFormat() {
+		return pronomFormat;
 	}
 	
-	public long getLastModified() {
-		return this.lastModified;
+	public void setPronomFormat(PronomFormat pronomFormat) {
+		this.pronomFormat = pronomFormat;
 	}
-
+	
 	/**
 	 * Gets the metadata.
 	 * 
@@ -161,15 +145,6 @@ public class FileSummary {
 	
 	public void setMetadata(Map<String, String[]> metadata) {
 		this.metadata = metadata;
-	}
-
-	/**
-	 * Gets the friendly size.
-	 * 
-	 * @return the friendly size
-	 */
-	public String getFriendlySize() {
-		return FileUtils.byteCountToDisplaySize(getSizeInBytes());
 	}
 
 	/**
@@ -185,71 +160,4 @@ public class FileSummary {
 		this.scanResult = scanResult;
 	}
 
-	private void readSerialisedMetadata(Bag bag, BagFile bf) {
-		ObjectInputStream objInStream = null;
-		try {
-			String serMetadataFilename = getSerialisedMetadataFilename(bf);
-			BagFile serMetadataBagFile = bag.getBagFile(serMetadataFilename);
-			if (serMetadataBagFile != null) {
-				objInStream = new ObjectInputStream(serMetadataBagFile.newInputStream());
-				this.metadata = readMetadata(objInStream);
-			}
-		} catch (Exception e) {
-			LOGGER.warn(e.getMessage(), e);
-			this.metadata = new HashMap<String, String[]>();
-		} finally {
-			IOUtils.closeQuietly(objInStream);
-		}
-
-	}
-
-	private String getSerialisedMetadataFilename(BagFile bf) {
-		return format("metadata/{0}.ser", FilenameHelper.getName(bf.getFilepath()));
-	}
-
-	private void readVirusScanStr(Bag bag, BagFile bf) {
-		BagFile virusScanTxt = bag.getBagFile(VirusScanTxt.FILEPATH);
-		if (virusScanTxt != null) {
-			try {
-				VirusScanTxt vs = new VirusScanTxt(VirusScanTxt.FILEPATH, virusScanTxt, bag.getBagItTxt()
-						.getCharacterEncoding());
-				String scanResultStr = vs.get(bf.getFilepath());
-				if (scanResultStr == null || scanResultStr.length() == 0) {
-					this.scanResult = "NOT SCANNED";
-				} else {
-					ScanResult sr = new ScanResult(scanResultStr);
-					this.scanResult = sr.getStatus().toString();
-					if (sr.getStatus() == Status.FAILED)
-						this.scanResult += ", " + sr.getSignature();
-				}
-			} catch (Exception e) {
-				this.scanResult = "NOT SCANNED";
-			}
-		} else {
-			this.scanResult = "NOT SCANNED";
-		}
-	}
-
-	/**
-	 * Read metadata.
-	 * 
-	 * @param objInStream
-	 *            the inputstream containing serialised object
-	 * @return the map metadata as a {@code Map<String, String[]>}
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred
-	 * @throws ClassNotFoundException
-	 *             the class not found exception
-	 */
-	@SuppressWarnings("unchecked")
-	private Map<String, String[]> readMetadata(ObjectInputStream objInStream) throws IOException,
-			ClassNotFoundException {
-		Map<String, String[]> metadataObj;
-		try {
-			metadataObj = (Map<String, String[]>) objInStream.readObject();
-		} finally {
-			IOUtils.closeQuietly(objInStream);
-		}
-		return metadataObj;
-	}
 }

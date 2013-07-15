@@ -27,6 +27,8 @@ import gov.loc.repository.bagit.BagFile;
 import java.util.Collections;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
+
 import au.edu.anu.datacommons.storage.info.BagPropsTxt.DataSource;
 import au.edu.anu.datacommons.storage.info.BagPropsTxt.Key;
 
@@ -34,121 +36,106 @@ import au.edu.anu.datacommons.storage.info.BagPropsTxt.Key;
  * Represents the summary of a bag's contents. This class contains the following information about a bag:
  * 
  * <li>
- * <ul>FileSummaryMap - FileSummary for each BagFile in the Bag this BagSummary represents</ul>
- * <ul>Bag Properties - Contains Data Commons specific attributes of a Bag</ul>
- * <ul>Bag Info - Contains the Pid this bag belongs to, the bagging date and bag size</ul>
+ * <ul>
+ * FileSummaryMap - FileSummary for each BagFile in the Bag this BagSummary represents
+ * </ul>
+ * <ul>
+ * Bag Properties - Contains Data Commons specific attributes of a Bag
+ * </ul>
+ * <ul>
+ * Bag Info - Contains the Pid this bag belongs to, the bagging date and bag size
+ * </ul>
  * </li>
  */
-public class BagSummary
-{
-	private BagPropsTxt bagPropsTxt = null;
+public class BagSummary {
 	private FileSummaryMap fsMap = null;
+	private BagPropsTxt bagPropsTxt = null;
 	private Map<String, String> bagInfoTxt = null;
 	private Map<String, String> extRefsTxt = null;
-	private long numFiles;
-	
-	protected BagSummary() {
-		super();
+	private long bagSize;
+	private String friendlySize;
+
+	public BagSummary() {
 	}
-	
-	/**
-	 * Instantiates a new bag summary.
-	 * 
-	 * @param bag
-	 *            the bag whose summary is to be read
-	 */
-	public BagSummary(Bag bag)
-	{
-		// Read bag properties file.
-		BagFile bagPropsTxtFile = bag.getBagFile(BagPropsTxt.FILEPATH);
-		if (bagPropsTxtFile != null)
-			this.bagPropsTxt = new BagPropsTxt(BagPropsTxt.FILEPATH, bagPropsTxtFile, bag.getBagItTxt().getCharacterEncoding());
-		
-		// File summary map.
-		this.fsMap = new FileSummaryMap(bag);
-		
-		this.numFiles = bag.getPayload().size();
-		
-		// Bag Info Txt
+
+	public BagSummary(Bag bag, FileSummaryMap fsMap) {
+		this.fsMap = fsMap;
+		calcBagSize(fsMap);
+		friendlySize = FileUtils.byteCountToDisplaySize(bagSize);
 		this.bagInfoTxt = bag.getBagInfoTxt();
-		
-		// External references
-		BagFile extRefsFile = bag.getBagFile(ExtRefsTxt.FILEPATH);
-		if (extRefsFile != null)
-			this.extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, extRefsFile, bag.getBagItTxt().getCharacterEncoding());
+		readBagPropsTxt(bag);
+		readExtRefsTxt(bag);
 	}
-	
+
 	/**
 	 * Gets the friendly size of this bag. For example, <code>2 MB</code>, <code>257 KB</code>
 	 * 
 	 * @return the friendly size
 	 */
-	public String getFriendlySize()
-	{
-		return bagInfoTxt.get("Bag-Size");
+	public String getFriendlySize() {
+		return friendlySize;
 	}
 	
+	public void setFriendlySize(String friendlySize) {
+		this.friendlySize = friendlySize;
+	}
+
 	/**
 	 * Gets the number of payload files in this bag.
 	 * 
 	 * @return the number of payload files as long
 	 */
-	public long getNumFiles()
-	{
-		return this.numFiles;
+	public long getNumFiles() {
+		return fsMap.size();
 	}
-	
+
 	/**
 	 * Gets the pid of the record this bag belongs to.
 	 * 
 	 * @return the pid of record
 	 */
-	public String getPid()
-	{
+	public String getPid() {
 		return bagInfoTxt.get("External-Identifier");
 	}
-	
+
 	/**
-	 * Gets the data source attribute specified for this bag. If none is specified, the value <code>general</code> is returned.
+	 * Gets the data source attribute specified for this bag. If none is specified, the value <code>general</code> is
+	 * returned.
 	 * 
 	 * @return DataSource
 	 */
-	public DataSource getDataSource()
-	{
+	public DataSource getDataSource() {
 		// If the Bag properites file exists, read the data source. If data source not specified, set GENERAL.
 		DataSource dataSource = null;
-		if (this.bagPropsTxt != null)
-		{
+		if (this.bagPropsTxt != null) {
 			String value = bagPropsTxt.get(Key.DATASOURCE.toString());
 			if (value == null || value.length() == 0)
 				dataSource = DataSource.GENERAL;
 			dataSource = DataSource.getValueOf(value);
 		}
-		
+
 		return dataSource;
 	}
-	
+
 	/**
 	 * Gets the FileSummaryMap containing FileSummary for each BagFile in this bag.
 	 * 
 	 * @return FileSummaryMap
 	 */
-	public FileSummaryMap getFileSummaryMap()
-	{
+	public FileSummaryMap getFileSummaryMap() {
 		return fsMap;
 	}
-	
-	protected void setFileSummaryMap(FileSummaryMap fsMap) {
+
+	public void setFileSummaryMap(FileSummaryMap fsMap) {
 		this.fsMap = fsMap;
 	}
-	
+
 	/**
 	 * Gets the bag info txt.
 	 * 
 	 * @return the bag info txt
 	 */
-	public Map<String, String> getBagInfoTxt()
-	{
+	public Map<String, String> getBagInfoTxt() {
 		return Collections.unmodifiableMap(bagInfoTxt);
 	}
 
@@ -157,8 +144,27 @@ public class BagSummary
 	 * 
 	 * @return ExtRefsTxt
 	 */
-	public Map<String, String> getExtRefsTxt()
-	{
+	public Map<String, String> getExtRefsTxt() {
 		return extRefsTxt;
+	}
+
+	private void calcBagSize(FileSummaryMap fsMap) {
+		bagSize = 0L;
+		for (FileSummary fs : fsMap.values()) {
+			bagSize += fs.getSizeInBytes();
+		}
+	}
+
+	private void readBagPropsTxt(Bag bag) {
+		BagFile bagPropsTxtFile = bag.getBagFile(BagPropsTxt.FILEPATH);
+		if (bagPropsTxtFile != null)
+			this.bagPropsTxt = new BagPropsTxt(BagPropsTxt.FILEPATH, bagPropsTxtFile, bag.getBagItTxt()
+					.getCharacterEncoding());
+	}
+
+	private void readExtRefsTxt(Bag bag) {
+		BagFile extRefsFile = bag.getBagFile(ExtRefsTxt.FILEPATH);
+		if (extRefsFile != null)
+			this.extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, extRefsFile, bag.getBagItTxt().getCharacterEncoding());
 	}
 }

@@ -131,18 +131,21 @@ function toggleIsFilesPublic(pid, curFlag) {
 function deleteSelected(pid) {
 	var activeAjax = 0;
 	jQuery("#tblFiles input:checkbox:checked").each(function(index) {
-		var url = "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/" + this.value;
-		activeAjax++;
-		jQuery.ajax({
-			url : url,
-			type : "DELETE",
-		}).fail(function() {
-			alert('Unable to delete file.');
-		}).always(function() {
-			if (--activeAjax == 0) {
-				window.location = window.location.href;
-			}
-		});
+		if (this.value != "") {
+			console.log("Deleting: " + this.value);
+			var url = "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/" + this.value;
+			activeAjax++;
+			jQuery.ajax({
+				url : url,
+				type : "DELETE",
+			}).fail(function() {
+				alert('Unable to delete file ' + this.value);
+			}).always(function() {
+				if (--activeAjax == 0) {
+					window.location = window.location.href;
+				}
+			});
+		}
 	});
 }
 

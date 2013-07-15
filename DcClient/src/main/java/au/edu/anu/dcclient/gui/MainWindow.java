@@ -21,7 +21,8 @@
 
 package au.edu.anu.dcclient.gui;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
+import gov.loc.repository.bagit.Manifest.Algorithm;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
@@ -435,7 +436,7 @@ public class MainWindow extends JFrame implements ActionListener
 										Entry<String, FileSummary> entry = (Entry<String, FileSummary>) selectedNode
 												.getUserObject();
 										lblFileSizeValue.setText(entry.getValue().getFriendlySize());
-										lblMd5Value.setText(entry.getValue().getMd5());
+										lblMd5Value.setText(entry.getValue().getMessageDigests().get(Algorithm.MD5.javaSecurityAlgorithm));
 									} else {
 										lblFileSizeValue.setText("");
 										lblMd5Value.setText("");

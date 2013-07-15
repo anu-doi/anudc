@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.upload;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.Manifest;
 
 import java.io.BufferedInputStream;
@@ -236,11 +236,11 @@ public class UploadService {
 				try {
 					dcStorage.addFileToBag(pid, savedFile, savedFile.getName());
 				} finally {
-					if (!savedFile.delete()) {
+					if (savedFile.exists() && !savedFile.delete()) {
 						LOGGER.warn("Unable to delete {}", savedFile.getAbsolutePath());
 					}
 					if (!savedFile.getParentFile().equals(GlobalProps.getUploadDirAsFile()) && savedFile.getParentFile().listFiles().length == 0) {
-						if (!savedFile.getParentFile().delete()) {
+						if (savedFile.getParentFile().exists() && !savedFile.getParentFile().delete()) {
 							LOGGER.warn("Unable to delete {}", savedFile.getAbsolutePath());
 						}
 					}
@@ -1024,7 +1024,7 @@ public class UploadService {
 
 			// Delete the part files now that they've been merged.
 			for (int i = 0; i < partFiles.length; i++) {
-				if (!partFiles[i].delete())
+				if (partFiles[i].exists() && !partFiles[i].delete())
 					LOGGER.warn("Unable to delete part file {}.", partFiles[i].getAbsolutePath());
 			}
 		}

@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.storage;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 import static org.junit.Assert.*;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFactory;
@@ -90,7 +90,12 @@ public class CompleterTaskTest {
 	 */
 	@Test
 	public void testCompleterTaskAdd() {
-		File payloadDir = bagRootFolder.newFolder("data");
+		File payloadDir = null;
+		try {
+			payloadDir = bagRootFolder.newFolder("data");
+		} catch (IOException e) {
+			fail(e.getMessage());
+		}
 		LOGGER.info("Payload directory of bag at: {}", payloadDir.getAbsolutePath());
 		File payloadFile1 = new File(payloadDir, "Valid Payload File.txt");
 		File payloadFile2 = new File(payloadDir, "Temp File Created.txt");
@@ -140,7 +145,12 @@ public class CompleterTaskTest {
 	public void testCompleterTaskDelete() {
 		Collection<BagFile> payload;
 		Manifest manifest;
-		File payloadDir = bagRootFolder.newFolder("data");
+		File payloadDir = null;
+		try {
+			payloadDir = bagRootFolder.newFolder("data");
+		} catch (IOException e) {
+			fail(e.getMessage());
+		}
 		LOGGER.info("Payload directory of bag at: {}", payloadDir.getAbsolutePath());
 		File payloadFile1 = new File(payloadDir, "FirstFile.txt");
 		File payloadFile2 = new File(payloadDir, "Second File.txt");
@@ -206,7 +216,12 @@ public class CompleterTaskTest {
 	public void testCompleterTaskNotLimited() {
 		Collection<BagFile> payload;
 		Manifest manifest;
-		File payloadDir = bagRootFolder.newFolder("data");
+		File payloadDir = null;
+		try {
+			payloadDir = bagRootFolder.newFolder("data");
+		} catch (IOException e) {
+			fail(e.getMessage());
+		}
 		LOGGER.info("Payload directory of bag at: {}", payloadDir.getAbsolutePath());
 		File payloadFile1 = new File(payloadDir, "FirstFile.txt");
 		File payloadFile2 = new File(payloadDir, "Second File.txt");

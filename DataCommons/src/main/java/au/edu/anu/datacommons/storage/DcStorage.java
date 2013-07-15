@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.storage;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
@@ -39,11 +39,8 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,10 +59,8 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.storage.archive.ArchiveItem;
 import au.edu.anu.datacommons.storage.archive.ArchiveItem.Operation;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask;
-import au.edu.anu.datacommons.storage.info.BagPropsTxt.DataSource;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.ExtRefsTxt;
-import au.edu.anu.datacommons.storage.info.FileSummaryMap;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
@@ -386,26 +381,10 @@ public final class DcStorage implements Closeable {
 		Bag bag = getBag(pid);
 		if (bag == null)
 			throw new DcStorageException(format("Bag not found for pid {0}.", pid));
-		BagSummary bagSummary = new BagSummary(bag);
-		return bagSummary;
-	}
-
-	/**
-	 * File Summary Map of files in a bag.
-	 * 
-	 * @param pid
-	 *            Pid of the collection record whose FileSummaryMap to retrieve.
-	 * 
-	 * @return File Summary Map as FileSummaryMap.
-	 * 
-	 * @throws DcStorageException
-	 */
-	public FileSummaryMap getFileSummaryMap(String pid) throws DcStorageException {
-		Bag bag = getBag(pid);
-		if (bag == null)
-			throw new DcStorageException(format("Bag not found for pid {0}.", pid));
-		FileSummaryMap fsMap = new FileSummaryMap(bag);
-		return fsMap;
+//		BagSummary bagSummary = new BagSummary(bag);
+		BagSummaryTask bsTask = new BagSummaryTask(bag);
+		BagSummary bs = bsTask.generateBagSummary();
+		return bs;
 	}
 
 	/**
@@ -579,111 +558,6 @@ public final class DcStorage implements Closeable {
 	private void updateDatastream(String pid) throws FedoraClientException {
 		// Create a placeholder datastream.
 		FedoraBroker.addDatastreamBySource(pid, "FILE" + "0", "FILE0", "<text>Files available.</text>");
-	}
-
-	/**
-	 * Validates the replacement of an existing bag with a new one. If the new bag's source is set to 'instrument', then
-	 * the new bag must contain the exact same files as in the old bag in addition to any new files.
-	 * 
-	 * @param oldBag
-	 *            The old bag that will be replaced
-	 * @param newBag
-	 *            The new bag that will replace the old bag
-	 * @throws DcStorageException
-	 *             when the replacement is not valid
-	 */
-	private void validateReplacementBag(Bag oldBag, Bag newBag) throws DcStorageException {
-		BagSummary newBagSummary = new BagSummary(newBag);
-		if (newBagSummary.getDataSource() == DataSource.INSTRUMENT) {
-			// // Verify the integrity of tagmanifest.
-			// Manifest tagManifest = bag.getTagManifest(BAGS_ALGORITHM);
-			// List<Manifest> payloadManifestList = bag.getPayloadManifests();
-			//
-			// for (Manifest iPlManifest : payloadManifestList)
-			// {
-			// if (tagManifest.containsKey(iPlManifest.getFilepath()))
-			// {
-			// String hashInManifest = tagManifest.get(iPlManifest.getFilepath());
-			// if (!MessageDigestHelper.fixityMatches(iPlManifest.newInputStream(), iPlManifest.getAlgorithm(),
-			// hashInManifest))
-			// {
-			// LOGGER.error("Payload manifest hash invalid.");
-			// throw new DcBagException("Payload manifest hash invalid.");
-			// }
-			// }
-			// }
-			//
-			// if (getBagProperty(BagPropsTxt.FIELD_DATASOURCE).equals(DataSource.INSTRUMENT.toString()))
-			// {
-			// // Hash check files in payload manifest.
-			// Set<Entry<String, String>> plManifestFiles = bag.getPayloadManifest(BAGS_ALGORITHM).entrySet();
-			// for (Entry<String, String> iEntry : plManifestFiles)
-			// {
-			// BagFile iFile = bag.getBagFile(iEntry.getKey());
-			//
-			// // Check if file exists. Then check its hash value matches the one in the manifest.
-			// if (iFile == null || !iFile.exists())
-			// throw new DcBagException("Bag doesn't contain file " + iFile.getFilepath());
-			// if (!MessageDigestHelper.fixityMatches(iFile.newInputStream(), BAGS_ALGORITHM, iEntry.getValue()))
-			// throw new DcBagException("Bag contains modified existing files.");
-			// }
-			// }
-
-			List<Manifest> oldPlManifests = oldBag.getPayloadManifests();
-			List<Manifest> newPlManifests = newBag.getPayloadManifests();
-			for (Manifest iOldPlManifest : oldPlManifests) {
-				for (Manifest iNewPlManifest : newPlManifests) {
-					if (iOldPlManifest.getAlgorithm() == iNewPlManifest.getAlgorithm()) {
-						// Iterate through each payload file in the old payload manifest, ensure it exists and hash
-						// matches in new bag.
-						for (String iOldPlFile : iOldPlManifest.keySet()) {
-							// The new bag should contain the files already present in the current bag.
-							if (!iNewPlManifest.containsKey(iOldPlFile)) {
-								LOGGER.error("New bag doesn't contain payload file: {}", iOldPlFile);
-								throw new DcStorageException("New bag doesn't contain file: " + iOldPlFile);
-							}
-
-							// Hashes for current payload files should match the hashes for the same files in the new
-							// bag.
-							if (!iOldPlManifest.get(iOldPlFile).equals(iNewPlManifest.get(iOldPlFile))) {
-								LOGGER.error("Hash doesn't match for file: {}", iOldPlFile);
-								throw new DcStorageException("Hash doesn't match for file: " + iOldPlFile);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Archives a bag by copying the directory containing the bag or renaming it. The new name of the directory is the
-	 * old name with the current date and time appended to it.
-	 * 
-	 * @param bag
-	 *            Bag to be archived
-	 * @param deleteOriginal
-	 *            true if the old bag should be deleted after archiving it to make the directory available for use by a
-	 *            new bag, false if the old bag should be copied into an archive without making any changes to it
-	 *            allowing for addition or deleting of individual files in the bag
-	 * @throws IOException
-	 *             If unable to archive the bag
-	 */
-	private void archiveBag(Bag bag, boolean deleteOriginal) throws IOException {
-		File curBagFile = bag.getFile();
-		Date dateNow = new Date();
-
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd_HHmmss");
-		bag.close();
-		File archivedBagFile = new File(bagsDir, curBagFile.getName() + "-" + dateFormat.format(dateNow));
-		if (deleteOriginal) {
-			curBagFile.renameTo(archivedBagFile);
-		} else {
-			if (curBagFile.isDirectory())
-				FileUtils.copyDirectory(curBagFile, archivedBagFile, true);
-			else
-				FileUtils.copyFile(curBagFile, archivedBagFile, true);
-		}
 	}
 
 	/**

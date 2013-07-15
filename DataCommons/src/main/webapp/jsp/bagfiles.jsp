@@ -47,7 +47,7 @@
 			<table class="small w-doublewide" id="tblFiles">
 				<!-- Column headers -->
 				<tr>
-					<th><input type="checkbox" onchange="toggleCheckboxes(this)" /></th>
+					<th><input type="checkbox" onchange="toggleCheckboxes(this)" value="" /></th>
 					<th>File</th>
 					<th>Format</th>
 					<th>Size</th>
@@ -81,7 +81,7 @@
 						<td><c:out value="${iFile.value.friendlySize}" /></td>
 						
 						<!-- File Message Digest -->
-						<td class="small"><c:out value="${iFile.value.md5}" /></td>
+						<td class="small"><c:out value="${iFile.value.messageDigests.MD5}" /></td>
 						
 						<!-- Virus scan result -->
 						<td class="text-center">
@@ -89,11 +89,11 @@
 							<c:when test="${fn:toLowerCase(iFile.value.scanResult) eq 'passed'}">
 								<img src="<c:url value='/images/circle_green.png' />" width="12" height="12" title="${iFile.value.scanResult}" alt="${iFile.value.scanResult}" />
 							</c:when>
-							<c:when test="${fn:toLowerCase(iFile.value.scanResult) eq 'not scanned'}">
-								<img src="<c:url value='/images/circle_yellow.png' />" width="12" height="12" title="${iFile.value.scanResult}" alt="${iFile.value.scanResult}" />
+							<c:when test="${fn:containsIgnoreCase(iFile.value.scanResult, 'failed')}">
+								<img src="<c:url value='/images/circle_red.png' />" width="12" height="12" title="${iFile.value.scanResult}" alt="${iFile.value.scanResult}" />
 							</c:when>
 							<c:otherwise>
-								<img src="<c:url value='/images/circle_red.png' />" width="12" height="12" title="${iFile.value.scanResult}" alt="${iFile.value.scanResult}" />
+								<img src="<c:url value='/images/circle_yellow.png' />" width="12" height="12" title="${iFile.value.scanResult}" alt="${iFile.value.scanResult}" />
 							</c:otherwise>
 						</c:choose>
 						</td>
@@ -213,7 +213,7 @@
 					<param name="readCookieFromNavigator" value="false" />
 					<param name="type" value="application/x-java-applet;version=1.6">
 					<param name="afterUploadURL" value="<c:url value='/rest/upload/bag/${it.fo.object_id}' />" />
-					This Java Applet requires Java 1.5 or higher.
+					This Java Applet requires Java 1.6 or higher.
 				</applet>
 			</form>
 		</div>
