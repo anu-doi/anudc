@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.security.service;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -942,5 +942,13 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		FedoraObject item = dao.getSingleByName(pid);
 		item.setFilesPublic(new Boolean(isFilesPublic));
 		dao.update(item);
+	}
+
+	public FedoraObject getItemByPidReadAccess(String pid) {
+		return getItemByPid(pid);
+	}
+	
+	public FedoraObject getItemByPidWriteAccess(String pid) {
+		return getItemByPid(pid);
 	}
 }

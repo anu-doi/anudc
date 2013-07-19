@@ -26,6 +26,7 @@ import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
@@ -332,4 +333,10 @@ public interface FedoraObjectService {
 	boolean isFilesPublic(String pid);
 
 	void setFilesPublic(String pid, boolean isFilesPublic);
+	
+	@PostAuthorize("hasPermission(returnObject, 'READ')")
+	FedoraObject getItemByPidReadAccess(String pid);
+	
+	@PostAuthorize("hasPermission(returnObject, 'WRITE')")
+	FedoraObject getItemByPidWriteAccess(String pid);
 }
