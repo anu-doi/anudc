@@ -77,7 +77,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -90,7 +89,6 @@ import au.edu.anu.datacommons.collectionrequest.PageMessages.MessageType;
 import au.edu.anu.datacommons.data.db.dao.AccessLogRecordDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAO;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAOImpl;
-import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Users;
@@ -220,7 +218,7 @@ public class UploadService {
 			}
 			
 			// Check for write access to the fedora object.
-			getFedoraObjectWriteAccess(pid);
+			fedoraObjectService.getItemByPidWriteAccess(pid);
 			
 			for (FileItem i : uploadedItems) {
 				if (!i.isFormField()) {
@@ -281,7 +279,7 @@ public class UploadService {
 		UriBuilder redirUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class);
 
 		// Check for write access to the fedora object.
-		getFedoraObjectWriteAccess(pid);
+		fedoraObjectService.getItemByPidWriteAccess(pid);
 
 		try {
 			// Read properties file [Pid].properties.
@@ -357,7 +355,7 @@ public class UploadService {
 			FedoraObject fo = null;
 			if (hasRole(new String[] { "ROLE_ANU_USER" })) {
 				// Check if user's got read access to fedora object.
-				fo = getFedoraObjectReadAccess(pid);
+				fo = fedoraObjectService.getItemByPidReadAccess(pid);
 			} else if (hasRole(new String[] { "ROLE_ANONYMOUS" })) {
 				// Check if data files are public
 				fo = fedoraObjectService.getItemByPid(pid);
@@ -389,7 +387,7 @@ public class UploadService {
 
 			resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
 		} else if (task.equals("recomplete")) {
-			getFedoraObjectWriteAccess(pid);
+			fedoraObjectService.getItemByPidWriteAccess(pid);
 			try {
 				dcStorage.recompleteBag(pid);
 				resp = Response.temporaryRedirect(
@@ -410,7 +408,7 @@ public class UploadService {
 	public Response doGetBagSummary(@PathParam("pid") String pid) {
 		Response resp = null;
 		
-		getFedoraObjectReadAccess(pid);
+		fedoraObjectService.getItemByPidReadAccess(pid);
 		if (!dcStorage.bagExists(pid)) {
 			throw new NotFoundException(format("Bag not found for {0}", pid));
 		}
@@ -508,12 +506,12 @@ public class UploadService {
 		LOGGER.trace("pid: {}, filename: {}", pid, fileRequested);
 		Response resp = null;
 		// Check for read access.
-		getFedoraObjectReadAccess(pid);
+		fedoraObjectService.getItemByPidReadAccess(pid);
 
 		FedoraObject fo = null;
 		if (hasRole(new String[] { "ROLE_ANU_USER" })) {
 			// Check if user's got read access to fedora object.
-			fo = getFedoraObjectReadAccess(pid);
+			fo = fedoraObjectService.getItemByPidReadAccess(pid);
 		} else if (hasRole(new String[] { "ROLE_ANONYMOUS" })) {
 			// Check if data files are public
 			fo = fedoraObjectService.getItemByPid(pid);
@@ -575,7 +573,7 @@ public class UploadService {
 	public Response doAddFileToBag(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag,
 			InputStream is) {
 		Response resp = null;
-		getFedoraObjectWriteAccess(pid);
+		fedoraObjectService.getItemByPidWriteAccess(pid);
 		File uploadedFile = null;
 
 		try {
@@ -624,7 +622,7 @@ public class UploadService {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doDeleteFileInBag(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag) {
 		Response resp = null;
-		getFedoraObjectWriteAccess(pid);
+		fedoraObjectService.getItemByPidWriteAccess(pid);
 
 		try {
 			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(),
@@ -664,7 +662,7 @@ public class UploadService {
 			@FormParam("deleteUrl") Set<String> deleteUrlSet) {
 		Response resp = null;
 
-		getFedoraObjectWriteAccess(pid);
+		fedoraObjectService.getItemByPidWriteAccess(pid);
 		try {
 			if (addUrlSet != null && !addUrlSet.isEmpty())
 				dcStorage.addExtRefs(pid, addUrlSet);
@@ -686,7 +684,7 @@ public class UploadService {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doCompleteBag(@PathParam("pid") String pid) {
 		Response resp = null;
-		getFedoraObjectWriteAccess(pid);
+		fedoraObjectService.getItemByPidWriteAccess(pid);
 		try {
 			dcStorage.recompleteBag(pid);
 			resp = Response.ok().build();
@@ -854,48 +852,6 @@ public class UploadService {
 		}
 
 		return resp;
-	}
-
-	/**
-	 * Checks if the currently logged in user has READ permissions for the specified record.
-	 * 
-	 * @param pid
-	 *            Pid of the record
-	 * 
-	 * @return FedoraObject representing the record with the Pid specified.
-	 */
-	@PostAuthorize("hasPermission(returnObject, 'READ')")
-	private FedoraObject getFedoraObjectReadAccess(String pid) {
-		return getFedoraObject(pid);
-	}
-
-	/**
-	 * Checks if the currently logged in user has READ permissions for the specified record.
-	 * 
-	 * @param pid
-	 *            Pid of the record
-	 * 
-	 * @return FedoraObject representing the record with the Pid specified.
-	 */
-	@PostAuthorize("hasPermission(returnObject, 'WRITE')")
-	private FedoraObject getFedoraObjectWriteAccess(String pid) {
-		return getFedoraObject(pid);
-	}
-
-	/**
-	 * 
-	 * @param pid
-	 * @return
-	 */
-	private FedoraObject getFedoraObject(String pid) {
-		String decodedpid = null;
-		decodedpid = Util.decodeUrlEncoded(pid);
-		if (decodedpid == null) {
-			return null;
-		}
-		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
-		FedoraObject fo = (FedoraObject) object.getSingleByName(decodedpid);
-		return fo;
 	}
 
 	/**
