@@ -505,8 +505,6 @@ public class UploadService {
 			@PathParam("fileInBag") String fileRequested, @QueryParam("file") Set<String> filepaths) {
 		LOGGER.trace("pid: {}, filename: {}", pid, fileRequested);
 		Response resp = null;
-		// Check for read access.
-		fedoraObjectService.getItemByPidReadAccess(pid);
 
 		FedoraObject fo = null;
 		if (hasRole(new String[] { "ROLE_ANU_USER" })) {
