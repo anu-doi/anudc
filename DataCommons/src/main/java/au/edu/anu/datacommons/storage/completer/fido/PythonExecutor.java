@@ -77,16 +77,19 @@ public class PythonExecutor {
 		if (LOGGER.isDebugEnabled()) {
 			StringBuilder cmdLineAsStr = new StringBuilder();
 			for (String cmdArg : cmdLine) {
-				if (cmdArg.contains(" "))
+				if (cmdArg.contains(" ")) {
 					cmdLineAsStr.append("\"");
+				}
 				cmdLineAsStr.append(cmdArg);
-				if (cmdArg.contains(" "))
+				if (cmdArg.contains(" ")) {
 					cmdLineAsStr.append("\"");
+				}
 				cmdLineAsStr.append(" ");
 			}
 			LOGGER.debug("Executing: {}", cmdLineAsStr.toString().trim());
 		}
-		pythonProcess = Runtime.getRuntime().exec(cmdLine.toArray(new String[0]));
+		ProcessBuilder pb = new ProcessBuilder(cmdLine);
+		pythonProcess = pb.start();
 		return pythonProcess;
 	}
 
@@ -100,12 +103,13 @@ public class PythonExecutor {
 	 */
 	public void sendStreamToStdIn(InputStream inStream) throws IOException {
 		OutputStream outStream = pythonProcess.getOutputStream();
-		byte buffer[] = new byte[1024 * 1024];
+		byte buffer[] = new byte[2 * 1024];
 		int numBytesRead = 0;
 
 		try {
-			while ((numBytesRead = inStream.read(buffer)) != -1)
+			while ((numBytesRead = inStream.read(buffer)) != -1) {
 				outStream.write(buffer, 0, numBytesRead);
+			}
 			outStream.flush();
 		} finally {
 			IOUtils.closeQuietly(inStream);

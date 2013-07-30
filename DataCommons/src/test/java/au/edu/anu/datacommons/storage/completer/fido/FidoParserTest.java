@@ -75,7 +75,7 @@ public class FidoParserTest {
 	}
 
 	@Test
-	public void testGetFileFormatFromFile() {
+	public void testFidoPdfFile() {
 		try {
 			fileToId = new File(this.getClass().getResource("BagIt Specification.pdf")
 					.toURI());
@@ -90,7 +90,7 @@ public class FidoParserTest {
 	}
 	
 	@Test
-	public void testGetFileFormatFromGarbageFile() throws IOException {
+	public void testFidoGarbageFile() throws IOException {
 		fileToId = tempDir.newFile();
 		writeRandomData(fileToId);
 		fidoParser = new FidoParser(fileToId);
@@ -101,15 +101,17 @@ public class FidoParserTest {
 	}
 	
 	@Test
-	public void testGetFileFormatFromGarbageStream() throws IOException {
+	public void testFidoGarbageStream() throws IOException {
 		fileToId = tempDir.newFile();
 		writeRandomData(fileToId);
 		FileInputStream fileStream = null;
 		try {
 			fileStream = new FileInputStream(fileToId);
-			fidoParser = new FidoParser(fileStream);
+			fidoParser = new FidoParser(fileStream, "data/abc xyz.log");
 			assertNotNull(fidoParser.getFidoStr());
 			assertTrue(fidoParser.getFidoStr().length() > 0);
+			assertEquals(PronomFormat.MatchStatus.OK, fidoParser.getFileFormat().getMatchStatus());
+			assertEquals("x-fmt/62", fidoParser.getFileFormat().getPuid());
 			PronomFormat fileFormat = fidoParser.getFileFormat();
 			assertEquals(fileToId.length(), fileFormat.getFileSize());
 		} finally {
@@ -119,9 +121,10 @@ public class FidoParserTest {
 	
 	@Test
 	public void testLogFileFromStream() throws IOException {
-		InputStream fileStream = this.getClass().getResourceAsStream("test-log.log");
+		String filename = "test-log.log";
+		InputStream fileStream = this.getClass().getResourceAsStream(filename);
 		try {
-			fidoParser = new FidoParser(fileStream);
+			fidoParser = new FidoParser(fileStream, filename);
 		} finally {
 			IOUtils.closeQuietly(fileStream);
 		}
@@ -129,7 +132,7 @@ public class FidoParserTest {
 		assertTrue(fidoParser.getFidoStr().length() > 0);
 		PronomFormat fileFormat = fidoParser.getFileFormat();
 		assertEquals(PronomFormat.MatchStatus.OK, fileFormat.getMatchStatus());
-		assertEquals("test-log.log", fileFormat.getFileName());
+		assertEquals(filename, fileFormat.getFileName());
 		assertEquals("x-fmt/62", fileFormat.getPuid());
 		LOGGER.trace(fileFormat.getFormatName());
 	}

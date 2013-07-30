@@ -21,6 +21,8 @@
 
 package au.edu.anu.datacommons.storage.completer.fido;
 
+import static java.text.MessageFormat.format;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,14 +53,18 @@ public class FidoParser {
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
 	 */
-	public FidoParser(InputStream fileStream) throws IOException
+	public FidoParser(InputStream fileStream, String filename) throws IOException
 	{
 		if (fileStream == null) {
 			throw new NullPointerException();
 		}
-		pyExec = new PythonExecutor(Arrays.asList("-u", getFidoPath(), "-nocontainer", "-"));
+		pyExec = new PythonExecutor(Arrays.asList("-u", getFidoPath(), "-nocontainer", "-filename", filename, "-"));
 		pyExec.execute();
-		pyExec.sendStreamToStdIn(fileStream);
+		try {
+			pyExec.sendStreamToStdIn(fileStream);
+		} catch (IOException e) {
+			
+		}
 	}
 
 	/**
