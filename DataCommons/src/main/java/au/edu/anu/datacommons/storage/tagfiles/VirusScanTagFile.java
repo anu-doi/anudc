@@ -19,46 +19,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage;
+package au.edu.anu.datacommons.storage.tagfiles;
 
-import gov.loc.repository.bagit.BagFile;
-
-import java.io.InputStream;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import au.edu.anu.datacommons.storage.completer.metadata.MetadataExtractor;
-import au.edu.anu.datacommons.storage.completer.metadata.MetadataExtractorImpl;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * @author Rahul Khanna
  *
  */
-public class TikaTask implements Callable<Map<String, String[]>> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(TikaTask.class);
+public class VirusScanTagFile extends AbstractKeyValueFile {
+private static final long serialVersionUID = 1L;
 	
-	private BagFile bagfile;
-	
-	public TikaTask(BagFile bagfile) {
-		super();
-		this.bagfile = bagfile;
-	}
+	public static final String FILEPATH = "virus-scan.txt";
 
-	@Override
-	public Map<String, String[]> call() throws Exception {
-		MetadataExtractor me;
-		InputStream stream = null;
-		try {
-			stream = bagfile.newInputStream();
-			me = new MetadataExtractorImpl(stream);
-			LOGGER.trace("Metadata for file {}: {}", bagfile.getFilepath(), me.getMetadataMap());
-		} finally {
-			IOUtils.closeQuietly(stream);
-		}
-		return me.getMetadataMap();
+	public VirusScanTagFile(File bagDir) throws IOException {
+		super(new File(bagDir, FILEPATH));
 	}
 }

@@ -19,47 +19,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage;
+package au.edu.anu.datacommons.storage.tagfiles;
 
-import gov.loc.repository.bagit.BagFile;
-
-import java.io.InputStream;
-import java.util.concurrent.Callable;
-
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import au.edu.anu.datacommons.storage.completer.fido.FidoParser;
-import au.edu.anu.datacommons.storage.info.PronomFormat;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * @author Rahul Khanna
- * 
+ *
  */
-public class FidoTask implements Callable<PronomFormat> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FidoTask.class);
+public class FileMetadataTagFile extends AbstractKeyValueFile {
+private static final long serialVersionUID = 1L;
 	
-	private BagFile bagfile;
-	
-	public FidoTask(BagFile bagfile) {
-		super();
-		this.bagfile = bagfile;
-	}
+	public static final String FILEPATH = "file-metadata.txt";
 
-	@Override
-	public PronomFormat call() throws Exception {
-		FidoParser fido;
-		InputStream fileStream = null;
-		try {
-			fileStream = bagfile.newInputStream();
-			fido = new FidoParser(fileStream);
-			LOGGER.trace("Fido result for {}: {}", bagfile.getFilepath(), fido.getFidoStr());
-		} finally {
-			IOUtils.closeQuietly(fileStream);
-		}
-		
-		return fido.getFileFormat();
+	public FileMetadataTagFile(File bagDir) throws IOException {
+		super(new File(bagDir, FILEPATH));
 	}
-
 }
