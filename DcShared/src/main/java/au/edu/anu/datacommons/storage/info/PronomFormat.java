@@ -21,16 +21,12 @@
 
 package au.edu.anu.datacommons.storage.info;
 
-import gov.loc.repository.bagit.Bag;
-import gov.loc.repository.bagit.BagFile;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
- * This class contains properties that correspond to individual elements of a String returned for a file by the Fido Script. The String as per Fido 1.0 will be
- * in the format:
+ * This class contains properties that correspond to individual elements of a String returned for a file by the Fido
+ * Script. The String as per Fido 1.0 will be in the format:
  * 
  * <pre>
  * printmatch: 
@@ -42,12 +38,10 @@ import org.slf4j.LoggerFactory;
  * 
  * @see <a href="https://github.com/openplanets/fido">https://github.com/openplanets/fido</a>
  */
-public class PronomFormat
-{
+public class PronomFormat {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Thread.currentThread().getClass());
-	
-	public enum MatchStatus
-	{
+
+	public enum MatchStatus {
 		OK, KO;
 	}
 
@@ -64,49 +58,25 @@ public class PronomFormat
 
 	protected PronomFormat() {
 	}
-	
+
 	/**
 	 * Creates a PronomFormat object by parsing a specified String.
 	 * 
 	 * @param fidoStr
 	 *            the fido string to parse
 	 */
-	public PronomFormat(String fidoStr)
-	{
+	public PronomFormat(String fidoStr) {
 		parseFidoStr(fidoStr);
 	}
-	
-	/**
-	 * Creates a PronomFormat object by parsing a fido string already stored in the PronomFormatsTxt file of a bag.
-	 * 
-	 * @param bag
-	 *            Bag containing the file whose Fido String is to be read
-	 * @param bf
-	 *            File within the bag whose Fido String is to be read from PronomFormatsTxt tag file
-	 */
-	public PronomFormat(Bag bag, BagFile bf)
-	{
-		BagFile pronomFormatsTxt = bag.getBagFile(PronomFormatsTxt.FILEPATH);
-		if (pronomFormatsTxt != null)
-		{
-			PronomFormatsTxt tagFile = new PronomFormatsTxt(pronomFormatsTxt.getFilepath(), pronomFormatsTxt, bag.getBagItTxt().getCharacterEncoding());
-			String fidoStr = tagFile.get(bf.getFilepath());
-			parseFidoStr(fidoStr);
-		}
-		else
-			parseFidoStr("");
-	}
-	
+
 	/**
 	 * Parses a Fido String to extract its individual elements.
 	 * 
 	 * @param fidoStr
 	 *            Fido String to parse
 	 */
-	private void parseFidoStr(String fidoStr)
-	{
-		if (fidoStr == null || fidoStr.length() == 0)
-		{
+	private void parseFidoStr(String fidoStr) {
+		if (fidoStr == null || fidoStr.length() == 0) {
 			sourceStr = "";
 			matchStatus = MatchStatus.KO;
 			timeToParse = 0;
@@ -117,9 +87,7 @@ public class PronomFormat
 			fileName = "";
 			mimeType = "";
 			matchType = "";
-		}
-		else
-		{
+		} else {
 			this.sourceStr = fidoStr;
 			// Split using commas as delimiters except for commas surrounded by double quotes.
 			String[] tokens = sourceStr.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
@@ -141,8 +109,7 @@ public class PronomFormat
 	 * 
 	 * @return the match status
 	 */
-	public MatchStatus getMatchStatus()
-	{
+	public MatchStatus getMatchStatus() {
 		return matchStatus;
 	}
 
@@ -151,8 +118,7 @@ public class PronomFormat
 	 * 
 	 * @return the time to parse
 	 */
-	public long getTimeToParse()
-	{
+	public long getTimeToParse() {
 		return timeToParse;
 	}
 
@@ -161,8 +127,7 @@ public class PronomFormat
 	 * 
 	 * @return the puid
 	 */
-	public String getPuid()
-	{
+	public String getPuid() {
 		return puid;
 	}
 
@@ -171,8 +136,7 @@ public class PronomFormat
 	 * 
 	 * @return the format name
 	 */
-	public String getFormatName()
-	{
+	public String getFormatName() {
 		return formatName;
 	}
 
@@ -181,8 +145,7 @@ public class PronomFormat
 	 * 
 	 * @return the sig name
 	 */
-	public String getSigName()
-	{
+	public String getSigName() {
 		return sigName;
 	}
 
@@ -191,8 +154,7 @@ public class PronomFormat
 	 * 
 	 * @return the file size
 	 */
-	public long getFileSize()
-	{
+	public long getFileSize() {
 		return fileSize;
 	}
 
@@ -201,8 +163,7 @@ public class PronomFormat
 	 * 
 	 * @return the file name
 	 */
-	public String getFileName()
-	{
+	public String getFileName() {
 		return fileName;
 	}
 
@@ -211,8 +172,7 @@ public class PronomFormat
 	 * 
 	 * @return the mime type
 	 */
-	public String getMimeType()
-	{
+	public String getMimeType() {
 		return mimeType;
 	}
 
@@ -221,8 +181,7 @@ public class PronomFormat
 	 * 
 	 * @return the match type
 	 */
-	public String getMatchType()
-	{
+	public String getMatchType() {
 		return matchType;
 	}
 
@@ -233,8 +192,7 @@ public class PronomFormat
 	 *            the string from which to strip double quotes
 	 * @return the string String without quotes
 	 */
-	private String stripQuotes(String str)
-	{
+	private String stripQuotes(String str) {
 		StringBuilder sb = new StringBuilder(str);
 
 		if (str == null || str.equals(""))
@@ -250,8 +208,7 @@ public class PronomFormat
 	}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return this.sourceStr;
 	}
 }

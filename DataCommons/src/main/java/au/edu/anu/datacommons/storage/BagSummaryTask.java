@@ -1,7 +1,9 @@
 package au.edu.anu.datacommons.storage;
 
-import static java.text.MessageFormat.format;
+import static java.text.MessageFormat.*;
 import gov.loc.repository.bagit.Bag;
+import gov.loc.repository.bagit.BagFactory;
+import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.utilities.FilenameHelper;
@@ -9,13 +11,16 @@ import gov.loc.repository.bagit.utilities.FilenameHelper;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,17 +28,20 @@ import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummary;
 import au.edu.anu.datacommons.storage.info.FileSummaryMap;
 import au.edu.anu.datacommons.storage.info.PronomFormat;
-import au.edu.anu.datacommons.storage.info.PronomFormatsTxt;
 import au.edu.anu.datacommons.storage.info.ScanResult;
-import au.edu.anu.datacommons.storage.info.VirusScanTxt;
+import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 
 public class BagSummaryTask implements Callable<BagSummary> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BagSummaryTask.class);
-	
+
+	private File bagDir;
 	private Bag bag;
 	
-	public BagSummaryTask(Bag bag) {
-		this.bag = bag;
+	public BagSummaryTask(File bagDir) {
+		this.bagDir = bagDir;
 	}
 	
 	@Override
@@ -42,9 +50,14 @@ public class BagSummaryTask implements Callable<BagSummary> {
 	}
 
 	public BagSummary generateBagSummary() {
+		this.bag = new BagFactory().createBag(this.bagDir, LoadOption.BY_FILES);
 		FileSummaryMap fsMap = createFsMap();
-		
 		BagSummary bagSummary = new BagSummary(bag, fsMap);
+		try {
+			bagSummary.setExtRefsTxt(new ExtRefsTagFile(new File(bag.getFile(), ExtRefsTagFile.FILEPATH)));
+		} catch (IOException e) {
+			LOGGER.warn("Unable to read ExtRefsTxt in {}", bag.getFile().getAbsolutePath());
+		}
 		return bagSummary;
 	}
 
@@ -92,86 +105,96 @@ public class BagSummaryTask implements Callable<BagSummary> {
 	}
 
 	private void populatePronomIds(FileSummaryMap fsMap, Bag bag) {
-		BagFile pronomFormatsTxt = bag.getBagFile(PronomFormatsTxt.FILEPATH);
-		if (pronomFormatsTxt != null) {
-			PronomFormatsTxt pronomTagFile;
-			try {
-				pronomTagFile = new PronomFormatsTxt(PronomFormatsTxt.FILEPATH, pronomFormatsTxt, bag.getBagItTxt()
-						.getCharacterEncoding());
-			} catch (Exception e) {
-				pronomTagFile = null;
-				LOGGER.warn("Unable to read {}. Error: {}", pronomFormatsTxt.getFilepath(), e.getMessage());
-			}
-			if (pronomTagFile != null) {
-				for (Entry<String, String> pronomEntry : pronomTagFile.entrySet()) {
-					FileSummary fs = fsMap.get(pronomEntry.getKey());
-					if (fs != null) {
-						fs.setPronomFormat(new PronomFormat(pronomEntry.getValue()));
-					}
+		try {
+			PronomFormatsTagFile pronomFormats = new PronomFormatsTagFile(bag.getFile());
+			for (Entry<String, String> pronomEntry : pronomFormats.entrySet()) {
+				FileSummary fs = fsMap.get(pronomEntry.getKey());
+				if (fs != null) {
+					fs.setPronomFormat(new PronomFormat(pronomEntry.getValue()));
 				}
 			}
-		} else {
-			LOGGER.warn("{} doesn't exist.", PronomFormatsTxt.FILEPATH);
+		} catch (IOException e) {
+			LOGGER.warn("Unable to read {} in {}", PronomFormatsTagFile.FILEPATH, bag.getFile().getAbsolutePath());
 		}
 	}
 
 	private void populateVirusScans(FileSummaryMap fsMap, Bag bag) {
-		BagFile vsTxt = bag.getBagFile(VirusScanTxt.FILEPATH);
-		if (vsTxt != null) {
-			VirusScanTxt vs;
-			try {
-				vs = new VirusScanTxt(VirusScanTxt.FILEPATH, vsTxt, bag.getBagItTxt().getCharacterEncoding());
-			} catch (Exception e) {
-				vs = null;
-				LOGGER.warn("Unable to read {}. Error: {}", VirusScanTxt.FILEPATH, e.getMessage());
-			}
-			if (vs != null) {
-				for (Entry<String, String> vsEntry : vs.entrySet()) {
-					FileSummary fs = fsMap.get(vsEntry.getKey());
-					if (fs != null) {
-						if (vsEntry.getValue() != null && vsEntry.getValue().length() > 0) {
-							ScanResult sr = new ScanResult(vsEntry.getValue());
-							String srStr;
-							if (sr.getStatus() == ScanResult.Status.FAILED) {
-								srStr = sr.getStatus().toString() + ", " + sr.getSignature();
-							} else {
-								srStr = sr.getStatus().toString();
-							}
-							fs.setScanResult(srStr);
+		try {
+			VirusScanTagFile vs = new VirusScanTagFile(bag.getFile());
+			for (Entry<String, String> vsEntry : vs.entrySet()) {
+				FileSummary fs = fsMap.get(vsEntry.getKey());
+				if (fs != null) {
+					if (vsEntry.getValue() != null && vsEntry.getValue().length() > 0) {
+						ScanResult sr = new ScanResult(vsEntry.getValue());
+						String srStr;
+						if (sr.getStatus() == ScanResult.Status.FAILED) {
+							srStr = sr.getStatus().toString() + ", " + sr.getSignature();
 						} else {
-							fs.setScanResult("NOT SCANNED");
+							srStr = sr.getStatus().toString();
 						}
+						fs.setScanResult(srStr);
+					} else {
+						fs.setScanResult("NOT SCANNED");
 					}
 				}
 			}
-		} else {
-			LOGGER.warn("{} doesn't exist.", VirusScanTxt.FILEPATH);
+		} catch (IOException e) {
+			LOGGER.warn("Unable to read {} in {}", VirusScanTagFile.FILEPATH, bag.getFile().getAbsolutePath());
 		}
 	}
 
 	private void populateMetadata(FileSummaryMap fsMap, Bag bag) {
-		for (Entry<String, FileSummary> entry : fsMap.entrySet()) {
-			ObjectInputStream objInStream = null;
-			try {
-				String serMetadataFilename = getSerialisedMetadataFilename(entry.getKey());
-				BagFile serMetadataBagFile = bag.getBagFile(serMetadataFilename);
-				if (serMetadataBagFile != null) {
-					objInStream = new ObjectInputStream(serMetadataBagFile.newInputStream());
-					entry.getValue().setMetadata(readMetadata(objInStream));
+		try {
+			FileMetadataTagFile fileMetadata = new FileMetadataTagFile(bag.getFile());
+			for (Entry<String, String> metadataEntry : fileMetadata.entrySet()) {
+				FileSummary fs = fsMap.get(metadataEntry.getKey());
+				if (fs != null) {
+					if (metadataEntry.getValue() != null && metadataEntry.getValue().length() > 0) {
+						fs.setMetadata(deserializeFromJson(metadataEntry.getValue()));
+					}
 				}
-			} catch (Exception e) {
-				LOGGER.warn(e.getMessage(), e);
-				entry.getValue().setMetadata(new HashMap<String, String[]>());
-			} finally {
-				IOUtils.closeQuietly(objInStream);
+			}
+		} catch (IOException e) {
+			LOGGER.warn("Unable to read {} in {}", FileMetadataTagFile.FILEPATH, bag.getFile().getAbsolutePath());
+		}
+		readMetadataFromHistoricalSource(fsMap, bag);
+	}
+	
+	private Map<String, String[]>deserializeFromJson(String jsonStr) throws JsonParseException, JsonMappingException, IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.readValue(jsonStr, new TypeReference<Map<String, String[]>>() {});
+	}
+
+	/**
+	 * For FileSummary objects that don't have metadata assigned, reads the metadata from historical source - file with
+	 * the name 'payloadfile.txt.ser' in the metadata folder in the bag. Metadata for each payload file is now stored in
+	 * tagfile file-metadata.txt .
+	 * 
+	 * @param fsMap
+	 * @param bag
+	 */
+	@Deprecated
+	private void readMetadataFromHistoricalSource(FileSummaryMap fsMap, Bag bag) {
+		for (Entry<String, FileSummary> entry : fsMap.entrySet()) {
+			if (entry.getValue().getMetadata() == null) {
+				ObjectInputStream objInStream = null;
+				try {
+					String serMetadataFilename = getSerialisedMetadataFilename(entry.getKey());
+					BagFile serMetadataBagFile = bag.getBagFile(serMetadataFilename);
+					if (serMetadataBagFile != null) {
+						objInStream = new ObjectInputStream(serMetadataBagFile.newInputStream());
+						entry.getValue().setMetadata(readMetadata(objInStream));
+					}
+				} catch (Exception e) {
+					LOGGER.warn(e.getMessage(), e);
+				} finally {
+					IOUtils.closeQuietly(objInStream);
+				}
 			}
 		}
 	}
 	
-	private String getSerialisedMetadataFilename(String filepath) {
-		return format("metadata/{0}.ser", FilenameHelper.getName(filepath));
-	}
-	
+	@Deprecated
 	@SuppressWarnings("unchecked")
 	private Map<String, String[]> readMetadata(ObjectInputStream objInStream) throws IOException,
 			ClassNotFoundException {
@@ -183,5 +206,9 @@ public class BagSummaryTask implements Callable<BagSummary> {
 		}
 		return metadataObj;
 	}
-
+	
+	@Deprecated
+	private String getSerialisedMetadataFilename(String filepath) {
+		return format("metadata/" + FilenameHelper.getName(filepath) + ".ser");
+	}
 }

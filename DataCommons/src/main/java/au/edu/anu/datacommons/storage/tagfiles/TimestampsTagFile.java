@@ -19,34 +19,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.info;
+package au.edu.anu.datacommons.storage.tagfiles;
 
-import gov.loc.repository.bagit.BagFile;
-import gov.loc.repository.bagit.utilities.namevalue.impl.AbstractNameValueBagFile;
+import java.io.File;
+import java.io.IOException;
 
 /**
- * This class represents the tag file containing URL references to resources not stored within the ANU Data Commons.
+ * @author Rahul Khanna
+ *
  */
-public class ExtRefsTxt extends AbstractNameValueBagFile
-{
+public class TimestampsTagFile extends AbstractKeyValueFile {
 	private static final long serialVersionUID = 1L;
-	private static final String TYPE = "ExtRefs";
-	
-	public static final String FILEPATH = "ext-refs.txt";
 
-	public ExtRefsTxt(String filepath, BagFile bagFile, String encoding)
-	{
-		super(filepath, bagFile, encoding);
-	}
+	public static final String FILEPATH = "timestamps.txt";
 
-	public ExtRefsTxt(String filepath, String encoding)
-	{
-		super(filepath, encoding);
-	}
-	
-	@Override
-	public String getType()
-	{
-		return TYPE;
+	public TimestampsTagFile(File bagDir) throws IOException {
+		super(new File(bagDir, FILEPATH));
 	}
 }

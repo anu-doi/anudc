@@ -21,6 +21,8 @@
 
 package au.edu.anu.datacommons.storage.tagfiles;
 
+import static java.text.MessageFormat.*;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -34,12 +36,16 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Rahul Khanna
  * 
  */
 public abstract class AbstractKeyValueFile extends HashMap<String, String> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractKeyValueFile.class);
 	private static final long serialVersionUID = 1L;
 	
 	protected File file;
@@ -57,9 +63,19 @@ public abstract class AbstractKeyValueFile extends HashMap<String, String> {
 		try {
 			synchronized(this) {
 				reader = new BufferedReader(new FileReader(this.file));
-				for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-					String parts[] = line.split("(?<!\\\\):", 2);
-					this.put(parts[0].trim().replace("\\", ""), parts[1].trim());
+				for (String line = reader.readLine(); line != null; ) {
+					// If the next line starts with white spaces concatinate it to the current line.
+					String nextLine = reader.readLine();
+					while (nextLine != null && nextLine.startsWith("  ")) {
+						line += nextLine.substring(2);
+						nextLine = reader.readLine();
+					}
+					
+					String parts[] = unserializeKeyValue(line); 
+					if (parts != null) {
+						this.put(parts[0], parts[1]);
+					}
+					line = nextLine;
 				}
 			}
 		} finally {
@@ -70,10 +86,10 @@ public abstract class AbstractKeyValueFile extends HashMap<String, String> {
 	public synchronized void write() throws IOException {
 		BufferedWriter writer = null;
 		try {
-			synchronized(this) {
+			synchronized (this) {
 				writer = new BufferedWriter(new FileWriter(file));
 				for (Entry<String, String> entry : this.entrySet()) {
-					writer.write(entry.getKey().replace(":", "\\:") + ": " + entry.getValue());
+					writer.write(serializeEntry(entry));
 					writer.newLine();
 				}
 			}
@@ -81,20 +97,59 @@ public abstract class AbstractKeyValueFile extends HashMap<String, String> {
 			IOUtils.closeQuietly(writer);
 		}
 	}
-	
+
 	@Override
 	public String put(String key, String value) {
 		if (key == null) {
-			throw new NullPointerException("Key cannot be null");
+			throw new NullPointerException(format("Key cannot be null. File: {0}", getFile().getAbsolutePath()));
 		} else if (key.length() == 0) {
-			throw new IllegalArgumentException("Key cannot be a zero-length string");
+			throw new IllegalArgumentException(format("Key cannot be a zero-length string. File: {0}", getFile()
+					.getAbsolutePath()));
 		}
 		if (value == null) {
-			throw new NullPointerException("Value cannot be null");
+			throw new NullPointerException(format("Value cannot be null. File {0}", getFile().getAbsolutePath()));
 		} else if (value.length() == 0) {
-			throw new IllegalArgumentException("Value cannot be a zero-length string");
+			throw new IllegalArgumentException(format("Value cannot be a zero-length string. Key: {0}. File: {1}", key,
+					getFile().getAbsolutePath()));
 		}
-		
+
 		return super.put(key, value);
+	}
+	
+	public File getFile() {
+		return this.file;
+	}
+
+	protected String[] unserializeKeyValue(String line) {
+		String parts[];
+		parts = line.split("(?<!\\" + getEscapeChar() + ")" + getSeparator(), 2);
+		if (parts.length == 2 && parts[0].length() > 0 && parts[1].length() > 0) {
+			parts[0] = unescapeKey(parts[0]).trim();
+			parts[1] = parts[1].trim();
+		} else {
+			LOGGER.warn("Unparsable line: {} in file {}", line, this.file.getName());
+			parts = null;
+		}
+		return parts;
+	}
+
+	protected String serializeEntry(Entry<String, String> entry) {
+		return escapeKey(entry.getKey()) + getSeparator() + entry.getValue();
+	}
+
+	protected String escapeKey(String key) {
+		return key.replace(String.valueOf(getSeparator()), getEscapeChar() + getSeparator());
+	}
+	
+	protected String unescapeKey(String key) {
+		return key.replace(getEscapeChar(), "");
+	}
+	
+	protected String getEscapeChar() {
+		return "\\";
+	}
+	
+	protected String getSeparator() {
+		return ": ";
 	}
 }

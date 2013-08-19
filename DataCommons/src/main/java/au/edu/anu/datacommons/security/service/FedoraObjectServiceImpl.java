@@ -23,6 +23,7 @@ package au.edu.anu.datacommons.security.service;
 
 import static java.text.MessageFormat.format;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -593,7 +594,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 						BagSummary bagSummary = DcStorage.getInstance().getBagSummary(fedoraObject.getObject_id());
 						values.put("bagSummary", bagSummary);
 					}
-					catch (DcStorageException e)
+					catch (IOException e)
 					{
 						LOGGER.error(e.getMessage(), e);
 					}

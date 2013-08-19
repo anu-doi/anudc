@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.upload;
 
-import static java.text.MessageFormat.format;
+import static java.text.MessageFormat.*;
 import gov.loc.repository.bagit.Manifest;
 
 import java.io.BufferedInputStream;
@@ -98,7 +98,6 @@ import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
-import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.storage.TempFileTask;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummaryMap;
@@ -378,7 +377,7 @@ public class UploadService {
 					model.put("dlBaseUri", uriBuilder.build(pid, "").toString());
 					model.put("downloadAsZipUrl", uriBuilder.build(pid, "zip").toString());
 					model.put("isFilesPublic", fo.isFilesPublic().booleanValue());
-				} catch (DcStorageException e) {
+				} catch (IOException e) {
 					LOGGER.error(e.getMessage(), e);
 					PageMessages messages = new PageMessages();
 					messages.add(MessageType.ERROR, e.getMessage(), model);
@@ -416,7 +415,7 @@ public class UploadService {
 		try {
 			BagSummary bagSummary = dcStorage.getBagSummary(pid);
 			resp = Response.ok(bagSummary).build();
-		} catch (DcStorageException e) {
+		} catch (IOException e) {
 			resp = Response.serverError().build();
 		}
 		
@@ -541,11 +540,11 @@ public class UploadService {
 				
 				resp = getBagFilesAsZip(pid, filepaths, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), "zip"));
 			} else {
-				if (!dcStorage.fileExistsInBag(pid, fileRequested))
+				if (!dcStorage.fileExists(pid, fileRequested))
 					throw new NotFoundException(format("File {0} not found in {1}", fileRequested, pid));
 				resp = getBagFileOctetStreamResp(pid, fileRequested);
 			}
-		} catch (DcStorageException e) {
+		} catch (IOException e) {
 			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
 
@@ -575,7 +574,7 @@ public class UploadService {
 		File uploadedFile = null;
 
 		try {
-			if (dcStorage.fileExistsInBag(pid, fileInBag))
+			if (dcStorage.fileExists(pid, fileInBag))
 				new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(),
 						getCurUser(), request.getRemoteAddr(), request.getHeader("User-Agent"),
 						AccessLogRecord.Operation.UPDATE));
@@ -662,10 +661,8 @@ public class UploadService {
 
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 		try {
-			if (addUrlSet != null && !addUrlSet.isEmpty())
-				dcStorage.addExtRefs(pid, addUrlSet);
-			if (deleteUrlSet != null && deleteUrlSet.isEmpty())
-				dcStorage.deleteExtRefs(pid, deleteUrlSet);
+			dcStorage.addExtRefs(pid, addUrlSet);
+			dcStorage.deleteExtRefs(pid, deleteUrlSet);
 
 			resp = Response.ok(format("Added {0} to {1}.", addUrlSet, pid)).build();
 		} catch (Exception e) {
@@ -804,10 +801,10 @@ public class UploadService {
 		Response resp = null;
 		InputStream is = null;
 
-		if (!dcStorage.fileExistsInBag(pid, fileInBag))
-			throw new NotFoundException(format("File {} not found in {}", fileInBag, pid));
-
 		try {
+			if (!dcStorage.fileExists(pid, fileInBag)) {
+				throw new NotFoundException(format("File {0} not found in record {1}", fileInBag, pid));
+			}
 			is = dcStorage.getFileStream(pid, fileInBag);
 			ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 			// Add filename, MD5 and file size to response header.
@@ -815,8 +812,9 @@ public class UploadService {
 					format("attachment; filename=\"{0}\"", getFilenameFromPath(fileInBag)));
 			respBuilder = respBuilder.header("Content-MD5", dcStorage.getFileMd5(pid, fileInBag));
 			respBuilder = respBuilder.header("Content-Length", dcStorage.getFileSize(pid, fileInBag));
+			respBuilder = respBuilder.lastModified(dcStorage.getFileLastModified(pid, fileInBag));
 			resp = respBuilder.build();
-		} catch (DcStorageException e) {
+		} catch (IOException e) {
 			LOGGER.error(e.getMessage());
 			throw new NotFoundException(e.getMessage());
 		}

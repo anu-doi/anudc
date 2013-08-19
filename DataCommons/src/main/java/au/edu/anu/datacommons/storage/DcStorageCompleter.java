@@ -21,22 +21,35 @@
 
 package au.edu.anu.datacommons.storage;
 
-import static java.text.MessageFormat.*;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFile;
-import gov.loc.repository.bagit.impl.StringBagFile;
 import gov.loc.repository.bagit.transformer.Completer;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.exception.TikaException;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -46,18 +59,21 @@ import au.edu.anu.datacommons.storage.completer.fido.FidoParser;
 import au.edu.anu.datacommons.storage.completer.metadata.MetadataExtractor;
 import au.edu.anu.datacommons.storage.completer.metadata.MetadataExtractorImpl;
 import au.edu.anu.datacommons.storage.completer.virusscan.ClamScan;
-import au.edu.anu.datacommons.storage.info.PronomFormatsTxt;
 import au.edu.anu.datacommons.storage.info.ScanResult;
-import au.edu.anu.datacommons.storage.info.VirusScanTxt;
+import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 
 /**
- * Completes a bag to add additional tag files as required by ANU DataCommons. Requires the bag to be completer through
+ * Completes a bag to add additional tag files as required by ANU DataCommons. Requires the bag to be completed through
  * another completer to update tag and manifest contents.
  * 
  * @see Completer
  */
 public class DcStorageCompleter implements Completer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorageCompleter.class);
+	
 	
 	private List<String> limitAddUpdatePayloadFilepaths = null;
 	private List<String> limitDeletePayloadFilepaths = null;
@@ -87,22 +103,78 @@ public class DcStorageCompleter implements Completer {
 	 * @see Completer#complete(Bag)
 	 */
 	@Override
-	public Bag complete(Bag bag) {
-		try {
-			bag = handlePronomTxt(bag);
-		} catch (Throwable e) {
-			LOGGER.error(e.getMessage(), e);
+	public Bag complete(final Bag bag) {
+		ExecutorService es = Executors.newFixedThreadPool(4, new ThreadFactory() {
+			AtomicInteger ai = new AtomicInteger(1);
+			
+			@Override
+			public Thread newThread(Runnable r) {
+				Thread t = new Thread(r, "pool-" + "completer" + "-thread-" + ai.getAndIncrement());
+				t.setPriority(2);
+				return t;
+			}
+		});
+		List<Future<?>> tasks = new ArrayList<Future<?>>(3);
+		tasks.add(es.submit(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					handlePronomTxt(bag);
+				} catch (Throwable e) {
+					LOGGER.error(e.getMessage(), e);
+				}
+			}
+			
+		}));
+		tasks.add(es.submit(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					handleAvScan(bag);
+				} catch (Throwable e) {
+					LOGGER.error(e.getMessage(), e);
+				}
+			}
+			
+		}));
+		tasks.add(es.submit(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					handleMetadata(bag);
+				} catch (Throwable e) {
+					LOGGER.error(e.getMessage(), e);
+				}
+			}
+			
+		}));
+		tasks.add(es.submit(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					handleTimestamps(bag);
+				} catch (Throwable e) {
+					LOGGER.error(e.getMessage(), e);
+				}
+			}
+			
+		}));
+
+		for (Future<?> f : tasks) {
+			try {
+				f.get();
+			} catch (InterruptedException e) {
+				LOGGER.warn(e.getMessage(), e);
+			} catch (ExecutionException e) {
+				LOGGER.warn(e.getMessage(), e);
+			}
 		}
-		try {
-			bag = handleAvScan(bag);
-		} catch (Throwable e) {
-			LOGGER.error(e.getMessage(), e);
-		}
-		try {
-			bag = handleMetadata(bag);
-		} catch (Throwable e) {
-			LOGGER.error(e.getMessage(), e);
-		}
+		
+		es.shutdown();
 		return bag;
 	}
 
@@ -113,10 +185,11 @@ public class DcStorageCompleter implements Completer {
 	 * @param bag
 	 *            Bag containing the files to be processed.
 	 * @return Bag object with pronom-formats.txt containing Fido Strings for each payload file.
+	 * @throws IOException 
 	 */
-	private Bag handlePronomTxt(Bag bag) {
+	private Bag handlePronomTxt(Bag bag) throws IOException {
 		LOGGER.debug("Updating Pronom IDs in bag {}...", bag.getFile().getAbsolutePath());
-		PronomFormatsTxt pFormats = getOrCreatePronomFormats(bag);
+		PronomFormatsTagFile pFormats = new PronomFormatsTagFile(bag.getFile());
 
 		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
 			pFormats.clear();
@@ -131,11 +204,10 @@ public class DcStorageCompleter implements Completer {
 		// Get Fido Output for each payload file.
 		for (BagFile iBagFile : bag.getPayload()) {
 			if (isLimited(this.limitAddUpdatePayloadFilepaths, iBagFile.getFilepath())) {
-				FidoParser fido;
 				InputStream fileStream = null;
 				try {
 					fileStream = iBagFile.newInputStream();
-					fido = new FidoParser(fileStream, iBagFile.getFilepath());
+					FidoParser fido = new FidoParser(fileStream, iBagFile.getFilepath());
 					LOGGER.trace("Fido result for {}: {}", iBagFile.getFilepath(), fido.getFidoStr());
 					pFormats.put(iBagFile.getFilepath(), fido.getFidoStr());
 				} catch (IOException e) {
@@ -145,8 +217,11 @@ public class DcStorageCompleter implements Completer {
 				}
 			}
 		}
+		pFormats.write();
+		synchronized (bag) {
+			bag.addFileAsTag(pFormats.getFile());
+		}
 		LOGGER.debug("Finished updating Pronom IDs in bag {}.", bag.getFile().getAbsolutePath());
-		bag.putBagFile(pFormats);
 		return bag;
 	}
 
@@ -157,10 +232,11 @@ public class DcStorageCompleter implements Completer {
 	 *            Bag containing the payload files to scan
 	 * 
 	 * @return Bag with the updated virus-scan.txt tagfile
+	 * @throws IOException 
 	 */
-	private Bag handleAvScan(Bag bag) {
+	private Bag handleAvScan(Bag bag) throws IOException {
 		LOGGER.debug("Updating Virus Scan statuses in bag {}...", bag.getFile().getAbsolutePath());
-		VirusScanTxt vsTxt = getOrCreateVirusScan(bag);
+		VirusScanTagFile vsTxt = new VirusScanTagFile(bag.getFile());
 
 		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
 			vsTxt.clear();
@@ -186,8 +262,11 @@ public class DcStorageCompleter implements Completer {
 				}
 			}
 		}
+		vsTxt.write();
+		synchronized (bag) {
+			bag.addFileAsTag(vsTxt.getFile());
+		}
 		LOGGER.debug("Finished updating Virus Scan statuses in bag {}.", bag.getFile().getAbsolutePath());
-		bag.putBagFile(vsTxt);
 		return bag;
 	}
 
@@ -199,120 +278,76 @@ public class DcStorageCompleter implements Completer {
 	 *            Bag containing the payload files whose metadata is to be extracted and stored as tagfiles.
 	 * 
 	 * @return Bag with tagfiles containing metadata about each payload file.
+	 * @throws IOException 
 	 */
-	private Bag handleMetadata(Bag bag) {
+	private Bag handleMetadata(Bag bag) throws IOException {
 		LOGGER.debug("Updating File Metadata in bag {}...", bag.getFile().getAbsolutePath());
+		FileMetadataTagFile fileMetadata = new FileMetadataTagFile(bag.getFile());
+
 		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
-			bag.removeTagDirectory("metadata/");
+			fileMetadata.clear();
 		} else if (this.limitDeletePayloadFilepaths != null) {
 			for (String filepath : this.limitDeletePayloadFilepaths) {
-				String metaFilepath = createMetaFilepath(filepath);
-				bag.removeBagFile(metaFilepath);
-				new File(bag.getFile(), metaFilepath).delete();
-
-				String xmpFilepath = createXmpFilepath(filepath);
-				bag.removeBagFile(xmpFilepath);
-				new File(bag.getFile(), xmpFilepath).delete();
+				fileMetadata.remove(filepath);
 			}
 		}
 
-		// Extract metadata and save serialize Metadata object.
+		// Get scan result for each payload file.
 		for (BagFile iBagFile : bag.getPayload()) {
 			if (isLimited(this.limitAddUpdatePayloadFilepaths, iBagFile.getFilepath())) {
+				InputStream dataStream = null;
 				MetadataExtractor me;
 				try {
-					InputStream dataStream = null;
-					try {
-						dataStream = iBagFile.newInputStream();
-						me = new MetadataExtractorImpl(dataStream);
-					} finally {
-						IOUtils.closeQuietly(dataStream);
-					}
-
-					try {
-						handleTikaXmp(bag, iBagFile, me);
-					} catch (TikaException e) {
-						LOGGER.warn("Tika Exception for " + iBagFile.getFilepath(), e);
-					}
-					try {
-						handleTikaSerialize(bag, iBagFile, me);
-					} catch (IOException e) {
-						LOGGER.warn("IOException for " + iBagFile.getFilepath(), e);
-					}
-				} catch (IOException e) {
-					LOGGER.warn("IOException for " + iBagFile.getFilepath(), e);
+					dataStream = iBagFile.newInputStream();
+					me = new MetadataExtractorImpl(dataStream);
+					fileMetadata.put(iBagFile.getFilepath(), serializeToJson(me.getMetadataMap()));
 				} catch (SAXException e) {
-					LOGGER.warn("SAXException for " + iBagFile.getFilepath(), e);
+					LOGGER.warn("{} for {}", e.getMessage(), iBagFile.getFilepath());
 				} catch (TikaException e) {
-					LOGGER.warn("TikaException for " + iBagFile.getFilepath(), e);
+					LOGGER.warn("{} for {}", e.getMessage(), iBagFile.getFilepath());
+				} finally {
+					IOUtils.closeQuietly(dataStream);
 				}
 			}
 		}
-		LOGGER.debug("Finished updating File Metadata in bag {}.", bag.getFile().getAbsolutePath());
+		fileMetadata.write();
+		synchronized (bag) {
+			bag.addFileAsTag(fileMetadata.getFile());
+		}
+		LOGGER.debug("Finished File Metadata in bag {}.", bag.getFile().getAbsolutePath());
 		return bag;
 	}
-
-	/**
-	 * Adds an XMP file containing metadata for each payload file.
-	 * 
-	 * @param bag
-	 *            Bag containing the payload file.
-	 * @param bf
-	 *            The bagfile whose metadata is to be extracted.
-	 * @param me
-	 *            MetadataExtractor object obtained using Apache Tika
-	 * @throws TikaException
-	 *             If unable to get XMP data from metadata object
-	 */
-	private void handleTikaXmp(Bag bag, BagFile bf, MetadataExtractor me) throws TikaException {
-		String xmpFilename = createXmpFilepath(bf.getFilepath());
-		StringBagFile xmpFile = new StringBagFile(xmpFilename, me.getXmpMetadata().toString());
-		LOGGER.debug("Storing XMP data for {} in {}", bf.getFilepath(), xmpFilename);
-		LOGGER.trace(me.getXmpMetadata().toString());
-		bag.putBagFile(xmpFile);
-	}
-
-	/**
-	 * Serializes the MetadataExtractor object for a payload file and stores in the bag as tagfile.
-	 * 
-	 * @param bag
-	 *            Bag containing the payload file whose MetadataExtractor object will be serialised.
-	 * @param bf
-	 *            BagFile whose metadata will be serialised.
-	 * @param me
-	 *            MetadataExtractor object containing metadata about payload file.
-	 * @throws IOException
-	 *             If unable to save serialised file to disk.
-	 */
-	private void handleTikaSerialize(Bag bag, BagFile bf, MetadataExtractor me) throws IOException {
-		ByteArrayOutputStream bos = null;
-		ObjectOutputStream objOutStream = null;
-		try {
-			String serMetaFilename = createMetaFilepath(bf.getFilepath());
-			bos = new ByteArrayOutputStream();
-			objOutStream = new ObjectOutputStream(bos);
-			objOutStream.writeObject(me.getMetadataMap());
-			StringBagFile serMetaFile = new StringBagFile(serMetaFilename, bos.toByteArray());
-			LOGGER.debug("Storing serialized metadata for {} in {}.", bf.getFilepath(), serMetaFilename);
-			Map<String, String[]> metadataMap = me.getMetadataMap();
-			for (String key : metadataMap.keySet())
-				for (String value : metadataMap.get(key))
-					LOGGER.trace("{}: {}", key, value);
-			bag.putBagFile(serMetaFile);
-		} finally {
-			IOUtils.closeQuietly(objOutStream);
-			IOUtils.closeQuietly(bos);
+	
+	private Bag handleTimestamps(Bag bag) throws IOException {
+		LOGGER.debug("Updating file timestamps in bag {}...", bag.getFile().getAbsolutePath());
+		TimestampsTagFile timestamps = new TimestampsTagFile(bag.getFile());
+		
+		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
+			timestamps.clear();
+		} else if (this.limitDeletePayloadFilepaths != null) {
+			for (String filepath : this.limitDeletePayloadFilepaths) {
+				timestamps.remove(filepath);
+			}
 		}
+		
+		for (BagFile iBagFile : bag.getPayload()) {
+			if (isLimited(this.limitAddUpdatePayloadFilepaths, iBagFile.getFilepath())) {
+				timestamps.put(iBagFile.getFilepath(), String.valueOf(new File(bag.getFile(), iBagFile.getFilepath()).lastModified()));
+			}
+		}
+		timestamps.write();
+		synchronized (bag) {
+			bag.addFileAsTag(timestamps.getFile());
+		}
+		LOGGER.debug("Finished updating file timestamps in bag {}.", bag.getFile().getAbsolutePath());
+		return bag;
 	}
 	
-	private String createMetaFilepath(String payloadFilepath) {
-		return format("metadata/{0}.ser", payloadFilepath.substring(payloadFilepath.indexOf('/') + 1));
+	private String serializeToJson(Object obj) throws JsonGenerationException, JsonMappingException, IOException {
+		ObjectMapper objMapper = new ObjectMapper();
+		return objMapper.writeValueAsString(obj);
 	}
 	
-	private String createXmpFilepath(String payloadFilepath) {
-		return format("metadata/{0}.xmp", payloadFilepath.substring(payloadFilepath.indexOf('/') + 1));
-	}
-
 	private boolean isLimited(List<String> limitList, String filepath) {
 		boolean isLimited = false;
 		if (limitList == null) {
@@ -323,52 +358,5 @@ public class DcStorageCompleter implements Completer {
 			}
 		}
 		return isLimited;
-	}
-	
-
-	/**
-	 * Gets the PronomFormatsTxt from a bag. Creates one if it doesn't exist.
-	 * 
-	 * @param bag
-	 *            Bag containing PronomFormatsTxt
-	 * @return PronomFormatsTxt object containing pronom format details of each payload file.
-	 */
-	private PronomFormatsTxt getOrCreatePronomFormats(Bag bag) {
-		PronomFormatsTxt pFormats;
-		BagFile pronomBagFile = bag.getBagFile(PronomFormatsTxt.FILEPATH);
-		if (pronomBagFile == null)
-			pFormats = new PronomFormatsTxt(PronomFormatsTxt.FILEPATH, getCharEncoding(bag));
-		else
-			pFormats = new PronomFormatsTxt(PronomFormatsTxt.FILEPATH, pronomBagFile, getCharEncoding(bag));
-		return pFormats;
-	}
-
-	/**
-	 * Gets the VirusScanTxt from a bag. Creates one if it doesn't exist.
-	 * 
-	 * @param bag
-	 *            Bag containing the VirusScanTxt
-	 * 
-	 * @return VirusScanTxt object containing virus scan details of each payload file.
-	 */
-	private VirusScanTxt getOrCreateVirusScan(Bag bag) {
-		VirusScanTxt vsTxt;
-		BagFile avStatusFile = bag.getBagFile(VirusScanTxt.FILEPATH);
-		if (avStatusFile == null)
-			vsTxt = new VirusScanTxt(VirusScanTxt.FILEPATH, getCharEncoding(bag));
-		else
-			vsTxt = new VirusScanTxt(VirusScanTxt.FILEPATH, avStatusFile, getCharEncoding(bag));
-		return vsTxt;
-	}
-
-	/**
-	 * Gets the character encoding for tagfiles specified in bagit.txt.
-	 * 
-	 * @param bag
-	 *            Bag whose tag file character encoding to retrieve
-	 * @return Character encoding as String. By default it will be "UTF-8"
-	 */
-	private String getCharEncoding(Bag bag) {
-		return bag.getBagItTxt().getCharacterEncoding();
 	}
 }

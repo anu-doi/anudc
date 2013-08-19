@@ -64,7 +64,6 @@ public class BagSummary {
 		friendlySize = FileUtils.byteCountToDisplaySize(bagSize);
 		this.bagInfoTxt = bag.getBagInfoTxt();
 		readBagPropsTxt(bag);
-		readExtRefsTxt(bag);
 	}
 
 	/**
@@ -147,6 +146,10 @@ public class BagSummary {
 	public Map<String, String> getExtRefsTxt() {
 		return extRefsTxt;
 	}
+	
+	public void setExtRefsTxt(Map<String, String> extRefsTxt) {
+		this.extRefsTxt = extRefsTxt;
+	}
 
 	private void calcBagSize(FileSummaryMap fsMap) {
 		bagSize = 0L;
@@ -160,11 +163,5 @@ public class BagSummary {
 		if (bagPropsTxtFile != null)
 			this.bagPropsTxt = new BagPropsTxt(BagPropsTxt.FILEPATH, bagPropsTxtFile, bag.getBagItTxt()
 					.getCharacterEncoding());
-	}
-
-	private void readExtRefsTxt(Bag bag) {
-		BagFile extRefsFile = bag.getBagFile(ExtRefsTxt.FILEPATH);
-		if (extRefsFile != null)
-			this.extRefsTxt = new ExtRefsTxt(ExtRefsTxt.FILEPATH, extRefsFile, bag.getBagItTxt().getCharacterEncoding());
 	}
 }

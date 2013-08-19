@@ -26,11 +26,11 @@ import java.io.IOException;
 
 /**
  * @author Rahul Khanna
- *
+ * 
  */
 public class VirusScanTagFile extends AbstractKeyValueFile {
-private static final long serialVersionUID = 1L;
-	
+	private static final long serialVersionUID = 1L;
+
 	public static final String FILEPATH = "virus-scan.txt";
 
 	public VirusScanTagFile(File bagDir) throws IOException {

@@ -21,10 +21,11 @@
 
 package au.edu.anu.datacommons.storage;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
+import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,11 +41,15 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummary;
+import au.edu.anu.datacommons.test.util.TestUtil;
 
 /**
  * @author Rahul Khanna
@@ -54,6 +59,9 @@ public class BagSummaryTaskTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BagSummaryTaskTest.class);
 
 	private BagFactory bf;
+	
+	@Rule
+	public TemporaryFolder bagDir = new TemporaryFolder();
 	
 	/**
 	 * @throws java.lang.Exception
@@ -75,6 +83,23 @@ public class BagSummaryTaskTest {
 	@Before
 	public void setUp() throws Exception {
 		bf = new BagFactory();
+		LOGGER.info("Using bag directory: {}", bagDir.getRoot().getAbsolutePath());
+		
+		File payloadDir = bagDir.newFolder("data");
+		String file1name = "File 1.txt";
+		File file1 = bagDir.newFile(file1name);
+		TestUtil.fillRandomData(file1, 3L);
+		file1.renameTo(new File(payloadDir, file1name));
+		
+		Bag bag = bf.createBag(bagDir.getRoot(), LoadOption.BY_FILES);
+		bag = bag.makeComplete();
+		bag = bag.makeComplete(new DcStorageCompleter());
+		
+		FileSystemWriter fsWriter = new FileSystemWriter(bf);
+		bag = fsWriter.write(bag, bagDir.getRoot());
+		
+		bag = bf.createBag(bagDir.getRoot(), LoadOption.BY_FILES);
+		assertTrue(bag.verifyValid().isSuccess());
 	}
 
 	/**
@@ -85,11 +110,9 @@ public class BagSummaryTaskTest {
 	}
 
 	// Requires env setup.
-	@Ignore
+	@Test
 	public void test() {
-		Bag bag = bf.createBag(new File("C:\\Rahul\\FileUpload\\Bags\\test_387"), LoadOption.BY_FILES);
-
-		BagSummaryTask task = new BagSummaryTask(bag);
+		BagSummaryTask task = new BagSummaryTask(bagDir.getRoot());
 		BagSummary bs = task.generateBagSummary();
 		
 		assertNotNull(bs);
@@ -103,11 +126,9 @@ public class BagSummaryTaskTest {
 	}
 
 	// Requires env setup.
-	@Ignore
+	@Test
 	public void testJsonMapping() throws JsonGenerationException, JsonMappingException, IOException {
-		Bag bag = bf.createBag(new File("C:\\Rahul\\FileUpload\\Bags\\test_427"), LoadOption.BY_FILES);
-
-		BagSummaryTask task = new BagSummaryTask(bag);
+		BagSummaryTask task = new BagSummaryTask(bagDir.getRoot());
 		BagSummary bs = task.generateBagSummary();
 		
 		ObjectMapper mapper = new ObjectMapper();

@@ -34,6 +34,16 @@ public final class TestUtil {
 		return bytes;
 	}
 
+	/**
+	 * Writes random data to a file until file reaches specified size in MB.
+	 * 
+	 * @param file
+	 *            File to write to.
+	 * @param sizeInMB
+	 *            Number of megabytes to write
+	 * @return MD5 as String
+	 * @throws IOException
+	 */
 	public static String fillRandomData(File file, long sizeInMB) throws IOException {
 		OutputStream fileStream = null;
 		MessageDigest md;

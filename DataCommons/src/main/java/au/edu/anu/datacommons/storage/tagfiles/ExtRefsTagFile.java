@@ -8,7 +8,7 @@ public class ExtRefsTagFile extends AbstractKeyValueFile {
 	
 	public static final String FILEPATH = "ext-refs.txt";
 
-	public ExtRefsTagFile(File bagDir) throws IOException {
-		super(new File(bagDir, FILEPATH));
+	public ExtRefsTagFile(File tagFile) throws IOException {
+		super(tagFile);
 	}
 }
