@@ -33,7 +33,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.Random;
 
-import org.apache.tika.io.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
