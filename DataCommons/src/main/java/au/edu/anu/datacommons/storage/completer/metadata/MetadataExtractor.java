@@ -23,15 +23,10 @@ package au.edu.anu.datacommons.storage.completer.metadata;
 
 import java.util.Map;
 
-import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.xmp.XMPMetadata;
 
-public interface MetadataExtractor
-{
+public interface MetadataExtractor {
 	public Map<String, String[]> getMetadataMap();
-	
+
 	public Metadata getMetadata();
-	
-	public XMPMetadata getXmpMetadata() throws TikaException;
 }

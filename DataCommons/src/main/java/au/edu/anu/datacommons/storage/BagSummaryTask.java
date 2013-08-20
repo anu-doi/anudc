@@ -54,7 +54,8 @@ public class BagSummaryTask implements Callable<BagSummary> {
 		FileSummaryMap fsMap = createFsMap();
 		BagSummary bagSummary = new BagSummary(bag, fsMap);
 		try {
-			bagSummary.setExtRefsTxt(new ExtRefsTagFile(new File(bag.getFile(), ExtRefsTagFile.FILEPATH)));
+			File tagFile = new File(bag.getFile(), ExtRefsTagFile.FILEPATH);
+			bagSummary.setExtRefsTxt(new ExtRefsTagFile(tagFile));
 		} catch (IOException e) {
 			LOGGER.warn("Unable to read ExtRefsTxt in {}", bag.getFile().getAbsolutePath());
 		}

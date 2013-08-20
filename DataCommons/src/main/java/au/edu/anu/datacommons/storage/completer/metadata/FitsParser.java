@@ -44,83 +44,75 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
 /**
- * This class implements the Apache Tika Parser interface allowing parsing of FITS files. A FITS file's header consists of keys, values, and comments. Because
- * Apache Tika requires a key and a value only, the comment (if any) is contatenated to the value of its respective key using the slash '/' character is a
- * separator.
+ * This class implements the Apache Tika Parser interface allowing parsing of FITS files. A FITS file's header consists
+ * of keys, values, and comments. Because Apache Tika requires a key and a value only, the comment (if any) is
+ * contatenated to the value of its respective key using the slash '/' character is a separator.
  * 
  * @see <a href="http://en.wikipedia.org/wiki/FITS">http://en.wikipedia.org/wiki/FITS</a>
+ * @author Rahul Khanna
  */
-public class FitsParser implements Parser
-{
+public class FitsParser implements Parser {
 	private static final long serialVersionUID = 1L;
 	private static final Set<MediaType> SUPPORTED_TYPES = Collections.singleton(MediaType.application("fits"));
 	public static final String FITS_MIME_TYPE = "application/fits";
 
 	@Override
-	public Set<MediaType> getSupportedTypes(ParseContext context)
-	{
+	public Set<MediaType> getSupportedTypes(ParseContext context) {
 		return SUPPORTED_TYPES;
 	}
 
 	@Override
-	public void parse(InputStream stream, ContentHandler handler, Metadata metadata, ParseContext context) throws IOException, SAXException, TikaException
-	{
+	public void parse(InputStream stream, ContentHandler handler, Metadata metadata, ParseContext context)
+			throws IOException, SAXException, TikaException {
 		metadata.set(Metadata.CONTENT_TYPE, FITS_MIME_TYPE);
 
 		Pattern p = Pattern.compile("^= \'([^\']*)\'[\\s]+/\\s(.*)$");
 		Fits fits;
 
-		try
-		{
+		try {
 			fits = new Fits(stream);
 			Header header = fits.getHDU(0).getHeader();
 			Cursor cursor = header.iterator();
-			
-			while (cursor.hasNext())
-			{
+
+			while (cursor.hasNext()) {
 				HeaderCard obj = (HeaderCard) cursor.next();
 				String key = obj.getKey();
 				String value = obj.getValue();
 				String comment = obj.getComment();
-				
-				if (isKeyBlank(key))
+
+				if (isKeyBlank(key)) {
 					continue;
-			
+				}
+
 				// If the value's null, sometimes the comment contains the value and the comment separated by a '/'
-				if (value == null)
-				{
+				if (value == null) {
 					Matcher m = p.matcher(comment);
-					if (m.groupCount() == 2 && m.find())
-					{
+					if (m.groupCount() == 2 && m.find()) {
 						value = m.group(1);
 						comment = m.group(2);
 					}
 				}
-				
-				if (comment != null)
+
+				if (comment != null) {
 					comment = comment.trim();
-				
+				}
+					
 				StringBuilder formattedValue = new StringBuilder();
-				if (value != null)
+				if (value != null) {
 					formattedValue.append(value);
-				
-				// Because metadata can take only a key and a value, appending the comment to the value string. 
-				if (comment != null)
-				{
-					if (formattedValue.length() > 0)
+				}
+
+				// Because metadata can take only a key and a value, appending the comment to the value string.
+				if (comment != null) {
+					if (formattedValue.length() > 0) {
 						formattedValue.append(" / ");
+					}
 					formattedValue.append(comment);
 				}
-				
+
 				metadata.add(key, formattedValue.toString());
 			}
-			
-			XHTMLContentHandler xhtml = new XHTMLContentHandler(handler, metadata);
-			xhtml.startDocument();
-			xhtml.endDocument();
-		}
-		catch (FitsException e)
-		{
+		} catch (FitsException e) {
 			throw new IOException(e);
 		}
 	}
@@ -132,8 +124,7 @@ public class FitsParser implements Parser
 	 *            Key to check
 	 * @return true if null, zero-length or the literal "end", false otherwise
 	 */
-	private boolean isKeyBlank(String key)
-	{
+	private boolean isKeyBlank(String key) {
 		return (key == null || key.length() == 0 || key.equalsIgnoreCase("end"));
 	}
 }

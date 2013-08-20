@@ -330,6 +330,16 @@
 			<artifactId>tika-parsers</artifactId>
 			<version>1.4</version>
 		</dependency>
+		<dependency>
+			<!-- This dependency must be manually installed into the local repository using the command:
+			mvn install:install-file -DgroupId=nom.tam.fits -DartifactId=fits -Dversion=1.10 -Dfile="fits.jar" -Dpackaging=jar -DgeneratePOM=true -Dsources="fits_src.jar"
+			
+			The files fits.jar and fits_src.jar are from http://heasarc.gsfc.nasa.gov/docs/heasarc/fits/java/v1.0/v1.10.0/
+			 -->
+			<groupId>nom.tam.fits</groupId>
+			<artifactId>fits</artifactId>
+			<version>1.10</version>
+		</dependency>
 	</dependencies>
 
 	<build>

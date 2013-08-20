@@ -21,20 +21,23 @@
 
 package au.edu.anu.datacommons.storage.completer.metadata;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
+import org.apache.commons.io.IOUtils;
 import org.apache.tika.exception.TikaException;
-import org.apache.tika.xmp.XMPMetadata;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -42,97 +45,102 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import au.edu.anu.datacommons.storage.completer.metadata.MetadataExtractor;
-import au.edu.anu.datacommons.storage.completer.metadata.MetadataExtractorImpl;
-
-public class MetadataExtractorImplTest
-{
+/**
+ * 
+ * @author Rahul Khanna
+ *
+ */
+public class MetadataExtractorImplTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataExtractorImplTest.class);
-	
-	
+
+	private static File bagItPdf;
+	private static File fitsFile;
+
+	private MetadataExtractor mde;
+
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
+	public static void setUpBeforeClass() throws Exception {
+		bagItPdf = new File(MetadataExtractorImplTest.class.getResource("BagIt Specification.pdf").toURI());
+		fitsFile = new File(MetadataExtractorImplTest.class.getResource("Nasa - WFPC2u5780205r_c0fx.fits").toURI());
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
+	public static void tearDownAfterClass() throws Exception {
 	}
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
+	public void tearDown() throws Exception {
 	}
 
 	@Test
-	public void testGetMetadataMap() throws IOException, SAXException, TikaException, URISyntaxException
-	{
-		MetadataExtractor mdExtractor = new MetadataExtractorImpl(new File(this.getClass().getResource("BagIt Specification.pdf").toURI()));
-		Map<String, String[]> mdMap = mdExtractor.getMetadataMap();
+	public void testPdfMetadata() throws Exception {
+		mde = new MetadataExtractorImpl(bagItPdf);
+		Map<String, String[]> mdMap = mde.getMetadataMap();
 		LOGGER.trace("Attributes count: {}", mdMap.size());
 		assertEquals(26, mdMap.size());
 		assertTrue(mdMap.get("dc:title")[0].equals("BagIt File Packaging Format v 0.97"));
 	}
-	
+
 	@Test
-	public void testFitsGetMetadataMap() throws IOException, SAXException, TikaException, URISyntaxException
-	{
-		MetadataExtractor mde = new MetadataExtractorImpl(new File(MetadataExtractorImplTest.class.getResource("Nasa - WFPC2u5780205r_c0fx.fits").toURI()));
+	public void testFitsMetadata() throws Exception {
+		mde = new MetadataExtractorImpl(fitsFile);
 		Map<String, String[]> mdMap = mde.getMetadataMap();
 		assertEquals(180, mdMap.size());
 	}
 
-	@Test
-	public void testGetXmpMetadata() throws IOException, SAXException, TikaException, URISyntaxException
-	{
-		MetadataExtractor mdExtractor = new MetadataExtractorImpl(new File(this.getClass().getResource("BagIt Specification.pdf").toURI()));
-		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder dBuilder;
-		Document doc = null;
-		org.apache.jempbox.xmp.XMPMetadata xmp = null;
-		try
-		{
-			// Get the metadata
-			XMPMetadata xmpMd = mdExtractor.getXmpMetadata();
-			String xmpXml = xmpMd.toString(); 
-			LOGGER.info("\r\n" + xmpXml);
+	/**
+	 * Test to check that the metadata extractor doesn't fall over with out of memory/heap errors with large files.
+	 * Also, that the metadata is extracted in a reasonable amount of time.
+	 * 
+	 * @throws Exception
+	 */
+	@Test(timeout = 5000)
+	public void testLargeRandomMetadata() throws Exception {
+		final long fileSizeMb = 4 * 1024;	// 4 GB.
+		final Random rand = new Random();
+		ExecutorService threadPool = Executors.newSingleThreadExecutor();
+		final PipedOutputStream pos = new PipedOutputStream();
+		PipedInputStream pis = null;
+		threadPool.submit(new Callable<Throwable>() {
 
-			dBuilder = dbFactory.newDocumentBuilder();
-			doc = dBuilder.parse(new InputSource(new StringReader(xmpXml)));
-			xmp = new org.apache.jempbox.xmp.XMPMetadata(doc);
-			LOGGER.info("Title: {}", xmp.getDublinCoreSchema().getTitle());
-			assertEquals("Title does not match", "BagIt File Packaging Format v 0.97", xmp.getDublinCoreSchema().getTitle());
+			@Override
+			public Throwable call() throws Exception {
+				byte[] wBuffer = new byte[1024 * 1024];
+				try {
+					for (int i = 0; i < fileSizeMb; i++) {
+						rand.nextBytes(wBuffer);
+						pos.write(wBuffer);
+					}
+				} catch (Throwable e) {
+					return e;
+				} finally {
+					IOUtils.closeQuietly(pos);
+				}
+				return null;
+			}
+		});
+
+		try {
+			pis = new PipedInputStream(pos);
+			mde = new MetadataExtractorImpl(pis);
+		} finally {
+			IOUtils.closeQuietly(pis);
 		}
-		catch (TikaException e)
-		{
-			e.printStackTrace();
-			fail(e.getMessage());
+		Map<String, String[]> metadataMap = mde.getMetadataMap();
+		for (Entry<String, String[]> entry : metadataMap.entrySet()) {
+			LOGGER.trace(entry.getKey());
+			for (int i = 0; i < entry.getValue().length; i++) {
+				LOGGER.trace("\t {}", entry.getValue()[i]);
+			}
 		}
-		catch (ParserConfigurationException e)
-		{
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-		catch (SAXException e)
-		{
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
-		
+
+		assertThat(metadataMap.entrySet(), hasSize(1));
+		assertThat(metadataMap, hasEntry("Content-Type", new String[] {"application/octet-stream"}));
 	}
 }
