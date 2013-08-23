@@ -583,7 +583,7 @@ public class UploadService {
 						getCurUser(), request.getRemoteAddr(), request.getHeader("User-Agent"),
 						AccessLogRecord.Operation.CREATE));
 
-			TempFileTask tfTask = new TempFileTask(is);
+			TempFileTask tfTask = new TempFileTask(is, GlobalProps.getUploadDirAsFile());
 			if (httpHeaders.getRequestHeader("Content-MD5") != null) {
 				String providedMd5 = httpHeaders.getRequestHeader("Content-MD5").get(0);
 				if (providedMd5 != null && providedMd5.length() > 0) {

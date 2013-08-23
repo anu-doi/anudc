@@ -1,3 +1,24 @@
+/*******************************************************************************
+ * Australian National University Data Commons
+ * Copyright (C) 2013  The Australian National University
+ * 
+ * This file is part of Australian National University Data Commons.
+ * 
+ * Australian National University Data Commons is free software: you
+ * can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+ 
 package au.edu.anu.datacommons.storage;
 
 import static java.text.MessageFormat.*;
@@ -5,194 +26,86 @@ import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Random;
-import java.util.concurrent.Callable;
 
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.datacommons.properties.GlobalProps;
-
-public class TempFileTask implements Callable<File> {
+/**
+ * 
+ * @author Rahul Khanna
+ *
+ */
+public class TempFileTask extends AbstractTempFileTask {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TempFileTask.class);
 
-	protected static final int CONNECTION_TIMEOUT_MS = 30000;
-	protected static final int READ_TIMEOUT_MS = 30000;
-	protected static final String FILENAME_PREFIX = "AnuDc";
+	private static final int CONNECTION_TIMEOUT_MS = 30000;
+	private static final int READ_TIMEOUT_MS = 30000;
 
-	protected Random random = new Random();
+	private URL fileUrl = null;
+	private InputStream inputStream = null;
+	
+	private File savedFile = null;
 
-	protected URL fileUrl = null;
-	protected InputStream inputStream = null;
-	protected File savedFile = null;
-
-	protected Manifest.Algorithm mdAlgorithm = null;
-	protected String expectedMd = null;
-	protected String calculatedMd = null;
-	protected MessageDigest md = null;
-
-	public TempFileTask(URL fileUrl) {
+	public TempFileTask(URL fileUrl, File dir) {
+		super(dir);
 		this.fileUrl = fileUrl;
 	}
 
-	public TempFileTask(InputStream inputStream) {
+	public TempFileTask(InputStream inputStream, File dir) {
+		super(dir);
 		this.inputStream = inputStream;
-	}
-
-	public void setExpectedMessageDigest(Manifest.Algorithm mdAlgorithm, String messageDigest) {
-		this.mdAlgorithm = mdAlgorithm;
-		this.expectedMd = messageDigest.toLowerCase();
 	}
 
 	@Override
 	public File call() throws Exception {
 		InputStream digestInputStream = null;
-		if (fileUrl != null) {
-			digestInputStream = createDigestInputStream(fileUrl);
-		} else if (inputStream != null) {
-			digestInputStream = createDigestInputStream(inputStream);
+		if (this.fileUrl != null) {
+			if (this.digester != null) {
+				digestInputStream = new DigestInputStream(openUrlStream(this.fileUrl), this.digester) ;
+			} else {
+				digestInputStream = openUrlStream(this.fileUrl);
+			}
+		} else if (this.inputStream != null) {
+			if (this.digester != null) {
+				digestInputStream = new DigestInputStream(this.inputStream, this.digester);
+			} else {
+				digestInputStream = inputStream;
+			}
 		}
-		saveInputStreamToTempFile(digestInputStream);
+		this.savedFile = File.createTempFile("TempFile", null, this.dir);
+		saveAs(digestInputStream, this.savedFile);
 
-		if (expectedMd != null) {
+		if (this.digester != null) {
+			this.calculatedMd = calcMessageDigest(this.digester);
 			if (!expectedMd.equals(calculatedMd)) {
-				String errorMsg = format("Calculated {0} {1} does not match expected {2}.", md.getAlgorithm(),
+				String errorMsg = format("Calculated {0} {1} does not match expected {2}.", digester.getAlgorithm(),
 						calculatedMd, expectedMd);
 				LOGGER.error(errorMsg);
-				savedFile.delete();
+				if (!savedFile.delete()) {
+					savedFile.deleteOnExit();
+				}
 				throw new IOException(errorMsg);
 			} else {
-				LOGGER.debug("Calculated {} {} matches expected {}", md.getAlgorithm(), calculatedMd, expectedMd);
+				LOGGER.debug("Calculated {} {} matches expected {}", digester.getAlgorithm(), calculatedMd, expectedMd);
 			}
 		} else {
-			LOGGER.debug("Calculated {}: {}", md.getAlgorithm(), calculatedMd);
+			LOGGER.debug("Calculated {}: {}", digester.getAlgorithm(), calculatedMd);
 		}
 		return savedFile;
 	}
 
-	public String getCalculatedMd() {
-		return calculatedMd;
-	}
-
-	protected InputStream createDigestInputStream(URL fileUrl) throws IOException {
-		createMessageDigest();
+	private InputStream openUrlStream(URL fileUrl) throws IOException {
 		URLConnection connection = fileUrl.openConnection();
 		connection.setConnectTimeout(CONNECTION_TIMEOUT_MS);
 		connection.setReadTimeout(READ_TIMEOUT_MS);
 		LOGGER.debug("Opened InputStream from {}", fileUrl);
-		return new DigestInputStream(connection.getInputStream(), md);
-	}
-
-	protected InputStream createDigestInputStream(InputStream inputStream) {
-		createMessageDigest();
-		return new DigestInputStream(inputStream, md);
-	}
-
-	protected void createMessageDigest() {
-		try {
-			if (mdAlgorithm != null && expectedMd != null) {
-				md = MessageDigest.getInstance(mdAlgorithm.javaSecurityAlgorithm);
-			} else {
-				md = MessageDigest.getInstance(Algorithm.MD5.javaSecurityAlgorithm);
-			}
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e.getMessage());
-		}
-	}
-
-	protected File saveInputStreamToTempFile(InputStream inputStream) throws IOException {
-		savedFile = createTempFile();
-
-		FileChannel targetChannel = null;
-		FileOutputStream fos = null;
-		ReadableByteChannel sourceChannel = null;
-		try {
-			LOGGER.debug("Saving InputStream as {}...", savedFile.getAbsolutePath());
-			fos = new FileOutputStream(savedFile);
-			targetChannel = fos.getChannel();
-			sourceChannel = Channels.newChannel(inputStream);
-			ByteBuffer buffer = ByteBuffer.allocate((int) FileUtils.ONE_MB);
-			while (sourceChannel.read(buffer) != -1) {
-				buffer.flip();
-				targetChannel.write(buffer);
-				buffer.compact();
-			}
-
-			buffer.flip();
-			while (buffer.hasRemaining())
-				targetChannel.write(buffer);
-
-			LOGGER.debug("Saved InputStream to {}. ({})", savedFile.getAbsolutePath(),
-					FileUtils.byteCountToDisplaySize(savedFile.length()));
-		} catch (IOException e) {
-			LOGGER.error("Unable to save InputStream. {}", e.getMessage());
-			if (!savedFile.delete()) {
-				LOGGER.warn("Unable to delete {}", savedFile.getAbsolutePath());
-			}
-			throw e;
-		} finally {
-			IOUtils.closeQuietly(sourceChannel);
-			IOUtils.closeQuietly(inputStream);
-			IOUtils.closeQuietly(targetChannel);
-			IOUtils.closeQuietly(fos);
-		}
-		calcMessageDigest();
-		return savedFile;
-	}
-
-	protected void calcMessageDigest() {
-		calculatedMd = new String(Hex.encodeHex(md.digest())).toLowerCase();
-	}
-
-	protected File createTempFile() {
-		File tempFile;
-		do {
-			tempFile = new File(getTempDir(), generateRandomFilename());
-		} while (tempFile.exists());
-		return tempFile;
-	}
-
-	protected String generateRandomFilename() {
-		long n = random.nextLong();
-		if (n == Long.MIN_VALUE) {
-			n = 0; // corner case
-		} else {
-			n = Math.abs(n);
-		}
-		return FILENAME_PREFIX + Long.toString(n);
-	}
-
-	/**
-	 * Returns the temporary upload directory as specified in the properties file. If it doesn't exist, creates it.
-	 * 
-	 * @return Temporary directory as File.
-	 */
-	protected File getTempDir() {
-		File tempDir = new File(GlobalProps.getProperty(GlobalProps.PROP_UPLOAD_DIR));
-		if (!tempDir.isDirectory()) {
-			throw new RuntimeException(format("{0} is not a directory.", tempDir.getAbsolutePath()));
-		}
-		if (!tempDir.exists()) {
-			if (!tempDir.mkdirs()) {
-				throw new RuntimeException(format("{0} cannot be created. Check permissions.",
-						tempDir.getAbsolutePath()));
-			}
-		}
-		return tempDir;
+		return connection.getInputStream();
 	}
 }

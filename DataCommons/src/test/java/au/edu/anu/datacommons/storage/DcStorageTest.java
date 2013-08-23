@@ -133,7 +133,7 @@ public class DcStorageTest {
 
 		// Add a file.
 		File file1 = tempDir.newFile();
-		String file1Md5 = TestUtil.fillRandomData(file1, 2L);
+		String file1Md5 = TestUtil.createFileOfSize(file1, 2L, FileUtils.ONE_MB);
 		dcStorage.threadPool = Executors.newSingleThreadExecutor();
 		dcStorage.addFileToBag(pid, file1, "a/File 1.txt");
 		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
@@ -333,7 +333,7 @@ public class DcStorageTest {
 		for (File oldFile : fileMap.keySet()) {
 			assertFalse(oldFile.isFile());
 			File file = tempDir.newFile(oldFile.getName());
-			String md5 = TestUtil.fillRandomData(file, random.nextInt(5) + 1);
+			String md5 = TestUtil.createFileOfSizeInRange(file, 1L, 5L, FileUtils.ONE_MB);
 			replacementFileMap.put(file, md5);
 		}
 
@@ -436,7 +436,7 @@ public class DcStorageTest {
 		String pid = getNextPid();
 		dcStorage.threadPool = Executors.newSingleThreadExecutor();
 		File file = tempDir.newFile();
-		String md5 = TestUtil.fillRandomData(file, 5L);
+		String md5 = TestUtil.createFileOfSize(file, 5L, FileUtils.ONE_MB);
 		String filepath = "File.txt";
 		dcStorage.addFileToBag(pid, file, filepath);
 		dcStorage.deleteFileFromBag(pid, filepath);
@@ -449,7 +449,7 @@ public class DcStorageTest {
 		Map<File, String> fileMap = new HashMap<File, String>(nFiles);
 		for (int i = 0; i < nFiles; i++) {
 			File file = tempDir.newFile();
-			String md5 = TestUtil.fillRandomData(file, random.nextInt(5) + 1);
+			String md5 = TestUtil.createFileOfSizeInRange(file, 1L, 5L, FileUtils.ONE_MB);
 			fileMap.put(file, md5);
 			assertTrue(file.isFile());
 			LOGGER.trace("Created file {} ({}) MD5: {}", file.getName(),

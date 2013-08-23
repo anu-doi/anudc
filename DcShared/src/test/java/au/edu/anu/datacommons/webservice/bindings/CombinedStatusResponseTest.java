@@ -68,7 +68,7 @@ public class CombinedStatusResponseTest
 		
 		try
 		{
-			JAXBContext context = JAXBContext.newInstance("au.edu.anu.datacommons.phenomics.bindings");
+			JAXBContext context = JAXBContext.newInstance("au.edu.anu.datacommons.webservice.bindings");
 			Marshaller m = context.createMarshaller();
 			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 			m.marshal(resp, System.out);

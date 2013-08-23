@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -101,7 +102,7 @@ public class ArchiveTaskTest {
 	@Test
 	public void testArchive() throws Exception {
 		File file1 = stagingDir.newFile("Test file.txt");
-		String md5 = TestUtil.fillRandomData(file1, 3L);
+		String md5 = TestUtil.createFileOfSize(file1, 3L, FileUtils.ONE_MB);
 		ArchiveTask task = new ArchiveTask(archiveRootDir.getRoot(), PID, file1, Manifest.Algorithm.MD5, Operation.DELETE);
 		File archivedFile = task.call();
 		assertTrue(archivedFile.isFile());
@@ -116,7 +117,7 @@ public class ArchiveTaskTest {
 		Random rand = new Random();
 		for (int i = 0; i < nFiles; i++) {
 			File file = stagingDir.newFile();
-			String md5 = TestUtil.fillRandomData(file, rand.nextInt(5) + 1);
+			String md5 = TestUtil.createFileOfSizeInRange(file, 1L, 5L, FileUtils.ONE_MB);
 			files.put(file, md5);
 		}
 		

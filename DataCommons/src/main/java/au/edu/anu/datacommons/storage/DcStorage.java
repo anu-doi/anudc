@@ -77,6 +77,7 @@ public final class DcStorage implements Closeable {
 	private File bagsRootDir = null;
 	private FileFactory ff = new FileFactory(200);
 	File archiveRootDir = GlobalProps.getArchiveBaseDirAsFile();
+	File stagingDir = GlobalProps.getUploadDirAsFile();
 
 	public static final BagFactory bagFactory = new BagFactory();
 
@@ -129,7 +130,7 @@ public final class DcStorage implements Closeable {
 		
 		File downloadedFile = null;
 		try {
-			TempFileTask dlTask = new TempFileTask(fileUrl);
+			TempFileTask dlTask = new TempFileTask(fileUrl, stagingDir);
 			try {
 				downloadedFile = dlTask.call();
 			} catch (Exception e) {

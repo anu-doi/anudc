@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map.Entry;
 
+import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.DeserializationConfig.Feature;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -88,7 +89,7 @@ public class BagSummaryTaskTest {
 		File payloadDir = bagDir.newFolder("data");
 		String file1name = "File 1.txt";
 		File file1 = bagDir.newFile(file1name);
-		TestUtil.fillRandomData(file1, 3L);
+		TestUtil.createFileOfSize(file1, 3L, FileUtils.ONE_MB);
 		file1.renameTo(new File(payloadDir, file1name));
 		
 		Bag bag = bf.createBag(bagDir.getRoot(), LoadOption.BY_FILES);

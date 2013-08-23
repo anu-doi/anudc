@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -52,7 +53,7 @@ public class ClamScanTest {
 	@Test
 	public void testScan() throws IOException {
 		File file = tempDir.newFile();
-		TestUtil.fillRandomData(file, 10);
+		TestUtil.createFileOfSizeInRange(file, 5L, 10L, FileUtils.ONE_MB);
 		ScanResult result = clamScan.scan(new FileInputStream(file));
 		LOGGER.trace(result.getResult());
 	}
