@@ -23,25 +23,16 @@ package au.edu.anu.datacommons.upload;
 
 import static java.text.MessageFormat.*;
 import gov.loc.repository.bagit.Manifest;
+import gov.loc.repository.bagit.Manifest.Algorithm;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -56,7 +47,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -66,13 +56,11 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -94,38 +82,29 @@ import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.AccessLogRecord;
+import au.edu.anu.datacommons.security.AccessLogRecord.Operation;
 import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
+import au.edu.anu.datacommons.storage.PartTempFileTask;
 import au.edu.anu.datacommons.storage.TempFileTask;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummaryMap;
-import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
 
 /**
- * UploadService
+ * This class provides REST end points for storing and retrieving data uploaded to collections.
  * 
- * Australian National University Data Commons
- * 
- * This class accepts POST requests for uploading files to datastreams in a Collection. The files are uploaded using
- * JUpload applet.
- * 
- * <pre>
- * Version	Date		Developer			Description
- * 0.1		14/05/2012	Rahul Khanna (RK)	Initial
- * </pre>
+ * @author Rahul Khanna
  */
 @Path("/upload")
 @Component
 @Scope("request")
 public class UploadService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UploadService.class);
-	private static final String PART_FILE_SUFFIX = ".part";
-	private static final String UPLOAD_JSP = "/upload.jsp";
 	private static final String BAGFILES_JSP = "/bagfiles.jsp";
 	private static final DcStorage dcStorage = DcStorage.getInstance();
 
@@ -141,29 +120,8 @@ public class UploadService {
 
 	@Resource(name = "permissionService")
 	private PermissionService permissionService;
-
-	/**
-	 * doGetAsHtml
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * Accepts Get requests to display the file upload page.
-	 * 
-	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		14/05/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 * 
-	 * @return HTML page as response.
-	 */
-	@GET
-	@Path("/")
-	@Produces(MediaType.TEXT_HTML)
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doGetAsHtml() {
-		LOGGER.trace("In doGetAsHtml");
-		return Response.ok(new Viewable(UPLOAD_JSP)).build();
-	}
+	
+	private AccessLogRecordDAOImpl accessLogDao = new AccessLogRecordDAOImpl(AccessLogRecord.class);
 
 	/**
 	 * Accepts POST requests from a JUpload applet and saves the files on the server for further processing. Creates a
@@ -178,163 +136,97 @@ public class UploadService {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostJUploadFilePart() {
 		Response resp = null;
-		List<FileItem> uploadedItems;
-		int filePartNum = 0;
-		boolean isLastPart = false;
+		List<FileItem> uploadedItems = null;
 		File savedFile = null;
+		int filePart = 0;
+		boolean isLastPart = false;
 
-		// Check if this is a part file. Files greater than threshold specified in JUpload params will be split up and
-		// sent as parts.
-		if (Util.isNotEmpty(request.getParameter("jupart"))) {
-			filePartNum = Integer.parseInt(request.getParameter("jupart"));
-			// Check if this is the final part of a file being send in parts.
-			if (Util.isNotEmpty(request.getParameter("jufinal")))
-				isLastPart = request.getParameter("jufinal").equals("1");
+		if (request.getParameter("jupart") != null && request.getParameter("jufinal") != null) {
+			filePart = Integer.parseInt(request.getParameter("jupart"));
+			isLastPart = request.getParameter("jufinal").equals("1");
 		}
 
-		FileWriter propFileWriter = null;
 		try {
-			// Get a list of uploaded items. Some may be files, others form fields.
 			uploadedItems = parseUploadRequest(request);
 
+			// Retrieve pid and MD5 from request.
 			String md5 = null;
 			String pid = null;
-			for (FileItem i : uploadedItems) {
-				if (i.isFormField()) {
-					if (i.getFieldName().equalsIgnoreCase("md5sum0")) {
-						md5 = i.getString();
-					} else if (i.getFieldName().equalsIgnoreCase("pid")) {
-						pid = i.getString();
+
+			for (FileItem fi : uploadedItems) {
+				if (fi.isFormField()) {
+					if (fi.getFieldName().equals("md5sum0")) {
+						md5 = fi.getString();
+					} else if (fi.getFieldName().equals("pid")) {
+						pid = fi.getString();
 					}
 				}
 			}
-			
 			if (md5 == null || md5.length() == 0) {
 				throw new NullPointerException("MD5 cannot be null.");
 			}
 			if (pid == null || pid.length() == 0) {
 				throw new NullPointerException("Record Identifier cannot be null.");
 			}
-			
+
 			// Check for write access to the fedora object.
 			fedoraObjectService.getItemByPidWriteAccess(pid);
-			
-			for (FileItem i : uploadedItems) {
-				if (!i.isFormField()) {
-					savedFile = saveFileOnServer(i, filePartNum, isLastPart, pid, md5);
-					break;
-				}
-			}
-			if (savedFile == null) {
-				throw new NullPointerException("File saved on server is null.");
-			}
-			
-			if (isLastPart || filePartNum == 0) {
-				try {
-					dcStorage.addFileToBag(pid, savedFile, savedFile.getName());
-				} finally {
-					if (savedFile.exists() && !savedFile.delete()) {
-						LOGGER.warn("Unable to delete {}", savedFile.getAbsolutePath());
-					}
-					if (!savedFile.getParentFile().equals(GlobalProps.getUploadDirAsFile()) && savedFile.getParentFile().listFiles().length == 0) {
-						if (savedFile.getParentFile().exists() && !savedFile.getParentFile().delete()) {
-							LOGGER.warn("Unable to delete {}", savedFile.getAbsolutePath());
+
+			for (FileItem fi : uploadedItems) {
+				if (!fi.isFormField()) {
+					if (filePart > 0) {
+						String partFilename = DcStorage.convertToDiskSafe(pid) + "-" + md5;
+						PartTempFileTask task = new PartTempFileTask(fi.getInputStream(), filePart, isLastPart,
+								GlobalProps.getUploadDirAsFile(), partFilename);
+						task.setExpectedMessageDigest(Algorithm.MD5, md5);
+						savedFile = task.call();
+						if (savedFile != null) {
+							String uri = uriInfo.getPath().substring(0, uriInfo.getPath().indexOf(";jsessionid="));
+							uri = format("{0}/bag/{1}/data/{2}", uri, pid, fi.getName());
+							if (dcStorage.fileExists(pid, fi.getName())) {
+								addAccessLog(uri, Operation.UPDATE);
+							} else {
+								addAccessLog(uri, Operation.CREATE);
+							}
+							dcStorage.addFileToBag(pid, savedFile, fi.getName());
 						}
+					} else {
+						TempFileTask task = new TempFileTask(fi.getInputStream(), GlobalProps.getUploadDirAsFile());
+						task.setExpectedMessageDigest(Algorithm.MD5, md5);
+						savedFile = task.call();
+						String uri = uriInfo.getPath().substring(0, uriInfo.getPath().indexOf(";jsessionid="));
+						uri = format("{0}/bag/{1}/data/{2}", uri, pid, fi.getName());
+						if (dcStorage.fileExists(pid, fi.getName())) {
+							addAccessLog(uri, Operation.UPDATE);
+						} else {
+							addAccessLog(uri, Operation.CREATE);
+						}
+						dcStorage.addFileToBag(pid, savedFile, fi.getName());
 					}
 				}
 			}
+
 			resp = Response.ok("SUCCESS", MediaType.TEXT_PLAIN_TYPE).build();
 		} catch (Exception e) {
-			LOGGER.error("Unable to process POST request.", e);
-			resp = Response.ok(format("ERROR: Unable to process request. [{0}]", e.getMessage()),
-					MediaType.TEXT_PLAIN_TYPE).build();
+			if (savedFile != null && savedFile.exists()) {
+				if (!savedFile.delete()) {
+					savedFile.deleteOnExit();
+				}
+			}
+			resp = Response.serverError().entity(e.getMessage()).type(MediaType.TEXT_PLAIN_TYPE).build();
 		} finally {
-			IOUtils.closeQuietly(propFileWriter);
+			if (uploadedItems != null) {
+				for (FileItem fi : uploadedItems) {
+					if (!fi.isInMemory()) {
+						fi.delete();
+					}
+				}
+			}
 		}
 
 		return resp;
 	}
-
-	/**
-	 * This method gets called after jupload file parts have been uploaded to merge the file parts, and add the
-	 * completed files into bags for the collection.
-	 * 
-	 * @param pid
-	 *            Pid of the collection to which the uploaded bags are to be added.
-	 * @return Response as HTML
-	 */
-	@GET
-	@Produces(MediaType.TEXT_HTML)
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	@Path("bagit/{pid}")
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doGetCreateBag(@PathParam("pid") String pid) {
-		Properties uploadProps = new Properties();
-		File propFile = null;
-		File uploadedFilesDir = null;
-		Response resp = null;
-		BufferedInputStream propFileInStream = null;
-		AccessLogRecord accessRec = null;
-		UriBuilder redirUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class);
-
-		// Check for write access to the fedora object.
-		fedoraObjectService.getItemByPidWriteAccess(pid);
-
-		try {
-			// Read properties file [Pid].properties.
-			propFile = new File(GlobalProps.getUploadDirAsFile(), DcStorage.convertToDiskSafe(pid) + ".properties");
-			propFileInStream = new BufferedInputStream(new FileInputStream(propFile));
-			uploadProps.load(propFileInStream);
-
-			// Check the pid in the URL against the one in the properties file.
-			if (!pid.equalsIgnoreCase(uploadProps.getProperty("pid")))
-				throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
-
-			// Create access log.
-			if (dcStorage.bagExists(pid))
-				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
-						request.getHeader("User-Agent"), AccessLogRecord.Operation.UPDATE);
-			else
-				accessRec = new AccessLogRecord(uriInfo.getPath(), getCurUser(), request.getRemoteAddr(),
-						request.getHeader("User-Agent"), AccessLogRecord.Operation.CREATE);
-
-			// Add files to bag.
-			uploadedFilesDir = new File(GlobalProps.getUploadDirAsFile(), DcStorage.convertToDiskSafe(pid));
-			String filename;
-			for (int i = 0; (filename = uploadProps.getProperty("file" + i)) != null; i++) {
-				LOGGER.debug("Adding file {} to Bag {}.", filename, pid);
-				dcStorage.addFileToBag(pid, new File(uploadedFilesDir, filename), filename);
-			}
-
-			// Add External Reference URLs.
-			Set<String> urls = new HashSet<String>();
-			for (int i = 0; uploadProps.containsKey("url" + i); i++) {
-				urls.add(uploadProps.getProperty("url" + i));
-			}
-			dcStorage.addExtRefs(pid, urls);
-
-			// Save the access log record created earlier for the activity performed.
-			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessRec);
-			resp = Response.temporaryRedirect(
-					redirUri.path(UploadService.class, "doGetBagFileListingAsHtml")
-							.queryParam("smsg", "Upload Successful.").build(pid)).build();
-		} catch (Exception e) {
-			LOGGER.error("Unable to bag file", e);
-			resp = Response.temporaryRedirect(
-					redirUri.path(UploadService.class, "doGetAsHtml").queryParam("pid", pid)
-							.queryParam("emsg", "Upload Unsuccessful. Unable to bag file.").build()).build();
-		} finally {
-			// Delete properties file and uploaded files.
-			IOUtils.closeQuietly(propFileInStream);
-			if (!FileUtils.deleteQuietly(propFile))
-				LOGGER.warn("Unable to delete properties file.");
-			if (!FileUtils.deleteQuietly(uploadedFilesDir))
-				LOGGER.warn("Unable to delete uploaded files.");
-		}
-
-		return resp;
-	}
-
+	
 	/**
 	 * Returns the details of contents of a bag.
 	 * 
@@ -367,11 +259,13 @@ public class UploadService {
 			if (dcStorage.bagExists(pid)) {
 				BagSummary bagSummary;
 				try {
+					addAccessLog(Operation.READ);
 					bagSummary = dcStorage.getBagSummary(pid);
 					model.put("bagSummary", bagSummary);
 					model.put("bagInfoTxt", bagSummary.getBagInfoTxt().entrySet());
-					if (bagSummary.getExtRefsTxt() != null)
+					if (bagSummary.getExtRefsTxt() != null) {
 						model.put("extRefsTxt", bagSummary.getExtRefsTxt().entrySet());
+					}
 					UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class)
 							.path(UploadService.class, "doGetFileInBagAsOctetStream2");
 					model.put("dlBaseUri", uriBuilder.build(pid, "").toString());
@@ -400,6 +294,13 @@ public class UploadService {
 		return resp;
 	}
 	
+	/**
+	 * Returns a BagSummary in JSON or XML format.
+	 * 
+	 * @param pid
+	 *            Identifier of record whose bag summary is requested
+	 * @return Response containing BagSummary in JSON or XML format.
+	 */
 	@GET
 	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	@Path("bag/{pid}")
@@ -413,6 +314,7 @@ public class UploadService {
 		}
 		
 		try {
+			addAccessLog(Operation.READ);
 			BagSummary bagSummary = dcStorage.getBagSummary(pid);
 			resp = Response.ok(bagSummary).build();
 		} catch (IOException e) {
@@ -454,37 +356,42 @@ public class UploadService {
 
 		// If dropbox is valid and the requestor of the collection request is the one accessing it, return file as octet
 		// stream.
-		if (dropbox.isValid(password) && requestor.getUsername().equals(username)) {
-			LOGGER.info("Dropbox details valid. ID: {}, Access Code: {}. Returning file requested.", dropbox.getId()
-					.toString(), dropbox.getAccessCode().toString());
-			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(),
-					getCurUser(), request.getRemoteAddr(), request.getHeader("User-Agent"),
-					AccessLogRecord.Operation.READ));
-			Set<CollectionRequestItem> items = dropbox.getCollectionRequest().getItems();
-			if (filename.equalsIgnoreCase("zip")) {
-				Set<String> fileSet = new HashSet<String>();
-				for (CollectionRequestItem item : items)
-					fileSet.add(item.getItem());
-				resp = getBagFilesAsZip(pid, fileSet, format("{0}.zip", DcStorage.convertToDiskSafe(pid)));
-			} else {
-				boolean isAllowedItem = false;
-				for (CollectionRequestItem item : items) {
-					if (item.getItem().equals(filename)) {
-						isAllowedItem = true;
-						break;
+		try {
+			if (dropbox.isValid(password) && requestor.getUsername().equals(username)) {
+				LOGGER.info("Dropbox details valid. ID: {}, Access Code: {}. Returning file requested.", dropbox
+						.getId().toString(), dropbox.getAccessCode().toString());
+				Set<CollectionRequestItem> items = dropbox.getCollectionRequest().getItems();
+				if (filename.equalsIgnoreCase("zip")) {
+					Set<String> fileSet = new HashSet<String>();
+					for (CollectionRequestItem item : items) {
+						fileSet.add(item.getItem());
+					}
+					resp = getBagFilesAsZip(pid, fileSet, DcStorage.convertToDiskSafe(pid) + ".zip");
+				} else {
+					boolean isAllowedItem = false;
+					for (CollectionRequestItem item : items) {
+						if (item.getItem().equals(filename)) {
+							isAllowedItem = true;
+							break;
+						}
+					}
+					if (isAllowedItem) {
+						addAccessLog(Operation.READ);
+						resp = getBagFileOctetStreamResp(pid, filename);
+					} else {
+						resp = Response.status(Status.FORBIDDEN).build();
 					}
 				}
-				if (isAllowedItem)
-					resp = getBagFileOctetStreamResp(pid, filename);
-				else
-					resp = Response.status(Status.FORBIDDEN).build();
+			} else {
+				LOGGER.warn("Unauthorised access to Dropbox ID: {}, Access Code: {}. Returning HTTP 403 Forbidden.",
+						dropbox.getId().toString(), dropbox.getAccessCode().toString());
+				resp = Response.status(Status.FORBIDDEN).build();
 			}
-		} else {
-			LOGGER.warn("Unauthorised access to Dropbox ID: {}, Access Code: {}. Returning HTTP 403 Forbidden.",
-					dropbox.getId().toString(), dropbox.getAccessCode().toString());
-			resp = Response.status(Status.FORBIDDEN).build();
-		}
 
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().entity(e.getMessage()).build();
+		}
 		return resp;
 	}
 
@@ -518,13 +425,6 @@ public class UploadService {
 		}
 
 		try {
-			Users curUser = getCurUser();
-			if (curUser != null) {
-				AccessLogRecord accessLogRecord = new AccessLogRecord(uriInfo.getPath(), curUser,
-						request.getRemoteAddr(), request.getHeader("User-Agent"), AccessLogRecord.Operation.READ);
-				new AccessLogRecordDAOImpl(AccessLogRecord.class).create(accessLogRecord);
-			}
-			
 			if (fileRequested.equals("zip")) {
 				FileSummaryMap fsMap = dcStorage.getBagSummary(pid).getFileSummaryMap();
 				
@@ -538,13 +438,19 @@ public class UploadService {
 					}
 				}
 				
+				Users curUser = getCurUser();
+				if (curUser != null) {
+					addAccessLog(Operation.READ);
+				}
 				resp = getBagFilesAsZip(pid, filepaths, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), "zip"));
 			} else {
-				if (!dcStorage.fileExists(pid, fileRequested))
+				if (!dcStorage.fileExists(pid, fileRequested)) {
 					throw new NotFoundException(format("File {0} not found in {1}", fileRequested, pid));
+				}
 				resp = getBagFileOctetStreamResp(pid, fileRequested);
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
 			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
 
@@ -574,15 +480,6 @@ public class UploadService {
 		File uploadedFile = null;
 
 		try {
-			if (dcStorage.fileExists(pid, fileInBag))
-				new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(),
-						getCurUser(), request.getRemoteAddr(), request.getHeader("User-Agent"),
-						AccessLogRecord.Operation.UPDATE));
-			else
-				new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(),
-						getCurUser(), request.getRemoteAddr(), request.getHeader("User-Agent"),
-						AccessLogRecord.Operation.CREATE));
-
 			TempFileTask tfTask = new TempFileTask(is, GlobalProps.getUploadDirAsFile());
 			if (httpHeaders.getRequestHeader("Content-MD5") != null) {
 				String providedMd5 = httpHeaders.getRequestHeader("Content-MD5").get(0);
@@ -591,11 +488,13 @@ public class UploadService {
 				}
 			}
 			uploadedFile = tfTask.call();
-			dcStorage.addFileToBag(pid, uploadedFile, getFilenameFromPath(fileInBag));
+			if (dcStorage.fileExists(pid, fileInBag)) {
+				addAccessLog(Operation.UPDATE);
+			} else {
+				addAccessLog(Operation.CREATE);
+			}
+			dcStorage.addFileToBag(pid, uploadedFile, fileInBag);
 			resp = Response.ok(tfTask.getCalculatedMd()).build();
-		} catch (IOException e) {
-			LOGGER.error(e.getMessage());
-			resp = Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
@@ -622,15 +521,14 @@ public class UploadService {
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 
 		try {
-			new AccessLogRecordDAOImpl(AccessLogRecord.class).create(new AccessLogRecord(uriInfo.getPath(),
-					getCurUser(), request.getRemoteAddr(), request.getHeader("User-Agent"),
-					AccessLogRecord.Operation.DELETE));
+			if (dcStorage.fileExists(pid, fileInBag)) {
+				addAccessLog(Operation.DELETE);
+			}
 			dcStorage.deleteFileFromBag(pid, fileInBag);
 			resp = Response.ok(format("File {0} deleted from {1}", fileInBag, pid)).build();
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
-			resp = Response.status(Status.INTERNAL_SERVER_ERROR)
-					.entity(format("Unable to delete file {0} from {1}", fileInBag, pid)).build();
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
 		return resp;
 	}
@@ -742,42 +640,6 @@ public class UploadService {
 	}
 
 	/**
-	 * Saves an InputStream to a File on disk.
-	 * 
-	 * @param is
-	 *            InputStream from which data will be read.
-	 * @param target
-	 *            target as File to which data will be written.
-	 * @throws IOException
-	 *             if unable to read from inputstream or write file to disk.
-	 */
-	private void saveInputStreamAsFile(InputStream is, File target) throws IOException {
-		FileChannel targetChannel = null;
-		FileOutputStream fos = null;
-		ReadableByteChannel sourceChannel = null;
-		try {
-			fos = new FileOutputStream(target);
-			targetChannel = fos.getChannel();
-			sourceChannel = Channels.newChannel(is);
-			ByteBuffer buffer = ByteBuffer.allocate((int) FileUtils.ONE_MB);
-			while (sourceChannel.read(buffer) != -1) {
-				buffer.flip();
-				targetChannel.write(buffer);
-				buffer.compact();
-			}
-
-			buffer.flip();
-			while (buffer.hasRemaining())
-				targetChannel.write(buffer);
-		} finally {
-			IOUtils.closeQuietly(sourceChannel);
-			IOUtils.closeQuietly(is);
-			IOUtils.closeQuietly(targetChannel);
-			IOUtils.closeQuietly(fos);
-		}
-	}
-
-	/**
 	 * Gets a Users object containing information about the currently logged in user.
 	 * 
 	 * @return Users object containing information about the currently logged in user.
@@ -796,28 +658,24 @@ public class UploadService {
 	 * @param fileInBag
 	 *            Name of file in bag whose contents are to be returned as InputStream.
 	 * @return Response object including HTTP headers and InputStream containing file contents.
+	 * @throws IOException 
 	 */
-	private Response getBagFileOctetStreamResp(String pid, String fileInBag) {
+	private Response getBagFileOctetStreamResp(String pid, String fileInBag) throws IOException {
 		Response resp = null;
 		InputStream is = null;
 
-		try {
-			if (!dcStorage.fileExists(pid, fileInBag)) {
-				throw new NotFoundException(format("File {0} not found in record {1}", fileInBag, pid));
-			}
-			is = dcStorage.getFileStream(pid, fileInBag);
-			ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-			// Add filename, MD5 and file size to response header.
-			respBuilder = respBuilder.header("Content-Disposition",
-					format("attachment; filename=\"{0}\"", getFilenameFromPath(fileInBag)));
-			respBuilder = respBuilder.header("Content-MD5", dcStorage.getFileMd5(pid, fileInBag));
-			respBuilder = respBuilder.header("Content-Length", dcStorage.getFileSize(pid, fileInBag));
-			respBuilder = respBuilder.lastModified(dcStorage.getFileLastModified(pid, fileInBag));
-			resp = respBuilder.build();
-		} catch (IOException e) {
-			LOGGER.error(e.getMessage());
-			throw new NotFoundException(e.getMessage());
+		if (!dcStorage.fileExists(pid, fileInBag)) {
+			throw new NotFoundException(format("File {0} not found in record {1}", fileInBag, pid));
 		}
+		is = dcStorage.getFileStream(pid, fileInBag);
+		ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+		// Add filename, MD5 and file size to response header.
+		respBuilder = respBuilder.header("Content-Disposition",
+				format("attachment; filename=\"{0}\"", getFilenameFromPath(fileInBag)));
+		respBuilder = respBuilder.header("Content-MD5", dcStorage.getFileMd5(pid, fileInBag));
+		respBuilder = respBuilder.header("Content-Length", dcStorage.getFileSize(pid, fileInBag));
+		respBuilder = respBuilder.lastModified(dcStorage.getFileLastModified(pid, fileInBag));
+		resp = respBuilder.build();
 
 		return resp;
 	}
@@ -850,152 +708,10 @@ public class UploadService {
 		return resp;
 	}
 
-	/**
-	 * saveFileOnServer
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * Saves a file in a FileItem object on the server.
-	 * 
-	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		14/05/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 * 
-	 * @param fileItem
-	 *            FileItem object
-	 * @param partNum
-	 *            -1 if the file is a complete file, else a number from 0-(n-1) where n is the number of parts a file is
-	 *            split up into.
-	 * @param pid
-	 * @throws IOException
-	 * @throws Exception
-	 *             Thrown when unable to save the file on the server.
-	 */
-	private File saveFileOnServer(FileItem fileItem, int partNum, boolean isLastPart, String pid, String expectedMd5)
-			throws IOException {
-		String filename = fileItem.getName();
-		String serverFilename = getFilenameFromPath(filename);
-
-		LOGGER.debug("filename: {}, filesize: {}.", filename, fileItem.getSize());
-
-		// Append .part[n] to the filename if its a part file.
-		if (partNum > 0)
-			serverFilename += PART_FILE_SUFFIX + partNum;
-
-		BufferedInputStream uploadedFileStream = null;
-		BufferedInputStream mergedFileStream = null;
-		File pidDir = new File(GlobalProps.getUploadDirAsFile(), DcStorage.convertToDiskSafe(pid));
-		if (!pidDir.exists())
-			pidDir.mkdirs();
-		File fileOnServer = new File(pidDir, serverFilename);
-		try {
-			// Check if file already exists in pid dir. If not, write the file. Otherwise check if the file on server's
-			// the same size as the one uploaded. If not, write it.
-			if (!fileOnServer.exists() || (fileOnServer.exists() && fileOnServer.length() != fileItem.getSize())) {
-				LOGGER.debug("Writing file {}", fileOnServer.getAbsolutePath());
-				uploadedFileStream = new BufferedInputStream(fileItem.getInputStream(), (int) FileUtils.ONE_MB);
-				saveInputStreamAsFile(uploadedFileStream, fileOnServer);
-				if (isLastPart) // If last part then merge part files.
-				{
-					File mergedFile = processFinalPartFile(fileItem, partNum, pidDir);
-					mergedFileStream = new BufferedInputStream(new FileInputStream(mergedFile), (int) FileUtils.ONE_MB);
-					String computedMd5Sum = DigestUtils.md5Hex(mergedFileStream);
-					if (!computedMd5Sum.equalsIgnoreCase(expectedMd5))
-						throw new IOException(format(
-								"Computed MD5 {0} does not match expected {1} for uploaded file {2}", computedMd5Sum,
-								expectedMd5, mergedFile.getAbsolutePath()));
-					fileOnServer = mergedFile;
-				}
-			} else {
-				LOGGER.warn("File {} exists on server with same size. Not overwriting it.",
-						fileOnServer.getAbsoluteFile());
-			}
-		} finally {
-			IOUtils.closeQuietly(uploadedFileStream);
-			IOUtils.closeQuietly(mergedFileStream);
-		}
-
-		return fileOnServer;
-	}
 
 	/**
-	 * processFinalPartFile
-	 * 
-	 * Australian National University Data Commons
-	 * 
-	 * This method is called after the final part of a file has been saved on the server. This method merges the parts
-	 * into a single file.
-	 * 
-	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		14/05/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
-	 * 
-	 * @param fileItem
-	 *            FileItem object.
-	 * @param partNum
-	 *            Part number has int
-	 * @param pidDir
-	 * @throws IOException
-	 * @throws Exception
-	 *             Thrown if the files could not be merged.
-	 */
-	private File processFinalPartFile(FileItem fileItem, int partNum, File pidDir) throws IOException {
-		BufferedInputStream partInStream = null;
-		File[] partFiles = new File[partNum];
-
-		// Open a FileOutputStream in the Target directory where the merged file will be placed.
-		File mergedFile = new File(pidDir, fileItem.getName());
-		BufferedOutputStream mergedFileStream = new BufferedOutputStream(new FileOutputStream(mergedFile));
-
-		LOGGER.debug("Processing final file part# {}", partNum);
-
-		try {
-			// Merge individual file parts.
-			LOGGER.debug("Merging file parts...");
-			for (int i = 1; i <= partNum; i++) {
-				// Open the FileInputStream to read from the part file.
-				partFiles[i - 1] = new File(pidDir, fileItem.getName() + PART_FILE_SUFFIX + i);
-				partInStream = new BufferedInputStream(new FileInputStream(partFiles[i - 1]), (int) FileUtils.ONE_MB);
-
-				// Read bytes and add them to the merged file until all files in this file part have been merged.
-				try {
-					byte[] buffer = new byte[(int) FileUtils.ONE_MB];
-					int numBytesRead;
-					while ((numBytesRead = partInStream.read(buffer)) != -1)
-						mergedFileStream.write(buffer, 0, numBytesRead);
-				} finally {
-					IOUtils.closeQuietly(partInStream);
-				}
-			}
-
-			LOGGER.debug("Merged into {}", pidDir + File.separator + fileItem.getName());
-		} finally {
-			IOUtils.closeQuietly(mergedFileStream);
-
-			// Delete the part files now that they've been merged.
-			for (int i = 0; i < partFiles.length; i++) {
-				if (partFiles[i].exists() && !partFiles[i].delete())
-					LOGGER.warn("Unable to delete part file {}.", partFiles[i].getAbsolutePath());
-			}
-		}
-
-		return mergedFile;
-	}
-
-	/**
-	 * getFilenameFromPath
-	 * 
-	 * Australian National University Data Commons
-	 * 
 	 * Gets the filename part from a full filename on the client that may contain file separators different from the
 	 * ones used on the server.
-	 * 
-	 * <pre>
-	 * Version	Date		Developer			Description
-	 * 0.1		14/05/2012	Rahul Khanna (RK)	Initial
-	 * </pre>
 	 * 
 	 * @param fullFilename
 	 *            Full path and filename as on the client's computer.
@@ -1030,7 +746,7 @@ public class UploadService {
 		return (List<FileItem>) upload.parseRequest(request);
 	}
 
-	protected boolean hasRole(String[] roles) {
+	private boolean hasRole(String[] roles) {
 		boolean hasRole = false;
 		for (GrantedAuthority authority : SecurityContextHolder.getContext().getAuthentication().getAuthorities()) {
 			String userRole = authority.getAuthority();
@@ -1048,4 +764,15 @@ public class UploadService {
 
 		return hasRole;
 	}
+	
+	private void addAccessLog(AccessLogRecord.Operation op) throws IOException {
+		addAccessLog(uriInfo.getPath(), op);
+	}
+	
+	private void addAccessLog(String uri, AccessLogRecord.Operation op) throws IOException {
+		AccessLogRecord alr = new AccessLogRecord(uri, getCurUser(), request.getRemoteAddr(),
+				request.getHeader("User-Agent"), op);
+		accessLogDao.create(alr);
+	}
+
 }
