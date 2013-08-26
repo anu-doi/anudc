@@ -11,11 +11,13 @@ import gov.loc.repository.bagit.utilities.FilenameHelper;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -38,7 +40,6 @@ public class BagSummaryTask implements Callable<BagSummary> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BagSummaryTask.class);
 
 	private File bagDir;
-	private Bag bag;
 	
 	public BagSummaryTask(File bagDir) {
 		this.bagDir = bagDir;
@@ -50,24 +51,37 @@ public class BagSummaryTask implements Callable<BagSummary> {
 	}
 
 	public BagSummary generateBagSummary() {
-		this.bag = new BagFactory().createBag(this.bagDir, LoadOption.BY_FILES);
-		FileSummaryMap fsMap = createFsMap();
-		BagSummary bagSummary = new BagSummary(bag, fsMap);
+		Bag bag = new BagFactory().createBag(this.bagDir, LoadOption.BY_FILES);
+		FileSummaryMap fsMap = createFsMap(bag);
+		BagSummary bagSummary = new BagSummary(fsMap);
 		try {
 			File tagFile = new File(bag.getFile(), ExtRefsTagFile.FILEPATH);
-			bagSummary.setExtRefsTxt(new ExtRefsTagFile(tagFile));
+			bagSummary.setExtRefsTxt(Collections.unmodifiableMap(new ExtRefsTagFile(tagFile)));
 		} catch (IOException e) {
 			LOGGER.warn("Unable to read ExtRefsTxt in {}", bag.getFile().getAbsolutePath());
 		}
+		bagSummary.setBagInfoTxt(Collections.unmodifiableMap(bag.getBagInfoTxt()));
+		long bagSize = calcBagSize(fsMap);
+		bagSummary.setBagSize(bagSize);
+		bagSummary.setFriendlySize(FileUtils.byteCountToDisplaySize(bagSize));
 		return bagSummary;
 	}
+	
+	private long calcBagSize(FileSummaryMap fsMap) {
+		long bagSize = 0L;
+		for (FileSummary fs : fsMap.values()) {
+			bagSize += fs.getSizeInBytes();
+		}
+		return bagSize;
+	}
+
 
 	/**
 	 * Creates a FileSummaryMap and populates it with filepath as keys and FileSummary as values.
 	 * 
 	 * @return FileSummaryMap
 	 */
-	private FileSummaryMap createFsMap() {
+	private FileSummaryMap createFsMap(Bag bag) {
 		FileSummaryMap fsMap = new FileSummaryMap();
 		for (BagFile iBagFile : bag.getPayload()) {
 			File file = new File(bag.getFile(), iBagFile.getFilepath());
@@ -111,7 +125,12 @@ public class BagSummaryTask implements Callable<BagSummary> {
 			for (Entry<String, String> pronomEntry : pronomFormats.entrySet()) {
 				FileSummary fs = fsMap.get(pronomEntry.getKey());
 				if (fs != null) {
-					fs.setPronomFormat(new PronomFormat(pronomEntry.getValue()));
+					try {
+						PronomFormat pronomFormat = new PronomFormat(pronomEntry.getValue());
+						fs.setPronomFormat(pronomFormat);
+					} catch (Exception e) {
+						// No op.
+					}
 				}
 			}
 		} catch (IOException e) {
@@ -125,17 +144,21 @@ public class BagSummaryTask implements Callable<BagSummary> {
 			for (Entry<String, String> vsEntry : vs.entrySet()) {
 				FileSummary fs = fsMap.get(vsEntry.getKey());
 				if (fs != null) {
-					if (vsEntry.getValue() != null && vsEntry.getValue().length() > 0) {
-						ScanResult sr = new ScanResult(vsEntry.getValue());
-						String srStr;
-						if (sr.getStatus() == ScanResult.Status.FAILED) {
-							srStr = sr.getStatus().toString() + ", " + sr.getSignature();
+					try {
+						if (vsEntry.getValue() != null && vsEntry.getValue().length() > 0) {
+							ScanResult sr = new ScanResult(vsEntry.getValue());
+							String srStr;
+							if (sr.getStatus() == ScanResult.Status.FAILED) {
+								srStr = sr.getStatus().toString() + ", " + sr.getSignature();
+							} else {
+								srStr = sr.getStatus().toString();
+							}
+							fs.setScanResult(srStr);
 						} else {
-							srStr = sr.getStatus().toString();
+							fs.setScanResult("NOT SCANNED");
 						}
-						fs.setScanResult(srStr);
-					} else {
-						fs.setScanResult("NOT SCANNED");
+					} catch (Exception e) {
+						// No op.
 					}
 				}
 			}
@@ -150,8 +173,12 @@ public class BagSummaryTask implements Callable<BagSummary> {
 			for (Entry<String, String> metadataEntry : fileMetadata.entrySet()) {
 				FileSummary fs = fsMap.get(metadataEntry.getKey());
 				if (fs != null) {
-					if (metadataEntry.getValue() != null && metadataEntry.getValue().length() > 0) {
-						fs.setMetadata(deserializeFromJson(metadataEntry.getValue()));
+					try {
+						if (metadataEntry.getValue() != null && metadataEntry.getValue().length() > 0) {
+							fs.setMetadata(deserializeFromJson(metadataEntry.getValue()));
+						}
+					} catch (Exception e) {
+						// No op.
 					}
 				}
 			}

@@ -21,16 +21,10 @@
 
 package au.edu.anu.datacommons.storage.info;
 
-import gov.loc.repository.bagit.Bag;
-import gov.loc.repository.bagit.BagFile;
-
 import java.util.Collections;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-
-import au.edu.anu.datacommons.storage.info.BagPropsTxt.DataSource;
-import au.edu.anu.datacommons.storage.info.BagPropsTxt.Key;
 
 /**
  * Represents the summary of a bag's contents. This class contains the following information about a bag:
@@ -49,7 +43,6 @@ import au.edu.anu.datacommons.storage.info.BagPropsTxt.Key;
  */
 public class BagSummary {
 	private FileSummaryMap fsMap = null;
-	private BagPropsTxt bagPropsTxt = null;
 	private Map<String, String> bagInfoTxt = null;
 	private Map<String, String> extRefsTxt = null;
 	private long bagSize;
@@ -58,12 +51,9 @@ public class BagSummary {
 	public BagSummary() {
 	}
 
-	public BagSummary(Bag bag, FileSummaryMap fsMap) {
+	public BagSummary(FileSummaryMap fsMap) {
 		this.fsMap = fsMap;
-		calcBagSize(fsMap);
 		friendlySize = FileUtils.byteCountToDisplaySize(bagSize);
-		this.bagInfoTxt = bag.getBagInfoTxt();
-		readBagPropsTxt(bag);
 	}
 
 	/**
@@ -98,25 +88,6 @@ public class BagSummary {
 	}
 
 	/**
-	 * Gets the data source attribute specified for this bag. If none is specified, the value <code>general</code> is
-	 * returned.
-	 * 
-	 * @return DataSource
-	 */
-	public DataSource getDataSource() {
-		// If the Bag properites file exists, read the data source. If data source not specified, set GENERAL.
-		DataSource dataSource = null;
-		if (this.bagPropsTxt != null) {
-			String value = bagPropsTxt.get(Key.DATASOURCE.toString());
-			if (value == null || value.length() == 0)
-				dataSource = DataSource.GENERAL;
-			dataSource = DataSource.getValueOf(value);
-		}
-
-		return dataSource;
-	}
-
-	/**
 	 * Gets the FileSummaryMap containing FileSummary for each BagFile in this bag.
 	 * 
 	 * @return FileSummaryMap
@@ -137,6 +108,10 @@ public class BagSummary {
 	public Map<String, String> getBagInfoTxt() {
 		return Collections.unmodifiableMap(bagInfoTxt);
 	}
+	
+	public void setBagInfoTxt(Map<String, String> bagInfoTxt) {
+		this.bagInfoTxt = bagInfoTxt;
+	}
 
 	/**
 	 * Gets the external references tag file containing links to external resources.
@@ -144,24 +119,18 @@ public class BagSummary {
 	 * @return ExtRefsTxt
 	 */
 	public Map<String, String> getExtRefsTxt() {
-		return extRefsTxt;
+		return Collections.unmodifiableMap(extRefsTxt);
 	}
 	
 	public void setExtRefsTxt(Map<String, String> extRefsTxt) {
 		this.extRefsTxt = extRefsTxt;
 	}
-
-	private void calcBagSize(FileSummaryMap fsMap) {
-		bagSize = 0L;
-		for (FileSummary fs : fsMap.values()) {
-			bagSize += fs.getSizeInBytes();
-		}
+	
+	public long getBagSize() {
+		return bagSize;
 	}
 
-	private void readBagPropsTxt(Bag bag) {
-		BagFile bagPropsTxtFile = bag.getBagFile(BagPropsTxt.FILEPATH);
-		if (bagPropsTxtFile != null)
-			this.bagPropsTxt = new BagPropsTxt(BagPropsTxt.FILEPATH, bagPropsTxtFile, bag.getBagItTxt()
-					.getCharacterEncoding());
+	public void setBagSize(long bagSize) {
+		this.bagSize = bagSize;
 	}
 }
