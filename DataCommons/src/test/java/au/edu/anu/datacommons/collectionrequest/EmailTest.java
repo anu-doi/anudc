@@ -21,6 +21,13 @@
 
 package au.edu.anu.datacommons.collectionrequest;
 
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,38 +41,37 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+/**
+ * 
+ * @author Rahul Khanna
+ *
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class EmailTest
-{
+public class EmailTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EmailTest.class);
-	
+
 	@Autowired
 	JavaMailSenderImpl mailSender;
 
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
+	public static void setUpBeforeClass() throws Exception {
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
+	public static void tearDownAfterClass() throws Exception {
 	}
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
+	public void tearDown() throws Exception {
 	}
 
 	@Test
-	public void test()
-	{
+	public void test() {
 		Email email = new Email(mailSender);
 		email.addRecipient("abc1@abc.com", "Abc 1");
 		email.addRecipient("abc2@abc.com", "Abc 2");
@@ -73,5 +79,23 @@ public class EmailTest
 		email.setBody("Test Body");
 		email.send();
 		LOGGER.info(mailSender.getHost());
+	}
+
+	/**
+	 * Tests the Email class' ability to validate email addresses.
+	 */
+	@Test
+	public void testValidation() {
+		Map<String, Boolean> emails = new HashMap<String, Boolean>();
+		emails.put("u1234567@anu.edu.au", true);
+		emails.put("abc@abc.com", true);
+		emails.put("abc.xyz@some.domain.com", true);
+		emails.put(".abc@xyz.com", false);
+		emails.put("first..second@gmail.com", false);
+		emails.put("first-second@first-second.com.au", true);
+		
+		for (Entry<String, Boolean> email : emails.entrySet()) {
+			assertThat(Email.isValidEmail(email.getKey()), is(email.getValue()));
+		}
 	}
 }
