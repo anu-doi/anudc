@@ -95,8 +95,6 @@ public class TempFileTask extends AbstractTempFileTask {
 			} else {
 				LOGGER.debug("Calculated {} {} matches expected {}", digester.getAlgorithm(), calculatedMd, expectedMd);
 			}
-		} else {
-			LOGGER.debug("Calculated {}: {}", digester.getAlgorithm(), calculatedMd);
 		}
 		return savedFile;
 	}

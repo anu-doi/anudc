@@ -93,10 +93,8 @@ public class AbstractKeyValueFileTest {
 		final int nItems = 10000;
 		Map<String, String> randMap = generateRandomKeyValues(nItems);
 		
-		File file = new File(tempDir.getRoot(), "KeyValFile.txt");
-		assertFalse(file.isFile());
+		File file = tempDir.newFile();
 		kvFile = new KeyValueFileImpl(file);
-		assertFalse(file.isFile());
 		kvFile.putAll(randMap);
 		long start_ns = System.nanoTime();
 		kvFile.write();
@@ -109,7 +107,7 @@ public class AbstractKeyValueFileTest {
 	
 	@Test
 	public void testSplitLines() throws IOException {
-		File file = tempDir.newFile("KeyValFile.txt");
+		File file = tempDir.newFile();
 		assertTrue(file.isFile());
 		BufferedWriter writer = null;
 		try {
@@ -119,6 +117,7 @@ public class AbstractKeyValueFileTest {
 			writer.write("data/BagIt Specification.pdf: OK,359,fmt/20,\"Acrobat PDF 1.6 - Portable");
 			writer.newLine();
 			writer.write("   Document Format\",\"PDF 1.6\",63647,\"STDIN\",\"application/pdf\",\"signature\"");
+			writer.newLine();
 			writer.newLine();
 			writer.write("data/A really really long filename blah blah");
 			writer.newLine();
@@ -145,7 +144,7 @@ public class AbstractKeyValueFileTest {
 	
 	@Test
 	public void testEscapedCharInKeys() throws IOException {
-		File file = new File(tempDir.getRoot(), "KeyValFile.txt");
+		File file = tempDir.newFile();
 		KeyValueFileImpl keyVal = new KeyValueFileImpl(file);
 		String key = "abc:x:y:z";
 		String value = "value:value";
@@ -162,7 +161,7 @@ public class AbstractKeyValueFileTest {
 	
 	@Test
 	public void testDiffSeparator() throws IOException {
-		File file = new File(tempDir.getRoot(), "KeyValFile.txt");
+		File file = tempDir.newFile();
 		KeyValueFileImplSpaceSeparator keyVal = new KeyValueFileImplSpaceSeparator(file);
 		String key = "a=bc=";
 		String value = "xyz";
@@ -174,7 +173,34 @@ public class AbstractKeyValueFileTest {
 		assertThat(keyVal.entrySet(), hasSize(1));
 		assertThat(keyVal, hasEntry(key, value));
 	}
-
+	
+	@Test
+	public void testBlankValue() throws Exception {
+		File file = tempDir.newFile();
+		KeyValueFileImpl kvFile = new KeyValueFileImpl(file);
+		kvFile.put("key1", "value");
+		kvFile.put("key2", "");
+		kvFile.put("key3", null);
+		kvFile.write();
+		logFileContents(file);
+		
+		kvFile = new KeyValueFileImpl(file);
+		assertThat(kvFile, hasEntry("key1", "value"));
+		assertThat(kvFile, hasEntry("key2", ""));
+		assertThat(kvFile, hasEntry("key3", ""));
+	}
+	
+	@Test
+	public void testUnicode() throws Exception {
+		File file = tempDir.newFile();
+		KeyValueFileImpl kvFile = new KeyValueFileImpl(file);
+		String[] kv = {"펙퍼펱펿폌펥펟펅퍮퍜퍤펥폚폓폎펣폏펪폒폚", "圵垐垇坖垜埁埒圧圕圚㋷㊬㉹"};
+		kvFile.put(kv[0], kv[1]);
+		kvFile.write();
+		kvFile = new KeyValueFileImpl(file);
+		assertThat(kvFile, hasEntry(kv[0], kv[1]));
+	}
+	
 	private void logFileContents(File file) throws IOException {
 		BufferedReader reader = null;
 		StringBuilder sb = new StringBuilder();

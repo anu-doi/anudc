@@ -61,19 +61,21 @@ public abstract class AbstractKeyValueFile extends HashMap<String, String> {
 	public synchronized void read() throws IOException {
 		BufferedReader reader = null;
 		try {
-			synchronized(this) {
+			synchronized (this) {
 				reader = new BufferedReader(new FileReader(this.file));
-				for (String line = reader.readLine(); line != null; ) {
+				for (String line = reader.readLine(); line != null;) {
 					// If the next line starts with white spaces concatinate it to the current line.
 					String nextLine = reader.readLine();
 					while (nextLine != null && nextLine.startsWith("  ")) {
 						line += nextLine.substring(2);
 						nextLine = reader.readLine();
 					}
-					
-					String parts[] = unserializeKeyValue(line); 
-					if (parts != null) {
-						this.put(parts[0], parts[1]);
+
+					if (line.length() > 0) {
+						String parts[] = unserializeKeyValue(line);
+						if (parts != null) {
+							this.put(parts[0], parts[1]);
+						}
 					}
 					line = nextLine;
 				}
@@ -107,12 +109,8 @@ public abstract class AbstractKeyValueFile extends HashMap<String, String> {
 					.getAbsolutePath()));
 		}
 		if (value == null) {
-			throw new NullPointerException(format("Value cannot be null. File {0}", getFile().getAbsolutePath()));
-		} else if (value.length() == 0) {
-			throw new IllegalArgumentException(format("Value cannot be a zero-length string. Key: {0}. File: {1}", key,
-					getFile().getAbsolutePath()));
+			value = "";
 		}
-
 		return super.put(key, value);
 	}
 	
@@ -123,7 +121,7 @@ public abstract class AbstractKeyValueFile extends HashMap<String, String> {
 	protected String[] unserializeKeyValue(String line) {
 		String parts[];
 		parts = line.split("(?<!\\" + getEscapeChar() + ")" + getSeparator(), 2);
-		if (parts.length == 2 && parts[0].length() > 0 && parts[1].length() > 0) {
+		if (parts.length == 2 && parts[0].length() > 0) {
 			parts[0] = unescapeKey(parts[0]).trim();
 			parts[1] = parts[1].trim();
 		} else {
