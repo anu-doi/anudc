@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.ldap;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -47,32 +48,29 @@ import au.edu.anu.datacommons.services.UserResource;
  * 
  * Australian National University Data Commons
  * 
- * This class wraps a request to be submitted to an LDAP server. URL and BaseDN values of LDAP server are retrieved from the properties file.
+ * This class wraps a request to be submitted to an LDAP server. URL and BaseDN values of LDAP server are retrieved from
+ * the properties file.
  * 
  * <pre>
  * Version	Date		Developer			Description
  * 0.1 		09/03/2012	Rahul Khanna (RK)	Initial
  * </pre>
  */
-public class LdapRequest
-{
-	static final Logger LOGGER = LoggerFactory.getLogger(UserResource.class);
-	
+public class LdapRequest {
+	private static final Logger LOGGER = LoggerFactory.getLogger(LdapRequest.class);
+
 	private static final String LdapUri = GlobalProps.getProperty(GlobalProps.PROP_LDAP_URI);
 	private static final String LdapBaseDn = GlobalProps.getProperty(GlobalProps.PROP_LDAP_BASEDN);
 	private static final String LdapContextFactoryName = "com.sun.jndi.ldap.LdapCtxFactory";
 	private static final int DEFAULT_MAX_SEARCH_RESULTS = 10;
 	private static final Hashtable<String, String> authCtxEnv = new Hashtable<String, String>();
 	private static final Hashtable<String, String> searchCtxEnv = new Hashtable<String, String>();
+	private static final MessageFormat queryPartTemplate = new MessageFormat("({0}={1})");
 
 	private StringBuilder ldapQuery;
 	private SearchControls ldapSearchControl;
-	// TODO: Check if ArrayList is the best type to use for a collection of this kind.
-	private ArrayList<LdapPerson> results;
 
-	// Initialise the Search and Authenticate context environments.
-	static
-	{
+	static {
 		searchCtxEnv.put(Context.INITIAL_CONTEXT_FACTORY, LdapContextFactoryName);
 		searchCtxEnv.put(Context.PROVIDER_URL, LdapUri);
 
@@ -93,8 +91,7 @@ public class LdapRequest
 	 * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
 	 * </pre>
 	 */
-	public LdapRequest()
-	{
+	public LdapRequest() {
 		ldapQuery = new StringBuilder();
 		ldapSearchControl = new SearchControls();
 	}
@@ -104,7 +101,8 @@ public class LdapRequest
 	 * 
 	 * Autralian National University Data Commons
 	 * 
-	 * Sets the maximum number of search results that will be returned when the LDAP query is executed. DEFAULT_MAX_SEARCH_RESULTS is used if not specified.
+	 * Sets the maximum number of search results that will be returned when the LDAP query is executed.
+	 * DEFAULT_MAX_SEARCH_RESULTS is used if not specified.
 	 * 
 	 * <pre>
 	 * Version	Date		Developer			Description
@@ -114,8 +112,7 @@ public class LdapRequest
 	 * @param maxResults
 	 *            Number of maximum search results accepted.
 	 */
-	public void setMaxResults(long maxResults)
-	{
+	public void setMaxResults(long maxResults) {
 		ldapSearchControl.setCountLimit(maxResults);
 	}
 
@@ -134,8 +131,7 @@ public class LdapRequest
 	 * @param query
 	 *            LDAP Query to be run
 	 */
-	public void setQuery(String query)
-	{
+	public void setQuery(String query) {
 		ldapQuery = new StringBuilder(query);
 	}
 
@@ -154,34 +150,26 @@ public class LdapRequest
 	 * @throws NamingException
 	 *             When the LDAP query is either blank or invalid.
 	 */
-	public List<LdapPerson> search() throws NamingException
-	{
+	public List<LdapPerson> search() throws NamingException {
 		DirContext dirContext;
 		NamingEnumeration<SearchResult> searchResults = null;
-		//long numResults = 0L;
 		List<LdapPerson> people = new ArrayList<LdapPerson>();
+
 		// Perform search.
 		dirContext = new InitialDirContext(searchCtxEnv);
 		searchResults = dirContext.search(LdapBaseDn, ldapQuery.toString(), ldapSearchControl);
 
 		// Iterate through the results returned, stored each one in results.
-		while (searchResults.hasMore())
-		{
-			
+		while (searchResults.hasMore()) {
 			LdapPerson ldapPerson = new LdapPerson(searchResults.next().getAttributes());
-			if (ldapPerson != null) {
-				people.add(ldapPerson);
-			}
-			else {
-				LOGGER.info("No person created?");
-			}
-		//	numResults++;
+			people.add(ldapPerson);
 		}
 
-		dirContext.close();
-
-		// Return number of results returned.
-		//return numResults;
+		try {
+			dirContext.close();
+		} catch (NamingException e) {
+			LOGGER.warn("Unable to close directory context after LDAP query {}", ldapQuery.toString());
+		}
 		return people;
 	}
 
@@ -190,16 +178,15 @@ public class LdapRequest
 	 * 
 	 * Autralian National University Data Commons
 	 * 
-	 * A method that searches for the specified Uni Id in the LDAP and returns an LdapPerson object with the entry details. Attributes to be retrieved are
-	 * specified in properties file.
+	 * A method that searches for the specified Uni Id in the LDAP and returns an LdapPerson object with the entry
+	 * details. Attributes to be retrieved are specified in properties file.
 	 * 
 	 * @param uniId
 	 *            A valid ANU university ID.
 	 * @return An LdapPerson object containing attributes of the person whose Uni Id was provided as parameter.
 	 * @throws Exception
 	 */
-	public LdapPerson searchUniId(String uniId) throws Exception
-	{
+	public LdapPerson searchUniId(String uniId) throws Exception {
 		DirContext dirContext;
 		NamingEnumeration<SearchResult> searchResults = null;
 
@@ -215,26 +202,23 @@ public class LdapRequest
 		ldapQuery.append(uniId);
 		ldapQuery.append(")");
 
-		try
-		{
+		try {
 			dirContext = new InitialDirContext(searchCtxEnv);
-			LOGGER.info("Running LDAP query: {}", ldapQuery.toString());
 			searchResults = dirContext.search(LdapBaseDn, ldapQuery.toString(), ldapSearchControl);
-		}
-		catch (NamingException e)
-		{
+		} catch (NamingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 		// If no results returned or multiple results returned, throw exception.
 		SearchResult firstResult = searchResults.next();
-		if (firstResult == null || searchResults.hasMore())
+		if (firstResult == null || searchResults.hasMore()) {
 			throw new Exception("No results or multiple results returned for Uni Id. Only one expected.");
+		}
 
 		return new LdapPerson(firstResult.getAttributes());
 	}
-
+	
 	/**
 	 * authenticate
 	 * 
@@ -253,45 +237,35 @@ public class LdapRequest
 	 *            Password
 	 * @return true if credentials are correct, false otherwise.
 	 */
-	public boolean authenticate(String username, String password)
-	{
+	public boolean authenticate(String username, String password) {
 		boolean isAuthenticated = false;
 		DirContext dirContext = null;
 
 		// Parameter password must never be blank. A user gets authenticated if password is blank.
-		if (password.equals(""))
+		if (password.equals("")) {
 			return isAuthenticated;
+		}
 
 		// Include username and password in the directory context environment.
-		authCtxEnv.put(Context.SECURITY_PRINCIPAL,
-				GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_UNIID) + "=" + username + ", " + GlobalProps.getProperty(GlobalProps.PROP_LDAP_BASEDN));
+		authCtxEnv.put(Context.SECURITY_PRINCIPAL, GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_UNIID) + "="
+				+ username + ", " + GlobalProps.getProperty(GlobalProps.PROP_LDAP_BASEDN));
 		authCtxEnv.put(Context.SECURITY_CREDENTIALS, password);
 
-		try
-		{
+		try {
 			dirContext = new InitialDirContext(authCtxEnv);
 			// If no exception thrown then credentials are valid.
 			isAuthenticated = true;
-		}
-		catch (AuthenticationException e)		// Invalid credentials
-		{
+		} catch (AuthenticationException e) {
+			// Invalid credentials
 			isAuthenticated = false;
-		}
-		catch (NamingException e)		// Some other error
-		{
+		} catch (NamingException e) {
 			// Can't be sure if credentials are valid when this exception's thrown. Flagged false to be safe.
 			isAuthenticated = false;
-		}
-		finally
-		{
-			if (dirContext != null)
-			{
-				try
-				{
+		} finally {
+			if (dirContext != null) {
+				try {
 					dirContext.close();
-				}
-				catch (NamingException e)
-				{
+				} catch (NamingException e) {
 					dirContext = null;
 				}
 			}
@@ -300,4 +274,17 @@ public class LdapRequest
 		return isAuthenticated;
 	}
 
+	String createQueryPart(String attributeName, String attributeValue) {
+		return queryPartTemplate.format(new Object[] {attributeName, attributeValue});
+	}
+	
+	String createQueryGroup(String operator, String... queryParts) {
+		StringBuilder queryGroup = new StringBuilder("(");
+		queryGroup.append(operator);
+		for (int i = 0; i < queryParts.length; i++) {
+			queryGroup.append(queryParts[i]);
+		}
+		queryGroup.append(")");
+		return queryGroup.toString();
+	}
 }

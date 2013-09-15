@@ -21,40 +21,41 @@
 
 package au.edu.anu.datacommons.ldap;
 
+import static java.text.MessageFormat.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+
+import java.util.List;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class LdapRequestTest
-{
-
+public class LdapRequestTest {
+	private static final Logger LOGGER = LoggerFactory.getLogger(LdapRequestTest.class);
+	
 	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
+	public static void setUpBeforeClass() throws Exception {
 	}
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
+	public static void tearDownAfterClass() throws Exception {
 	}
 
 	@Before
-	public void setUp() throws Exception
-	{
+	public void setUp() throws Exception {
 	}
 
 	@After
-	public void tearDown() throws Exception
-	{
+	public void tearDown() throws Exception {
 	}
 
 	@Test
-	public void testSearchUniId() throws Exception
-	{
+	public void testSearchUniId() throws Exception {
 		LdapRequest req = new LdapRequest();
 		LdapPerson person = req.searchUniId("U4465201");
 		assertTrue("Family not as expected.", person.getFamilyName().equalsIgnoreCase("khanna"));
@@ -62,10 +63,38 @@ public class LdapRequestTest
 	}
 
 	@Test
-	public void testAuth()
-	{
+	public void testSearchFirstLastname() throws Exception {
+		LdapRequest req = new LdapRequest();
+		req.setQuery("(&(sn=smith)(givenName=janet*))");
+		List<LdapPerson> results = req.search();
+		for (LdapPerson p : results) {
+			LOGGER.trace("{} {} {}", p.getUniId(), p.getGivenName(), p.getFamilyName());
+		}
+		assertThat(results, hasSize(greaterThanOrEqualTo(1)));
+	}
+	
+	@Test
+	public void testAuth() {
 		LdapRequest req = new LdapRequest();
 		boolean authResult = req.authenticate("U4465201", "abc123");
 		assertFalse("", authResult);
+	}
+	
+	@Test
+	public void testQueryCreation() {
+		String lastname = "abc";
+		String firstname = "xyz";
+		String uid = "u1234567";
+		
+		LdapRequest req = new LdapRequest();
+		String lnPart = req.createQueryPart("sn", lastname);
+		assertEquals(format("(sn={0})", lastname), lnPart);
+		
+		String fnPart = req.createQueryPart("givenName", firstname);
+		String queryGrp = req.createQueryGroup("&", lnPart, fnPart);
+		String queryGrp2 = req.createQueryPart("uid", uid);
+		String complexQueryGrp = req.createQueryGroup("|", queryGrp2, queryGrp);
+		
+		assertEquals(complexQueryGrp, format("(|(uid={0})(&(sn={1})(givenName={2})))", uid, lastname, firstname));
 	}
 }
