@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.storage.completer.fido;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.io.BufferedOutputStream;
@@ -33,6 +34,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.Random;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -46,13 +48,18 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.storage.info.PronomFormat;
 import au.edu.anu.datacommons.storage.info.PronomFormat.MatchStatus;
+import au.edu.anu.datacommons.test.util.TestUtil;
 
+/**
+ * 
+ * @author Rahul Khanna
+ *
+ */
 public class FidoParserTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FidoParserTest.class);
 	
 	private FidoParser fidoParser;
 	private File fileToId;
-	private Random rand;
 	
 	@Rule
 	public TemporaryFolder tempDir = new TemporaryFolder();
@@ -67,7 +74,6 @@ public class FidoParserTest {
 
 	@Before
 	public void setUp() throws Exception {
-		rand = new Random();
 	}
 
 	@After
@@ -77,8 +83,7 @@ public class FidoParserTest {
 	@Test
 	public void testFidoPdfFile() {
 		try {
-			fileToId = new File(this.getClass().getResource("BagIt Specification.pdf")
-					.toURI());
+			fileToId = new File(this.getClass().getResource("BagIt Specification.pdf").toURI());
 			fidoParser = new FidoParser(fileToId);
 			PronomFormat fileFormat = fidoParser.getFileFormat();
 			matchValues(fileFormat);
@@ -88,11 +93,28 @@ public class FidoParserTest {
 			failOnException(e);
 		}
 	}
+
+	@Test
+	public void testFidoContainerDocumentFile() {
+		try {
+			fileToId = new File(this.getClass().getResource("Container.odt").toURI());
+			fidoParser = new FidoParser(fileToId);
+			assertThat(fidoParser.getFidoStr(), containsString("fmt/291"));
+			assertThat(fidoParser.getFidoStr(), containsString("OpenDocument Text"));
+			assertThat(fidoParser.getFidoStr(), containsString("ODF 1.2 text"));
+			assertThat(fidoParser.getFidoStr(), containsString("application/vnd.oasis.opendocument.text"));
+		} catch (IOException e) {
+			failOnException(e);
+		} catch (URISyntaxException e) {
+			failOnException(e);
+		}
+	}
+
 	
 	@Test
 	public void testFidoGarbageFile() throws IOException {
 		fileToId = tempDir.newFile();
-		writeRandomData(fileToId);
+		TestUtil.createFileOfSizeInRange(fileToId, 2L, 6L, FileUtils.ONE_MB);
 		fidoParser = new FidoParser(fileToId);
 		PronomFormat fileFormat = fidoParser.getFileFormat();
 		assertEquals(fileToId.getAbsolutePath(), fileFormat.getFileName());
@@ -103,7 +125,7 @@ public class FidoParserTest {
 	@Test
 	public void testFidoGarbageStream() throws IOException {
 		fileToId = tempDir.newFile();
-		writeRandomData(fileToId);
+		TestUtil.createFileOfSizeInRange(fileToId, 2L, 6L, FileUtils.ONE_MB);
 		FileInputStream fileStream = null;
 		try {
 			fileStream = new FileInputStream(fileToId);
@@ -135,21 +157,6 @@ public class FidoParserTest {
 		assertEquals(filename, fileFormat.getFileName());
 		assertEquals("x-fmt/62", fileFormat.getPuid());
 		LOGGER.trace(fileFormat.getFormatName());
-	}
-
-	private void writeRandomData(File fileToId) throws FileNotFoundException, IOException {
-		BufferedOutputStream fileStream = null;
-		try {
-			fileStream = new BufferedOutputStream(new FileOutputStream(fileToId));
-			int sizeInMb = rand.nextInt(5) + 1;
-			byte[] buffer = new byte[1024 * 1024];
-			for (int i = 0; i < sizeInMb; i++) {
-				rand.nextBytes(buffer);
-				fileStream.write(buffer);
-			}
-		} finally {
-			IOUtils.closeQuietly(fileStream);
-		}
 	}
 
 	private void matchValues(PronomFormat format) {

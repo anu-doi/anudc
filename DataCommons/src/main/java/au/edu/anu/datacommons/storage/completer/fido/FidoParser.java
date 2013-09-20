@@ -106,10 +106,18 @@ public class FidoParser {
 	 */
 	public String getFidoStr() throws IOException {
 		if (fidoStr == null) {
-			fidoStr = pyExec.getOutputAsString();
+			fidoStr = filterFirstLine(pyExec.getOutputAsString());
 			LOGGER.trace("Fido output string: {}", fidoStr);
 		}
 		return fidoStr;
+	}
+
+	private String filterFirstLine(String str) {
+		int splitIndex = str.indexOf('\r');
+		if (splitIndex == -1) {
+			splitIndex = str.indexOf('\n');
+		}
+		return str.substring(0, splitIndex);
 	}
 
 	private String getFidoPath() {
