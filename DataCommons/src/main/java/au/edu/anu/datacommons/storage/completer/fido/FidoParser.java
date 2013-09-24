@@ -117,7 +117,11 @@ public class FidoParser {
 		if (splitIndex == -1) {
 			splitIndex = str.indexOf('\n');
 		}
-		return str.substring(0, splitIndex);
+		if (splitIndex > 0) {
+			return str.substring(0, splitIndex);
+		} else {
+			return str;
+		}
 	}
 
 	private String getFidoPath() {

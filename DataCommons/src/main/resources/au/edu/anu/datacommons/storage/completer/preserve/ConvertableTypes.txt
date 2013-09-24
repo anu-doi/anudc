@@ -1,0 +1,75 @@
+# Comment the types that shouldn't be converted by prepending '#'
+
+AIFF
+Binary
+BMP
+Csv
+Excel
+Flac
+# Generates multiple output files
+# GIF
+GZip
+HTML
+ICO
+IMAP Mail Box
+JPEG
+LibreOffice.org v1 Presentation
+LibreOffice.org v1 Spreadsheet
+MacBinary
+MBOX Directory
+Mbox Email
+# Generates multiple output files
+# Microsoft MSG
+Microsoft Project
+Microsoft Word
+MP3
+MultiPage
+Non-Standard PlainText
+ODF Document
+ODF Drawing
+ODF Presentation
+ODF Spreadsheet
+Ogg
+OOXML Document
+OOXML Presentation
+OOXML Spreadsheet
+OpenOffice.org v1 Document
+PCM
+PCX
+PDF
+Photoshop
+PlainText
+PNG
+PNM
+Powerpoint
+Pst Outlook
+RTF Document
+Sun Raster Graphic
+SVG
+SYLK Spreadsheet
+Tar
+# Generates multiple output files
+# TIFF
+TRIM Email
+UNIX Icon
+WAV
+Windows Cursor Image
+Word Perfect
+XBM
+Xena type, tag -->> archive:archive
+Xena type, tag -->> audio:flac
+Xena type, tag -->> binary-object:binary-object
+Xena type, tag -->> csv:csv
+Xena type, tag -->> email:email
+Xena type, tag -->> html
+Xena type, tag -->> jpeg:jpeg
+Xena type, tag -->> mailbox:mailbox
+Xena type, tag -->> multipage:multipage
+Xena type, tag -->> opendocument:opendocument
+Xena type, tag -->> pdf:pdf
+Xena type, tag -->> plaintext:plaintext
+Xena type, tag -->> png:png
+Xena type, tag -->> svg
+XML
+# Generates multiple output files
+# Zip

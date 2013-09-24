@@ -1,0 +1,1054 @@
+From: <Saved by Windows Internet Explorer 8>
+Subject: Basic HTML Sample Page
+Date: Tue, 17 Sep 2013 14:44:45 +1000
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----=_NextPart_000_0000_01CEB3B4.73A7E030"
+X-MimeOLE: Produced By Microsoft MimeOLE V6.00.2900.6157
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0000_01CEB3B4.73A7E030
+Content-Type: text/html;
+	charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://sheldonbrown.com/web_sample1.html
+
+=EF=BB=BF<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD><TITLE>Basic HTML Sample Page</TITLE>
+<META content=3D"text/html; charset=3Dutf-8" http-equiv=3DContent-Type>
+<META name=3DGENERATOR content=3D"MSHTML 8.00.6001.23520"></HEAD>
+<BODY bgColor=3Dwhite>
+<CENTER><!-- Ad Google -->
+<SCRIPT type=3Dtext/javascript><!--=0A=
+google_ad_client =3D "pub-1229949690989515";=0A=
+/* 728x90, created 3/31/10 */=0A=
+google_ad_slot =3D "8460462352";=0A=
+google_ad_width =3D 728;=0A=
+google_ad_height =3D 90;=0A=
+//-->=0A=
+</SCRIPT>
+
+<SCRIPT type=3Dtext/javascript=20
+src=3D"http://pagead2.googlesyndication.com/pagead/show_ads.js">=0A=
+</SCRIPT>
+
+<TABLE border=3D1 cellSpacing=3D4 cellPadding=3D14>
+  <TBODY>
+  <TR>
+    <TD vAlign=3Dtop width=3D"48%">
+      <CENTER>
+      <H1>A Simple Sample Web Page</H1><IMG=20
+      src=3D"http://sheldonbrown.com/images/scb_eagle_contact.jpeg">=20
+      <H4>By Sheldon Brown</H4>
+      <H2>Demonstrating a few HTML features</H2></CENTER>
+      <CENTER></CENTER>HTML is really a very simple language. It =
+consists of=20
+      ordinary text, with commands that are enclosed by "&lt;" and =
+"&gt;"=20
+      characters, or bewteen an "&amp;" and a ";".=20
+      <P>You don't really need to know much HTML to create a page, =
+because you=20
+      can copy bits of HTML from other pages that do what you want, then =
+change=20
+      the text!
+      <P>This page shows on the left as it appears in your browser, and =
+the=20
+      corresponding HTML code appears on the right. The HTML commands =
+are linked=20
+      to explanations of what they do.=20
+      <H3>Line Breaks</H3>HTML doesn't normally use line breaks for =
+ordinary=20
+      text. A white space of any size is treated as a single space. This =
+is=20
+      because the author of the page has no way of knowing the size of =
+the=20
+      reader's screen, or what size type they will have their browser =
+set for.
+      <P>If you want to put a line break at a particular place, you can =
+use the=20
+      "&lt;BR&gt;" command, or, for a paragraph break, the "&lt;P&gt;" =
+command,=20
+      which will insert a blank line. The heading command=20
+      ("&lt;H4&gt;&lt;/H4&gt;") puts a blank line above and below the =
+heading=20
+      text.=20
+      <H4>Starting and Stopping Commands</H4>Most HTML commands come in =
+pairs:=20
+      for example, "&lt;H4&gt;" marks the beginning of a size 4 heading, =
+and=20
+      "&lt;/H4&gt;" marks the end of it. The closing command is always =
+the same=20
+      as the opening command, except for the addition of the "/".
+      <P>Modifiers are sometimes included along with the basic command, =
+inside=20
+      the opening command's &lt; &gt;. The modifier does not need to be =
+repeated=20
+      in the closing command.=20
+      <H1>This is a size "1" heading</H1>
+      <H2>This is a size "2" heading</H2>
+      <H3>This is a size "3" heading</H3>
+      <H4>This is a size "4" heading</H4>
+      <H5>This is a size "5" heading</H5>
+      <H6>This is a size "6" heading</H6>
+      <CENTER>
+      <H4>Copyright =C2=A9 1997, by <A=20
+      href=3D"http://sheldonbrown.com/index.html">Sheldon =
+Brown</A></H4>If you=20
+      would like to make a link or bookmark to this page, the URL=20
+      is:<BR>http://sheldonbrown.com/web_sample1.html </CENTER>
+    <TD bgColor=3Dgray vAlign=3Dtop width=3D"48%"><CODE><A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#head">&lt;HEAD&gt;</A><B=
+R><A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#title">&lt;TITLE&gt;</A>=
+Basic=20
+      HTML Sample Page<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#title">&lt;/TITLE&gt;</A=
+><BR><A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#head">&lt;/HEAD&gt;</A>
+      <P><A =
+href=3D"http://sheldonbrown.com/web_sample1.html#body">&lt;BODY</A><A=20
+      href=3D"http://sheldonbrown.com/web_sample1.html#bgcolor">=20
+      BGCOLOR=3D"WHITE"&gt;</A><BR><A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#center">&lt;CENTER&gt;</=
+A><BR><A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H1&gt;</A>A =
+Simple=20
+      Sample Web Page<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;/H1&gt;</A>
+      <P>&nbsp;
+      <P>&nbsp; <A =
+href=3D"http://sheldonbrown.com/web_sample1.html#img">&lt;IMG=20
+      SRC=3D"</A>http://sheldonbrown.com/images/scb_eagle_contact.jpeg<A =
+
+      href=3D"http://sheldonbrown.com/web_sample1.html#img">"&gt;</A>
+      <P>&nbsp;
+      <P>
+      <P>&nbsp;
+      <P>&nbsp; <A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H4&gt;</A>By =
+Sheldon=20
+      Brown<A =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;/H4&gt;</A>
+      <P><A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H2&gt;</A>Demonst=
+rating=20
+      a few HTML features<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;/H2&gt;</A>
+      <P><A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#center">&lt;/CENTER&gt;<=
+/A>
+      <P>HTML is really a very simple language. It consists of ordinary =
+text,=20
+      with commands that are enclosed by "&lt;" and "&gt;" characters, =
+or=20
+      bewteen an "&amp;" and a ";". <A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#p">&lt;P&gt;</A><BR>&nbs=
+p;
+      <P>You don't really need to know much HTML to create a page, =
+because you=20
+      can copy bits of HTML from other pages that do what you want, then =
+change=20
+      the text!<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#p">&lt;P&gt;</A><BR>&nbs=
+p;
+      <P>This page shows on the left as it appears in your browser, and =
+the=20
+      corresponding HTML code appears on the right. The HTML commands =
+are linked=20
+      to explanations of what they do.<BR>&nbsp;
+      <P>&nbsp;
+      <P><A =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H3&gt;</A>Line=20
+      Breaks<A =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;/H3&gt;</A>
+      <P>HTML doesn't normally use line breaks for ordinary text. A =
+white space=20
+      of any size is treated as a single space. This is because the =
+author of=20
+      the page has no way of knowing the size of the reader's screen, or =
+what=20
+      size type they will have their browser set for.<A=20
+      href=3D"http://sheldonbrown.com/web_sample1.html#p">&lt;P&gt;</A>
+      <P>&nbsp;
+      <P>If you want to put a line break at a particular place, you can =
+use the=20
+      "<A =
+href=3D"http://sheldonbrown.com/web_sample1.html#br">&lt;BR&gt;</A>"=20
+      command, or, for a paragraph break, the "<A=20
+      href=3D"http://sheldonbrown.com/web_sample1.html#p">&lt;P&gt;</A>" =
+command,=20
+      which will insert a blank line. The heading command ("<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;4&gt;&lt;/4&gt;</=
+A>")=20
+      puts a blank line above and below the heading text.
+      <P>&nbsp;
+      <P><A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H4&gt;</A>Startin=
+g=20
+      and Stopping Commands<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;/H4&gt;</A>
+      <P>Most HTML commands come in pairs: for example, "<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H4&gt;</A>" =
+marks=20
+      the beginning of a size 4 heading, and "<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;/H4&gt;</A>" =
+marks=20
+      the end of it. The closing command is always the same as the =
+opening=20
+      command, except for the addition of the "/".<A=20
+      href=3D"http://sheldonbrown.com/web_sample1.html#p">&lt;P&gt;</A>
+      <P>&nbsp;
+      <P>Modifiers are sometimes included along with the basic command, =
+inside=20
+      the opening command's &lt; &gt;. The modifier does not need to be =
+repeated=20
+      in the closing command.
+      <P>&nbsp;
+      <P>&nbsp;
+      <P><A =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H1&gt;</A>This=20
+      is a size "1" heading<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;/H1&gt;</A>
+      <P><A =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H2&gt;</A>This=20
+      is a size "2" heading<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;/H2&gt;</A>
+      <P><A =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H3&gt;</A>This=20
+      is a size "3" heading<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;/H3&gt;</A>
+      <P><A =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H4&gt;</A>This=20
+      is a size "4" heading<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;/H4&gt;</A>
+      <P><A =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H5&gt;</A>This=20
+      is a size "5" heading<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;/H5&gt;</A>
+      <P><A =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H6&gt;</A>This=20
+      is a size "6" heading<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;/H6&gt;</A>
+      <P><A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#center">&lt;center&gt;</=
+A>
+      <P><A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h">&lt;H4&gt;</A>Copyrig=
+ht=20
+      =C2=A9 1997, by<BR><A=20
+      href=3D"http://sheldonbrown.com/web_sample1.html#href">&lt;A=20
+      HREF=3D"</A>http://sheldonbrown.com/index.html<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#href">"&gt;</A>Sheldon=20
+      Brown<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#href">&lt;/A&gt;</A><A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#h"><BR>&lt;/H4&gt;</A>
+      <P>If you would like to make a link or bookmark to this page, the =
+URL=20
+      is:<A =
+href=3D"http://sheldonbrown.com/web_sample1.html#br">&lt;BR&gt;</A>=20
+      http://sheldonbrown.com/web_sample1.html<A=20
+      =
+href=3D"http://sheldonbrown.com/web_sample1.html#body">&lt;/body&gt;</A> =
+
+      </P></CODE></TR></TBODY></TABLE></CODE></CENTER><!-- ************ =
+DEFINITIONS ************ -->
+<BLOCKQUOTE>
+  <DL><A name=3Dhead></A>&nbsp;
+    <P>&nbsp;
+    <P>
+    <DT>
+    <H3>&lt;HEAD&gt;&lt;/HEAD&gt;</H3>
+    <DD>The "<B>&lt;HEAD&gt;&lt;/HEAD&gt;</B>" part of the document does =
+not=20
+    show in the main <A=20
+    =
+href=3D"http://sheldonbrown.com/web_glossary.html#browser">browser</A> =
+window,=20
+    but it can give useful information to browsers or to <A=20
+    =
+href=3D"http://sheldonbrown.com/web_glossary.html#searchengine">search=20
+    engines</A>.=20
+    <P>&nbsp;
+    <P>&nbsp;
+    <P><A name=3Dtitle></A>&nbsp;
+    <P>&nbsp;
+    <P></P>
+    <DT>
+    <H3>&lt;TITLE&gt;&lt;/TITLE&gt;</H3>
+    <DD>The only part of the "<A=20
+    =
+href=3D"http://sheldonbrown.com/web_sample1.html#head"><B>&lt;HEAD&gt;&lt=
+;/HEAD&gt;</B></A>"=20
+    that is normally visible is the <B>&lt;TITLE&gt;</B><CODE>Basic HTML =
+Sample=20
+    Page</CODE><B>&lt;/TITLE&gt;</B>, which usually appears in a small =
+window on=20
+    top of the browser screen. When users add your site to their =
+hotlists, the=20
+    <B>&lt;TITLE&gt;</B><B>&lt;/TITLE&gt;</B> you have chosen will =
+appear on=20
+    their hotlists.=20
+    <P>&nbsp;
+    <P>&nbsp;
+    <P><A name=3Dbody></A>&nbsp;
+    <P>&nbsp;
+    <P></P>
+    <DT>
+    <H3>&lt;BODY&gt;&lt;/BODY&gt;</H3>
+    <DD>The &lt;BODY&gt; is the main part of the page. It is good =
+practice to=20
+    use a &lt;/BODY&gt; at the end of the page, but this is not =
+absolutely=20
+    necessary.
+    <P>&nbsp;
+    <P>&nbsp;
+    <P><A name=3Dbgcolor></A>
+    <P>&nbsp;
+    <P>&nbsp;
+    <P>
+    <BLOCKQUOTE>
+      <DT>
+      <H3>&lt;BODY BGCOLOR=3D"WHITE"&gt;&lt;/BODY&gt;</H3>
+      <DD><B>BGCOLOR=3D""</B> is a sub command of the<B> =
+&lt;BODY&gt;</B> command.=20
+      It specifies the background color for the page. The color may be =
+specified=20
+      by name, or by a <A=20
+      href=3D"http://sheldonbrown.com/web_glossary.html#hextriplet">hex =
+triplet=20
+      number</A>.
+      <P>&nbsp;
+      <P>&nbsp;
+      <P></P></DD></BLOCKQUOTE><A name=3Dcenter></A>&nbsp;
+    <P>&nbsp;
+    <P></P>
+    <DT>
+    <H3>&lt;CENTER&gt;&lt;/CENTER&gt;</H3>
+    <DD>The <B>&lt;CENTER&gt;</B> command causes everything following it =
+to be=20
+    centered on the page, until it is canceled by the use of the=20
+    <B>&lt;/CENTER&gt;</B> command, which causes everything to be <A=20
+    =
+href=3D"http://sheldonbrown.com/web_glossary.html#justified">left-justifi=
+ed</A>.
+    <P>&nbsp;
+    <P>&nbsp;
+    <P><A name=3Dimg></A>&nbsp;
+    <P>&nbsp;
+    <P></P>
+    <DT>
+    <H3>&lt;IMG SRC=3D"..."&gt;</H3>
+    <DD>The <B>&lt;IMG=20
+    =
+SRC=3D"</B><CODE>http://sheldonbrown.com/images/scb_eagle_contact.jpeg</C=
+ODE><B>"&gt;</B>=20
+    command places an image on the screen. The part between the =
+quotation marks=20
+    is the <A =
+href=3D"http://sheldonbrown.com/web_glossary.html#url">URL</A> or=20
+    partial address of the image. In this case, the image called for is =
+called=20
+    "<CODE>scb_eagle_contact.jpeg</CODE>", and it resides on the =
+subdirectory of=20
+    my sheldonbrown.com site that I call "<CODE>images</CODE>".
+    <P>Since the <CODE>image</CODE> subdirectory is in the same =
+directory as=20
+    this document, I could have used the relative address:<BR>&nbsp;=20
+    <CODE>images/scb_eagle_contact.jpeg</CODE><BR>instead of the full=20
+    URL:<BR>&nbsp;=20
+    =
+<CODE>http://sheldonbrown.com/images/scb_eagle_contact.jpeg</CODE>&nbsp;
+    <P>&nbsp;
+    <P><A name=3Dh></A>
+    <P>&nbsp;
+    <P>&nbsp;
+    <P></P>
+    <DT>
+    <H3>&lt;H1&gt;&lt;/H1&gt;...&lt;H6&gt;&lt;/H6&gt;</H3>
+    <DD>There are 6 levels of headings available in HTML,<B>=20
+    &lt;H1&gt;&lt;/H1&gt;</B> being the largest, =
+<B>&lt;H6&gt;&lt;/H6&gt;</B>=20
+    the smallest. Headings are automatically in bold-face type, and=20
+    automatically have a blank line above and below them.
+    <P>&nbsp;
+    <P>&nbsp;
+    <P><A name=3Dp></A>
+    <P>&nbsp;
+    <P>&nbsp;
+    <P></P>
+    <DT>
+    <H3>&lt;P&gt;</H3>
+    <DD><B>&lt;P&gt;</B> creates a paragraph break. It forces a return =
+and two=20
+    line feeds, so there will be a blank line between whatever preceded =
+the=20
+    <B>&lt;P&gt;</B> and the next line.
+    <P>&nbsp;
+    <P>&nbsp;
+    <P><A name=3Dhref></A>
+    <P>&nbsp;
+    <P>&nbsp;
+    <P></P>
+    <DT>
+    <H3>&lt;A HREF=3D"..."&gt;...&lt;/A&gt;</H3>
+    <DD><B>&lt;A HREF=3D"</B><CODE>[destination=20
+    url]</CODE><B>"&gt;</B><CODE>[highlighted=20
+    text/image]</CODE><B>&lt;/A&gt;</B> is the command for a hyperlink. =
+The <A=20
+    =
+href=3D"http://sheldonbrown.com/web_sample1.html#href2"><CODE>[highlighte=
+d=20
+    text/image]</CODE></A> appears in the document, normally underlined =
+and in=20
+    the highlight color. When you click on the <A=20
+    =
+href=3D"http://sheldonbrown.com/web_sample1.html#href2"><CODE>[highlighte=
+d=20
+    text/image]</CODE></A> your browser takes you off to the site=20
+    <CODE>[destination url]</CODE>.=20
+    <P>The destination site would begin with "<CODE>http://www.</CODE>" =
+if the=20
+    site is an external one, on a different server. If the destination =
+is on the=20
+    same machine, a "relative" URL may be used, just giving the file =
+name=20
+    (<CODE>web_sample1.html</CODE>, for instance) if the file is in the =
+same=20
+    subdirectory, or a path plus file name=20
+    (<CODE>webstuff/web_sample1.html</CODE>, for instance) if the file =
+is=20
+    elsewhere on the same machine as the page with the link.=20
+    <P>Otpionally, the <CODE>[destination url]</CODE> may end with=20
+    <CODE>#[anchor]</CODE> if it is to point to an <A=20
+    href=3D"http://sheldonbrown.com/web_glossary.html#anchor">anchor</A> =
+point in=20
+    the destination page, rather than to the top of the page.
+    <P>&nbsp;
+    <P>&nbsp;
+    <P><A name=3Dbr></A>
+    <P>&nbsp;
+    <P>&nbsp;
+    <P></P>
+    <DT>
+    <H3>&lt;BR&gt;</H3>
+    <DD><B>&lt;BR&gt;</B> creates a line break. It forces a return and a =
+single=20
+    line feed. It is similar to <A=20
+    href=3D"http://sheldonbrown.com/web_sample1.html#p">&lt;P&gt;</A>, =
+except that=20
+    it does not put a blank line between the two lines.
+    <P>&nbsp;
+    <P>&nbsp;
+    <P></P></DD></DL></BLOCKQUOTE>
+<HR>
+
+<CENTER><A href=3D"http://sheldonbrown.com/index.html">
+<H2>Sheldon Brown Web Services</H2></A>
+<H4>Copyright =C2=A9 1997, by <A =
+href=3D"http://sheldonbrown.com/index.html">Sheldon=20
+Brown</A></H4><!-- old counterweb_sample1.cnt"  -->since September 30, =
+1997
+<H2><!-- http://automaticlabs.com/cgi-bin/index.cgi =0A=
+<H3><script language=3D"javascript">=0A=
+function hiveware_enkoder(){var i,j,x,y,x=3D=0A=
+"x=3D\"783d22793e2337353767373438363765373637663835336638383833373a383537=
+3633" +=0A=
+"393333346437323331373938333736373734653664333337653732373a37643835376734=
+62" +=0A=
+"37343732383138353533373a376337363531383437393736376437353767376637333833=
+37" +=0A=
+"673838376633663734376737653467383438363733376237363734383534653737383337=
+67" +=0A=
+"376533313638373637333834373a38353736333135653732373a37643835376736643333=
+33" +=0A=
+"313835373a383537643736346536643333373635653732373a3764333136343739373637=
+64" +=0A=
+"373537673766333135333833376738383766366433333466363437363766373533313736=
+35" +=0A=
+"653732373a37643331383537673331363437393736376437353767376633313533383337=
+67" +=0A=
+"3838376634643367373234663333333a346334313463233c7a3e28283c677073296a3e31=
+3c" +=0A=
+"6a3d792f6d666f6875693c6a2c3e332a7c7a2c3e766f667464627166292826282c792f74=
+76" +=0A=
+"63747573296a2d332a2a3c7e7a223b793d27273b783d756e6573636170652878293b666f=
+72" +=0A=
+"28693d303b693c782e6c656e6774683b692b2b297b6a3d782e63686172436f6465417428=
+69" +=0A=
+"292d313b6966286a3c3332296a2b3d39343b792b3d537472696e672e66726f6d43686172=
+43" +=0A=
+"6f6465286a297d79\";y=3D'';for(i=3D0;i<x.length;i+=3D2){y+=3Dunescape('%'=
++x.substr(" +=0A=
+"i,2));}y";=0A=
+while(x=3Deval(x));}hiveware_enkoder();=0A=
+</script><H3> (Sheldon Brown)</H2>-->Updated=20
+Sunday, May 7, 2000</H2>If you would like to make a link or bookmark to =
+this=20
+page, the URL is:<BR>http://sheldonbrown.com/web_sample1.html=20
+</CENTER></BODY></HTML>
+
+------=_NextPart_000_0000_01CEB3B4.73A7E030
+Content-Type: image/jpeg
+Content-Transfer-Encoding: base64
+Content-Location: http://sheldonbrown.com/images/scb_eagle_contact.jpeg
+
+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
+kK5JVykUmpURNuEIOCiLpBBIjpSPb9+MfO0Jqjxs56ZJlSiD0z6fR6Z9dlSyZMmplI5rJ5KYnfeK
+nV35RgebIq5KjeU57vrH5wjjlrwrxXBcRnTwnA56h9uX5n3b+WW36YpPnzk1ecXfF3uMz7ruGXCO
+I0vzdyP7PvO+HTZ3HrYe+KcZ5m495p3H59q4PjviPMeaaPrOf/fi+75bTq3m/mlXma55xunsu4f5
+uyzM+6G6xeZunz30X3Xmb/d7+zc3XDMvQFcgeulFOdtJ5l5ExG+rjwWXL2oagz5g/o/D10/k7mrS
+s/lHiz67c/8Ayuvt5+hWrb/RjzjTc5bkL3I8sLvJtt3udc2ZvQf0XjcjVF9m/wBI8q63na6hv3r3
+2T0nwe4998b73tqC5xgeTGsmPLjmLVucinB6fo+l6brCfpJ/jHmXmT/43bldpXy3Jr5wz7GWTsHb
+ez5PHRqzLvnZLfvGP/Se7KKfZ/RtYd/2d8LqPtLzZ8M0z2iy9/yfaYnnb9f9MWKnzfd9n+rqghbo
+eR/q/h+b+YufPNW1fIfIflv+nWr/AFzlvnv2b5b8tv0k+4diSOd3R/8AMK9TzBxx/q6olrc/1cGs
+Rv1mNN8xudIB5Q+fGkadzJrA7lDLw+zn9qf+c66ltdk8n5yq/MbMwv8ATe6we7e3u7Ni7NAjSdvM
+1M/7lzd9478+PwgufSIf1pXkmR8huG5A84g3h9UPkv1sfVr8td7rXB+aP5P/ADV80vfyf9DR/D4e
+vF7N+qL9DXnmr+3HLc85M3OcctzO+4Z+T234c52Mru3chC0g+29yk853fs7hlyN72XufedK70cWZ
+9mM/9B56wHq54jPO/wAxND9Y8p5desH6x3rJ8d5dwDXuffWa7x4fFp/h0fsOeo5f3tq+UF9mvtJZ
+3mP/AA3MENyLc35HlF8i13c9/LDoNjfiVo7575A+duneLvcd8PV6rueObx//2Q==
+
+------=_NextPart_000_0000_01CEB3B4.73A7E030
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://pagead2.googlesyndication.com/pagead/show_ads.js
+
+(function(){var m=3Dthis,aa=3Dfunction(a,b){var =
+e=3Da.split("."),d=3Dm;e[0]in d||!d.execScript||d.execScript("var =
+"+e[0]);for(var c;e.length&&(c=3De.shift());)e.length||void =
+0=3D=3D=3Db?d=3Dd[c]?d[c]:d[c]=3D{}:d[c]=3Db},ba=3Dfunction(a,b,e){return=
+ a.call.apply(a.bind,arguments)},ca=3Dfunction(a,b,e){if(!a)throw =
+Error();if(2<arguments.length){var =
+d=3DArray.prototype.slice.call(arguments,2);return function(){var =
+c=3DArray.prototype.slice.call(arguments);Array.prototype.unshift.apply(c=
+,d);return a.apply(b,c)}}return function(){return a.apply(b,=0A=
+arguments)}},p=3Dfunction(a,b,e){p=3DFunction.prototype.bind&&-1!=3DFunct=
+ion.prototype.bind.toString().indexOf("native code")?ba:ca;return =
+p.apply(null,arguments)},da=3Dfunction(a,b){var =
+e=3DArray.prototype.slice.call(arguments,1);return function(){var =
+b=3De.slice();b.push.apply(b,arguments);return a.apply(this,b)}};var =
+t=3D(new Date).getTime();var v=3Dfunction(a){a=3DparseFloat(a);return =
+isNaN(a)||1<a||0>a?0:a},x=3Dfunction(a){return/^true$/.test(a)?!0:!1},ea=3D=
+/^([\w-]+\.)*([\w-]{2,})(\:[0-9]+)?$/,y=3Dfunction(a,b){if(!a)return =
+b;var e=3Da.match(ea);return e?e[0]:b};var =
+fa=3Dv("0.15"),ga=3Dv("0.001"),ha=3Dv("1.0"),ia=3Dv("0.005"),ja=3Dv("0.00=
+1"),ka=3Dv("0.0"),la=3Dv("0.2");var =
+ma=3Dx("false"),na=3Dx("false"),oa=3Dx("false"),pa=3Dx("false");var =
+qa=3Dfunction(){return y("","pagead2.googlesyndication.com")};var =
+ra=3D/&/g,sa=3D/</g,ta=3D/>/g,ua=3D/\"/g,B=3D{"\x00":"\\0","\b":"\\b","\f=
+":"\\f","\n":"\\n","\r":"\\r","\t":"\\t","\x0B":"\\x0B",'"':'\\"',"\\":"\=
+\\\"},C=3D{"'":"\\'"};var =
+E=3Ddocument,F=3Dwindow,G,va=3Dnull,H=3DE.getElementsByTagName("script");=
+H&&H.length&&(va=3DH[H.length-1].parentNode);G=3Dva;qa();var =
+I=3Dfunction(a,b){for(var e in =
+a)Object.prototype.hasOwnProperty.call(a,e)&&b.call(null,a[e],e,a)},J=3Df=
+unction(a){return!!a&&"function"=3D=3Dtypeof =
+a&&!!a.call},wa=3Dfunction(a,b){if(!(2>arguments.length))for(var =
+e=3D1,d=3Darguments.length;e<d;++e)a.push(arguments[e])};function =
+xa(a,b){K(a,"load",b)}=0A=
+var K=3Dfunction(a,b,e,d){return =
+a.addEventListener?(a.addEventListener(b,e,d||!1),!0):a.attachEvent?(a.at=
+tachEvent("on"+b,e),!0):!1},L=3Dfunction(a,b,e,d){e=3Dp(d,e);return =
+K(a,b,e,void =
+0)?e:null},M=3Dfunction(a,b,e){a.removeEventListener?a.removeEventListene=
+r(b,e,!1):a.detachEvent&&a.detachEvent("on"+b,e)},ya=3Dfunction(){var =
+a=3Dwindow;"google_onload_fired"in =
+a||(a.google_onload_fired=3D!1,xa(a,function(){a.google_onload_fired=3D!0=
+}))},N=3Dfunction(a,b){if(!(1E-4>Math.random())){var =
+e=3DMath.random();if(e<b)return a[Math.floor(e/=0A=
+b*a.length)]}return =
+null},O=3Dfunction(a){try{return!!a.location.href||""=3D=3D=3Da.location.=
+href}catch(b){return!1}};var za=3D/MSIE =
+[2-7]|PlayStation|Gecko\/20090226|Android 2\./i,Aa=3D/Android|Opera/;var =
+P=3Dnull,Ba=3Dfunction(){if(!P){for(var =
+a=3Dwindow,b=3Da,e=3D0;a!=3Da.parent;)if(a=3Da.parent,e++,O(a))b=3Da;else=
+ break;P=3Db}return P};var =
+Q=3Dfunction(a,b,e){e||(e=3Dpa?"https":"http");return[e,"://",a,b].join("=
+")};var Ca=3Dfunction(){},Ea=3Dfunction(a,b,e){switch(typeof b){case =
+"string":Da(b,e);break;case =
+"number":e.push(isFinite(b)&&!isNaN(b)?b:"null");break;case =
+"boolean":e.push(b);break;case "undefined":e.push("null");break;case =
+"object":if(null=3D=3Db){e.push("null");break}if(b instanceof Array){var =
+d=3Db.length;e.push("[");for(var =
+c=3D"",f=3D0;f<d;f++)e.push(c),Ea(a,b[f],e),c=3D",";e.push("]");break}e.p=
+ush("{");d=3D"";for(c in =
+b)b.hasOwnProperty(c)&&(f=3Db[c],"function"!=3Dtypeof =
+f&&(e.push(d),Da(c,e),e.push(":"),Ea(a,f,e),=0A=
+d=3D","));e.push("}");break;case "function":break;default:throw =
+Error("Unknown type: "+typeof =
+b);}},Fa=3D{'"':'\\"',"\\":"\\\\","/":"\\/","\b":"\\b","\f":"\\f","\n":"\=
+\n","\r":"\\r","\t":"\\t","\x0B":"\\u000b"},Ga=3D/\uffff/.test("\uffff")?=
+/[\\\"\x00-\x1f\x7f-\uffff]/g:/[\\\"\x00-\x1f\x7f-\xff]/g,Da=3Dfunction(a=
+,b){b.push('"');b.push(a.replace(Ga,function(a){if(a in Fa)return =
+Fa[a];var =
+b=3Da.charCodeAt(0),c=3D"\\u";16>b?c+=3D"000":256>b?c+=3D"00":4096>b&&(c+=
+=3D"0");return Fa[a]=3Dc+b.toString(16)}));b.push('"')};var =
+R=3D"google_ad_block google_ad_channel google_ad_client google_ad_format =
+google_ad_height google_ad_host google_ad_host_channel =
+google_ad_host_tier_id google_ad_output google_ad_override =
+google_ad_region google_ad_section google_ad_slot google_ad_type =
+google_ad_unit_key google_ad_width google_adtest =
+google_allow_expandable_ads google_alternate_ad_url =
+google_alternate_color google_analytics_domain_name =
+google_analytics_uacct google_bid google_city google_color_bg =
+google_color_border google_color_line google_color_link =
+google_color_text google_color_url google_container_id google_contents =
+google_country google_cpm google_ctr_threshold google_cust_age =
+google_cust_ch google_cust_criteria google_cust_gender google_cust_id =
+google_cust_interests google_cust_job google_cust_l google_cust_lh =
+google_cust_u_url google_disable_video_autoplay google_ed google_eids =
+google_enable_ose google_encoding google_floating_ad_position =
+google_font_face google_font_size google_frame_id google_gl google_hints =
+google_image_size google_kw google_kw_type google_lact google_language =
+google_loeid google_max_num_ads google_max_radlink_len google_mtl =
+google_num_radlinks google_num_radlinks_per_unit =
+google_num_slots_to_rotate google_only_ads_with_video =
+google_only_pyv_ads google_only_userchoice_ads google_override_format =
+google_page_url google_previous_watch google_previous_searches =
+google_referrer_url google_region google_reuse_colors google_rl_dest_url =
+google_rl_filtering google_rl_mode google_rt google_safe google_sc_id =
+google_scs google_sui google_skip google_tag_info google_targeting =
+google_tdsma google_tfs google_tl google_ui_features google_ui_version =
+google_video_doc_id google_video_product_type google_video_url_to_fetch =
+google_with_pyv_ads google_yt_pt google_yt_up".split(" "),=0A=
+Ha=3Dfunction(a){a.google_page_url&&(a.google_page_url=3DString(a.google_=
+page_url));var b=3D[];I(a,function(a,d){if(null!=3Da){var c;try{var =
+f=3D[];Ea(new =
+Ca,a,f);c=3Df.join("")}catch(g){}c&&wa(b,d,"=3D",c,";")}});return =
+b.join("")};var =
+Ia=3D/\.((google(|groups|mail|images|print))|gmail)\./,Ja=3Dfunction(a){t=
+ry{var =
+b=3DIa.test(a.location.host);return!(!a.postMessage||!a.localStorage||!a.=
+JSON||b)}catch(e){return!1}};var =
+Ka=3Dfunction(a){this.b=3Da;a.google_iframe_oncopy||(a.google_iframe_onco=
+py=3D{handlers:{}});this.l=3Da.google_iframe_oncopy},La;var S=3D"var =
+i=3Dthis.id,s=3Dwindow.google_iframe_oncopy,H=3Ds&&s.handlers,h=3DH&&H[i]=
+,w=3Dthis.contentWindow,d;try{d=3Dw.document}catch(e){}if(h&&d&&(!d.body|=
+|!d.body.firstChild)){if(h.call){setTimeout(h,0)}else =
+if(h.match){w.location.replace(h)}}";=0A=
+/[&<>\"]/.test(S)&&(-1!=3DS.indexOf("&")&&(S=3DS.replace(ra,"&amp;")),-1!=
+=3DS.indexOf("<")&&(S=3DS.replace(sa,"&lt;")),-1!=3DS.indexOf(">")&&(S=3D=
+S.replace(ta,"&gt;")),-1!=3DS.indexOf('"')&&(S=3DS.replace(ua,"&quot;")))=
+;La=3DS;Ka.prototype.set=3Dfunction(a,b){this.l.handlers[a]=3Db;this.b.ad=
+dEventListener&&!/MSIE/.test(navigator.userAgent)&&this.b.addEventListene=
+r("load",p(this.m,this,a),!1)};Ka.prototype.m=3Dfunction(a){a=3Dthis.b.do=
+cument.getElementById(a);var =
+b=3Da.contentWindow.document;if(a.onload&&b&&(!b.body||!b.body.firstChild=
+))a.onload()};var T,U,V,Ma,Na=3Dfunction(){return =
+m.navigator?m.navigator.userAgent:null};Ma=3DV=3DU=3DT=3D!1;var =
+W;if(W=3DNa()){var =
+Oa=3Dm.navigator;T=3D0=3D=3DW.lastIndexOf("Opera",0);U=3D!T&&(-1!=3DW.ind=
+exOf("MSIE")||-1!=3DW.indexOf("Trident"));V=3D!T&&-1!=3DW.indexOf("WebKit=
+");Ma=3D!T&&!V&&!U&&"Gecko"=3D=3DOa.product}var =
+Pa=3DU,Qa=3DMa,Ra=3DV;var X;if(T&&m.opera){var =
+Sa=3Dm.opera.version;"function"=3D=3Dtypeof Sa&&Sa()}else =
+Qa?X=3D/rv\:([^\);]+)(\)|;)/:Pa?X=3D/\b(?:MSIE|rv)[: =
+]([^\);]+)(\)|;)/:Ra&&(X=3D/WebKit\/(\S+)/),X&&X.exec(Na());var =
+Ta=3D{client:"google_ad_client",format:"google_ad_format",slotname:"googl=
+e_ad_slot",output:"google_ad_output",ad_type:"google_ad_type"},Va=3Dfunct=
+ion(a,b,e,d){var =
+c=3Dp(b,m,a);b=3Dp(b,m,"onerror::"+a);a=3Dwindow.onerror;window.onerror=3D=
+b;try{e()}catch(f){e=3D!oa;try{var =
+g=3Df.toString();f.name&&-1=3D=3Dg.indexOf(f.name)&&(g+=3D": =
+"+f.name);f.message&&-1=3D=3Dg.indexOf(f.message)&&(g+=3D": =
+"+f.message);if(f.stack){var =
+l=3Df.stack;b=3Dg;try{-1=3D=3Dl.indexOf(b)&&(l=3Db+"\n"+l);for(var =
+h;l!=3Dh;)h=3Dl,l=3Dl.replace(/((https?:\/..*\/)[^\/:]*:\d+(?:.|\n)*)\2/,=0A=
+"$1");g=3Dl.replace(/\n =
+*/g,"\n")}catch(n){g=3Db}}l=3D"";f.fileName&&(l=3Df.fileName);h=3D-1;f.li=
+neNumber&&(h=3Df.lineNumber);var k;o:{try{k=3Dd?d():"";break =
+o}catch(q){}k=3D""}e=3Dc(g,l,h,k)}catch(z){Ua({context:"protectAndRun",ms=
+g:z.toString()+"\n"+(z.stack||"")})}if(!e)throw =
+f;}window.onerror=3Da};aa("google_protectAndRun",Va);=0A=
+var =
+Xa=3Dfunction(a,b,e,d,c){a=3D{jscb:ma?1:0,jscd:na?1:0,context:a,msg:b.sub=
+string(0,512),eid:c&&c.substring(0,40),file:e,line:d.toString(),url:E.URL=
+.substring(0,512),ref:E.referrer.substring(0,512)};Wa(a);Ua(a);return!oa}=
+;aa("google_handleError",Xa);=0A=
+var =
+Ua=3Dfunction(a){if(0.01>Math.random()){a=3D"/pagead/gen_204?id=3Djserror=
+"+Ya(a);a=3DQ(y("","pagead2.googlesyndication.com"),a);a=3Da.substring(0,=
+2E3);F.google_image_requests||(F.google_image_requests=3D[]);var =
+b=3DF.document.createElement("img");b.src=3Da;F.google_image_requests.pus=
+h(b)}},Wa=3Dfunction(a){var =
+b=3Da||{};I(Ta,function(a,d){b[d]=3DF[a]})},Za=3Dfunction(a,b){return =
+da(Va,a,Xa,b,void 0)},Ya=3Dfunction(a){var =
+b=3D"";I(a,function(a,d){if(0=3D=3D=3Da||a)b+=3D"&"+d+"=3D"+("function"=3D=
+=3Dtypeof encodeURIComponent?=0A=
+encodeURIComponent(a):escape(a))});return b};var =
+Y,Z=3Dfunction(a){this.c=3D[];this.b=3Da||window;this.a=3D0;this.d=3Dnull=
+},$a=3Dfunction(a,b){this.k=3Da;this.win=3Db};Z.prototype.o=3Dfunction(a,=
+b){0!=3Dthis.a||0!=3Dthis.c.length||b&&b!=3Dwindow?this.g(a,b):(this.a=3D=
+2,this.f(new =
+$a(a,window)))};Z.prototype.g=3Dfunction(a,b){this.c.push(new =
+$a(a,b||this.b));ab(this)};Z.prototype.p=3Dfunction(a){this.a=3D1;if(a){v=
+ar =
+b=3DZa("sjr::timeout",p(this.e,this));this.d=3Dthis.b.setTimeout(b,a)}};=0A=
+Z.prototype.e=3Dfunction(){1=3D=3Dthis.a&&(null!=3Dthis.d&&(this.b.clearT=
+imeout(this.d),this.d=3Dnull),this.a=3D0);ab(this)};Z.prototype.q=3Dfunct=
+ion(){return!0};Z.prototype.nq=3DZ.prototype.o;Z.prototype.nqa=3DZ.protot=
+ype.g;Z.prototype.al=3DZ.prototype.p;Z.prototype.rl=3DZ.prototype.e;Z.pro=
+totype.sz=3DZ.prototype.q;var ab=3Dfunction(a){var =
+b=3DZa("sjr::tryrun",p(a.n,a));a.b.setTimeout(b,0)};=0A=
+Z.prototype.n=3Dfunction(){if(0=3D=3Dthis.a&&this.c.length){var =
+a=3Dthis.c.shift();this.a=3D2;var =
+b=3DZa("sjr::run",p(this.f,this,a));a.win.setTimeout(b,0);ab(this)}};Z.pr=
+ototype.f=3Dfunction(a){this.a=3D0;a.k()};=0A=
+var bb=3Dfunction(a){try{return =
+a.sz()}catch(b){return!1}},cb=3Dfunction(a){return!!a&&("object"=3D=3Dtyp=
+eof a||"function"=3D=3Dtypeof =
+a)&&bb(a)&&J(a.nq)&&J(a.nqa)&&J(a.al)&&J(a.rl)},db=3Dfunction(){if(Y&&bb(=
+Y))return Y;var a=3DBa(),b=3Da.google_jobrunner;return =
+cb(b)?Y=3Db:a.google_jobrunner=3DY=3Dnew =
+Z(a)},eb=3Dfunction(a,b){db().nq(a,b)},fb=3Dfunction(a,b){db().nqa(a,b)};=
+var =
+gb=3D{"120x90":!0,"160x90":!0,"180x90":!0,"200x90":!0,"468x15":!0,"728x15=
+":!0},hb=3Dfunction(){var a=3D"script";return["<",a,' =
+src=3D"',Q(qa(),"/pagead/js/r20130910/r20130906/show_ads_impl.js",""),'">=
+</',a,">"].join("")},ib=3Dfunction(a,b,e,d){return function(){var =
+c=3D!1;d&&db().al(3E4);try{if(O(a.document.getElementById(b).contentWindo=
+w)){var f=3Da.document.getElementById(b).contentWindow,=0A=
+g=3Df.document;g.body&&g.body.firstChild||(g.open(),f.google_async_iframe=
+_close=3D!0,g.write(e))}else{var =
+l=3Da.document.getElementById(b).contentWindow,h;f=3De;f=3DString(f);if(f=
+.quote)h=3Df.quote();else{for(var g=3D['"'],n=3D0;n<f.length;n++){var =
+k=3Df.charAt(n),q=3Dk.charCodeAt(0),z=3Dg,D=3Dn+1,w;if(!(w=3DB[k])){var =
+r;if(31<q&&127>q)r=3Dk;else{var u=3Dk;if(u in C)r=3DC[u];else if(u in =
+B)r=3DC[u]=3DB[u];else{var =
+s=3Du,A=3Du.charCodeAt(0);if(31<A&&127>A)s=3Du;else{if(256>A){if(s=3D"\\x=
+",16>A||256<A)s+=3D"0"}else s=3D"\\u",4096>A&&(s+=3D"0");s+=3D=0A=
+A.toString(16).toUpperCase()}r=3DC[u]=3Ds}}w=3Dr}z[D]=3Dw}g.push('"');h=3D=
+g.join("")}l.location.replace("javascript:"+h)}c=3D!0}catch(sb){l=3DBa().=
+google_jobrunner,cb(l)&&l.rl()}c&&(new =
+Ka(a)).set(b,ib(a,b,e,!1))}},jb=3Dfunction(a){var =
+b=3D["<iframe"];I(a,function(a,d){b.push(" =
+"+d+'=3D"'+(null=3D=3Da?"":a)+'"')});b.push("></iframe>");return =
+b.join("")},kb=3Dfunction(a,b,e,d){d=3Dd?'"':"";var =
+c=3Dd+"0"+d;a.width=3Dd+b+d;a.height=3Dd+e+d;a.frameborder=3Dc;a.marginwi=
+dth=3Dc;a.marginheight=3Dc;a.vspace=3Dc;a.hspace=3Dc;a.allowtransparency=3D=
+d+"true"+=0A=
+d;a.scrolling=3Dd+"no"+d},lb=3Dfunction(a,b){var =
+e=3Da.google_ad_output,d=3Da.google_ad_format;d||"html"!=3De&&null!=3De||=
+(d=3Da.google_ad_width+"x"+a.google_ad_height,b&&(d+=3D"_as"));e=3D!a.goo=
+gle_ad_slot||a.google_override_format||!gb[a.google_ad_width+"x"+a.google=
+_ad_height]&&"aa"=3D=3Da.google_loader_used;d=3Dd&&e?d.toLowerCase():"";a=
+.google_ad_format=3Dd;d=3D[a.google_ad_slot,a.google_ad_format,a.google_a=
+d_type,a.google_ad_width,a.google_ad_height];if(G){if(G){for(var =
+e=3D[],c=3D0,f=3DG;f&&25>c;f=3Df.parentNode,++c)e.push(9!=3D=0A=
+f.nodeType&&f.id||"");e=3De.join()}else =
+e=3D"";e&&d.push(e)}e=3D0;if(d)if(d=3Dd.join(":"),e=3Dd.length,0=3D=3De)e=
+=3D0;else{c=3D305419896;for(f=3D0;f<e;f++)c^=3D(c<<5)+(c>>2)+d.charCodeAt=
+(f)&4294967295;e=3D0<c?c:4294967296+c}a.google_ad_unit_key=3De.toString()=
+},mb=3DMath.floor(1E6*Math.random()),nb=3Dfunction(a){for(var =
+b=3Da.data.split("\n"),e=3D{},d=3D0;d<b.length;d++){var =
+c=3Db[d].indexOf("=3D");-1!=3Dc&&(e[b[d].substr(0,c)]=3Db[d].substr(c+1))=
+}b=3De[3];if(e[1]=3D=3Dmb&&(window.google_top_js_status=3D4,a.source=3D=3D=
+top&&0=3D=3Db.indexOf(a.origin)&&(window.google_top_values=3D=0A=
+e,window.google_top_js_status=3D5),window.google_top_js_callbacks)){for(a=
+=3D0;a<window.google_top_js_callbacks.length;a++)window.google_top_js_cal=
+lbacks[a]();window.google_top_js_callbacks.length=3D0}};var =
+ob=3Dfunction(a,b,e){this.x=3Da;this.y=3Db;this.z=3De},pb=3Dfunction(a,b,=
+e){this.beta=3Da;this.gamma=3Db;this.alpha=3De},qb=3Dfunction(a,b){this.d=
+eviceAccelerationWithGravity=3Dthis.deviceAccelerationWithoutGravity=3Dnu=
+ll;this.deviceMotionEventCallbacks=3D[];this.deviceOrientation=3Dnull;thi=
+s.deviceOrientationEventCallbacks=3D[];this.isDeviceOrientationEventListe=
+nerRegistered=3Dthis.isDeviceMotionEventListenerRegistered=3Dthis.didDevi=
+ceOrientationCallbacksTimeoutExpire=3Dthis.didDeviceMotionCallbacksTimeou=
+tExpire=3D!1;this.registeredMozOrientationEventListener=3D=0A=
+this.registeredDeviceOrientationEventListener=3Dthis.registeredDeviceMoti=
+onEventListener=3Dnull;this.sensorsExperiment=3Db;this.stopTimeStamp=3Dth=
+is.startTimeStamp=3Dnull;this.win=3Da},$=3Dfunction(a){this.a=3Da;this.a.=
+win.DeviceOrientationEvent?(this.a.registeredDeviceOrientationEventListen=
+er=3DL(this.a.win,"deviceorientation",this,this.i),this.a.isDeviceOrienta=
+tionEventListenerRegistered=3D!0):this.a.win.OrientationEvent&&(this.a.re=
+gisteredMozOrientationEventListener=3DL(this.a.win,"MozOrientation",this,=
+this.j),this.a.isDeviceOrientationEventListenerRegistered=3D=0A=
+!0);this.a.win.DeviceMotionEvent&&(this.a.registeredDeviceMotionEventList=
+ener=3DL(this.a.win,"devicemotion",this,this.h),this.a.isDeviceMotionEven=
+tListenerRegistered=3D!0)};=0A=
+$.prototype.h=3Dfunction(a){a.acceleration&&(this.a.deviceAccelerationWit=
+houtGravity=3Dnew =
+ob(a.acceleration.x,a.acceleration.y,a.acceleration.z));a.accelerationInc=
+ludingGravity&&(this.a.deviceAccelerationWithGravity=3Dnew =
+ob(a.accelerationIncludingGravity.x,a.accelerationIncludingGravity.y,a.ac=
+celerationIncludingGravity.z));rb(this.a.deviceMotionEventCallbacks);M(th=
+is.a.win,"devicemotion",this.a.registeredDeviceMotionEventListener)};=0A=
+$.prototype.i=3Dfunction(a){this.a.deviceOrientation=3Dnew =
+pb(a.beta,a.gamma,a.alpha);rb(this.a.deviceOrientationEventCallbacks);M(t=
+his.a.win,"deviceorientation",this.a.registeredDeviceOrientationEventList=
+ener)};$.prototype.j=3Dfunction(a){this.a.deviceOrientation=3Dnew =
+pb(-90*a.y,90*a.x,null);rb(this.a.deviceOrientationEventCallbacks);M(this=
+.a.win,"MozOrientation",this.a.registeredMozOrientationEventListener)};va=
+r rb=3Dfunction(a){for(var =
+b=3D0;b<a.length;++b)a[b]();a.length=3D0};Va("sa::main",Xa,function(){ya(=
+);if(!window.google_top_experiment&&!window.google_top_js_status){var =
+a=3Dwindow;if(2!=3D=3D(a.top=3D=3Da?0:O(a.top)?1:2))window.google_top_js_=
+status=3D0;else if(top.postMessage){var =
+b;try{b=3DF.top.frames.google_top_static_frame?!0:!1}catch(e){b=3D!1}if(b=
+){if(window.google_top_experiment=3DN(["jp_c","jp_zl","jp_wfpmr"],fa),"jp=
+_c"!=3D=3Dwindow.google_top_experiment){K(window,"message",nb);window.goo=
+gle_top_js_status=3D3;a=3D{0:"google_loc_request",1:mb};b=3D[];for(var d =
+in a)b.push(d+"=3D"+a[d]);=0A=
+top.postMessage(b.join("\n"),"*")}}else =
+window.google_top_js_status=3D2}else window.google_top_js_status=3D1}var =
+c;c=3Dc||window;d=3D!1;c&&c.navigator&&c.navigator.userAgent&&(c=3Dc.navi=
+gator.userAgent,d=3D0!=3Dc.indexOf("Opera")&&-1!=3Dc.indexOf("WebKit")&&-=
+1!=3Dc.indexOf("Mobile"));if(d){c=3Dwindow;if(d=3D!/Android/.test(c.navig=
+ator.userAgent))d=3Dc.google_unique_id,d=3D0=3D=3D("number"=3D=3Dtypeof =
+d?d:0)&&!c.google_sensors;d&&(d=3Dnull,c.google_top_experiment&&"jp_c"!=3D=
+c.google_top_experiment||(d=3DN(["ds_c","ds_zl","ds_wfea"],ka)),=0A=
+d&&(c.google_sensors=3Dnew qb(c,d),"ds_c"!=3Dd&&new =
+$(c.google_sensors)))}c=3Dwindow.google_ad_output;void =
+0!=3D=3Dwindow.google_always_use_delayed_impressions_experiment||c&&"html=
+"!=3Dc||(window.google_always_use_delayed_impressions_experiment=3DN(["C"=
+,"E"],ja));(c=3D!1=3D=3D=3Dwindow.google_enable_async)||(c=3Dnavigator.us=
+erAgent,za.test(c)?c=3D!1:(void =
+0!=3D=3Dwindow.google_async_for_oa_experiment||!Aa.test(navigator.userAge=
+nt)||za.test(navigator.userAgent)||(window.google_async_for_oa_experiment=
+=3DN(["C","E"],ia)),c=3DAa.test(c)?=0A=
+"E"=3D=3D=3Dwindow.google_async_for_oa_experiment:!0),c=3D!c||window.goog=
+le_container_id||window.google_ad_output&&"html"!=3Dwindow.google_ad_outp=
+ut);if(c)window.google_loader_used=3D"sb",window.google_start_time=3Dt,lb=
+(window),document.write(hb());else{c=3Dwindow;c.google_unique_id?++c.goog=
+le_unique_id:c.google_unique_id=3D1;c=3Dwindow;d=3D{};a=3D0;for(b=3DR.len=
+gth;a<b;a++){var =
+f=3DR[a];null!=3Dc[f]&&(d[f]=3Dc[f])}d.google_loader_used=3D"sa";a=3D0;fo=
+r(b=3DR.length;a<b;a++)c[R[a]]=3Dnull;a=3Dd.google_ad_width;b=3Dd.google_=
+ad_height;f=3D{};kb(f,=0A=
+a,b,!0);f.onload=3D'"'+La+'"';for(var =
+g,l=3Dc.document,h=3Df.id,n=3D0;!h||l.getElementById(h);)h=3D"aswift_"+n+=
++;f.id=3Dh;f.name=3Dh;var =
+n=3Dd.google_ad_width,k=3Dd.google_ad_height,h=3D["<iframe"];for(g in =
+f)f.hasOwnProperty(g)&&wa(h,g+"=3D"+f[g]);h.push('style=3D"left:0;positio=
+n:absolute;top:0;"');h.push("></iframe>");g=3D"border:none;height:"+k+"px=
+;margin:0;padding:0;position:relative;visibility:visible;width:"+n+"px";l=
+.write(['<ins style=3D"display:inline-table;',g,'"><ins =
+id=3D"',f.id+"_anchor",'" style=3D"display:block;',=0A=
+g,'">',h.join(" =
+"),"</ins></ins>"].join(""));g=3Df.id;f=3Dwindow.google_override_format||=
+!gb[window.google_ad_width+"x"+window.google_ad_height]&&"aa"=3D=3Dwindow=
+.google_loader_used?N(["c","e"],la):null;lb(d,"e"=3D=3Df);l=3DHa(d);h=3DJ=
+a(c);n=3D3=3D=3D({visible:1,hidden:2,prerender:3,preview:4}[c.document.we=
+bkitVisibilityState||c.document.mozVisibilityState||c.document.visibility=
+State||""]||0);h&&!n&&void =
+0=3D=3D=3Dc.google_ad_handling_mode&&(c.google_ad_handling_mode=3DN(["XN"=
+,"AZ"],ga)||N(["EI"],ha));h=3Dc.google_ad_handling_mode?=0A=
+String(c.google_ad_handling_mode):null;if(Ja(c)&&1=3D=3Dc.google_unique_i=
+d&&"XN"!=3Dh){n=3D"zrt_ads_frame"+c.google_unique_id;k=3Dd.google_page_ur=
+l;if(!k){e:{var =
+k=3Dc.document,q=3Da||c.google_ad_width,z=3Db||c.google_ad_height;if(c.to=
+p=3D=3Dc)k=3D!1;else{var D=3Dk.documentElement;if(q&&z){var =
+w=3D1,r=3D1;c.innerHeight?(w=3Dc.innerWidth,r=3Dc.innerHeight):D&&D.clien=
+tHeight?(w=3DD.clientWidth,r=3DD.clientHeight):k.body&&(w=3Dk.body.client=
+Width,r=3Dk.body.clientHeight);if(r>2*z||w>2*q){k=3D!1;break =
+e}}k=3D!0}}k=3Dk?c.document.referrer:c.document.URL}k=3D=0A=
+encodeURIComponent(k);q=3Dnull;if("PC"=3D=3Dh||"EI"=3D=3Dh||"AZ"=3D=3Dh){=
+switch(h){case "EI":q=3D"I";break;case =
+"AZ":q=3D"Z";break;default:q=3D"K"}q=3Dq+"-"+(k+"/"+d.google_ad_unit_key+=
+"/"+c.google_unique_id)}d=3D{};kb(d,a,b,!1);d.style=3D"display:none";a=3D=
+q;d.id=3Dn;d.name=3Dn;d.src=3DQ(y("","googleads.g.doubleclick.net"),["/pa=
+gead/html/r20130910/r20130906/zrt_lookup.html",a?"#"+encodeURIComponent(a=
+):""].join(""));d=3Djb(d)}else d=3D=0A=
+null;a=3D(new =
+Date).getTime();b=3Dc.google_top_experiment;n=3Dc.google_async_for_oa_exp=
+eriment;k=3Dc.google_always_use_delayed_impressions_experiment;d=3D["<!do=
+ctype =
+html><html><body>",d,"<script>",l,"google_show_ads_impl=3Dtrue;google_uni=
+que_id=3D",c.google_unique_id,';google_async_iframe_id=3D"',g,'";google_s=
+tart_time=3D',t,";",b?'google_top_experiment=3D"'+b+'";':"",h?'google_ad_=
+handling_mode=3D"'+h+'";':"",n?'google_async_for_oa_experiment=3D"'+n+'";=
+':"",k?'google_always_use_delayed_impressions_experiment=3D"'+k+'";':=0A=
+"",f?'google_append_as_for_format_override=3D"'+f+'";':"","google_bpp=3D"=
+,a>t?a-t:1,";\x3c/script>",hb(),"</body></html>"].join("");(c.document.ge=
+tElementById(g)?eb:fb)(ib(c,g,d,!0))}});})();=0A=
+
+------=_NextPart_000_0000_01CEB3B4.73A7E030--

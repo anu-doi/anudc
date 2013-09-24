@@ -25,6 +25,7 @@ import static org.junit.Assert.*;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
+import gov.loc.repository.bagit.transformer.impl.ChainingCompleter;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
 import java.io.File;
@@ -54,16 +55,16 @@ import au.edu.anu.datacommons.test.util.TestUtil;
 
 /**
  * @author Rahul Khanna
- *
+ * 
  */
 public class BagSummaryTaskTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BagSummaryTaskTest.class);
 
 	private BagFactory bf;
-	
+
 	@Rule
 	public TemporaryFolder bagDir = new TemporaryFolder();
-	
+
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -83,22 +84,25 @@ public class BagSummaryTaskTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		bf = new BagFactory();
 		LOGGER.info("Using bag directory: {}", bagDir.getRoot().getAbsolutePath());
-		
+		bf = new BagFactory();
+
 		File payloadDir = bagDir.newFolder("data");
-		String file1name = "File 1.txt";
-		File file1 = bagDir.newFile(file1name);
-		TestUtil.createFileOfSize(file1, 3L, FileUtils.ONE_MB);
-		file1.renameTo(new File(payloadDir, file1name));
-		
+		// Payload file 1.
+		File resFile1 = new File(this.getClass().getResource("completer/preserve/Sample bmp.bmp").toURI());
+		File payloadFile1 = new File(payloadDir, resFile1.getName());
+		FileUtils.copyFile(resFile1, payloadFile1);
+		// Payload file 2.
+		File resFile2 = new File(this.getClass().getResource("completer/preserve/Pdf Sample.pdf").toURI());
+		File payloadFile2 = new File(payloadDir, resFile2.getName());
+		FileUtils.copyFile(resFile2, payloadFile2);
+
 		Bag bag = bf.createBag(bagDir.getRoot(), LoadOption.BY_FILES);
+		bag = bag.makeComplete(new ChainingCompleter(new PreservationCompleter(), new DcStorageCompleter()));
 		bag = bag.makeComplete();
-		bag = bag.makeComplete(new DcStorageCompleter());
-		
 		FileSystemWriter fsWriter = new FileSystemWriter(bf);
 		bag = fsWriter.write(bag, bagDir.getRoot());
-		
+
 		bag = bf.createBag(bagDir.getRoot(), LoadOption.BY_FILES);
 		assertTrue(bag.verifyValid().isSuccess());
 	}
@@ -110,35 +114,34 @@ public class BagSummaryTaskTest {
 	public void tearDown() throws Exception {
 	}
 
-	// Requires env setup.
 	@Test
-	public void test() {
+	public void testBagSummaryTask() {
 		BagSummaryTask task = new BagSummaryTask(bagDir.getRoot());
 		BagSummary bs = task.generateBagSummary();
-		
+
 		assertNotNull(bs);
 		// File Summary Map
 		assertNotNull(bs.getFileSummaryMap());
 		for (Entry<String, FileSummary> fsEntry : bs.getFileSummaryMap().entrySet()) {
 			String filepath = fsEntry.getKey();
 			FileSummary fs = fsEntry.getValue();
-			LOGGER.trace("{}: {} {} {}", filepath, fs.getFilename(), fs.getFriendlySize(), fs.getMessageDigests().get("MD5"));
+			LOGGER.trace("{}: {} {} {} {}", filepath, fs.getFilename(), fs.getFriendlySize(),
+					fs.getMessageDigests().get("MD5"), fs.getPresvFilepath());
 		}
 	}
 
-	// Requires env setup.
 	@Test
 	public void testJsonMapping() throws JsonGenerationException, JsonMappingException, IOException {
 		BagSummaryTask task = new BagSummaryTask(bagDir.getRoot());
 		BagSummary bs = task.generateBagSummary();
-		
+
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		StringWriter writer = new StringWriter();
 		mapper.writeValue(writer, bs);
-		
+
 		LOGGER.trace(writer.toString());
-		
+
 		BagSummary readValue = mapper.readValue(writer.toString(), BagSummary.class);
 		LOGGER.trace(readValue.getPid());
 	}

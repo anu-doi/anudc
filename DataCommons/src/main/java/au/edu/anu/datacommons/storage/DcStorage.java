@@ -30,6 +30,7 @@ import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.ManifestHelper;
 import gov.loc.repository.bagit.transformer.impl.TagManifestCompleter;
+import gov.loc.repository.bagit.utilities.FilenameHelper;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
 import java.io.BufferedInputStream;
@@ -54,6 +55,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,6 +166,10 @@ public final class DcStorage implements Closeable {
 		if (filepath == null || filepath.length() == 0) {
 			throw new NullPointerException("Target filepath cannot be null");
 		}
+		if (containsHiddenDirs(filepath)) {
+			throw new IllegalArgumentException(format(
+					"Cannot add files to hidden directories. {0} contains hidden directories/files", filepath));
+		}
 
 		filepath = removeDataPrefix(filepath);
 		File destFile = ff.getFile(getPayloadDir(pid), filepath);
@@ -201,6 +207,10 @@ public final class DcStorage implements Closeable {
 		}
 		if (filepath == null || filepath.length() == 0) {
 			throw new NullPointerException("Target filepath cannot be null");
+		}
+		if (containsHiddenDirs(filepath)) {
+			throw new IllegalArgumentException(format(
+					"Cannot add files to hidden directories. {0} contains hidden directories/files", filepath));
 		}
 
 		filepath = removeDataPrefix(filepath);
@@ -728,5 +738,20 @@ public final class DcStorage implements Closeable {
 	 */
 	public static String convertToDiskSafe(String source) {
 		return source.trim().toLowerCase().replaceAll("\\*|\\?|\\\\|:|/|\\s", "_");
+	}
+	
+	static boolean containsHiddenDirs(String filepath) {
+		boolean hasHiddenDirs = false;
+		
+		String unixFilepath = FilenameUtils.separatorsToUnix(filepath);
+		String[] parts = unixFilepath.split("/");
+		for (int i = 0; i < parts.length; i++) {
+			if (parts[i].startsWith(".")) {
+				hasHiddenDirs = true;
+				break;
+			}
+		}
+		
+		return hasHiddenDirs;
 	}
 }

@@ -1,3 +1,24 @@
+/*******************************************************************************
+ * Australian National University Data Commons
+ * Copyright (C) 2013  The Australian National University
+ * 
+ * This file is part of Australian National University Data Commons.
+ * 
+ * Australian National University Data Commons is free software: you
+ * can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+ 
 package au.edu.anu.datacommons.storage;
 
 import static java.text.MessageFormat.*;
@@ -33,9 +54,13 @@ import au.edu.anu.datacommons.storage.info.PronomFormat;
 import au.edu.anu.datacommons.storage.info.ScanResult;
 import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 
+/**
+ * @author Rahul Khanna
+ */
 public class BagSummaryTask implements Callable<BagSummary> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BagSummaryTask.class);
 
@@ -84,11 +109,14 @@ public class BagSummaryTask implements Callable<BagSummary> {
 	private FileSummaryMap createFsMap(Bag bag) {
 		FileSummaryMap fsMap = new FileSummaryMap();
 		for (BagFile iBagFile : bag.getPayload()) {
-			File file = new File(bag.getFile(), iBagFile.getFilepath());
-			FileSummary fs = new FileSummary(iBagFile.getFilepath(), file);
-			fsMap.put(iBagFile.getFilepath(), fs);
+			if (!DcStorage.containsHiddenDirs(iBagFile.getFilepath())) {
+				File file = new File(bag.getFile(), iBagFile.getFilepath());
+				FileSummary fs = new FileSummary(iBagFile.getFilepath(), file);
+				fsMap.put(iBagFile.getFilepath(), fs);
+			}
 		}
 		
+		populatePreservedFiles(fsMap, bag);
 		populateMessageDigests(fsMap, bag);
 		populatePronomIds(fsMap, bag);
 		populateVirusScans(fsMap, bag);
@@ -96,6 +124,27 @@ public class BagSummaryTask implements Callable<BagSummary> {
 		return fsMap;
 	}
 	
+	private void populatePreservedFiles(FileSummaryMap fsMap, Bag bag) {
+		PreservationMapTagFile presvTagFile;
+		try {
+			presvTagFile = new PreservationMapTagFile(bag.getFile());
+			for (Entry<String, String> presvEntry : presvTagFile.entrySet()) {
+				FileSummary fs = fsMap.get(presvEntry.getKey());
+				if (fs != null) {
+					if (!presvEntry.getValue().equals("UNCONVERTIBLE") && !presvEntry.getValue().equals("PRESERVED")) {
+						fs.setPresvFilepath(presvEntry.getValue());
+					} else {
+						fs.setPresvFilepath(null);
+					}
+				}
+			}
+		} catch (IOException e) {
+			LOGGER.warn("Unable to read {} in {}.", PreservationMapTagFile.FILEPATH, bag.getFile().getAbsolutePath());
+		}
+		
+	}
+	
+
 	/**
 	 * Load message digests for each payload file from each manifest file.
 	 * 

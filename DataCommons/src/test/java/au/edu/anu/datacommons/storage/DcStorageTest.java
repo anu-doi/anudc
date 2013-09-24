@@ -76,6 +76,7 @@ import au.edu.anu.datacommons.storage.info.FileSummaryMap;
 import au.edu.anu.datacommons.storage.tagfiles.AbstractKeyValueFile;
 import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
@@ -100,8 +101,6 @@ public class DcStorageTest {
 	@Rule
 	public TemporaryFolder archiveRootDir = new TemporaryFolder();
 
-	private Random random = new Random();
-
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 	}
@@ -123,6 +122,27 @@ public class DcStorageTest {
 	@After
 	public void tearDown() throws Exception {
 		dcStorage.close();
+	}
+	
+	@Test
+	public void testBasicAddDelete() throws Exception {
+		String pid = getNextPid();
+		assertFalse(dcStorage.bagExists(pid));
+		
+		// Add a file.
+		dcStorage.threadPool = Executors.newSingleThreadExecutor();
+		dcStorage.addFileToBag(pid, new URL("http://www.anu.edu.au/mac/images/uploads/anu_agenda_19Jan.doc"), "c/File 3.doc");
+		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
+		
+		assertTrue(new File(dcStorage.getBagDir(pid), "data/c/File 3.doc").isFile());
+		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
+		
+		dcStorage.threadPool = Executors.newSingleThreadExecutor();
+		dcStorage.deleteFileFromBag(pid, "c/File 3.doc");
+		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
+	
+		assertFalse(new File(dcStorage.getBagDir(pid), "data/c/File 3.doc").isFile());
+		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
 	}
 
 	@Test
@@ -444,6 +464,20 @@ public class DcStorageTest {
 		assertFalse(new File(dcStorage.getPayloadDir(pid), filepath).isFile());
 		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
 	}
+	
+	@Test
+	public void testFilepathsWithHiddenDirs() {
+		Map<String, Boolean> dataset = new HashMap<String, Boolean>();
+		dataset.put("data/.preserve/abc.txt", true);
+		dataset.put("data/abc.txt", false);
+		dataset.put("data/.abc.txt", true);
+		dataset.put("data/.dir/.abc.txt", true);
+		dataset.put(".data/.abc.txt", true);
+
+		for (Entry<String, Boolean> entry : dataset.entrySet()) {
+			assertThat(DcStorage.containsHiddenDirs(entry.getKey()), is(entry.getValue().booleanValue()));
+		}
+	}
 
 	private Map<? extends File, ? extends String> createFiles(File root, int nFiles) throws IOException {
 		Map<File, String> fileMap = new HashMap<File, String>(nFiles);
@@ -536,11 +570,30 @@ public class DcStorageTest {
 		customTagFiles.add(new VirusScanTagFile(bagDir));
 		customTagFiles.add(new FileMetadataTagFile(bagDir));
 		customTagFiles.add(new TimestampsTagFile(bagDir));
+		customTagFiles.add(new PreservationMapTagFile(bagDir));
 		for (BagFile bagFile : payloadFiles) {
 			for (AbstractKeyValueFile tagFile : customTagFiles) {
 				if (!tagFile.containsKey(bagFile.getFilepath())) {
 					LOGGER.trace("Tagfile {} doesn't contain entry for payload file {}", tagFile.getFile().getName(),
 							bagFile.getFilepath());
+					result.setSuccess(false);
+				}
+			}
+		}
+
+		// Verify that there's a payload file for each entry in each custom manifest.
+		for (AbstractKeyValueFile ctf : customTagFiles) {
+			for (String key : ctf.keySet()) {
+				boolean exists = false;
+				for (BagFile plFile : payloadFiles) {
+					if (plFile.getFilepath().equals(key)) {
+						exists = true;
+						break;
+					}
+				}
+				if (!exists) {
+					LOGGER.trace("Tag file {} contains entry for payload file {} that doesn't exist", ctf.getFile()
+							.getName(), key);
 					result.setSuccess(false);
 				}
 			}

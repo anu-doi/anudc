@@ -29,19 +29,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -71,29 +64,9 @@ import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
  * 
  * @see Completer
  */
-public class DcStorageCompleter implements Completer {
+public class DcStorageCompleter extends AbstractCustomCompleter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorageCompleter.class);
 	
-	
-	private List<String> limitAddUpdatePayloadFilepaths = null;
-	private List<String> limitDeletePayloadFilepaths = null;
-
-	public List<String> getLimitAddUpdatePayloadFilepaths() {
-		return limitAddUpdatePayloadFilepaths;
-	}
-
-	public void setLimitAddUpdatePayloadFilepaths(List<String> limitAddUpdatePayloadFilepaths) {
-		this.limitAddUpdatePayloadFilepaths = limitAddUpdatePayloadFilepaths;
-	}
-
-	public List<String> getLimitDeletePayloadFilepaths() {
-		return limitDeletePayloadFilepaths;
-	}
-
-	public void setLimitDeletePayloadFilepaths(List<String> limitDeletePayloadFilepaths) {
-		this.limitDeletePayloadFilepaths = limitDeletePayloadFilepaths;
-	}
-
 	/**
 	 * Completes a bag as per ANU Data Commons requirements.
 	 * 
@@ -109,7 +82,7 @@ public class DcStorageCompleter implements Completer {
 			
 			@Override
 			public Thread newThread(Runnable r) {
-				Thread t = new Thread(r, "pool-" + "completer" + "-thread-" + ai.getAndIncrement());
+				Thread t = new Thread(r, "comppool-thread-" + ai.getAndIncrement());
 				t.setPriority(2);
 				return t;
 			}
@@ -121,7 +94,7 @@ public class DcStorageCompleter implements Completer {
 			public void run() {
 				try {
 					handlePronomTxt(bag);
-				} catch (Throwable e) {
+				} catch (Exception e) {
 					LOGGER.error(e.getMessage(), e);
 				}
 			}
@@ -133,7 +106,7 @@ public class DcStorageCompleter implements Completer {
 			public void run() {
 				try {
 					handleAvScan(bag);
-				} catch (Throwable e) {
+				} catch (Exception e) {
 					LOGGER.error(e.getMessage(), e);
 				}
 			}
@@ -145,7 +118,7 @@ public class DcStorageCompleter implements Completer {
 			public void run() {
 				try {
 					handleMetadata(bag);
-				} catch (Throwable e) {
+				} catch (Exception e) {
 					LOGGER.error(e.getMessage(), e);
 				}
 			}
@@ -157,24 +130,21 @@ public class DcStorageCompleter implements Completer {
 			public void run() {
 				try {
 					handleTimestamps(bag);
-				} catch (Throwable e) {
+				} catch (Exception e) {
 					LOGGER.error(e.getMessage(), e);
 				}
 			}
 			
 		}));
 
-		for (Future<?> f : tasks) {
-			try {
-				f.get();
-			} catch (InterruptedException e) {
-				LOGGER.warn(e.getMessage(), e);
-			} catch (ExecutionException e) {
-				LOGGER.warn(e.getMessage(), e);
-			}
-		}
-		
+		waitForTasks(tasks);
 		es.shutdown();
+		try {
+			// Adding this only as failsafe as thread pool is shutdown only after all tasks are completed.
+			es.awaitTermination(1, TimeUnit.MINUTES);
+		} catch (InterruptedException e) {
+			LOGGER.error(e.getMessage());
+		}
 		return bag;
 	}
 
@@ -343,20 +313,21 @@ public class DcStorageCompleter implements Completer {
 		return bag;
 	}
 	
+	private void waitForTasks(List<Future<?>> tasks) {
+		for (Future<?> f : tasks) {
+			try {
+				f.get();
+			} catch (InterruptedException e) {
+				LOGGER.warn(e.getMessage(), e);
+			} catch (ExecutionException e) {
+				LOGGER.warn(e.getMessage(), e);
+			}
+		}
+		tasks.clear();
+	}
+
 	private String serializeToJson(Object obj) throws JsonGenerationException, JsonMappingException, IOException {
 		ObjectMapper objMapper = new ObjectMapper();
 		return objMapper.writeValueAsString(obj);
-	}
-	
-	private boolean isLimited(List<String> limitList, String filepath) {
-		boolean isLimited = false;
-		if (limitList == null) {
-			isLimited = true;
-		} else {
-			if (limitList.contains(filepath)) {
-				isLimited = true;
-			}
-		}
-		return isLimited;
 	}
 }

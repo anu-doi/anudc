@@ -53,6 +53,7 @@
 					<th>Size</th>
 					<th>MD5</th>
 					<th>Virus</th>
+					<th>Preserved</th>
 					<th>File Metadata</th>
 					<sec:authorize access="isAuthenticated()"><sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
 						<th>Delete File</th>
@@ -98,6 +99,15 @@
 						</c:choose>
 						</td>
 						
+						<!-- Preserved file download -->
+						<td>
+							<c:if test="${not empty iFile.value.presvFilepath}">
+								<a href="<c:url value='${it.dlBaseUri}${iFile.value.presvFilepath}' />">
+									<img src="<c:url value='/images/ice_icon.png' />" title="Download preserved format" />
+								</a>
+							</c:if>
+						</td>
+						
 						<!-- Metadata slider -->
 						<td onclick="jQuery('tr[id=\'meta-${iFile.key}\']').slideToggle()"><a href="javascript:void(0);">Expand</a></td>
 						
@@ -114,7 +124,7 @@
 					<!-- Metadata row for the file above -->
 					<tr id="meta-<c:out value='${iFile.key}' />"
 						style="display: none;">
-						<td colspan="7">
+						<td colspan="8">
 							<table class=small>
 								<c:forEach var="iProperty" items="${iFile.value.metadata}">
 									<tr>

@@ -39,6 +39,8 @@ import org.apache.commons.io.FileUtils;
  * <li>Technical metadata of the file.</li>
  * <li>Virus scan result of the file</li>
  * </ul>
+ * 
+ * @author Rahul Khanna
  */
 public class FileSummary {
 	private String filepath;
@@ -47,6 +49,7 @@ public class FileSummary {
 	private long lastModified;
 	private long sizeInBytes;
 	private String friendlySize;
+	private String presvFilepath;
 	
 	private Map<String, String> messageDigests;
 	private PronomFormat pronomFormat;
@@ -158,6 +161,14 @@ public class FileSummary {
 	
 	public void setScanResult(String scanResult) {
 		this.scanResult = scanResult;
+	}
+
+	public String getPresvFilepath() {
+		return presvFilepath;
+	}
+
+	public void setPresvFilepath(String presvFilepath) {
+		this.presvFilepath = presvFilepath;
 	}
 
 }

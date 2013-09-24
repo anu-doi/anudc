@@ -14,11 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CompleterTask implements Callable<Bag> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorageCompleter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CompleterTask.class);
 
 	private BagFactory bagFactory;
 	private File bagDir;
@@ -66,7 +67,7 @@ public class CompleterTask implements Callable<Bag> {
 			bag = completeBag(bag);
 			bag = writeBag(bag);
 		} finally {
-			bag.close();
+			IOUtils.closeQuietly(bag);
 		}
 		return bag;
 	}
@@ -91,7 +92,14 @@ public class CompleterTask implements Callable<Bag> {
 	}
 
 	private Completer getCompleter() {
-		return new ChainingCompleter(createDcStorageCompleter(), createUpdateCompleter());
+		return new ChainingCompleter(createPreservationCompleter(), createDcStorageCompleter(), createUpdateCompleter());
+	}
+
+	private Completer createPreservationCompleter() {
+		PreservationCompleter pc = new PreservationCompleter();
+		pc.setLimitAddUpdatePayloadFilepaths(this.addUpdatePayloadFilepaths);
+		pc.setLimitDeletePayloadFilepaths(this.deletePayloadFilepaths);
+		return pc;
 	}
 
 	private Completer createUpdateCompleter() {

@@ -95,7 +95,6 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
@@ -339,6 +338,128 @@
 			<groupId>nom.tam.fits</groupId>
 			<artifactId>fits</artifactId>
 			<version>1.10</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=xena-core -Dversion=6.1.0 -Dfile=xena.jar -Dpackaging=jar -DgeneratePOM=true
+				
+				If you get an error about multiple slf4j bindings, then delete the folder org/slf4j in the jar.
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>xena-core</artifactId>
+			<version>6.1.0</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-archive -Dversion=1.3.0 -Dfile=plugins\archive.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-archive</artifactId>
+			<version>1.3.0</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-audio -Dversion=1.0.0 -Dfile=plugins\audio.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-audio</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-csv -Dversion=2.3.0 -Dfile=plugins\csv.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-csv</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-email -Dversion=3.3.1 -Dfile=plugins\email.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-email</artifactId>
+			<version>3.3.1</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-html -Dversion=2.5.0 -Dfile=plugins\html.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-html</artifactId>
+			<version>2.5.0</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-image -Dversion=5.0.0 -Dfile=plugins\image.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-image</artifactId>
+			<version>5.0.0</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-metadata -Dversion=1.0.0 -Dfile=plugins\metadata.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-metadata</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-multipage -Dversion=1.3.0 -Dfile=plugins\multipage.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-multipage</artifactId>
+			<version>1.3.0</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-office -Dversion=3.5.1 -Dfile=plugins\office.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-office</artifactId>
+			<version>3.5.1</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-pdf -Dversion=2.4.0 -Dfile=plugins\pdf.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-pdf</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-plaintext -Dversion=3.5.0 -Dfile=plugins\plaintext.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-plaintext</artifactId>
+			<version>3.5.0</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-project -Dversion=2.3.1 -Dfile=plugins\project.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-project</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-website -Dversion=1.0.0 -Dfile=plugins\website.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-website</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
+				mvn install:install-file -DgroupId=au.gov.naa.digipres.xena -DartifactId=plugin-xml -Dversion=2.3.0 -Dfile=plugins\xml.jar -Dpackaging=jar -DgeneratePOM=true
+			 -->
+			<groupId>au.gov.naa.digipres.xena</groupId>
+			<artifactId>plugin-xml</artifactId>
+			<version>2.3.0</version>
 		</dependency>
 	</dependencies>
 
