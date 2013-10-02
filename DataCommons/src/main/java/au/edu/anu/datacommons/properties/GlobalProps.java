@@ -107,7 +107,6 @@ public final class GlobalProps {
 	public static final String PROP_ORCA_XSL = "orca.transform.xsl";
 	public static final String PROP_PYTHON_PATH = "python.path";
 	public static final String PROP_FIDO_PATH = "fido.path";
-	
 
 	static {
 		try {
@@ -161,8 +160,12 @@ public final class GlobalProps {
 	}
 
 	public static File getArchiveBaseDirAsFile() {
-		File archiveBaseDir = new File(getArchiveBaseDirAsString());
-		createIfNotExists(archiveBaseDir);
+		String archiveBaseDirPath = getArchiveBaseDirAsString();
+		File archiveBaseDir = null;
+		if (archiveBaseDirPath != null && archiveBaseDirPath.length() > 0) {
+			archiveBaseDir = new File(archiveBaseDirPath);
+			createIfNotExists(archiveBaseDir);
+		}
 		return archiveBaseDir;
 	}
 
@@ -170,10 +173,11 @@ public final class GlobalProps {
 		String emailDebugSendString = getProperty(PROP_EMAIL_DEBUG_SEND);
 		boolean emailDebugSend = false;
 
-		if (emailDebugSendString != null)
+		if (emailDebugSendString != null) {
 			emailDebugSend = Boolean.parseBoolean(getProperty(PROP_EMAIL_DEBUG_SEND));
-		else
+		} else {
 			LOGGER.warn("Property {} not specified in Global Properties. Using default: false", PROP_EMAIL_DEBUG_SEND);
+		}
 
 		return emailDebugSend;
 	}
@@ -191,15 +195,15 @@ public final class GlobalProps {
 		URI casUri = UriBuilder.fromUri(getProperty(PROP_CAS_SERVER)).build();
 		return casUri;
 	}
-	
+
 	public static String getClamScanHost() {
 		return getProperty("clamscan.host");
 	}
-	
+
 	public static int getClamScanPort() {
 		return Integer.parseInt(getProperty("clamscan.port"));
 	}
-	
+
 	public static int getClamScanTimeout() {
 		int timeout;
 		try {
@@ -209,11 +213,11 @@ public final class GlobalProps {
 		}
 		return timeout;
 	}
-	
+
 	public static String getPythonPath() {
 		return getProperty(PROP_PYTHON_PATH);
 	}
-	
+
 	public static String getFidoPath() {
 		return getProperty(PROP_FIDO_PATH);
 	}

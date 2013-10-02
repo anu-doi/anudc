@@ -100,6 +100,12 @@ public class PreservationCompleter extends AbstractCustomCompleter {
 					if (preservedFile.isFile()) {
 						if (preservedFile.delete()) {
 							preservedFilepathsToDelete.add(preservedFilepath);
+							String[] nOtherFilesInParent = preservedFile.getParentFile().list();
+							if (nOtherFilesInParent.length == 0) {
+								if (!preservedFile.getParentFile().delete()) {
+									LOGGER.warn("Unable to delete directory {}", preservedFile.getParentFile().getAbsolutePath());
+								}
+							}
 						} else {
 							LOGGER.warn("Unable to delete preserved file {}", preservedFile.getAbsolutePath());
 						}
