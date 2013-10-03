@@ -21,8 +21,7 @@
 
 package au.edu.anu.datacommons.exception;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -34,55 +33,32 @@ import javax.ws.rs.ext.Provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 
 import com.sun.jersey.api.view.Viewable;
 
 /**
- * DataCommonsExceptionMapper
- * 
- * Australian National University Data Commons
- * 
- * Maps the Data Commons Exception to a response
- *
- * JUnit Coverage:
- * None
- * 
- * <pre>
- * Version	Date		Developer				Description
- * 0.1		02/01/2013	Genevieve Turner (GT)	Initial
- * </pre>
+ * @author Rahul Khanna
  *
  */
 @Provider
-public class DataCommonsExceptionMapper implements ExceptionMapper<DataCommonsException> {
-	static final Logger LOGGER = LoggerFactory.getLogger(DataCommonsExceptionMapper.class);
-	@Context HttpHeaders headers;
+public class AccessDeniedExceptionMapper implements ExceptionMapper<AccessDeniedException> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AccessDeniedExceptionMapper.class);
 	
-	/**
-	 * toResponse
-	 * 
-	 * Map the exception to a response
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		02/01/2013	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @param e The exception to map to a response
-	 * @return The response for the Data Commons Exception
-	 * @see javax.ws.rs.ext.ExceptionMapper#toResponse(java.lang.Throwable)
-	 */
+	@Context
+	private HttpHeaders headers;
+	
 	@Override
-	public Response toResponse(DataCommonsException e) {
+	public Response toResponse(AccessDeniedException exception) {
 		Response resp;
-		if (headers.getAcceptableMediaTypes().contains(MediaType.TEXT_HTML_TYPE)) {
-			Map<String, Object> model = new HashMap<String, Object>();
-			model.put("messages", e.getErrorMessage());
-			Viewable viewable = new Viewable("/error.jsp", model);
-			resp = Response.status(Status.BAD_REQUEST).entity(viewable).build();
+		LOGGER.info(exception.getMessage());
+		List<MediaType> acceptableMediaTypes = headers.getAcceptableMediaTypes();
+		if (acceptableMediaTypes.contains(MediaType.TEXT_HTML_TYPE)) {
+			resp = Response.status(Status.UNAUTHORIZED).entity(new Viewable("/login_select.jsp")).build();
 		} else {
-			resp = Response.status(Status.BAD_REQUEST).entity(e.getErrorMessage()).build();
+			resp = Response.status(Status.UNAUTHORIZED).entity(exception.getMessage()).build();
 		}
 		return resp;
 	}
+
 }

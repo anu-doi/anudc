@@ -21,7 +21,9 @@
 
 package au.edu.anu.datacommons.exception;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
@@ -29,11 +31,16 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.config.Config;
+
+import com.sun.jersey.api.view.Viewable;
 
 /**
  * ValidateExceptionMapper
@@ -73,28 +80,24 @@ public class ValidateExceptionMapper implements ExceptionMapper<ValidateExceptio
 	 */
 	@Override
 	public Response toResponse(ValidateException e) {
-		List<MediaType> accepts = headers.getAcceptableMediaTypes();
-		
-		// Ensure that the List<String> is held through the entity so that the appropriate MessageBodyWriter is assigned
-		GenericEntity<List<String>> entity = new GenericEntity<List<String>>(e.getMessages()) {};
-		
-		ResponseBuilder responseBuilder = Response.status(400).entity(entity);
-		
-		LOGGER.debug("Header Media Type: {}", headers.getMediaType());
-		
-		if (accepts != null && accepts.size() > 0) {
-			LOGGER.debug("There is an acceptable media type set");
-			MediaType m = accepts.get(0);
-			LOGGER.debug("Media Type: {}", m);
-			
-			responseBuilder = responseBuilder.type(m);
+		Response resp;
+		if (headers.getAcceptableMediaTypes().contains(MediaType.TEXT_HTML_TYPE)) {
+			Map<String, Object> model = new HashMap<String, Object>();
+			model.put("messages", e.getMessages());
+			Viewable viewable = new Viewable("/error.jsp", model);
+			resp = Response.status(Status.BAD_REQUEST).entity(viewable).build();
+		} else {
+			resp = Response.status(Status.BAD_REQUEST).entity(convertListToString(e.getMessages())).build();
 		}
-		else {
-			responseBuilder = responseBuilder.type(headers.getMediaType());
-			LOGGER.debug("Using header media type");
-		}
-		
-		return responseBuilder.build();
+		return resp;
 	}
 	
+	private String convertListToString(List<String> list) {
+		StringBuilder sb = new StringBuilder();
+		for (String s : list) {
+			sb.append(s);
+			sb.append(Config.NEWLINE);
+		}
+		return sb.toString();
+	}
 }

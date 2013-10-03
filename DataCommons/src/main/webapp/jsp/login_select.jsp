@@ -1,4 +1,4 @@
-<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
@@ -15,8 +15,8 @@
 	<div id="login-error">${error}</div>
 
 	<label for="loginmethod">Select Login Method</label>
-	<form method="GET">
-		<select name="method" id="method" onchange="submit(true)">
+	<form method="GET" action="<c:url value='/login' />">
+		<select name="method" id="method" onchange="this.form.submit()">
 			<option value="">Please select a login method</option>
 			<option value="anu">ANU User</option>
 			<option value="registered">Registered User</option>
