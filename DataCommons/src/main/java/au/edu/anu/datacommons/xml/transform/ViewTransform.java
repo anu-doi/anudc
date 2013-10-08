@@ -308,7 +308,6 @@ public class ViewTransform
 		if (nodeList.getLength() > 0) {
 			Node node = nodeList.item(0);
 			String objectType = node.getTextContent();
-			LOGGER.debug("Template Type {}", objectType);
 			return objectType;
 		}
 		return "";
@@ -672,10 +671,7 @@ public class ViewTransform
 			List<String> values = param.getValue();
 			if (values != null) {
 				TemplateItem templateItem = templateItemMap.get(key);
-				if(templateItem == null) {
-					LOGGER.debug("Could not find " + key + " in template" + tmplt);
-				}
-				else if (!processedValues_.contains(key)) {
+				if (templateItem != null && !processedValues_.contains(key)) {
 					processItem(templateItemMap.get(key), key, values, data, form);
 				}
 			}
@@ -855,7 +851,6 @@ public class ViewTransform
 
 			FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
 			fedoraObjectDAO.create(fedoraObject);
-			LOGGER.debug("fedora object id: {}", fedoraObject.getId());
 			saveAuditModifyRow(fedoraObject, rid);
 		} else {
 			FedoraBroker.modifyDatastreamBySource(fedoraObject.getObject_id(), Constants.XML_SOURCE, "XML Source", sw.toString());

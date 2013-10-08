@@ -103,7 +103,7 @@ public class LoginServlet extends HttpServlet
 			if (savedRequest == null) {
 				String referer = request.getHeader("Referer");
 				if (Util.isNotEmpty(referer)) {
-					LOGGER.debug("Referer on login page is not empty and is: {}", referer);
+					LOGGER.trace("Referer on login page is: {}", referer);
 					PortResolver portResolver = new PortResolverImpl();
 					DefaultSavedRequest savedRequestToSet = new DefaultSavedRequest (request, portResolver);
 					request.getSession().setAttribute(WebAttributes.SAVED_REQUEST, savedRequestToSet);

@@ -405,7 +405,7 @@ public class PermissionService {
 	 * @param fedoraObject The fedora object to save permissions for
 	 */
 	public void saveObjectPermissions(FedoraObject fedoraObject) {
-		LOGGER.info("Id: {}", fedoraObject.getId());
+		LOGGER.trace("Saving permissions for pid {}", fedoraObject.getObject_id());
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
 		Sid sid = new PrincipalSid(authentication.getName());
@@ -434,14 +434,12 @@ public class PermissionService {
 		
 		// If the owner is null set all the information
 		if (owner == null) {
-			LOGGER.debug("There is no owner so we are able to set it");
 			fedoraAcl.setParent(groupAcl);
 			fedoraAcl.setEntriesInheriting(Boolean.TRUE);
 			fedoraAcl.setOwner(sid);
 		}
 		// If the user has permissions allow them to update the parent
 		else if (hasSetParentPermissions(fedoraAcl, sid)) {
-			LOGGER.debug("User is able to update the parent");
 			fedoraAcl.setParent(groupAcl);
 		}
 		

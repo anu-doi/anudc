@@ -40,6 +40,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.Groups;
@@ -141,10 +142,11 @@ public class SearchService
 		if (Util.isNotEmpty(q)) {
 			Map<String, Object> model = new HashMap<String, Object>();
 			try {
+				LOGGER.info("User {} submitted search query [{}]", getCurUsername(), q);
 				QueryResponse queryResponse = executeQuery(q, offset, limit, filter);
 				
 				SolrDocumentList resultList = queryResponse.getResults();
-				LOGGER.info("Number of results: {}",resultList.getNumFound());
+				LOGGER.trace("Number of results: {}",resultList.getNumFound());
 				SolrSearchResult solrSearchResult = new SolrSearchResult(resultList);
 				model.put("resultSet", solrSearchResult);
 			}
@@ -225,7 +227,7 @@ public class SearchService
 		q = SolrUtils.escapeSpecialCharacters(q);
 		
 		Object[] list = {q, offset, limit};
-		LOGGER.debug("Query Term: {}, Offset: {}, Limit: {}", list);
+		LOGGER.trace("Query Term: {}, Offset: {}, Limit: {}", list);
 
 		SolrQuery solrQuery = new SolrQuery();
 		
@@ -343,7 +345,7 @@ public class SearchService
 			filterGroups.append(group.getId());
 			filterGroups.append(" ");
 		}
-		LOGGER.debug("Filter Groups: {}", filterGroups.toString());
+		LOGGER.trace("Filter Groups: {}", filterGroups.toString());
 		return filterGroups.toString();
 	}
 	
@@ -368,4 +370,7 @@ public class SearchService
 		}
 	}
 	
+	private String getCurUsername() {
+		return SecurityContextHolder.getContext().getAuthentication().getName();
+	}
 }

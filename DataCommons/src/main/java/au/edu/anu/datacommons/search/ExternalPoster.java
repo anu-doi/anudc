@@ -306,7 +306,6 @@ public class ExternalPoster {
 		WebResource webService = getResource();
 		// This is separate so it is not added to the parameters field and thus the parameters can be reused
 		webService = webService.queryParam(queryParamName, query);
-		LOGGER.debug("Posting url is: {}", webService.getURI());
 		ClientResponse clientResponse = webService.type(type).accept(acceptType).post(ClientResponse.class);
 		
 		return clientResponse;

@@ -207,16 +207,16 @@ public final class Util
 	 * 0.5		08/05/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param encoded Encoded string
+	 * @param encoded
+	 *            Encoded string
 	 * @return Decoded string
 	 */
 	public static String decodeUrlEncoded(String encoded) {
 		String decoded = null;
 		try {
-			decoded = URLDecoder.decode(encoded,"UTF-8");
-		}
-		catch (UnsupportedEncodingException e) {
-			LOGGER.error("Error decoding string: ", e);
+			decoded = URLDecoder.decode(encoded, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			LOGGER.error("Error urldecoding string: {}. Error: {}", encoded, e.getMessage());
 		}
 		return decoded;
 	}

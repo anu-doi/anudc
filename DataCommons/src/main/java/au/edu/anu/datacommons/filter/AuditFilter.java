@@ -64,7 +64,9 @@ import au.edu.anu.datacommons.util.Util;
  *
  */
 public class AuditFilter implements Filter {
-	static final Logger LOGGER = LoggerFactory.getLogger(AuditFilter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuditFilter.class);
+	
+	private GenericDAO<AuditAccess, Long> genericDAO;
 	private Pattern pidPattern;
 	private Pattern ridPattern;
 
@@ -106,13 +108,20 @@ public class AuditFilter implements Filter {
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response,
 			FilterChain chain) throws IOException, ServletException {
+
+		AuditAccess auditAccess = new AuditAccess();
+		auditAccess.setAccessDate(new Date());
+		auditAccess.setIpAddress(request.getRemoteAddr());
+
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		if (principal instanceof UserDetails) {
+			auditAccess.setUsername(((UserDetails)principal).getUsername());
+		} else {
+			auditAccess.setUsername(principal.toString());
+		}
+		
 		if (request instanceof HttpServletRequest) {
 			HttpServletRequest httpRequest = (HttpServletRequest) request;
-			AuditAccess auditAccess = new AuditAccess();
-			auditAccess.setAccessDate(new Date());
-			if (Util.isNotEmpty(httpRequest.getRemoteAddr())) {
-				auditAccess.setIpAddress(httpRequest.getRemoteAddr());
-			}
 			StringBuffer requestURL = httpRequest.getRequestURL();
 			if (Util.isNotEmpty(httpRequest.getQueryString())) {
 				requestURL.append("?");
@@ -121,17 +130,7 @@ public class AuditFilter implements Filter {
 			auditAccess.setUrl(requestURL.toString());
 			auditAccess.setMethod(httpRequest.getMethod());
 			
-			Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-			if (principal instanceof UserDetails) {
-				auditAccess.setUsername(((UserDetails)principal).getUsername());
-			}
-			else {
-				auditAccess.setUsername(principal.toString());
-			}
-			
 			String decodedRequestURL = Util.decodeUrlEncoded(requestURL.toString());
-			
 			Matcher pidMatch = pidPattern.matcher(decodedRequestURL);
 			if (pidMatch.find()) {
 				auditAccess.setPid(pidMatch.group(1));
@@ -141,15 +140,8 @@ public class AuditFilter implements Filter {
 			if (ridMatch.find()) {
 				auditAccess.setRid(new Long(ridMatch.group(1)));
 			}
-			
-			GenericDAO<AuditAccess, Long> genericDAO = new GenericDAOImpl<AuditAccess, Long>(AuditAccess.class);
-			genericDAO.create(auditAccess);
-			LOGGER.debug("Audit row added to database for {}", auditAccess.getUrl());
 		}
-		else {
-			LOGGER.info("Servlet request is not a http servlet request");
-		}
-		
+		genericDAO.create(auditAccess);
 		chain.doFilter(request, response);
 	}
 
@@ -170,6 +162,8 @@ public class AuditFilter implements Filter {
 	 */
 	@Override
 	public void init(FilterConfig config) throws ServletException {
+		genericDAO = new GenericDAOImpl<AuditAccess, Long>(AuditAccess.class);
+		
 		String namespace = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_SAVENAMESPACE);
 		String patternToMatch = "/(" + namespace + ":\\d*)";
 		pidPattern = Pattern.compile(patternToMatch);

@@ -148,8 +148,6 @@ public class PublishServiceImpl implements PublishService {
 	 * @return The validation results
 	 */
 	public Map<String, List<LocationValidationMessage>> validateMultiple(List<PublishLocation> publishLocations, List<String> ids) {
-		LOGGER.info("In validate multiple");
-		
 		Map<String, List<LocationValidationMessage>> issueMap = new HashMap<String, List<LocationValidationMessage>>();
 		for (PublishLocation publishLocation : publishLocations) {
 			try {
@@ -419,12 +417,10 @@ public class PublishServiceImpl implements PublishService {
 		boolean canPublish = true;
 		for (FedoraObject fedoraObject : fedoraObjects) {
 			if(!isPublishable(fedoraObject, publishLocations)) {
-				LOGGER.info("{} is unpublishable", fedoraObject.getObject_id());
 				canPublish = false;
 			}
 		}
 		if (!canPublish) {
-			LOGGER.info("Cannot publish");
 			return null;
 		}
 		Map<String, String> returnMap = new HashMap<String, String>();

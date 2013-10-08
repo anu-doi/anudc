@@ -592,7 +592,7 @@ public final class SparqlQuery
 			sparqlQuery.append(limit);
 		}
 
-		LOGGER.trace("Returning SPARQL query: {}", sparqlQuery);
+		LOGGER.trace("Returning SPARQL query: {}", sparqlQuery.toString().replaceAll(Config.NEWLINE, " "));
 		return sparqlQuery.toString();
 	}
 }

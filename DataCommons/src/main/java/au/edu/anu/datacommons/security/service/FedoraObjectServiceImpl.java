@@ -49,11 +49,14 @@ import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.LinkTypeDAO;
 import au.edu.anu.datacommons.data.db.dao.LinkTypeDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.UsersDAO;
+import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.LinkType;
 import au.edu.anu.datacommons.data.db.model.PublishReady;
 import au.edu.anu.datacommons.data.db.model.ReviewReady;
+import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.doi.DoiClient;
@@ -126,15 +129,11 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	static final Logger LOGGER = LoggerFactory.getLogger(FedoraObjectServiceImpl.class);
 	private static JAXBContext dataContext;
 	
-	static
-	{
-		try
-		{
+	static {
+		try {
 			dataContext = JAXBContext.newInstance(Data.class);
-		}
-		catch (JAXBException e)
-		{
-			LOGGER.error("Unable to create JAXB Context for Data Element");
+		} catch (JAXBException e) {
+			LOGGER.error("Unable to create JAXB Context for Data Element. Error: {}", e.getMessage());
 		}
 	}
 
@@ -164,15 +163,16 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 */
 	@Override
 	public FedoraObject getItemByPid(String pid) {
-		LOGGER.debug("Retrieving object for: {}", pid);
-		String decodedpid = null;
-		decodedpid = Util.decodeUrlEncoded(pid);
-		if (decodedpid == null) {
+		String decodedPid = null;
+		decodedPid = Util.decodeUrlEncoded(pid);
+		if (decodedPid == null) {
 			return null;
 		}
-		LOGGER.trace("Decoded pid: {}", decodedpid);
 		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
-		FedoraObject item = object.getSingleByName(decodedpid);
+		FedoraObject item = object.getSingleByName(decodedPid);
+		if (item != null) {
+			LOGGER.trace("Retrieved item {}", item.getObject_id());
+		}
 		return item;
 	}
 
@@ -327,7 +327,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 */
 	@Override
 	public String getEditItem(FedoraObject fedoraObject, String layout, String tmplt, String fieldName) {
-		LOGGER.info("In get edit item");
 		String fields = "";
 		ViewTransform viewTransform = new ViewTransform();
 		try {
@@ -607,7 +606,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 				values.putAll(viewTransform.getPage(layout, template, fedoraObject, null, false, true));
 			}
 			else {
-				throw new AccessDeniedException("User does not have permission to view page");
+				throw new AccessDeniedException(format("User does not have permission to view page for record {0}", fedoraObject.getObject_id()));
 			}
 		}
 		catch (FedoraClientException e) {

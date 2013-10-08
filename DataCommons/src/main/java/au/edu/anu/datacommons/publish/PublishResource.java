@@ -21,6 +21,8 @@
 
 package au.edu.anu.datacommons.publish;
 
+import static java.text.MessageFormat.*;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
@@ -120,7 +123,7 @@ public class PublishResource {
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response getPublishers() {
-		LOGGER.info("In get publishers");
+		LOGGER.info("User {} requested publish location selection page.", getCurUsername());
 		
 		List<PublishLocation> publishLocations = publishService.getPublishers();
 		
@@ -185,17 +188,18 @@ public class PublishResource {
 		UriBuilder redirUri = UriBuilder.fromPath("/display").path(pid).queryParam("layout", "def:display").queryParam("tmplt", tmplt);
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 		if (!permissionService.checkPermission(fedoraObject, CustomACLPermission.PUBLISH)) {
-			throw new AccessDeniedException("User does not have Publish permissions.");
+			throw new AccessDeniedException(format("User does not have Publish permissions for {0}.", pid));
 		}
 
 		try
 		{
+			LOGGER.info("User {} requested a DOI to be minted for {}", getCurUsername(), pid);
 			fedoraObjectService.generateDoi(pid, tmplt, null);
 			resp = Response.seeOther(redirUri.build()).build();
 		}
 		catch (Exception e)
 		{
-			LOGGER.error("DOI Minting failed.", e);
+			LOGGER.error("DOI Minting failed for " + pid, e);
 			resp = Response.seeOther(redirUri.queryParam("emsg", e.getMessage()).build()).build();
 		}
 
@@ -446,5 +450,9 @@ public class PublishResource {
 		}
 		
 		return Response.ok(new Viewable("/publish_multiple_display.jsp", model)).build();
+	}
+	
+	private String getCurUsername() {
+		return SecurityContextHolder.getContext().getAuthentication().getName();
 	}
 }

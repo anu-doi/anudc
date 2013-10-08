@@ -244,6 +244,7 @@ public class UploadService {
 
 		if (task == null || task.length() == 0) {
 			FedoraObject fo = null;
+			LOGGER.info("User {} requested bag files page of {}", getCurUsername(), pid);
 			if (hasRole(new String[] { "ROLE_ANU_USER" })) {
 				// Check if user's got read access to fedora object.
 				fo = fedoraObjectService.getItemByPidReadAccess(pid);
@@ -251,7 +252,7 @@ public class UploadService {
 				// Check if data files are public
 				fo = fedoraObjectService.getItemByPid(pid);
 				if (!fo.getPublished() || !fo.isFilesPublic()) {
-					throw new AccessDeniedException("No access");
+					throw new AccessDeniedException(format("User doesn't have permissions to view files in record {0}", pid));
 				}
 			}
 			model.put("fo", fo);
@@ -280,6 +281,7 @@ public class UploadService {
 
 			resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
 		} else if (task.equals("recomplete")) {
+			LOGGER.info("User {} requested bag completion of {}", getCurUsername(), pid);
 			fedoraObjectService.getItemByPidWriteAccess(pid);
 			try {
 				dcStorage.recompleteBag(pid);
@@ -420,7 +422,7 @@ public class UploadService {
 			// Check if data files are public
 			fo = fedoraObjectService.getItemByPid(pid);
 			if (!fo.getPublished() || !fo.isFilesPublic()) {
-				throw new AccessDeniedException("No access");
+				throw new AccessDeniedException(format("User doesn't have permissions to access files in record {0}", pid));
 			}
 		}
 
@@ -438,12 +440,14 @@ public class UploadService {
 					}
 				}
 				
+				LOGGER.info("User {} requested {} bag files {} in {} as zip", getCurUsername(), filepaths.size(), filepaths, pid);
 				Users curUser = getCurUser();
 				if (curUser != null) {
 					addAccessLog(Operation.READ);
 				}
 				resp = getBagFilesAsZip(pid, filepaths, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), "zip"));
 			} else {
+				LOGGER.info("User {} requested bag file {} in {}", getCurUsername(), fileRequested, pid);
 				if (!dcStorage.fileExists(pid, fileRequested)) {
 					throw new NotFoundException(format("File {0} not found in {1}", fileRequested, pid));
 				}
@@ -476,6 +480,7 @@ public class UploadService {
 	public Response doAddFileToBag(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag,
 			InputStream is) {
 		Response resp = null;
+		LOGGER.info("User {} requested adding file {} in {}", getCurUsername(), fileInBag, pid);
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 		File uploadedFile = null;
 
@@ -518,8 +523,9 @@ public class UploadService {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doDeleteFileInBag(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag) {
 		Response resp = null;
+		LOGGER.info("User {} requested deletion of file {} in {}", getCurUsername(), fileInBag, pid);
 		fedoraObjectService.getItemByPidWriteAccess(pid);
-
+		
 		try {
 			if (dcStorage.fileExists(pid, fileInBag)) {
 				addAccessLog(Operation.DELETE);
@@ -556,7 +562,7 @@ public class UploadService {
 	public Response doAddDeleteExtRef(@PathParam("pid") String pid, @FormParam("addUrl") Set<String> addUrlSet,
 			@FormParam("deleteUrl") Set<String> deleteUrlSet) {
 		Response resp = null;
-
+		LOGGER.info("User {} requested addition/deletion of extRefs in {}", getCurUsername(), pid);
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 		try {
 			dcStorage.addExtRefs(pid, addUrlSet);
@@ -571,23 +577,6 @@ public class UploadService {
 		return resp;
 	}
 	
-	@GET
-	@Path("bag/{pid}/complete")
-	@Produces(MediaType.TEXT_PLAIN)
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doCompleteBag(@PathParam("pid") String pid) {
-		Response resp = null;
-		fedoraObjectService.getItemByPidWriteAccess(pid);
-		try {
-			dcStorage.recompleteBag(pid);
-			resp = Response.ok().build();
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.serverError().build();
-		}
-		return resp;
-	}
-
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("bag/{pid}/ispublic")
@@ -605,12 +594,13 @@ public class UploadService {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPutSetFilesPublic(@PathParam("pid") String pid, String isFilesPublic) {
 		Response resp = null;
+		LOGGER.info("User {} requested change status of files {} to {}", getCurUsername(), pid, isFilesPublic);
 		if (isFilesPublic == null || isFilesPublic.length() == 0) {
 			resp = Response.status(Status.BAD_REQUEST).build();
 		} else {
 			FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 			if (!permissionService.checkPermission(fedoraObject, CustomACLPermission.PUBLISH)) {
-				throw new AccessDeniedException("User does not have Publish permissions.");
+				throw new AccessDeniedException(format("User does not have Publish permissions for record {0}.", pid));
 			}
 			fedoraObjectService.setFilesPublic(pid, Boolean.parseBoolean(isFilesPublic));
 			resp = Response.ok().build();
@@ -645,9 +635,13 @@ public class UploadService {
 	 * @return Users object containing information about the currently logged in user.
 	 */
 	private Users getCurUser() {
-		return new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication()
-				.getName());
+		return new UsersDAOImpl(Users.class).getUserByName(getCurUsername());
 	}
+	
+	private String getCurUsername() {
+		return SecurityContextHolder.getContext().getAuthentication().getName();
+	}
+
 
 	/**
 	 * Creates a Response object containing the contents of a single file in a bag of collection as Response object

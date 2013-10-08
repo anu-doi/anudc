@@ -805,17 +805,18 @@ public class CollectionRequestService
 		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
 
-		LOGGER.trace("In doGetQuestionsAsHtml");
+		LOGGER.info("User {} requested the questions page.", getCurUsername());
 
 		try
 		{
 			// Get all questions from the Question Bank.
-			LOGGER.debug("Retrieving questions from question bank...");
 			List<Question> questions = getAllQuestions();
+			LOGGER.debug("Retrieved {} questions from question bank.", questions.size());
 
 			// Add a warning to the message set to let the user know that there aren't any questions in the question bank.
-			if (questions.size() == 0)
+			if (questions.size() == 0) {
 				messages.add(MessageType.WARNING, "No questions found in the question bank.", model);
+			}
 			
 			model.put("questions", questions);
 			
@@ -1138,7 +1139,6 @@ public class CollectionRequestService
 		}
 		questionsJson.put("optional", optQuestionsJson);
 		
-		LOGGER.info("JSON Array: {}", questionsJson.toString());
 		// Convert the JSONObject into a JSON String and include it in the Response object.
 		return Response.ok(questionsJson.toString(), MediaType.APPLICATION_JSON_TYPE).build();
 	}
@@ -1173,5 +1173,9 @@ public class CollectionRequestService
 		}
 
 		return emailList;
+	}
+	
+	private String getCurUsername() {
+		return SecurityContextHolder.getContext().getAuthentication().getName();
 	}
 }

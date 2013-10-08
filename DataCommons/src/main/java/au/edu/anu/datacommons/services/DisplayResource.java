@@ -53,9 +53,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import au.edu.anu.datacommons.data.db.dao.UsersDAO;
+import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.exception.DataCommonsException;
 import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
@@ -104,7 +108,7 @@ public class DisplayResource
 
 	@Resource(name = "fedoraObjectServiceImpl")
 	private FedoraObjectService fedoraObjectService;
-
+	
 	/**
 	 * getItem
 	 * 
@@ -130,6 +134,7 @@ public class DisplayResource
 	@Produces(MediaType.TEXT_HTML)
 	public Response getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item)
 	{
+		LOGGER.info("User {} requested record page of {}", getCurUsername(), item);
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		Map<String, Object> values = fedoraObjectService.getViewPage(fedoraObject, layout, tmplt);
 
@@ -210,6 +215,8 @@ public class DisplayResource
 		try
 		{
 			fedoraObject = fedoraObjectService.saveNew(tmplt, form, null);
+			LOGGER.info("User {} created record {} of group {} through Web UI.", getCurUsername(),
+					fedoraObject.getObject_id(), fedoraObject.getGroup_id());
 			UriBuilder redirUri = UriBuilder.fromPath("/display").path(fedoraObject.getObject_id()).queryParam("layout", layout).queryParam("tmplt", tmplt);
 			resp = Response.seeOther(redirUri.build()).build();
 		}
@@ -255,32 +262,26 @@ public class DisplayResource
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@Produces(MediaType.TEXT_PLAIN)
-	public Response postItemAsText(@Context UriInfo uriInfo, @QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt,
-			@Context HttpServletRequest request)
-	{
+	public Response postItemAsText(@Context UriInfo uriInfo, @QueryParam("layout") String layout,
+			@QueryParam("tmplt") String tmplt, @Context HttpServletRequest request) {
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
-		LOGGER.debug("Saving Fedora Object... layout: {}, tmplt: {}, form: {}", new Object[] { layout, tmplt, form.toString() });
 		FedoraObject fedoraObject;
 		Response resp = null;
-		try
-		{
+		try {
 			fedoraObject = fedoraObjectService.saveNew(tmplt, form, null);
-			LOGGER.info("Created fedora object {}. Returning HTTP 201 response.", fedoraObject.getObject_id());
-			URI createdUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(DisplayResource.class).path(DisplayResource.class, "getItem")
-					.build(fedoraObject.getObject_id());
+			LOGGER.info("User {} created record {} of group {} through Web Service. Returning HTTP 201 response.", getCurUsername(),
+					fedoraObject.getObject_id(), fedoraObject.getGroup_id());
+			URI createdUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(DisplayResource.class)
+					.path(DisplayResource.class, "getItem").build(fedoraObject.getObject_id());
 			resp = Response.created(createdUri).entity(fedoraObject.getObject_id()).build();
-		}
-		catch (FedoraClientException e)
-		{
+		} catch (FedoraClientException e) {
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		} catch (JAXBException e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
-		catch (JAXBException e)
-		{
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
-		}
-		
+
 		return resp;
 	}
 
@@ -398,7 +399,7 @@ public class DisplayResource
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 
-		LOGGER.info("tmplt: {}", tmplt);
+		LOGGER.info("User {} edited record {}", getCurUsername(), pid);
 		
 		Map<String, Object> values = fedoraObjectService.saveEdit(fedoraObject, tmplt, form, null);
 		UriBuilder uriBuilder = null;
@@ -639,5 +640,9 @@ public class DisplayResource
 			throw new WebApplicationException(Response.status(400).entity("Error creating return").build());
 		}
 		return Response.ok(results).build();
+	}
+
+	private String getCurUsername() {
+		return SecurityContextHolder.getContext().getAuthentication().getName();
 	}
 }

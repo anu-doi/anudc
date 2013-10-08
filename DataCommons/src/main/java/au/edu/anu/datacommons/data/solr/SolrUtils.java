@@ -60,7 +60,6 @@ public class SolrUtils {
 	 */
 	public static String escapeSpecialCharacters(String query) {
 		query = query.replace(":", "\\:");
-		LOGGER.info("Replaced String: {}", query);
 		return query;
 	}
 }

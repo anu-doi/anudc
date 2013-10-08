@@ -34,6 +34,7 @@ import javax.ws.rs.ext.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.sun.jersey.api.view.Viewable;
 
@@ -51,7 +52,7 @@ public class AccessDeniedExceptionMapper implements ExceptionMapper<AccessDenied
 	@Override
 	public Response toResponse(AccessDeniedException exception) {
 		Response resp;
-		LOGGER.info(exception.getMessage());
+		LOGGER.warn("User {} requested a resource to which they don't have access: {}", getCurUsername(), exception.getMessage());
 		List<MediaType> acceptableMediaTypes = headers.getAcceptableMediaTypes();
 		if (acceptableMediaTypes.contains(MediaType.TEXT_HTML_TYPE)) {
 			resp = Response.status(Status.UNAUTHORIZED).entity(new Viewable("/login_select.jsp")).build();
@@ -61,4 +62,7 @@ public class AccessDeniedExceptionMapper implements ExceptionMapper<AccessDenied
 		return resp;
 	}
 
+	private String getCurUsername() {
+		return SecurityContextHolder.getContext().getAuthentication().getName();
+	}
 }
