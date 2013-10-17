@@ -5,7 +5,7 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
 <anu:body />
-<anu:banner id="" ssl="true" primaryTitle="ANU Data Commons" secondaryTitle="Division of Information" primaryTitleUrl="/" secondaryTitleUrl="/" />
+<anu:banner id="" ssl="true" primaryTitle="ANU Data Commons" secondaryTitle="Information Technology Services" primaryTitleUrl="/" secondaryTitleUrl="/" />
 
 <anu:tabnav>
 	<anu:tabmeta>
