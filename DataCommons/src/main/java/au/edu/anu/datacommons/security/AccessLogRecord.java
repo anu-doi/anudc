@@ -91,7 +91,7 @@ public class AccessLogRecord
 		this.uri = uri;
 	}
 
-	@ManyToOne(optional = false)
+	@ManyToOne(optional = true)
 	@JoinColumn(name="user_fk")
 	public Users getUser()
 	{
