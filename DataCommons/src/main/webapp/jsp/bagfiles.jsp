@@ -139,11 +139,11 @@
 					</tr>
 				</c:forEach>
 			</table>
+			<p class="msg-info">Bag contains ${it.bagSummary.numFiles} files totalling ${it.bagSummary.friendlySize}.</p>
 			<p><sec:authorize access="isAuthenticated()"><sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
 				<input type="button" id="idDelSelected" value="Delete Selected" onclick="deleteSelected('${it.fo.object_id}')" />
 				</sec:accesscontrollist></sec:authorize>
 				<input type="button" id="idDownloadZipSelected" value="Download Selected as Zip" onclick="downloadAsZip('${it.downloadAsZipUrl}')" />
-				<input type="button" value="Rescan Files" onclick="recomplete()" />
 			</p>
 		</c:when>
 		<c:otherwise>

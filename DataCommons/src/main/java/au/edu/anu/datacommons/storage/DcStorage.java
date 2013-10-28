@@ -66,6 +66,8 @@ import au.edu.anu.datacommons.storage.archive.ArchiveTask;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask.Operation;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
+import au.edu.anu.datacommons.storage.verifier.VerificationResults;
+import au.edu.anu.datacommons.storage.verifier.VerificationTask;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
@@ -306,6 +308,15 @@ public final class DcStorage implements Closeable {
 		CompleterTask compTask = new CompleterTask(bagFactory, getBagDir(pid));
 		compTask.setCompleteAllFiles();
 		threadPool.submit(compTask);
+	}
+	
+	public VerificationResults verifyBag(String pid) throws Exception {
+		if (!bagDirExists(pid)) {
+			throw new FileNotFoundException(format("No bag exists for record {0}", pid));
+		}
+		
+		VerificationTask vTask = new VerificationTask(getBagDir(pid));
+		return vTask.call();
 	}
 	
 

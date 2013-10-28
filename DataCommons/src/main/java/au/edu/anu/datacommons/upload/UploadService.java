@@ -91,6 +91,8 @@ import au.edu.anu.datacommons.storage.PartTempFileTask;
 import au.edu.anu.datacommons.storage.TempFileTask;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummaryMap;
+import au.edu.anu.datacommons.storage.verifier.VerificationResults;
+import au.edu.anu.datacommons.storage.verifier.VerificationTask;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
@@ -237,52 +239,97 @@ public class UploadService {
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@Path("bag/{pid}")
-	public Response doGetBagFileListingAsHtml(@PathParam("pid") String pid, @QueryParam("task") String task) {
+	public Response doGetBagFileListingAsHtml(@PathParam("pid") String pid) {
 		Response resp = null;
 		Map<String, Object> model = new HashMap<String, Object>();
 		UriBuilder redirUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class);
 
-		if (task == null || task.length() == 0) {
-			FedoraObject fo = null;
-			LOGGER.info("User {} requested bag files page of {}", getCurUsername(), pid);
-			if (hasRole(new String[] { "ROLE_ANU_USER" })) {
-				// Check if user's got read access to fedora object.
-				fo = fedoraObjectService.getItemByPidReadAccess(pid);
-			} else if (hasRole(new String[] { "ROLE_ANONYMOUS" })) {
-				// Check if data files are public
-				fo = fedoraObjectService.getItemByPid(pid);
-				if (!fo.getPublished() || !fo.isFilesPublic()) {
-					throw new AccessDeniedException(format("User doesn't have permissions to view files in record {0}", pid));
-				}
+		FedoraObject fo = null;
+		LOGGER.info("User {} requested bag files page of {}", getCurUsername(), pid);
+		if (hasRole(new String[] { "ROLE_ANU_USER" })) {
+			// Check if user's got read access to fedora object.
+			fo = fedoraObjectService.getItemByPidReadAccess(pid);
+		} else if (hasRole(new String[] { "ROLE_ANONYMOUS" })) {
+			// Check if data files are public
+			fo = fedoraObjectService.getItemByPid(pid);
+			if (!fo.getPublished() || !fo.isFilesPublic()) {
+				throw new AccessDeniedException(format("User doesn't have permissions to view files in record {0}", pid));
 			}
-			model.put("fo", fo);
-
-			if (dcStorage.bagExists(pid)) {
-				BagSummary bagSummary;
-				try {
-					addAccessLog(Operation.READ);
-					bagSummary = dcStorage.getBagSummary(pid);
-					model.put("bagSummary", bagSummary);
-					model.put("bagInfoTxt", bagSummary.getBagInfoTxt().entrySet());
-					if (bagSummary.getExtRefsTxt() != null) {
-						model.put("extRefsTxt", bagSummary.getExtRefsTxt().entrySet());
-					}
-					UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class)
-							.path(UploadService.class, "doGetFileInBagAsOctetStream2");
-					model.put("dlBaseUri", uriBuilder.build(pid, "").toString());
-					model.put("downloadAsZipUrl", uriBuilder.build(pid, "zip").toString());
-					model.put("isFilesPublic", fo.isFilesPublic().booleanValue());
-				} catch (IOException e) {
-					LOGGER.error(e.getMessage(), e);
-					PageMessages messages = new PageMessages();
-					messages.add(MessageType.ERROR, e.getMessage(), model);
+		}
+		model.put("fo", fo);
+		
+		if (dcStorage.bagExists(pid)) {
+			BagSummary bagSummary;
+			try {
+				addAccessLog(Operation.READ);
+				bagSummary = dcStorage.getBagSummary(pid);
+				model.put("bagSummary", bagSummary);
+				model.put("bagInfoTxt", bagSummary.getBagInfoTxt().entrySet());
+				if (bagSummary.getExtRefsTxt() != null) {
+					model.put("extRefsTxt", bagSummary.getExtRefsTxt().entrySet());
 				}
+				UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class)
+						.path(UploadService.class, "doGetFileInBagAsOctetStream2");
+				model.put("dlBaseUri", uriBuilder.build(pid, "").toString());
+				model.put("downloadAsZipUrl", uriBuilder.build(pid, "zip").toString());
+				model.put("isFilesPublic", fo.isFilesPublic().booleanValue());
+			} catch (IOException e) {
+				LOGGER.error(e.getMessage(), e);
+				PageMessages messages = new PageMessages();
+				messages.add(MessageType.ERROR, e.getMessage(), model);
 			}
-
-			resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
+		}
+		
+		resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
+		return resp;
+	}
+	
+	@GET
+	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Path("bag/{pid}/admin")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public Response doAdminTaskJsonXml(@PathParam("pid") String pid, @QueryParam("task") String task) {
+		Response resp = null;
+		if (!dcStorage.bagExists(pid)) {
+			throw new NotFoundException();
+		}
+		
+		if (task.equals("verify")) {
+			try {
+				VerificationResults results = dcStorage.verifyBag(pid);
+				resp = Response.ok(results).build();
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+				resp = Response.serverError().build();
+			}
+		}
+		
+		return resp;
+	}
+	
+	@GET
+	@Produces(MediaType.TEXT_HTML)
+	@Path("bag/{pid}/admin")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public Response doAdminTaskHtml(@PathParam("pid") String pid, @QueryParam("task") String task) {
+		Response resp = null;
+		UriBuilder redirUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class);
+		Map<String, Object> model = new HashMap<String, Object>();
+		if (!dcStorage.bagExists(pid)) {
+			throw new NotFoundException();
+		}
+		
+		if (task.equals("verify")) {
+			try {
+				VerificationResults results = dcStorage.verifyBag(pid);
+				model.put("results", results);
+				resp = Response.ok(new Viewable("/verificationresults.jsp", model)).build();
+			} catch (Exception e) {
+				LOGGER.error(e.getMessage(), e);
+				resp = Response.serverError().build();
+			}
 		} else if (task.equals("recomplete")) {
 			LOGGER.info("User {} requested bag completion of {}", getCurUsername(), pid);
-			fedoraObjectService.getItemByPidWriteAccess(pid);
 			try {
 				dcStorage.recompleteBag(pid);
 				resp = Response.temporaryRedirect(
@@ -293,8 +340,11 @@ public class UploadService {
 				resp = Response.serverError().build();
 			}
 		}
+		
 		return resp;
 	}
+	
+
 	
 	/**
 	 * Returns a BagSummary in JSON or XML format.
@@ -607,7 +657,7 @@ public class UploadService {
 		}
 		return resp;
 	}
-
+	
 	/**
 	 * Returns information about the current logged on user in the format username:displayName. E.g.
 	 * "u1234567:John Smith"

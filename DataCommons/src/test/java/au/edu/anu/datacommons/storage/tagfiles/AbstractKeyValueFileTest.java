@@ -27,13 +27,22 @@ import static org.junit.Assert.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -46,6 +55,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.test.util.TestStopWatch;
 
 /**
  * @author Rahul Khanna
@@ -103,6 +114,70 @@ public class AbstractKeyValueFileTest {
 		kvFile = new KeyValueFileImpl(file);
 		assertEquals(randMap.size(), kvFile.size());
 		assertThat(randMap.entrySet(), everyItem(isIn(kvFile.entrySet())));
+	}
+	
+	@Test
+	public void testThreadedHugeMap() throws Exception {
+		final int nItems = 1000;
+		Map<String, String> randMap = generateRandomKeyValues(nItems);
+		ExecutorService execSvc = Executors.newCachedThreadPool();
+		
+		final File file = tempDir.newFile();
+		TestStopWatch sw = new TestStopWatch();
+		Runnable reader = new Runnable() {
+
+			@Override
+			public void run() {
+				FileInputStream fis = null;
+				for (long i = 0L; ; i++) {
+					try {
+						fis = new FileInputStream(file);
+						long j;
+						for (j = 0L; fis.read() != -1; j++) {
+						}
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					} finally {
+						IOUtils.closeQuietly(fis);
+					}
+				}
+			}
+			
+		};
+		Future<?> future = execSvc.submit(reader);
+		sw.start();
+		for (Entry<String, String> entry : randMap.entrySet()) {
+			kvFile = new KeyValueFileImpl(file);
+			kvFile.put(entry.getKey(), entry.getValue());
+			kvFile.write();
+		}
+		sw.stop();
+		if (future.isDone()) {
+			fail("Reader thread should not have stopped.");
+		}
+		future.cancel(true);
+		LOGGER.info("Writing {} entries took {} millisec", nItems, String.valueOf(sw.getMillisElapsed()));
+
+		List<Future<KeyValueFileImpl>> futureList = new ArrayList<Future<KeyValueFileImpl>>();
+		for (int i = 0; i < 30; i++) {
+			futureList.add(execSvc.submit(new Callable<KeyValueFileImpl>() {
+				
+				@Override
+				public KeyValueFileImpl call() throws Exception {
+					return new KeyValueFileImpl(file);
+				}
+				
+			}));
+		}
+		
+		for (Future<KeyValueFileImpl> f : futureList) {
+			kvFile = f.get();
+			assertEquals(randMap.size(), kvFile.size());
+			assertThat(randMap.entrySet(), everyItem(isIn(kvFile.entrySet())));
+		}
+		
 	}
 	
 	@Test
@@ -220,8 +295,8 @@ public class AbstractKeyValueFileTest {
 		Map<String, String> map = new HashMap<String, String>(num);
 		Random rand = new Random();
 		
-		byte[] keyBuffer = new byte[8];
-		byte[] valBuffer = new byte[16];
+		byte[] keyBuffer = new byte[64];
+		byte[] valBuffer = new byte[128];
 		for (int i = 0; i < num; i++) {
 			rand.nextBytes(keyBuffer);
 			String key = Base64.encodeBase64String(keyBuffer);

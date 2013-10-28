@@ -38,6 +38,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.exception.TikaException;
 import org.codehaus.jackson.JsonGenerationException;
@@ -255,6 +256,7 @@ public class DcStorageCompleter extends AbstractCustomCompleter {
 		FileMetadataTagFile fileMetadata = new FileMetadataTagFile(bag.getFile());
 
 		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
+			deleteMetadataDir(bag);
 			fileMetadata.clear();
 		} else if (this.limitDeletePayloadFilepaths != null) {
 			for (String filepath : this.limitDeletePayloadFilepaths) {
@@ -287,7 +289,7 @@ public class DcStorageCompleter extends AbstractCustomCompleter {
 		LOGGER.debug("Finished File Metadata in bag {}.", bag.getFile().getAbsolutePath());
 		return bag;
 	}
-	
+
 	private Bag handleTimestamps(Bag bag) throws IOException {
 		LOGGER.debug("Updating file timestamps in bag {}...", bag.getFile().getAbsolutePath());
 		TimestampsTagFile timestamps = new TimestampsTagFile(bag.getFile());
@@ -329,5 +331,18 @@ public class DcStorageCompleter extends AbstractCustomCompleter {
 	private String serializeToJson(Object obj) throws JsonGenerationException, JsonMappingException, IOException {
 		ObjectMapper objMapper = new ObjectMapper();
 		return objMapper.writeValueAsString(obj);
+	}
+
+	/**
+	 * Deletes the metadata directory in a bag as it's no longer needed. The data is now stored in tagfile
+	 * file-metadata.txt .
+	 * 
+	 * @param bag
+	 */
+	private void deleteMetadataDir(Bag bag) {
+		File metadataDir = new File(bag.getFile(), "metadata/");
+		if (metadataDir.isDirectory()) {
+			FileUtils.deleteQuietly(metadataDir);
+		}
 	}
 }
