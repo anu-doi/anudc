@@ -47,6 +47,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -285,7 +286,7 @@ public class UploadService {
 	}
 	
 	@GET
-	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Path("bag/{pid}/admin")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public Response doAdminTaskJsonXml(@PathParam("pid") String pid, @QueryParam("task") String task) {
@@ -293,17 +294,19 @@ public class UploadService {
 		if (!dcStorage.bagExists(pid)) {
 			throw new NotFoundException();
 		}
-		
-		if (task.equals("verify")) {
-			try {
+
+		try {
+			if (task.equals("verify")) {
 				VerificationResults results = dcStorage.verifyBag(pid);
 				resp = Response.ok(results).build();
-			} catch (Exception e) {
-				LOGGER.error(e.getMessage(), e);
-				resp = Response.serverError().build();
 			}
+		} catch (WebApplicationException e) {
+			throw e;
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().build();
 		}
-		
+
 		return resp;
 	}
 	
@@ -318,29 +321,27 @@ public class UploadService {
 		if (!dcStorage.bagExists(pid)) {
 			throw new NotFoundException();
 		}
-		
-		if (task.equals("verify")) {
-			try {
+
+		try {
+			if (task.equals("verify")) {
 				VerificationResults results = dcStorage.verifyBag(pid);
 				model.put("results", results);
 				resp = Response.ok(new Viewable("/verificationresults.jsp", model)).build();
-			} catch (Exception e) {
-				LOGGER.error(e.getMessage(), e);
-				resp = Response.serverError().build();
-			}
-		} else if (task.equals("recomplete")) {
-			LOGGER.info("User {} requested bag completion of {}", getCurUsername(), pid);
-			try {
+			} else if (task.equals("recomplete")) {
+				LOGGER.info("User {} requested bag completion of {}", getCurUsername(), pid);
 				dcStorage.recompleteBag(pid);
 				resp = Response.temporaryRedirect(
 						redirUri.path(UploadService.class, "doGetBagFileListingAsHtml")
-								.queryParam("smsg", "Files rescanning commenced and will run in the background.").build(pid)).build();
-			} catch (Exception e) {
-				LOGGER.error(e.getMessage(), e);
-				resp = Response.serverError().build();
+								.queryParam("smsg", "Files rescanning commenced and will run in the background.")
+								.build(pid)).build();
 			}
+		} catch (WebApplicationException e) {
+			throw e;
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().build();
 		}
-		
+
 		return resp;
 	}
 	

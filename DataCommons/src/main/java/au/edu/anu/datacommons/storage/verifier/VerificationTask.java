@@ -74,9 +74,11 @@ public class VerificationTask implements Callable<VerificationResults> {
 		iterateTagFiles();
 		iteratePayloadFiles();
 		iterateManifests();
+		
 		validateTagFiles();
 		validatePayloadManifests();
 		validateChecksums();
+		
 		checkArtifacts();
 
 		return results;
@@ -99,19 +101,21 @@ public class VerificationTask implements Callable<VerificationResults> {
 	}
 
 	private void addFiles(File rootDir, Map<File, String> files, boolean exclDataDir) {
-		File[] filesAndDirs = rootDir.listFiles();
-		for (File iFileOrDir : filesAndDirs) {
-			if (iFileOrDir.isDirectory()) {
-				if (!(exclDataDir && iFileOrDir.getName().equals("data"))) {
-					addFiles(iFileOrDir, files, false);
+		if (rootDir.isDirectory()) {
+			File[] filesAndDirs = rootDir.listFiles();
+			for (File iFileOrDir : filesAndDirs) {
+				if (iFileOrDir.isDirectory()) {
+					if (!(exclDataDir && iFileOrDir.getName().equals("data"))) {
+						addFiles(iFileOrDir, files, false);
+					}
+				} else if (iFileOrDir.isFile()) {
+					files.put(iFileOrDir,
+							FilenameHelper.removeBasePath(bagDir.getAbsolutePath(), iFileOrDir.getAbsolutePath()));
+				} else {
+					addEntry(Severity.WARN, Category.OTHER,
+							FilenameHelper.removeBasePath(bagDir.getAbsolutePath(), iFileOrDir.getAbsolutePath()),
+							"Unexpected item found");
 				}
-			} else if (iFileOrDir.isFile()) {
-				files.put(iFileOrDir,
-						FilenameHelper.removeBasePath(bagDir.getAbsolutePath(), iFileOrDir.getAbsolutePath()));
-			} else {
-				addEntry(Severity.WARN, Category.OTHER,
-						FilenameHelper.removeBasePath(bagDir.getAbsolutePath(), iFileOrDir.getAbsolutePath()),
-						"Unexpected item found");
 			}
 		}
 	}
