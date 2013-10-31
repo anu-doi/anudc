@@ -254,7 +254,7 @@ public class UploadService {
 			// Check if data files are public
 			fo = fedoraObjectService.getItemByPid(pid);
 			if (!fo.getPublished() || !fo.isFilesPublic()) {
-				throw new AccessDeniedException(format("User doesn't have permissions to view files in record {0}", pid));
+				throw new AccessDeniedException(format("User does not have permissions to view files in record {0}", pid));
 			}
 		}
 		model.put("fo", fo);
@@ -473,7 +473,7 @@ public class UploadService {
 			// Check if data files are public
 			fo = fedoraObjectService.getItemByPid(pid);
 			if (!fo.getPublished() || !fo.isFilesPublic()) {
-				throw new AccessDeniedException(format("User doesn't have permissions to access files in record {0}", pid));
+				throw new AccessDeniedException(format("User does not have permissions to access files in record {0}", pid));
 			}
 		}
 

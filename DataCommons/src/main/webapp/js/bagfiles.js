@@ -133,7 +133,7 @@ function deleteSelected(pid) {
 	jQuery("#tblFiles input:checkbox:checked").each(function(index) {
 		if (this.value != "") {
 			console.log("Deleting: " + this.value);
-			var url = "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/" + this.value;
+			var url = "/DataCommons/rest/upload/bag/" + encodeURI(pid) + "/" + encodeURI(this.value);
 			activeAjax++;
 			jQuery.ajax({
 				url : url,
@@ -156,13 +156,17 @@ function toggleCheckboxes(element) {
 }
 
 function downloadAsZip(zipUrl) {
+	var isFirstParam = true;
 	jQuery("#tblFiles input:checkbox:checked").each(function(index) {
-		if (index == 0) {
-			zipUrl += "?";
-		} else {
-			zipUrl += "&";
+		if (this.value != "") {
+			if (isFirstParam) {
+				zipUrl += "?";
+				isFirstParam = false;
+			} else {
+				zipUrl += "&";
+			}
+			zipUrl += "file=" + encodeURI(this.value);
 		}
-		zipUrl += "file=" + encodeURI(this.value);
 	});
 	window.location = zipUrl;
 }
