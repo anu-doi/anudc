@@ -103,7 +103,6 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 public class WebServiceResource
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebServiceResource.class);
-	private static final DcStorage dcStorage = DcStorage.getInstance();
 
 	private static final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 	private static DocumentBuilder docBuilder;
@@ -114,6 +113,9 @@ public class WebServiceResource
 
 	@Resource(name = "fedoraObjectServiceImpl")
 	private FedoraObjectService fedoraObjectService;
+	
+	@Resource(name = "dcStorage")
+	private DcStorage dcStorage;
 
 	static
 	{

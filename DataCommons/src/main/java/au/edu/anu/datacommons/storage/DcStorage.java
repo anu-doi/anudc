@@ -30,7 +30,6 @@ import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.ManifestHelper;
 import gov.loc.repository.bagit.transformer.impl.TagManifestCompleter;
-import gov.loc.repository.bagit.utilities.FilenameHelper;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
 import java.io.BufferedInputStream;
@@ -46,12 +45,16 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
@@ -73,43 +76,54 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 
 public final class DcStorage implements Closeable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorage.class);
-	private static DcStorage inst = null;
+	public static final BagFactory bagFactory = new BagFactory();
 
 	ExecutorService threadPool = Executors.newSingleThreadExecutor();
 	
 	private Set<Manifest.Algorithm> algorithms;
 	private File bagsRootDir = null;
 	private FileFactory ff = new FileFactory(200);
-	File archiveRootDir = GlobalProps.getArchiveBaseDirAsFile();
-	File stagingDir = GlobalProps.getUploadDirAsFile();
+	File archiveRootDir;
+	File stagingDir;
 
-	public static final BagFactory bagFactory = new BagFactory();
+	public DcStorage(String bagsDirpath) throws IOException {
+		this(new File(bagsDirpath));
+	}
+
 
 	/**
 	 * Initializes an instance of DataCommons Storage.
+	 * @throws IOException 
 	 */
-	protected DcStorage(File bagsDir) {
-		algorithms = new HashSet<Manifest.Algorithm>();
-		algorithms.add(Manifest.Algorithm.MD5);
+	public DcStorage(File bagsDir) throws IOException {
 		this.bagsRootDir = bagsDir;
+		initAlg();
 
 		// If the directory specified doesn't exist, create it.
-		if (!bagsDir.exists() && !bagsDir.mkdirs()) {
-			throw new RuntimeException(format("Unable to create {0}. Check permissions.", bagsDir.getAbsolutePath()));
+		if (!bagsDir.isDirectory() && !bagsDir.mkdirs()) {
+			throw new IOException(format("Unable to create {0}. Check permissions.", bagsDir.getAbsolutePath()));
 		}
+	}
+	
+	public File getArchiveRootDir() {
+		return archiveRootDir;
 	}
 
-	/**
-	 * Returns the singleton instance of DcStorage object.
-	 * 
-	 * @return DcStorage object as DcStorage
-	 */
-	public static synchronized DcStorage getInstance() {
-		if (inst == null) {
-			inst = new DcStorage(GlobalProps.getBagsDirAsFile());
-		}
-		return inst;
+
+	public void setArchiveRootDir(File archiveRootDir) {
+		this.archiveRootDir = archiveRootDir;
 	}
+
+
+	public File getStagingDir() {
+		return stagingDir;
+	}
+
+
+	public void setStagingDir(File stagingDir) {
+		this.stagingDir = stagingDir;
+	}
+
 
 	File getBagsRootDir() {
 		return bagsRootDir;
@@ -725,6 +739,7 @@ public final class DcStorage implements Closeable {
 	 * minutes is reached.
 	 */
 	@Override
+	@PreDestroy
 	public void close() {
 		if (!threadPool.isShutdown()) {
 			LOGGER.info("Shutting down DcStorage threads...");
@@ -764,5 +779,10 @@ public final class DcStorage implements Closeable {
 		}
 		
 		return hasHiddenDirs;
+	}
+	
+	private void initAlg() {
+		algorithms = new HashSet<Manifest.Algorithm>(1);
+		algorithms.add(Manifest.Algorithm.MD5);
 	}
 }

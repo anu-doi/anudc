@@ -133,7 +133,8 @@ public class CollectionRequestService
 	private static final String QUESTION_JSP = "/question.jsp";
 	private static final String DROPBOX_ACCESS_JSP = "/dropboxaccess.jsp";
 
-	private static final DcStorage dcStorage = DcStorage.getInstance();
+	@Resource(name = "dcStorage")
+	private DcStorage dcStorage;
 
 	@Resource(name = "mailSender")
 	JavaMailSenderImpl mailSender;

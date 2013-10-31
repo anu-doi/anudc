@@ -109,7 +109,6 @@ import com.sun.jersey.api.view.Viewable;
 public class UploadService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UploadService.class);
 	private static final String BAGFILES_JSP = "/bagfiles.jsp";
-	private static final DcStorage dcStorage = DcStorage.getInstance();
 
 	@Context
 	private UriInfo uriInfo;
@@ -123,6 +122,9 @@ public class UploadService {
 
 	@Resource(name = "permissionService")
 	private PermissionService permissionService;
+	
+	@Resource(name = "dcStorage")
+	private DcStorage dcStorage;
 	
 	private AccessLogRecordDAOImpl accessLogDao = new AccessLogRecordDAOImpl(AccessLogRecord.class);
 

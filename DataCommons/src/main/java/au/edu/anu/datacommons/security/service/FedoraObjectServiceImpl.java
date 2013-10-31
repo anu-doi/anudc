@@ -126,7 +126,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
  */
 @Service("fedoraObjectServiceImpl")
 public class FedoraObjectServiceImpl implements FedoraObjectService {
-	static final Logger LOGGER = LoggerFactory.getLogger(FedoraObjectServiceImpl.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(FedoraObjectServiceImpl.class);
 	private static JAXBContext dataContext;
 	
 	static {
@@ -145,6 +145,9 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	
 	@Resource(name="permissionService")
 	PermissionService permissionService;
+	
+	@Resource(name = "dcStorage")
+	private DcStorage dcStorage;
 	
 	/**
 	 * getItemByName
@@ -586,11 +589,11 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			if (fedoraObject != null)
 			{
 				// Add bag summary to model.
-				if (DcStorage.getInstance().bagExists(fedoraObject.getObject_id()))
+				if (dcStorage.bagExists(fedoraObject.getObject_id()))
 				{
 					try
 					{
-						BagSummary bagSummary = DcStorage.getInstance().getBagSummary(fedoraObject.getObject_id());
+						BagSummary bagSummary = dcStorage.getBagSummary(fedoraObject.getObject_id());
 						values.put("bagSummary", bagSummary);
 					}
 					catch (IOException e)

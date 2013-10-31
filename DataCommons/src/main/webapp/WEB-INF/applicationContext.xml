@@ -83,4 +83,14 @@
 			</props>
 		</property>
 	</bean>
+	
+	<bean id="config" class="au.edu.anu.datacommons.config.PropertiesFile" scope="singleton">
+		<constructor-arg value="#{ T(au.edu.anu.datacommons.config.Config).DIR}/datacommons/datacommons.properties" />
+	</bean>
+
+	<bean id="dcStorage" class="au.edu.anu.datacommons.storage.DcStorage" scope="singleton">
+		<constructor-arg value="${upload.bagsDir}" />
+		<property name="archiveRootDir" value="${upload.archiveBaseDir}" />
+		<property name="stagingDir" value="${upload.uploadDir}" />
+	</bean>
 </beans>

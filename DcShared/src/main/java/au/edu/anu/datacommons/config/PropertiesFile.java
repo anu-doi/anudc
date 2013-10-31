@@ -46,6 +46,10 @@ public class PropertiesFile extends Properties {
 	private File propFile;
 	private long lastRead = -1;
 
+	public PropertiesFile(String filepath) throws IOException {
+		this(new File(filepath));
+	}
+	
 	/**
 	 * Constructor for PropertiesFile that specifies the file to read properties from and to monitor for changes.
 	 * 
@@ -56,7 +60,7 @@ public class PropertiesFile extends Properties {
 		this.propFile = file;
 		loadProperties();
 	}
-
+	
 	@Override
 	public String getProperty(String key) {
 		loadProperties();
@@ -70,7 +74,7 @@ public class PropertiesFile extends Properties {
 	}
 
 	@Override
-	public synchronized boolean containsKey(Object key) {
+	public boolean containsKey(Object key) {
 		loadProperties();
 		return super.containsKey(key);
 	}
@@ -79,7 +83,7 @@ public class PropertiesFile extends Properties {
 	 * Checks if the properties file has been modified. Reloads the properties from the file if modified, exits
 	 * otherwise.
 	 */
-	private void loadProperties() {
+	private synchronized void loadProperties() {
 		if (propFile.lastModified() > this.lastRead) {
 			InputStream inStream = null;
 			try {
@@ -95,7 +99,7 @@ public class PropertiesFile extends Properties {
 				this.putAll(tempProps);
 				this.lastRead = new Date().getTime();
 			} catch (IOException e) {
-				LOGGER.warn("Unable to read properties file. Returning existing values.");
+				LOGGER.warn("Unable to read properties file {}. Returning existing values. Error: {}", propFile.getAbsolutePath(), e.getMessage());
 			} finally {
 				IOUtils.closeQuietly(inStream);
 			}
