@@ -1,4 +1,4 @@
-package au.edu.anu.datacommons.storage;
+package au.edu.anu.datacommons.storage.completer;
 
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFactory;
@@ -17,6 +17,8 @@ import java.util.concurrent.Callable;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.storage.completer.preserve.PreservationCompleter;
 
 public class CompleterTask implements Callable<Bag> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CompleterTask.class);

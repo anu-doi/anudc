@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
  
-package au.edu.anu.datacommons.storage;
+package au.edu.anu.datacommons.storage.temp;
 
 import static java.text.MessageFormat.*;
 import gov.loc.repository.bagit.Manifest;

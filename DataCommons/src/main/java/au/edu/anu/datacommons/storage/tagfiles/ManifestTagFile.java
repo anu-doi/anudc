@@ -19,13 +19,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.verifier;
+package au.edu.anu.datacommons.storage.tagfiles;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map.Entry;
-
-import au.edu.anu.datacommons.storage.tagfiles.AbstractKeyValueFile;
 
 /**
  * @author Rahul Khanna

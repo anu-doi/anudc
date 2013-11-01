@@ -49,6 +49,8 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.completer.DcStorageCompleter;
+import au.edu.anu.datacommons.storage.completer.preserve.PreservationCompleter;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummary;
 import au.edu.anu.datacommons.test.util.TestUtil;

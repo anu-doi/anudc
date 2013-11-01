@@ -67,8 +67,11 @@ import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask.Operation;
+import au.edu.anu.datacommons.storage.completer.CompleterTask;
+import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
+import au.edu.anu.datacommons.storage.temp.TempFileTask;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 import au.edu.anu.datacommons.storage.verifier.VerificationTask;
 

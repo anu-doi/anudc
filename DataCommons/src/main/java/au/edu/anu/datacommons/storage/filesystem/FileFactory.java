@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage;
+package au.edu.anu.datacommons.storage.filesystem;
 
 import java.io.File;
 import java.util.Iterator;

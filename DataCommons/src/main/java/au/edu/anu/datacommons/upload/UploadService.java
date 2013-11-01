@@ -88,10 +88,10 @@ import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
-import au.edu.anu.datacommons.storage.PartTempFileTask;
-import au.edu.anu.datacommons.storage.TempFileTask;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummaryMap;
+import au.edu.anu.datacommons.storage.temp.PartTempFileTask;
+import au.edu.anu.datacommons.storage.temp.TempFileTask;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 import au.edu.anu.datacommons.storage.verifier.VerificationTask;
 

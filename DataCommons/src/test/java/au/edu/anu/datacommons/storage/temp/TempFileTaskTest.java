@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
  
-package au.edu.anu.datacommons.storage;
+package au.edu.anu.datacommons.storage.temp;
 
 import static org.junit.Assert.*;
 import gov.loc.repository.bagit.Manifest;
@@ -43,6 +43,7 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.temp.TempFileTask;
 import au.edu.anu.datacommons.test.util.TestUtil;
 
 /**

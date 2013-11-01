@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage;
+package au.edu.anu.datacommons.storage.completer.preserve;
 
 import static java.text.MessageFormat.*;
 
@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.datacommons.storage.completer.preserve.PreservationFormatConverter;
+import au.edu.anu.datacommons.storage.completer.AbstractCustomCompleter;
 import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.gov.naa.digipres.xena.kernel.XenaException;
 import au.gov.naa.digipres.xena.kernel.normalise.NormaliserResults;

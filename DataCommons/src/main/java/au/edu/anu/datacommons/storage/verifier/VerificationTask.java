@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.storage.tagfiles.AbstractKeyValueFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.ManifestTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
