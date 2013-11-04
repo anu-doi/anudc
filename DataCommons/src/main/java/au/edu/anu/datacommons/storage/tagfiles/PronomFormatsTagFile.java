@@ -33,7 +33,7 @@ public class PronomFormatsTagFile extends AbstractKeyValueFile {
 	
 	public static final String FILEPATH = "pronom-formats.txt";
 
-	public PronomFormatsTagFile(File bagDir) throws IOException {
-		super(new File(bagDir, FILEPATH));
+	public PronomFormatsTagFile(File tagFile) throws IOException {
+		super(tagFile);
 	}
 }

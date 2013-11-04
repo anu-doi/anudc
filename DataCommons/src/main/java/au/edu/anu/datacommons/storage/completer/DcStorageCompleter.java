@@ -53,6 +53,7 @@ import au.edu.anu.datacommons.storage.completer.fido.FidoParser;
 import au.edu.anu.datacommons.storage.completer.metadata.MetadataExtractor;
 import au.edu.anu.datacommons.storage.completer.metadata.MetadataExtractorImpl;
 import au.edu.anu.datacommons.storage.completer.virusscan.ClamScan;
+import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.info.ScanResult;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
@@ -67,6 +68,10 @@ import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
  */
 public class DcStorageCompleter extends AbstractCustomCompleter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorageCompleter.class);
+	
+	public DcStorageCompleter(FileFactory ff) {
+		super(ff);
+	}
 	
 	/**
 	 * Completes a bag as per ANU Data Commons requirements.
@@ -160,7 +165,7 @@ public class DcStorageCompleter extends AbstractCustomCompleter {
 	 */
 	private Bag handlePronomTxt(Bag bag) throws IOException {
 		LOGGER.debug("Updating Pronom IDs in bag {}...", bag.getFile().getAbsolutePath());
-		PronomFormatsTagFile pFormats = new PronomFormatsTagFile(bag.getFile());
+		PronomFormatsTagFile pFormats = new PronomFormatsTagFile(ff.getFile(bag.getFile(), PronomFormatsTagFile.FILEPATH));
 
 		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
 			pFormats.clear();
@@ -207,7 +212,7 @@ public class DcStorageCompleter extends AbstractCustomCompleter {
 	 */
 	private Bag handleAvScan(Bag bag) throws IOException {
 		LOGGER.debug("Updating Virus Scan statuses in bag {}...", bag.getFile().getAbsolutePath());
-		VirusScanTagFile vsTxt = new VirusScanTagFile(bag.getFile());
+		VirusScanTagFile vsTxt = new VirusScanTagFile(ff.getFile(bag.getFile(), VirusScanTagFile.FILEPATH));
 
 		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
 			vsTxt.clear();
@@ -253,7 +258,7 @@ public class DcStorageCompleter extends AbstractCustomCompleter {
 	 */
 	private Bag handleMetadata(Bag bag) throws IOException {
 		LOGGER.debug("Updating File Metadata in bag {}...", bag.getFile().getAbsolutePath());
-		FileMetadataTagFile fileMetadata = new FileMetadataTagFile(bag.getFile());
+		FileMetadataTagFile fileMetadata = new FileMetadataTagFile(ff.getFile(bag.getFile(), FileMetadataTagFile.FILEPATH));
 
 		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
 			deleteMetadataDir(bag);
@@ -292,7 +297,7 @@ public class DcStorageCompleter extends AbstractCustomCompleter {
 
 	private Bag handleTimestamps(Bag bag) throws IOException {
 		LOGGER.debug("Updating file timestamps in bag {}...", bag.getFile().getAbsolutePath());
-		TimestampsTagFile timestamps = new TimestampsTagFile(bag.getFile());
+		TimestampsTagFile timestamps = new TimestampsTagFile(ff.getFile(bag.getFile(), TimestampsTagFile.FILEPATH));
 		
 		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
 			timestamps.clear();
@@ -304,7 +309,7 @@ public class DcStorageCompleter extends AbstractCustomCompleter {
 		
 		for (BagFile iBagFile : bag.getPayload()) {
 			if (isLimited(this.limitAddUpdatePayloadFilepaths, iBagFile.getFilepath())) {
-				timestamps.put(iBagFile.getFilepath(), String.valueOf(new File(bag.getFile(), iBagFile.getFilepath()).lastModified()));
+				timestamps.put(iBagFile.getFilepath(), String.valueOf(ff.getFile(bag.getFile(), iBagFile.getFilepath()).lastModified()));
 			}
 		}
 		timestamps.write();
@@ -340,7 +345,7 @@ public class DcStorageCompleter extends AbstractCustomCompleter {
 	 * @param bag
 	 */
 	private void deleteMetadataDir(Bag bag) {
-		File metadataDir = new File(bag.getFile(), "metadata/");
+		File metadataDir = ff.getFile(bag.getFile(), "metadata/");
 		if (metadataDir.isDirectory()) {
 			FileUtils.deleteQuietly(metadataDir);
 		}

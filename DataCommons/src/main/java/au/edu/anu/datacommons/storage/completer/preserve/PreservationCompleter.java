@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.storage.completer.AbstractCustomCompleter;
+import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.gov.naa.digipres.xena.kernel.XenaException;
 import au.gov.naa.digipres.xena.kernel.normalise.NormaliserResults;
@@ -51,6 +52,10 @@ public class PreservationCompleter extends AbstractCustomCompleter {
 	
 	public static final String PRESERVATION_PATH = "data/.preserve/";
 	
+	public PreservationCompleter(FileFactory ff) {
+		super(ff);
+	}
+
 	@Override
 	public Bag complete(Bag bag) {
 		try {
@@ -62,10 +67,10 @@ public class PreservationCompleter extends AbstractCustomCompleter {
 	}
 
 	private Bag handlePreservation(Bag bag) throws IOException {
-		PreservationMapTagFile presvTagFile = new PreservationMapTagFile(bag.getFile());
+		PreservationMapTagFile presvTagFile = new PreservationMapTagFile(ff.getFile(bag.getFile(), PreservationMapTagFile.FILEPATH));
 		if (this.limitAddUpdatePayloadFilepaths == null && this.limitDeletePayloadFilepaths == null) {
 			presvTagFile.clear();
-			File presvDir = new File(bag.getFile(), PRESERVATION_PATH);
+			File presvDir = ff.getFile(bag.getFile(), PRESERVATION_PATH);
 			if (presvDir.isDirectory()) {
 				FileUtils.deleteDirectory(presvDir);
 			}
@@ -96,7 +101,7 @@ public class PreservationCompleter extends AbstractCustomCompleter {
 			if (presvTagFile.containsKey(filepath)) {
 				String preservedFilepath = presvTagFile.get(filepath);
 				if (preservedFilepath != null) {
-					File preservedFile = new File(bag.getFile(), preservedFilepath);
+					File preservedFile = ff.getFile(bag.getFile(), preservedFilepath);
 					if (preservedFile.isFile()) {
 						if (preservedFile.delete()) {
 							preservedFilepathsToDelete.add(preservedFilepath);
@@ -130,22 +135,22 @@ public class PreservationCompleter extends AbstractCustomCompleter {
 	 *             when unable to save created preserved-format file to disk.
 	 */
 	private void createPreservedFiles(Bag bag, PreservationMapTagFile presvTagFile) throws IOException {
-		File presvTempDir = new File(GlobalProps.getUploadDirAsFile(), bag.getFile().getName());
+		File presvTempDir = ff.getFile(GlobalProps.getUploadDirAsFile(), bag.getFile().getName());
 		createDir(presvTempDir);
 		List<File> preservedFiles = new ArrayList<File>();
 		for (BagFile iBagFile : bag.getPayload()) {
 			if (isLimited(this.limitAddUpdatePayloadFilepaths, iBagFile.getFilepath())) {
-				File input = new File(bag.getFile(), iBagFile.getFilepath());
+				File input = ff.getFile(bag.getFile(), iBagFile.getFilepath());
 				try {
 					PreservationFormatConverter pfc = new PreservationFormatConverter(input, presvTempDir);
 					NormaliserResults results = pfc.convert();
 					if (results != null) {
-						File convertedFileInTemp = new File(results.getDestinationDirString(),
+						File convertedFileInTemp = ff.getFile(results.getDestinationDirString(),
 								results.getOutputFileName());
 						String convertedFileInPresvFilepath = iBagFile.getFilepath()
 								.replaceFirst("data/", PRESERVATION_PATH)
 								.replaceFirst(input.getName() + "$", results.getOutputFileName());
-						File convertedFileInPresv = new File(bag.getFile(), convertedFileInPresvFilepath);
+						File convertedFileInPresv = ff.getFile(bag.getFile(), convertedFileInPresvFilepath);
 						createDir(convertedFileInPresv.getParentFile());
 						if (convertedFileInTemp.renameTo(convertedFileInPresv)) {
 							String preservedFilepath = FilenameHelper.removeBasePath(bag.getFile().getAbsolutePath(),

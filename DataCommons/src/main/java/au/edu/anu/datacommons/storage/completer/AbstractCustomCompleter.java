@@ -23,6 +23,7 @@ package au.edu.anu.datacommons.storage.completer;
 
 import java.util.List;
 
+import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import gov.loc.repository.bagit.transformer.Completer;
 
 /**
@@ -33,6 +34,12 @@ public abstract class AbstractCustomCompleter implements Completer {
 
 	protected List<String> limitAddUpdatePayloadFilepaths = null;
 	protected List<String> limitDeletePayloadFilepaths = null;
+	protected FileFactory ff;
+
+	public AbstractCustomCompleter(FileFactory ff) {
+		super();
+		this.ff = ff;
+	}
 
 	public List<String> getLimitAddUpdatePayloadFilepaths() {
 		return limitAddUpdatePayloadFilepaths;

@@ -85,12 +85,12 @@ public final class DcStorage implements Closeable {
 	
 	private Set<Manifest.Algorithm> algorithms;
 	private File bagsRootDir = null;
-	private FileFactory ff = new FileFactory(200);
+	private FileFactory ff;
 	File archiveRootDir;
 	File stagingDir;
 
-	public DcStorage(String bagsDirpath) throws IOException {
-		this(new File(bagsDirpath));
+	public DcStorage(String bagsDirpath, FileFactory ff) throws IOException {
+		this(new File(bagsDirpath), ff);
 	}
 
 
@@ -98,8 +98,9 @@ public final class DcStorage implements Closeable {
 	 * Initializes an instance of DataCommons Storage.
 	 * @throws IOException 
 	 */
-	public DcStorage(File bagsDir) throws IOException {
+	public DcStorage(File bagsDir, FileFactory ff) throws IOException {
 		this.bagsRootDir = bagsDir;
+		this.ff = ff;
 		initAlg();
 
 		// If the directory specified doesn't exist, create it.
@@ -126,7 +127,14 @@ public final class DcStorage implements Closeable {
 	public void setStagingDir(File stagingDir) {
 		this.stagingDir = stagingDir;
 	}
+	
+	public FileFactory getFileFactory() {
+		return ff;
+	}
 
+	public void setFileFactory(FileFactory fileFactory) {
+		this.ff = fileFactory;
+	}
 
 	File getBagsRootDir() {
 		return bagsRootDir;
@@ -204,7 +212,7 @@ public final class DcStorage implements Closeable {
 						destFile.getAbsolutePath()));
 			}
 		}
-		CompleterTask compTask = new CompleterTask(bagFactory, getBagDir(pid));
+		CompleterTask compTask = new CompleterTask(bagFactory, ff, getBagDir(pid));
 		compTask.addPayloadFileAddedUpdated("data/" + filepath);
 		threadPool.submit(compTask);
 	}
@@ -248,7 +256,7 @@ public final class DcStorage implements Closeable {
 				}
 			}
 		}
-		CompleterTask compTask = new CompleterTask(bagFactory, getBagDir(pid));
+		CompleterTask compTask = new CompleterTask(bagFactory, ff, getBagDir(pid));
 		compTask.addPayloadFileDeleted("data/" + filepath);
 		threadPool.submit(compTask);
 	}
@@ -322,7 +330,7 @@ public final class DcStorage implements Closeable {
 		if (!bagDirExists(pid)) {
 			throw new FileNotFoundException(format("No bag exists for record {0}", pid));
 		}
-		CompleterTask compTask = new CompleterTask(bagFactory, getBagDir(pid));
+		CompleterTask compTask = new CompleterTask(bagFactory, ff, getBagDir(pid));
 		compTask.setCompleteAllFiles();
 		threadPool.submit(compTask);
 	}
@@ -332,7 +340,7 @@ public final class DcStorage implements Closeable {
 			throw new FileNotFoundException(format("No bag exists for record {0}", pid));
 		}
 		
-		VerificationTask vTask = new VerificationTask(getBagDir(pid));
+		VerificationTask vTask = new VerificationTask(ff, getBagDir(pid));
 		return vTask.call();
 	}
 	
@@ -388,7 +396,7 @@ public final class DcStorage implements Closeable {
 		if (!bagDirExists(pid)) {
 			throw new FileNotFoundException(format("Record {0} doesn't contain any files", pid));
 		}
-		BagSummaryTask bsTask = new BagSummaryTask(getBagDir(pid));
+		BagSummaryTask bsTask = new BagSummaryTask(ff, getBagDir(pid));
 		BagSummary bs = bsTask.generateBagSummary();
 		return bs;
 	}

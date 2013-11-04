@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.storage.completer.CompleterTask;
 import au.edu.anu.datacommons.storage.completer.DcStorageCompleter;
+import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 
 public class CompleterTaskTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorageCompleter.class);
@@ -63,6 +64,7 @@ public class CompleterTaskTest {
 
 	private static BagFactory bf;
 	private Bag bag;
+	private FileFactory ff;
 	private CompleterTask compTask;
 
 	@BeforeClass
@@ -76,6 +78,7 @@ public class CompleterTaskTest {
 
 	@Before
 	public void setUp() throws Exception {
+		ff = new FileFactory(200);
 		createBlankBag();
 		writeBag();
 	}
@@ -116,7 +119,7 @@ public class CompleterTaskTest {
 		}
 
 		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
-		compTask = new CompleterTask(bf, bag.getFile());
+		compTask = new CompleterTask(bf, ff, bag.getFile());
 		compTask.addPayloadFileAddedUpdated(format("data/{0}", payloadFile1.getName()));
 		try {
 			bag = compTask.call();
@@ -171,7 +174,7 @@ public class CompleterTaskTest {
 		}
 
 		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
-		compTask = new CompleterTask(bf, bag.getFile());
+		compTask = new CompleterTask(bf, ff, bag.getFile());
 		compTask.addPayloadFileAddedUpdated(format("data/{0}", payloadFile1.getName()));
 		compTask.addPayloadFileAddedUpdated(format("data/{0}", payloadFile2.getName()));
 		try {
@@ -194,7 +197,7 @@ public class CompleterTaskTest {
 		
 		assertTrue(payloadFile2.delete());
 		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
-		compTask = new CompleterTask(bf, bag.getFile());
+		compTask = new CompleterTask(bf, ff, bag.getFile());
 		compTask.addPayloadFileDeleted(format("data/{0}", payloadFile2.getName()));
 		try {
 			bag = compTask.call();
@@ -242,7 +245,7 @@ public class CompleterTaskTest {
 		}
 
 		bag = bf.createBag(bag.getFile(), LoadOption.BY_FILES);
-		compTask = new CompleterTask(bf, bag.getFile());
+		compTask = new CompleterTask(bf, ff, bag.getFile());
 		compTask.setCompleteAllFiles();
 		try {
 			bag = compTask.call();

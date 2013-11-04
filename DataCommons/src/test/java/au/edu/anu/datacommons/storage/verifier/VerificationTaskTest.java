@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.verifier.ResultMessage.Category;
 import au.edu.anu.datacommons.storage.verifier.ResultMessage.Severity;
 
@@ -46,6 +47,8 @@ import au.edu.anu.datacommons.storage.verifier.ResultMessage.Severity;
 public class VerificationTaskTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VerificationTaskTest.class);
 
+	private FileFactory ff;
+	
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -65,6 +68,7 @@ public class VerificationTaskTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
+		ff = new FileFactory(200);
 	}
 
 	/**
@@ -76,7 +80,7 @@ public class VerificationTaskTest {
 
 	@Test
 	public void testBagVerification() throws Exception {
-		VerificationTask vt = new VerificationTask(new File("C:\\Rahul\\FileUpload\\Bags\\test_427"));
+		VerificationTask vt = new VerificationTask(ff, new File("C:\\Rahul\\FileUpload\\Bags\\test_427"));
 		VerificationResults results = vt.call();
 		
 		LOGGER.info("Verification results for {}", results.getBagId());

@@ -33,7 +33,7 @@ public class TimestampsTagFile extends AbstractKeyValueFile {
 
 	public static final String FILEPATH = "timestamps.txt";
 
-	public TimestampsTagFile(File bagDir) throws IOException {
-		super(new File(bagDir, FILEPATH));
+	public TimestampsTagFile(File tagFile) throws IOException {
+		super(tagFile);
 	}
 }

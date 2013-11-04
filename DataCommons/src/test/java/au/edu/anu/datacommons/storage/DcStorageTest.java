@@ -70,6 +70,7 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummary;
 import au.edu.anu.datacommons.storage.info.FileSummaryMap;
@@ -115,7 +116,7 @@ public class DcStorageTest {
 		LOGGER.info("Bags root: {}", bagsRootDir.getRoot().getAbsolutePath());
 		LOGGER.info("Archive root: {}", archiveRootDir.getRoot().getAbsolutePath());
 		LOGGER.info("Temp dir: {}", tempDir.getRoot().getAbsolutePath());
-		dcStorage = new DcStorage(bagsRootDir.getRoot());
+		dcStorage = new DcStorage(bagsRootDir.getRoot(), new FileFactory(200));
 		dcStorage.archiveRootDir = archiveRootDir.getRoot();
 	}
 
@@ -566,11 +567,11 @@ public class DcStorageTest {
 		// Verify each custom tag file contains an entry for each payload file.
 		Collection<BagFile> payloadFiles = bag.getPayload();
 		List<AbstractKeyValueFile> customTagFiles = new ArrayList<AbstractKeyValueFile>();
-		customTagFiles.add(new PronomFormatsTagFile(bagDir));
-		customTagFiles.add(new VirusScanTagFile(bagDir));
-		customTagFiles.add(new FileMetadataTagFile(bagDir));
-		customTagFiles.add(new TimestampsTagFile(bagDir));
-		customTagFiles.add(new PreservationMapTagFile(bagDir));
+		customTagFiles.add(new PronomFormatsTagFile(new File(bagDir, PronomFormatsTagFile.FILEPATH)));
+		customTagFiles.add(new VirusScanTagFile(new File(bagDir, VirusScanTagFile.FILEPATH)));
+		customTagFiles.add(new FileMetadataTagFile(new File(bagDir, FileMetadataTagFile.FILEPATH)));
+		customTagFiles.add(new TimestampsTagFile(new File(bagDir, TimestampsTagFile.FILEPATH)));
+		customTagFiles.add(new PreservationMapTagFile(new File(bagDir, PreservationMapTagFile.FILEPATH)));
 		for (BagFile bagFile : payloadFiles) {
 			for (AbstractKeyValueFile tagFile : customTagFiles) {
 				if (!tagFile.containsKey(bagFile.getFilepath())) {

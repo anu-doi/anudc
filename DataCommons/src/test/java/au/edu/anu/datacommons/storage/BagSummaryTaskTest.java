@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.storage.completer.DcStorageCompleter;
 import au.edu.anu.datacommons.storage.completer.preserve.PreservationCompleter;
+import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummary;
 import au.edu.anu.datacommons.test.util.TestUtil;
@@ -63,6 +64,7 @@ public class BagSummaryTaskTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BagSummaryTaskTest.class);
 
 	private BagFactory bf;
+	private FileFactory ff;
 
 	@Rule
 	public TemporaryFolder bagDir = new TemporaryFolder();
@@ -88,6 +90,7 @@ public class BagSummaryTaskTest {
 	public void setUp() throws Exception {
 		LOGGER.info("Using bag directory: {}", bagDir.getRoot().getAbsolutePath());
 		bf = new BagFactory();
+		ff = new FileFactory(200);
 
 		File payloadDir = bagDir.newFolder("data");
 		// Payload file 1.
@@ -100,7 +103,7 @@ public class BagSummaryTaskTest {
 		FileUtils.copyFile(resFile2, payloadFile2);
 
 		Bag bag = bf.createBag(bagDir.getRoot(), LoadOption.BY_FILES);
-		bag = bag.makeComplete(new ChainingCompleter(new PreservationCompleter(), new DcStorageCompleter()));
+		bag = bag.makeComplete(new ChainingCompleter(new PreservationCompleter(ff), new DcStorageCompleter(ff)));
 		bag = bag.makeComplete();
 		FileSystemWriter fsWriter = new FileSystemWriter(bf);
 		bag = fsWriter.write(bag, bagDir.getRoot());
@@ -118,7 +121,7 @@ public class BagSummaryTaskTest {
 
 	@Test
 	public void testBagSummaryTask() {
-		BagSummaryTask task = new BagSummaryTask(bagDir.getRoot());
+		BagSummaryTask task = new BagSummaryTask(ff, bagDir.getRoot());
 		BagSummary bs = task.generateBagSummary();
 
 		assertNotNull(bs);
@@ -134,7 +137,7 @@ public class BagSummaryTaskTest {
 
 	@Test
 	public void testJsonMapping() throws JsonGenerationException, JsonMappingException, IOException {
-		BagSummaryTask task = new BagSummaryTask(bagDir.getRoot());
+		BagSummaryTask task = new BagSummaryTask(ff, bagDir.getRoot());
 		BagSummary bs = task.generateBagSummary();
 
 		ObjectMapper mapper = new ObjectMapper();

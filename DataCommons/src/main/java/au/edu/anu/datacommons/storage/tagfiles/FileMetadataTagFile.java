@@ -33,7 +33,7 @@ private static final long serialVersionUID = 1L;
 	
 	public static final String FILEPATH = "file-metadata.txt";
 
-	public FileMetadataTagFile(File bagDir) throws IOException {
-		super(new File(bagDir, FILEPATH));
+	public FileMetadataTagFile(File tagFile) throws IOException {
+		super(tagFile);
 	}
 }

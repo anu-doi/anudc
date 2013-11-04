@@ -90,7 +90,12 @@
 
 	<bean id="dcStorage" class="au.edu.anu.datacommons.storage.DcStorage" scope="singleton">
 		<constructor-arg value="${upload.bagsDir}" />
+		<constructor-arg ref="fileFactory" />
 		<property name="archiveRootDir" value="${upload.archiveBaseDir}" />
 		<property name="stagingDir" value="${upload.uploadDir}" />
+	</bean>
+	
+	<bean id="fileFactory" class="au.edu.anu.datacommons.storage.filesystem.FileFactory">
+		<constructor-arg value="500" />
 	</bean>
 </beans>

@@ -32,7 +32,7 @@ public class PreservationMapTagFile extends AbstractKeyValueFile {
 	private static final long serialVersionUID = 1L;
 	public static final String FILEPATH = "preserve.txt";
 
-	public PreservationMapTagFile(File bagDir) throws IOException {
-		super(new File(bagDir, FILEPATH));
+	public PreservationMapTagFile(File tagFile) throws IOException {
+		super(tagFile);
 	}
 }

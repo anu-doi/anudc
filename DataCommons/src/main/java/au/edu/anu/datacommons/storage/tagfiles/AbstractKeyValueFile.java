@@ -58,10 +58,10 @@ public abstract class AbstractKeyValueFile extends HashMap<String, String> {
 		}
 	}
 
-	public synchronized void read() throws IOException {
+	public void read() throws IOException {
 		BufferedReader reader = null;
 		try {
-			synchronized (this) {
+			synchronized (file) {
 				reader = new BufferedReader(new FileReader(this.file));
 				for (String line = reader.readLine(); line != null;) {
 					// If the next line starts with white spaces concatinate it to the current line.
@@ -85,10 +85,10 @@ public abstract class AbstractKeyValueFile extends HashMap<String, String> {
 		}
 	}
 	
-	public synchronized void write() throws IOException {
+	public void write() throws IOException {
 		BufferedWriter writer = null;
 		try {
-			synchronized (this) {
+			synchronized (file) {
 				writer = new BufferedWriter(new FileWriter(file));
 				for (Entry<String, String> entry : this.entrySet()) {
 					writer.write(serializeEntry(entry));

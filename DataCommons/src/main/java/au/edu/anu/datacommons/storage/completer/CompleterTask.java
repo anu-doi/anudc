@@ -19,11 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.storage.completer.preserve.PreservationCompleter;
+import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 
 public class CompleterTask implements Callable<Bag> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CompleterTask.class);
 
 	private BagFactory bagFactory;
+	private FileFactory ff;
 	private File bagDir;
 	private List<String> addUpdatePayloadFilepaths;
 	private List<String> deletePayloadFilepaths;
@@ -34,8 +36,9 @@ public class CompleterTask implements Callable<Bag> {
 	private List<String> addUpdateTagDirs;
 	private List<String> deleteTagDirs;
 
-	public CompleterTask(BagFactory bagFactory, File bagToComplete) {
+	public CompleterTask(BagFactory bagFactory, FileFactory ff, File bagToComplete) {
 		this.bagFactory = bagFactory;
+		this.ff = ff;
 		this.bagDir = bagToComplete;
 		initLimitLists();
 	}
@@ -98,7 +101,7 @@ public class CompleterTask implements Callable<Bag> {
 	}
 
 	private Completer createPreservationCompleter() {
-		PreservationCompleter pc = new PreservationCompleter();
+		PreservationCompleter pc = new PreservationCompleter(ff);
 		pc.setLimitAddUpdatePayloadFilepaths(this.addUpdatePayloadFilepaths);
 		pc.setLimitDeletePayloadFilepaths(this.deletePayloadFilepaths);
 		return pc;
@@ -127,7 +130,7 @@ public class CompleterTask implements Callable<Bag> {
 	}
 
 	private Completer createDcStorageCompleter() {
-		DcStorageCompleter dcStorageCompleter = new DcStorageCompleter();
+		DcStorageCompleter dcStorageCompleter = new DcStorageCompleter(ff);
 		
 		dcStorageCompleter.setLimitAddUpdatePayloadFilepaths(this.addUpdatePayloadFilepaths);
 		dcStorageCompleter.setLimitDeletePayloadFilepaths(this.deletePayloadFilepaths);
@@ -146,6 +149,7 @@ public class CompleterTask implements Callable<Bag> {
 	private Writer createWriter() {
 		FileSystemWriter writer = new FileSystemWriter(bagFactory);
 		writer.setTagFilesOnly(true);
+		writer.setFilesThatDoNotMatchManifestOnly(true);
 		return writer;
 	}
 }

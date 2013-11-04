@@ -33,7 +33,7 @@ public class VirusScanTagFile extends AbstractKeyValueFile {
 
 	public static final String FILEPATH = "virus-scan.txt";
 
-	public VirusScanTagFile(File bagDir) throws IOException {
-		super(new File(bagDir, FILEPATH));
+	public VirusScanTagFile(File tagFile) throws IOException {
+		super(tagFile);
 	}
 }

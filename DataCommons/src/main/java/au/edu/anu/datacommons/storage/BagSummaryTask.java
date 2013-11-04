@@ -47,6 +47,7 @@ import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummary;
 import au.edu.anu.datacommons.storage.info.FileSummaryMap;
@@ -64,9 +65,11 @@ import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 public class BagSummaryTask implements Callable<BagSummary> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BagSummaryTask.class);
 
+	private FileFactory ff;
 	private File bagDir;
 	
-	public BagSummaryTask(File bagDir) {
+	public BagSummaryTask(FileFactory ff, File bagDir) {
+		this.ff = ff;
 		this.bagDir = bagDir;
 	}
 	
@@ -80,7 +83,7 @@ public class BagSummaryTask implements Callable<BagSummary> {
 		FileSummaryMap fsMap = createFsMap(bag);
 		BagSummary bagSummary = new BagSummary(fsMap);
 		try {
-			File tagFile = new File(bag.getFile(), ExtRefsTagFile.FILEPATH);
+			File tagFile = ff.getFile(bag.getFile(), ExtRefsTagFile.FILEPATH);
 			bagSummary.setExtRefsTxt(Collections.unmodifiableMap(new ExtRefsTagFile(tagFile)));
 		} catch (IOException e) {
 			LOGGER.warn("Unable to read ExtRefsTxt in {}", bag.getFile().getAbsolutePath());
@@ -110,7 +113,7 @@ public class BagSummaryTask implements Callable<BagSummary> {
 		FileSummaryMap fsMap = new FileSummaryMap();
 		for (BagFile iBagFile : bag.getPayload()) {
 			if (!DcStorage.containsHiddenDirs(iBagFile.getFilepath())) {
-				File file = new File(bag.getFile(), iBagFile.getFilepath());
+				File file = ff.getFile(bag.getFile(), iBagFile.getFilepath());
 				FileSummary fs = new FileSummary(iBagFile.getFilepath(), file);
 				fsMap.put(iBagFile.getFilepath(), fs);
 			}
@@ -127,7 +130,7 @@ public class BagSummaryTask implements Callable<BagSummary> {
 	private void populatePreservedFiles(FileSummaryMap fsMap, Bag bag) {
 		PreservationMapTagFile presvTagFile;
 		try {
-			presvTagFile = new PreservationMapTagFile(bag.getFile());
+			presvTagFile = new PreservationMapTagFile(ff.getFile(bag.getFile(), PreservationMapTagFile.FILEPATH));
 			for (Entry<String, String> presvEntry : presvTagFile.entrySet()) {
 				FileSummary fs = fsMap.get(presvEntry.getKey());
 				if (fs != null) {
@@ -170,7 +173,7 @@ public class BagSummaryTask implements Callable<BagSummary> {
 
 	private void populatePronomIds(FileSummaryMap fsMap, Bag bag) {
 		try {
-			PronomFormatsTagFile pronomFormats = new PronomFormatsTagFile(bag.getFile());
+			PronomFormatsTagFile pronomFormats = new PronomFormatsTagFile(ff.getFile(bag.getFile(), PronomFormatsTagFile.FILEPATH));
 			for (Entry<String, String> pronomEntry : pronomFormats.entrySet()) {
 				FileSummary fs = fsMap.get(pronomEntry.getKey());
 				if (fs != null) {
@@ -189,7 +192,7 @@ public class BagSummaryTask implements Callable<BagSummary> {
 
 	private void populateVirusScans(FileSummaryMap fsMap, Bag bag) {
 		try {
-			VirusScanTagFile vs = new VirusScanTagFile(bag.getFile());
+			VirusScanTagFile vs = new VirusScanTagFile(ff.getFile(bag.getFile(), VirusScanTagFile.FILEPATH));
 			for (Entry<String, String> vsEntry : vs.entrySet()) {
 				FileSummary fs = fsMap.get(vsEntry.getKey());
 				if (fs != null) {
@@ -218,7 +221,7 @@ public class BagSummaryTask implements Callable<BagSummary> {
 
 	private void populateMetadata(FileSummaryMap fsMap, Bag bag) {
 		try {
-			FileMetadataTagFile fileMetadata = new FileMetadataTagFile(bag.getFile());
+			FileMetadataTagFile fileMetadata = new FileMetadataTagFile(ff.getFile(bag.getFile(), VirusScanTagFile.FILEPATH));
 			for (Entry<String, String> metadataEntry : fileMetadata.entrySet()) {
 				FileSummary fs = fsMap.get(metadataEntry.getKey());
 				if (fs != null) {

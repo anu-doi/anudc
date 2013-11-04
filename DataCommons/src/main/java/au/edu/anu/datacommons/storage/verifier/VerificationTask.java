@@ -42,6 +42,7 @@ import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.tagfiles.AbstractKeyValueFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.ManifestTagFile;
@@ -59,13 +60,15 @@ import au.edu.anu.datacommons.storage.verifier.ResultMessage.Severity;
 public class VerificationTask implements Callable<VerificationResults> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VerificationTask.class);
 
+	private FileFactory ff;
 	private File bagDir;
 	private VerificationResults results;
 	private Map<File, String> payloadFiles = new HashMap<File, String>();
 	private Map<File, String> tagFiles = new HashMap<File, String>();
 	private Map<File, String> manifests = new HashMap<File, String>();
 
-	public VerificationTask(File bagDir) {
+	public VerificationTask(FileFactory ff, File bagDir) {
+		this.ff = ff;
 		this.bagDir = bagDir;
 		this.results = new VerificationResults(bagDir.getName());
 	}
@@ -132,7 +135,8 @@ public class VerificationTask implements Callable<VerificationResults> {
 
 		for (Class<? extends AbstractKeyValueFile> c : tagFilesClasses) {
 			try {
-				AbstractKeyValueFile tagFile = c.getConstructor(File.class).newInstance(bagDir);
+				String tagFilename = (String) c.getField("FILEPATH").get(c);
+				AbstractKeyValueFile tagFile = c.getConstructor(File.class).newInstance(ff.getFile(bagDir, tagFilename));
 				if (tagFile.getFile().isFile()) {
 					customTagFiles.add(tagFile);
 				} else {
