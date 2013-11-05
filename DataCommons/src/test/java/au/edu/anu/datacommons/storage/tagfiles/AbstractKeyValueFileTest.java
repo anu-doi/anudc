@@ -40,9 +40,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -102,7 +104,7 @@ public class AbstractKeyValueFileTest {
 	@Test
 	public void testHugeMap() throws IOException {
 		final int nItems = 10000;
-		Map<String, String> randMap = generateRandomKeyValues(nItems);
+		Map<String, String> randMap = generateRandomKeyValues(nItems, 64, 128);
 		
 		File file = tempDir.newFile();
 		kvFile = new KeyValueFileImpl(file);
@@ -111,15 +113,59 @@ public class AbstractKeyValueFileTest {
 		kvFile.write();
 		LOGGER.info("Writing {} entries took {} millisec", nItems, String.valueOf((System.nanoTime() - start_ns) / 1000000.0));
 		
-		kvFile = new KeyValueFileImpl(file);
-		assertEquals(randMap.size(), kvFile.size());
-		assertThat(randMap.entrySet(), everyItem(isIn(kvFile.entrySet())));
+		compareMaps(randMap, file);
+	}
+
+	@Test
+	public void testProgressiveWrite() throws IOException {
+		final int nItems = 100;
+		Map<String, String> randMap = generateRandomKeyValues(nItems, 64, 128);
+		
+		File file = tempDir.newFile();
+		for (Entry<String, String> entry : randMap.entrySet()) {
+			kvFile = new KeyValueFileImpl(file);
+			kvFile.put(entry.getKey(), entry.getValue());
+			kvFile.write();
+		}
+		
+		compareMaps(randMap, file);
 	}
 	
 	@Test
-	public void testThreadedHugeMap() throws Exception {
+	public void testThreadAddition() throws IOException, InterruptedException, ExecutionException {
+		final int nItems = 10000;
+		Map<String, String> randMap = generateRandomKeyValues(nItems, 8, 16);
+		ExecutorService execSvc = Executors.newCachedThreadPool();
+		List<Future<?>> futures = new ArrayList<Future<?>>();
+		
+		File file = tempDir.newFile();
+		kvFile = new KeyValueFileImpl(file);
+		for (Entry<String, String> entry : randMap.entrySet()) {
+			final Entry<String, String> fSrcEntry = entry;
+			futures.add(execSvc.submit(new Callable<Void>() {
+
+				@Override
+				public Void call() throws Exception {
+					kvFile.put(fSrcEntry.getKey(), fSrcEntry.getValue());
+					return null;
+				}
+				
+			}));
+		}
+		
+		for (Future<?> f : futures) {
+			f.get();
+		}
+		
+		execSvc.shutdown();
+		execSvc.awaitTermination(1, TimeUnit.MINUTES);
+		compareMaps(randMap, kvFile);		
+	}
+	
+	@Test
+	public void testSimultaneousReadWhileWrite() throws Exception {
 		final int nItems = 1000;
-		Map<String, String> randMap = generateRandomKeyValues(nItems);
+		Map<String, String> randMap = generateRandomKeyValues(nItems, 64, 128);
 		ExecutorService execSvc = Executors.newCachedThreadPool();
 		
 		final File file = tempDir.newFile();
@@ -174,8 +220,7 @@ public class AbstractKeyValueFileTest {
 		
 		for (Future<KeyValueFileImpl> f : futureList) {
 			kvFile = f.get();
-			assertEquals(randMap.size(), kvFile.size());
-			assertThat(randMap.entrySet(), everyItem(isIn(kvFile.entrySet())));
+			compareMaps(randMap, kvFile);
 		}
 		
 	}
@@ -291,12 +336,12 @@ public class AbstractKeyValueFileTest {
 		LOGGER.debug("File {}:\r\n{}", file.getName(), sb.toString());
 	}
 
-	private Map<String, String> generateRandomKeyValues(int num) {
+	private Map<String, String> generateRandomKeyValues(int num, int keySizeInBytes, int valueSizeInBytes) {
 		Map<String, String> map = new HashMap<String, String>(num);
 		Random rand = new Random();
 		
-		byte[] keyBuffer = new byte[64];
-		byte[] valBuffer = new byte[128];
+		byte[] keyBuffer = new byte[keySizeInBytes];
+		byte[] valBuffer = new byte[valueSizeInBytes];
 		for (int i = 0; i < num; i++) {
 			rand.nextBytes(keyBuffer);
 			String key = Base64.encodeBase64String(keyBuffer);
@@ -305,6 +350,17 @@ public class AbstractKeyValueFileTest {
 			map.put(key, value);
 		}
 		return map;
+	}
+
+	private void compareMaps(Map<String, String> randMap, Map<String, String> kvMap) throws IOException {
+		assertEquals(randMap.size(), kvMap.size());
+		assertThat(randMap.entrySet(), everyItem(isIn(kvMap.entrySet())));
+		assertThat(kvMap.entrySet(), everyItem(isIn(randMap.entrySet())));
+	}
+	
+	private void compareMaps(Map<String, String> randMap, File file) throws IOException {
+		kvFile = new KeyValueFileImpl(file);
+		compareMaps(randMap, kvFile);
 	}
 
 	private class KeyValueFileImpl extends AbstractKeyValueFile {

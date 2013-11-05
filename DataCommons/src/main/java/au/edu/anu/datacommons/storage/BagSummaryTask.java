@@ -221,7 +221,7 @@ public class BagSummaryTask implements Callable<BagSummary> {
 
 	private void populateMetadata(FileSummaryMap fsMap, Bag bag) {
 		try {
-			FileMetadataTagFile fileMetadata = new FileMetadataTagFile(ff.getFile(bag.getFile(), VirusScanTagFile.FILEPATH));
+			FileMetadataTagFile fileMetadata = new FileMetadataTagFile(ff.getFile(bag.getFile(), FileMetadataTagFile.FILEPATH));
 			for (Entry<String, String> metadataEntry : fileMetadata.entrySet()) {
 				FileSummary fs = fsMap.get(metadataEntry.getKey());
 				if (fs != null) {

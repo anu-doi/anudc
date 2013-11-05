@@ -34,6 +34,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -44,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * @author Rahul Khanna
  * 
  */
-public abstract class AbstractKeyValueFile extends HashMap<String, String> {
+public abstract class AbstractKeyValueFile extends ConcurrentHashMap<String, String> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractKeyValueFile.class);
 	private static final long serialVersionUID = 1L;
 	
@@ -59,44 +60,48 @@ public abstract class AbstractKeyValueFile extends HashMap<String, String> {
 	}
 
 	public void read() throws IOException {
-		BufferedReader reader = null;
-		try {
-			synchronized (file) {
+		synchronized (file) {
+			BufferedReader reader = null;
+			try {
 				reader = new BufferedReader(new FileReader(this.file));
-				for (String line = reader.readLine(); line != null;) {
-					// If the next line starts with white spaces concatinate it to the current line.
-					String nextLine = reader.readLine();
-					while (nextLine != null && nextLine.startsWith("  ")) {
-						line += nextLine.substring(2);
-						nextLine = reader.readLine();
-					}
-
-					if (line.length() > 0) {
-						String parts[] = unserializeKeyValue(line);
-						if (parts != null) {
-							this.put(parts[0], parts[1]);
+				synchronized (this) {
+					for (String line = reader.readLine(); line != null;) {
+						// If the next line starts with white spaces concatinate it to the current line.
+						String nextLine = reader.readLine();
+						while (nextLine != null && nextLine.startsWith("  ")) {
+							line += nextLine.substring(2);
+							nextLine = reader.readLine();
 						}
+
+						if (line.length() > 0) {
+							String parts[] = unserializeKeyValue(line);
+							if (parts != null) {
+								this.put(parts[0], parts[1]);
+							}
+						}
+						line = nextLine;
 					}
-					line = nextLine;
 				}
+			} finally {
+				IOUtils.closeQuietly(reader);
 			}
-		} finally {
-			IOUtils.closeQuietly(reader);
 		}
 	}
 	
 	public void write() throws IOException {
-		BufferedWriter writer = null;
-		try {
-			synchronized (file) {
+		synchronized (file) {
+			BufferedWriter writer = null;
+			try {
 				writer = new BufferedWriter(new FileWriter(file));
-				for (Entry<String, String> entry : this.entrySet()) {
-					writer.write(serializeEntry(entry));
-					writer.newLine();
+				synchronized (this) {
+					for (Entry<String, String> entry : this.entrySet()) {
+						writer.write(serializeEntry(entry));
+						writer.newLine();
+					}
 				}
+			} finally {
+				IOUtils.closeQuietly(writer);
 			}
-		} finally {
-			IOUtils.closeQuietly(writer);
 		}
 	}
 
