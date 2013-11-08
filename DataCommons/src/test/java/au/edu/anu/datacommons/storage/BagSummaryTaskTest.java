@@ -31,7 +31,12 @@ import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URISyntaxException;
 import java.util.Map.Entry;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.JsonGenerationException;
@@ -91,7 +96,9 @@ public class BagSummaryTaskTest {
 		LOGGER.info("Using bag directory: {}", bagDir.getRoot().getAbsolutePath());
 		bf = new BagFactory();
 		ff = new FileFactory(200);
+	}
 
+	private void initBag() throws IOException, URISyntaxException {
 		File payloadDir = bagDir.newFolder("data");
 		// Payload file 1.
 		File resFile1 = new File(this.getClass().getResource("completer/preserve/Sample bmp.bmp").toURI());
@@ -120,7 +127,9 @@ public class BagSummaryTaskTest {
 	}
 
 	@Test
-	public void testBagSummaryTask() {
+	public void testBagSummaryTask() throws Exception {
+		initBag();
+
 		BagSummaryTask task = new BagSummaryTask(ff, bagDir.getRoot());
 		BagSummary bs = task.generateBagSummary();
 
@@ -136,7 +145,9 @@ public class BagSummaryTaskTest {
 	}
 
 	@Test
-	public void testJsonMapping() throws JsonGenerationException, JsonMappingException, IOException {
+	public void testJsonMapping() throws Exception {
+		initBag();
+
 		BagSummaryTask task = new BagSummaryTask(ff, bagDir.getRoot());
 		BagSummary bs = task.generateBagSummary();
 
@@ -149,5 +160,15 @@ public class BagSummaryTaskTest {
 
 		BagSummary readValue = mapper.readValue(writer.toString(), BagSummary.class);
 		LOGGER.trace(readValue.getPid());
+	}
+	
+	@Test
+	public void testXmlMarshalling() throws JAXBException {
+		BagSummaryTask task = new BagSummaryTask(ff, new File("C:\\Rahul\\FileUpload\\Bags\\test_427"));
+		BagSummary bs = task.generateBagSummary();
+		JAXBContext context = JAXBContext.newInstance(BagSummary.class);
+		Marshaller m = context.createMarshaller();
+		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+		m.marshal(bs, System.out);
 	}
 }

@@ -178,7 +178,7 @@ public class DcStorageTest {
 		// Get a Bag Summary.
 		BagSummary bagSummary = dcStorage.getBagSummary(pid);
 		assertEquals(pid, bagSummary.getPid());
-		assertEquals(0, bagSummary.getExtRefsTxt().size());
+		assertEquals(0, bagSummary.getExtRefs().size());
 		assertEquals(2, bagSummary.getFileSummaryMap().size());
 		Set<String> filepaths = bagSummary.getFileSummaryMap().keySet();
 		for (String filepath : filepaths) {
@@ -270,9 +270,9 @@ public class DcStorageTest {
 		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
 		
 		BagSummary bs = dcStorage.getBagSummary(pid);
-		assertEquals(10, bs.getExtRefsTxt().size());
+		assertEquals(10, bs.getExtRefs().size());
 		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		for (String url : bs.getExtRefsTxt().values()) {
+		for (String url : bs.getExtRefs()) {
 			final String fUrl = url;
 			futures.add(workerPool.submit(new Callable<Throwable>() {
 

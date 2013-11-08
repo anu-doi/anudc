@@ -184,13 +184,13 @@
 				<button onclick="addExtRef('${it.fo.object_id}')">Add	External Reference</button>
 			</sec:accesscontrollist>
 		</sec:authorize>
-		<c:if test="${not empty it.extRefsTxt}">
+		<c:if test="${not empty it.extRefs}">
 			<ul>
-				<c:forEach var="iEntry" items="${it.extRefsTxt}">
-					<li><a href="${iEntry.value}"><c:out
-								value='${iEntry.value}' /></a>&nbsp;&nbsp;<a
+				<c:forEach var="iEntry" items="${it.extRefs}">
+					<li><a href="${iEntry}"><c:out
+								value='${iEntry}' /></a>&nbsp;&nbsp;<a
 						href="javascript:void(0);"
-						onclick="deleteExtRef('${it.fo.object_id}', '${iEntry.value}')">[Delete]</a></li>
+						onclick="deleteExtRef('${it.fo.object_id}', '${iEntry}')">[Delete]</a></li>
 				</c:forEach>
 			</ul>
 		</c:if>

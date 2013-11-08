@@ -267,8 +267,8 @@ public class UploadService {
 				bagSummary = dcStorage.getBagSummary(pid);
 				model.put("bagSummary", bagSummary);
 				model.put("bagInfoTxt", bagSummary.getBagInfoTxt().entrySet());
-				if (bagSummary.getExtRefsTxt() != null) {
-					model.put("extRefsTxt", bagSummary.getExtRefsTxt().entrySet());
+				if (bagSummary.getExtRefs() != null) {
+					model.put("extRefs", bagSummary.getExtRefs());
 				}
 				UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class)
 						.path(UploadService.class, "doGetFileInBagAsOctetStream2");

@@ -72,7 +72,7 @@
 					</tr>
 					<c:forEach var="fetchable" items="${it.fetchables}">
 						<tr>
-							<td><a href="<c:url value='${fetchable.value}' />"><c:out value="${fetchable.value}" /></a></td>
+							<td><a href="<c:url value='${fetchable}' />"><c:out value="${fetchable}" /></a></td>
 						</tr>
 					</c:forEach>
 				</table>
