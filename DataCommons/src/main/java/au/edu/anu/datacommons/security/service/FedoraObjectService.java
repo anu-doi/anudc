@@ -339,4 +339,6 @@ public interface FedoraObjectService {
 	
 	@PostAuthorize("hasPermission(returnObject, 'WRITE')")
 	FedoraObject getItemByPidWriteAccess(String pid);
+
+	List<FedoraObject> getAllPublishedAndPublic();
 }

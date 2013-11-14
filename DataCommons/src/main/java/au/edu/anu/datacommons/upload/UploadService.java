@@ -57,6 +57,8 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import net.sf.mpxj.mspdi.schema.Project.Tasks;
+
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -175,7 +177,7 @@ public class UploadService {
 			}
 
 			// Check for write access to the fedora object.
-			fedoraObjectService.getItemByPidWriteAccess(pid);
+			FedoraObject fo = fedoraObjectService.getItemByPidWriteAccess(pid);
 
 			for (FileItem fi : uploadedItems) {
 				if (!fi.isFormField()) {
@@ -193,7 +195,7 @@ public class UploadService {
 							} else {
 								addAccessLog(uri, Operation.CREATE);
 							}
-							dcStorage.addFileToBag(pid, savedFile, fi.getName());
+							dcStorage.addFileToBag(pid, savedFile, fi.getName(), isPublishedAndPublic(fo));
 						}
 					} else {
 						TempFileTask task = new TempFileTask(fi.getInputStream(), GlobalProps.getUploadDirAsFile());
@@ -206,7 +208,7 @@ public class UploadService {
 						} else {
 							addAccessLog(uri, Operation.CREATE);
 						}
-						dcStorage.addFileToBag(pid, savedFile, fi.getName());
+						dcStorage.addFileToBag(pid, savedFile, fi.getName(), isPublishedAndPublic(fo));
 					}
 				}
 			}
@@ -253,7 +255,7 @@ public class UploadService {
 		LOGGER.info("User {} requested bag files page of {}", getCurUsername(), pid);
 		
 		// Check if record is published AND files are public. If not, check permissions.
-		if (!(fo.getPublished() && fo.isFilesPublic())) {
+		if (!(isPublishedAndPublic(fo))) {
 			fo = null;
 			fo = fedoraObjectService.getItemByPidReadAccess(pid);
 		}
@@ -335,18 +337,54 @@ public class UploadService {
 						redirUri.path(UploadService.class, "doGetBagFileListingAsHtml")
 								.queryParam("smsg", "Files rescanning commenced and will run in the background.")
 								.build(pid)).build();
+			} else if (task.equals("reindex")) {
+				LOGGER.info("User {} requested reindex of files in record {}", getCurUsername(), pid);
+				dcStorage.indexFilesInBag(pid);
+				resp = Response.ok(format("Reindexing files in record {0}", pid)).build();
 			}
 		} catch (WebApplicationException e) {
 			throw e;
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
-			resp = Response.serverError().build();
+			resp = Response.serverError().entity(e.getMessage()).build();
 		}
 
 		return resp;
 	}
 	
 
+	@GET
+	@Path("bag/admin")
+	@Produces(MediaType.TEXT_PLAIN)
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public Response doBulkAdminTask(@QueryParam("task") String task) {
+		Response resp = null;
+		StringBuilder respStr = new StringBuilder();
+		try {
+			if (task.equals("reindexAll")) {
+				LOGGER.info("User {} requested reindexing all files of published and public records.", getCurUsername());
+				List<FedoraObject> recordsToReindex = fedoraObjectService.getAllPublishedAndPublic();
+				respStr.append("Reindexing files in:");
+				for (FedoraObject fo : recordsToReindex) {
+					respStr.append(" ");
+					try {
+						dcStorage.indexFilesInBag(fo.getObject_id());
+					} catch (IOException e) {
+						LOGGER.error("Unable to reindex files in {}", fo.getObject_id());
+					}
+					LOGGER.trace("Reindexing files in record {}", fo.getObject_id());
+					respStr.append(fo.getObject_id());
+				}
+			}
+		} catch (WebApplicationException e) {
+			throw e;
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().entity(e.getMessage()).build();
+		}
+		resp = Response.ok(respStr.toString()).build();
+		return resp;
+	}
 	
 	/**
 	 * Returns a BagSummary in JSON or XML format.
@@ -470,10 +508,10 @@ public class UploadService {
 		if (fo == null) {
 			throw new NotFoundException(format("Record {0} not found", pid));
 		}
-		LOGGER.info("User {} requested bag files page of {}", getCurUsername(), pid);
+		LOGGER.info("User {} requested bag file {} from record {}", getCurUsername(), fileRequested, pid);
 		
 		// Check if record is published AND files are public. If not, check permissions.
-		if (!(fo.getPublished() && fo.isFilesPublic())) {
+		if (!(isPublishedAndPublic(fo))) {
 			fo = null;
 			fo = fedoraObjectService.getItemByPidReadAccess(pid);
 		}
@@ -533,7 +571,7 @@ public class UploadService {
 			InputStream is) {
 		Response resp = null;
 		LOGGER.info("User {} requested adding file {} in {}", getCurUsername(), fileInBag, pid);
-		fedoraObjectService.getItemByPidWriteAccess(pid);
+		FedoraObject fo = fedoraObjectService.getItemByPidWriteAccess(pid);
 		File uploadedFile = null;
 
 		try {
@@ -550,7 +588,7 @@ public class UploadService {
 			} else {
 				addAccessLog(Operation.CREATE);
 			}
-			dcStorage.addFileToBag(pid, uploadedFile, fileInBag);
+			dcStorage.addFileToBag(pid, uploadedFile, fileInBag, isPublishedAndPublic(fo));
 			resp = Response.ok(tfTask.getCalculatedMd()).build();
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
@@ -644,17 +682,28 @@ public class UploadService {
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("bag/{pid}/ispublic")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doPutSetFilesPublic(@PathParam("pid") String pid, String isFilesPublic) {
+	public Response doPutSetFilesPublic(@PathParam("pid") String pid, String isFilesPublicStr) {
 		Response resp = null;
-		LOGGER.info("User {} requested change status of files {} to {}", getCurUsername(), pid, isFilesPublic);
-		if (isFilesPublic == null || isFilesPublic.length() == 0) {
+		LOGGER.info("User {} requested change status of files {} to {}", getCurUsername(), pid, isFilesPublicStr);
+		if (isFilesPublicStr == null || isFilesPublicStr.length() == 0) {
 			resp = Response.status(Status.BAD_REQUEST).build();
 		} else {
-			FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
-			if (!permissionService.checkPermission(fedoraObject, CustomACLPermission.PUBLISH)) {
+			FedoraObject fo = fedoraObjectService.getItemByPid(pid);
+			if (!permissionService.checkPermission(fo, CustomACLPermission.PUBLISH)) {
 				throw new AccessDeniedException(format("User does not have Publish permissions for record {0}.", pid));
 			}
-			fedoraObjectService.setFilesPublic(pid, Boolean.parseBoolean(isFilesPublic));
+			boolean isFilesPublic = Boolean.parseBoolean(isFilesPublicStr);
+			fedoraObjectService.setFilesPublic(pid, isFilesPublic);
+			
+			try {
+				if (!isFilesPublic) {
+					dcStorage.deindexFilesInBag(pid);
+				} else if (isFilesPublic && fo.getPublished()) {
+					dcStorage.indexFilesInBag(pid);
+				}
+			} catch (IOException e) {
+				LOGGER.warn("Error while processing files in record {} for indexing: {}", pid, e.getMessage());
+			}
 			resp = Response.ok().build();
 		}
 		return resp;
@@ -678,6 +727,19 @@ public class UploadService {
 		respEntity.append(":");
 		respEntity.append(curUser.getDisplayName());
 		resp = Response.ok(respEntity.toString()).build();
+		return resp;
+	}
+	
+	@GET
+	@Produces(MediaType.TEXT_HTML)
+	@Path("search")
+	public Response doGetStorageSearchPage() {
+		Response resp = null;
+		
+		Map<String, Object> model = new HashMap<String, Object>();
+		model.put("solrUrl", GlobalProps.getStorageSolrUrl());
+		resp = Response.ok(new Viewable("/storagesearch.jsp", model)).build();
+		
 		return resp;
 	}
 
@@ -790,6 +852,10 @@ public class UploadService {
 		ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory(GlobalProps.getMaxSizeInMem(),
 				GlobalProps.getUploadDirAsFile()));
 		return (List<FileItem>) upload.parseRequest(request);
+	}
+
+	private boolean isPublishedAndPublic(FedoraObject fo) {
+		return fo.getPublished() && fo.isFilesPublic();
 	}
 
 	private boolean hasRole(String[] roles) {

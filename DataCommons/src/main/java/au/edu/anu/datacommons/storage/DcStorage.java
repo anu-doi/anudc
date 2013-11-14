@@ -47,6 +47,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -62,14 +63,17 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask.Operation;
 import au.edu.anu.datacommons.storage.completer.CompleterTask;
 import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.info.BagSummary;
+import au.edu.anu.datacommons.storage.search.StorageSearchService;
 import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
 import au.edu.anu.datacommons.storage.temp.TempFileTask;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
@@ -83,12 +87,14 @@ public final class DcStorage implements Closeable {
 
 	ExecutorService threadPool = Executors.newSingleThreadExecutor();
 	
+	private StorageSearchService searchSvc;
+	
 	private Set<Manifest.Algorithm> algorithms;
 	private File bagsRootDir = null;
 	private FileFactory ff;
 	File archiveRootDir;
 	File stagingDir;
-
+	
 	public DcStorage(String bagsDirpath, FileFactory ff) throws IOException {
 		this(new File(bagsDirpath), ff);
 	}
@@ -135,6 +141,15 @@ public final class DcStorage implements Closeable {
 	public void setFileFactory(FileFactory fileFactory) {
 		this.ff = fileFactory;
 	}
+	
+	public StorageSearchService getSearchSvc() {
+		return searchSvc;
+	}
+
+
+	public void setSearchSvc(StorageSearchService searchSvc) {
+		this.searchSvc = searchSvc;
+	}
 
 	File getBagsRootDir() {
 		return bagsRootDir;
@@ -152,7 +167,7 @@ public final class DcStorage implements Closeable {
 	 * @throws DcStorageException
 	 * @throws IOException 
 	 */
-	public void addFileToBag(String pid, URL fileUrl, String filepath) throws IOException {
+	public void addFileToBag(String pid, URL fileUrl, String filepath, boolean shouldIndex) throws IOException {
 		if (fileUrl == null) {
 			throw new NullPointerException("File URL cannot be null.");
 		}
@@ -165,7 +180,7 @@ public final class DcStorage implements Closeable {
 			} catch (Exception e) {
 				throw new IOException(e);
 			}
-			addFileToBag(pid, downloadedFile, filepath);
+			addFileToBag(pid, downloadedFile, filepath, shouldIndex);
 		} finally {
 			FileUtils.deleteQuietly(downloadedFile);
 		}
@@ -183,7 +198,7 @@ public final class DcStorage implements Closeable {
 	 *             TODO
 	 * @throws DcStorageException
 	 */
-	public void addFileToBag(String pid, File sourceFile, String filepath) throws IOException, FileNotFoundException {
+	public void addFileToBag(String pid, File sourceFile, String filepath, boolean shouldIndex) throws IOException, FileNotFoundException {
 		if (pid == null || pid.length() == 0) {
 			throw new NullPointerException("Pid cannot be null");
 		}
@@ -215,6 +230,9 @@ public final class DcStorage implements Closeable {
 		CompleterTask compTask = new CompleterTask(bagFactory, ff, getBagDir(pid));
 		compTask.addPayloadFileAddedUpdated("data/" + filepath);
 		threadPool.submit(compTask);
+		if (shouldIndex) {
+			indexFile(getBagDir(pid), destFile);
+		}
 	}
 
 	/**
@@ -259,6 +277,7 @@ public final class DcStorage implements Closeable {
 		CompleterTask compTask = new CompleterTask(bagFactory, ff, getBagDir(pid));
 		compTask.addPayloadFileDeleted("data/" + filepath);
 		threadPool.submit(compTask);
+		indexFile(getBagDir(pid), fileToDel);
 	}
 
 	/**
@@ -602,6 +621,55 @@ public final class DcStorage implements Closeable {
 			}
 		}
 		return bagDir;
+	}
+	
+	private void indexFile(final File bagDir, final File file) {
+		threadPool.submit(new Callable<Void>() {
+
+			@Override
+			public Void call() throws Exception {
+				searchSvc.indexFile(bagDir, file);
+				return null;
+			}
+		});
+	}
+
+	public void indexFilesInBag(String pid) throws IOException {
+		if (pid == null || pid.length() == 0) {
+			throw new NullPointerException("Pid cannot be null");
+		}
+		
+		final File bagDir = getBagDir(pid);
+		final File plDir = getPayloadDir(pid);
+		
+		threadPool.submit(new Callable<Void>() {
+
+			@Override
+			public Void call() throws Exception {
+				searchSvc.indexAllFiles(bagDir, plDir);
+				return null;
+			}
+			
+		});
+	}
+	
+	public void deindexFilesInBag(String pid) throws IOException {
+		if (pid == null || pid.length() == 0) {
+			throw new NullPointerException("Pid cannot be null");
+		}
+		
+		final File bagDir = getBagDir(pid);
+		final File plDir = getPayloadDir(pid);
+		
+		threadPool.submit(new Callable<Void>() {
+
+			@Override
+			public Void call() throws Exception {
+				searchSvc.deindexAllFiles(bagDir, plDir);
+				return null;
+			}
+			
+		});
 	}
 	
 	/**

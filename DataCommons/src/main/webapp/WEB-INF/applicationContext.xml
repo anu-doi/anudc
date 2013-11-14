@@ -93,9 +93,14 @@
 		<constructor-arg ref="fileFactory" />
 		<property name="archiveRootDir" value="${upload.archiveBaseDir}" />
 		<property name="stagingDir" value="${upload.uploadDir}" />
+		<property name="searchSvc" ref="storageSearch" />
 	</bean>
 	
 	<bean id="fileFactory" class="au.edu.anu.datacommons.storage.filesystem.FileFactory">
 		<constructor-arg value="500" />
+	</bean>
+	
+	<bean id="storageSearch" class="au.edu.anu.datacommons.storage.search.StorageSearchService">
+		<constructor-arg value="${storage.search.url}" />
 	</bean>
 </beans>

@@ -25,6 +25,7 @@
 	<jsp:include page="/jsp/statusmessages.jsp">
 		<jsp:param value="${it}" name="it" />
 	</jsp:include>
+	<img id="loading" src="<c:url value='/images/ajax-loader.gif' />" style="display: none"></img>
 
 	<div id="tabs" class="pagetabs-nav nopadbottom">
 		<ul>
@@ -195,9 +196,6 @@
 			</ul>
 		</c:if>
 	</div>
-
-	<img id="loading" src="<c:url value='/images/ajax-loader.gif' />"
-		style="display: none"></img>
 </div>
 
 <sec:authorize access="isAuthenticated()">

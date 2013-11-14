@@ -132,7 +132,7 @@ public class DcStorageTest {
 		
 		// Add a file.
 		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		dcStorage.addFileToBag(pid, new URL("http://www.anu.edu.au/mac/images/uploads/anu_agenda_19Jan.doc"), "c/File 3.doc");
+		dcStorage.addFileToBag(pid, new URL("http://www.anu.edu.au/mac/images/uploads/anu_agenda_19Jan.doc"), "c/File 3.doc", false);
 		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
 		
 		assertTrue(new File(dcStorage.getBagDir(pid), "data/c/File 3.doc").isFile());
@@ -156,7 +156,7 @@ public class DcStorageTest {
 		File file1 = tempDir.newFile();
 		String file1Md5 = TestUtil.createFileOfSize(file1, 2L, FileUtils.ONE_MB);
 		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		dcStorage.addFileToBag(pid, file1, "a/File 1.txt");
+		dcStorage.addFileToBag(pid, file1, "a/File 1.txt", false);
 		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
 
 		assertTrue(dcStorage.bagExists(pid));
@@ -169,7 +169,7 @@ public class DcStorageTest {
 
 		// Add a file by downloading it from the web.
 		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		dcStorage.addFileToBag(pid, new URL("http://samplepdf.com/sample.pdf"), "b/File 2.pdf");
+		dcStorage.addFileToBag(pid, new URL("http://samplepdf.com/sample.pdf"), "b/File 2.pdf", false);
 		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
 
 		assertTrue(new File(dcStorage.getBagDir(pid), "data/b/File 2.pdf").isFile());
@@ -320,7 +320,7 @@ public class DcStorageTest {
 				@Override
 				public Throwable call() throws Exception {
 					try {
-						dcStorage.addFileToBag(pid, fEntry.getKey(), fEntry.getKey().getName());
+						dcStorage.addFileToBag(pid, fEntry.getKey(), fEntry.getKey().getName(), false);
 					} catch (FileNotFoundException e) {
 						LOGGER.error(e.getMessage(), e);
 						return e;
@@ -371,7 +371,7 @@ public class DcStorageTest {
 				@Override
 				public Throwable call() throws Exception {
 					try {
-						dcStorage.addFileToBag(pid, fEntry.getKey(), fEntry.getKey().getName());
+						dcStorage.addFileToBag(pid, fEntry.getKey(), fEntry.getKey().getName(), false);
 					} catch (FileNotFoundException e) {
 						LOGGER.error(e.getMessage(), e);
 						return e;
@@ -425,7 +425,7 @@ public class DcStorageTest {
 				@Override
 				public Throwable call() throws Exception {
 					try {
-						dcStorage.addFileToBag(pid, fEntry.getKey(), "Single file.data");
+						dcStorage.addFileToBag(pid, fEntry.getKey(), "Single file.data", false);
 					} catch (FileNotFoundException e) {
 						LOGGER.error(e.getMessage(), e);
 						return e;
@@ -459,7 +459,7 @@ public class DcStorageTest {
 		File file = tempDir.newFile();
 		String md5 = TestUtil.createFileOfSize(file, 5L, FileUtils.ONE_MB);
 		String filepath = "File.txt";
-		dcStorage.addFileToBag(pid, file, filepath);
+		dcStorage.addFileToBag(pid, file, filepath, false);
 		dcStorage.deleteFileFromBag(pid, filepath);
 		shutdownExecutor(dcStorage.threadPool, 30, TimeUnit.SECONDS);
 		assertFalse(new File(dcStorage.getPayloadDir(pid), filepath).isFile());

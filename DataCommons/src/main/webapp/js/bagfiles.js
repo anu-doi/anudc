@@ -111,11 +111,13 @@ function addExtRef(pid)
 
 function toggleIsFilesPublic(pid, curFlag) {
 	var newFlag;
-	if (curFlag == "false")
+	if (curFlag == "false") {
 		newFlag = "true";
-	else
+	} else {
 		newFlag = "false";
+	}
 	
+	jQuery('img#loading').show();
 	jQuery.ajax({
 			url: window.location.href + "/ispublic",
 			type: "PUT",
@@ -129,6 +131,7 @@ function toggleIsFilesPublic(pid, curFlag) {
 }
 
 function deleteSelected(pid) {
+	jQuery('img#loading').show();
 	var activeAjax = 0;
 	jQuery("#tblFiles input:checkbox:checked").each(function(index) {
 		if (this.value != "") {

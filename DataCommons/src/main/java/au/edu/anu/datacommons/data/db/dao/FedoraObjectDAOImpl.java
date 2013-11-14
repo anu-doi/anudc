@@ -26,6 +26,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,5 +175,19 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 		}
 
 		return fedoraObjects;
+	}
+	
+	public List<FedoraObject> getAllPublishedAndPublic() {
+		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		List<FedoraObject> records;
+		try {
+			TypedQuery<FedoraObject> query = entityManager
+					.createQuery("FROM FedoraObject WHERE published='true' AND is_files_public='true'",
+							FedoraObject.class);
+			records = query.getResultList();
+		} finally {
+			entityManager.close();
+		}
+		return records;
 	}
 }

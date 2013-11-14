@@ -954,4 +954,10 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	public FedoraObject getItemByPidWriteAccess(String pid) {
 		return getItemByPid(pid);
 	}
+	
+	@Override
+	public List<FedoraObject> getAllPublishedAndPublic() {
+		FedoraObjectDAOImpl dao = new FedoraObjectDAOImpl(FedoraObject.class);
+		return dao.getAllPublishedAndPublic();
+	}
 }

@@ -249,7 +249,7 @@ public class WebServiceResource
 								try
 								{
 									LOGGER.info("Beginning download of file {} from {} to add to {}...", filename, fileUrl, item.getPid());
-									dcStorage.addFileToBag(item.getPid(), new URL(fileUrl), filename);
+									dcStorage.addFileToBag(item.getPid(), new URL(fileUrl), filename, false);
 									LOGGER.info("Successfully downloaded file {} from {} and added to {}.", filename, fileUrl, item.getPid());
 								}
 								catch (Exception e)
