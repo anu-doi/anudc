@@ -44,6 +44,7 @@
 <div class="doublewide nopadtop" id="files" style="display: none;">
 	<c:choose>
 		<c:when test="${it.bagSummary != null}">
+			<p class="msg-info">Bag contains ${it.bagSummary.numFiles} file(s) totalling ${it.bagSummary.friendlySize}.</p>
 			<table class="small w-doublewide" id="tblFiles">
 				<!-- Column headers -->
 				<tr>
@@ -139,7 +140,6 @@
 					</tr>
 				</c:forEach>
 			</table>
-			<p class="msg-info">Bag contains ${it.bagSummary.numFiles} files totalling ${it.bagSummary.friendlySize}.</p>
 			<p><sec:authorize access="isAuthenticated()"><sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
 				<input type="button" id="idDelSelected" value="Delete Selected" onclick="deleteSelected('${it.fo.object_id}')" />
 				</sec:accesscontrollist></sec:authorize>

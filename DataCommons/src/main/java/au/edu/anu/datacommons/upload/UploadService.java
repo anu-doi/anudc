@@ -245,20 +245,19 @@ public class UploadService {
 	public Response doGetBagFileListingAsHtml(@PathParam("pid") String pid) {
 		Response resp = null;
 		Map<String, Object> model = new HashMap<String, Object>();
-		UriBuilder redirUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class);
 
-		FedoraObject fo = null;
-		LOGGER.info("User {} requested bag files page of {}", getCurUsername(), pid);
-		if (hasRole(new String[] { "ROLE_ANU_USER" })) {
-			// Check if user's got read access to fedora object.
-			fo = fedoraObjectService.getItemByPidReadAccess(pid);
-		} else if (hasRole(new String[] { "ROLE_ANONYMOUS" })) {
-			// Check if data files are public
-			fo = fedoraObjectService.getItemByPid(pid);
-			if (!fo.getPublished() || !fo.isFilesPublic()) {
-				throw new AccessDeniedException(format("User does not have permissions to view files in record {0}", pid));
-			}
+		FedoraObject fo = fedoraObjectService.getItemByPid(pid);;
+		if (fo == null) {
+			throw new NotFoundException(format("Record {0} not found", pid));
 		}
+		LOGGER.info("User {} requested bag files page of {}", getCurUsername(), pid);
+		
+		// Check if record is published AND files are public. If not, check permissions.
+		if (!(fo.getPublished() && fo.isFilesPublic())) {
+			fo = null;
+			fo = fedoraObjectService.getItemByPidReadAccess(pid);
+		}
+		
 		model.put("fo", fo);
 		
 		if (dcStorage.bagExists(pid)) {

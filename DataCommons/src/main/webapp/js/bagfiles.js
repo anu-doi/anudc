@@ -40,7 +40,7 @@ function documentReady() {
 	}
 	
 	condEnableSelTasks();
-	history.pushState(null, null, window.location.href.split("?")[0]);
+	history.replaceState(null, null, window.location.href.split("?")[0]);
 }
 
 function deleteFile(url)
