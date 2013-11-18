@@ -466,16 +466,16 @@ public class UploadService {
 		LOGGER.trace("pid: {}, filename: {}", pid, fileRequested);
 		Response resp = null;
 
-		FedoraObject fo = null;
-		if (hasRole(new String[] { "ROLE_ANU_USER" })) {
-			// Check if user's got read access to fedora object.
+		FedoraObject fo = fedoraObjectService.getItemByPid(pid);;
+		if (fo == null) {
+			throw new NotFoundException(format("Record {0} not found", pid));
+		}
+		LOGGER.info("User {} requested bag files page of {}", getCurUsername(), pid);
+		
+		// Check if record is published AND files are public. If not, check permissions.
+		if (!(fo.getPublished() && fo.isFilesPublic())) {
+			fo = null;
 			fo = fedoraObjectService.getItemByPidReadAccess(pid);
-		} else if (hasRole(new String[] { "ROLE_ANONYMOUS" })) {
-			// Check if data files are public
-			fo = fedoraObjectService.getItemByPid(pid);
-			if (!fo.getPublished() || !fo.isFilesPublic()) {
-				throw new AccessDeniedException(format("User does not have permissions to access files in record {0}", pid));
-			}
 		}
 
 		try {
