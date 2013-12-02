@@ -9,6 +9,12 @@
  * 0.1		20/08/2012	Genevieve Turner	Initial
  */
 
+jQuery(document).ready(function () {
+	jQuery("#message").hide();
+	jQuery("#updateGroups").hide();
+	jQuery("#permissions").hide();
+});
+
 /**
  * Groups click event.  It selects and processes the information for either the selected user or the logged
  * in user
@@ -17,7 +23,7 @@
  * 0.1		20/08/2012	Genevieve Turner	Initial
  */
 jQuery("#groups").live('click', function() {
-	jQuery("#message").html('');
+	jQuery("#message").hide();
 	jQuery(".chk_perm").attr('checked', false);
 	var value = jQuery("#groups").val();
 	var url =  "/DataCommons/rest/user/permissions/" + value;
@@ -47,8 +53,9 @@ jQuery("#groups").live('click', function() {
  * 0.1		20/08/2012	Genevieve Turner	Initial
  */
 jQuery("#findPeople").live('click', function() {
-	jQuery("#message").html('');
-	jQuery("#updateGroups").css('display','none');
+	jQuery("#message").hide();
+	jQuery("#updateGroups").hide();
+	jQuery("#permissions").hide();
 	jQuery.ajax({
 		url: "/DataCommons/rest/user/find",
 		dataType: "json",
@@ -59,7 +66,7 @@ jQuery("#findPeople").live('click', function() {
 		},
 		success: function(data) {
 			jQuery("#peopleList").text('');
-			var table = jQuery("<table></table>");
+			var table = jQuery("<table width='100%'></table>");
 			var headerrow = jQuery("<tr></tr>");
 			// Add a header
 			headerrow.append(jQuery("<th></th>"));
@@ -90,8 +97,9 @@ jQuery("#findPeople").live('click', function() {
  */
 jQuery("input[name='username']").live('click', function() {
 	jQuery(".chk_perm").attr('checked',false);
-	jQuery("#updateGroups").css('display','block');
-	jQuery("#message").html('');
+	jQuery("#updateGroups").show();
+	jQuery("#permissions").show();
+	jQuery("#message").hide();
 	var selGroup = jQuery("#groups").val();
 	if (selGroup) {
 		jQuery("#groups").click();
@@ -105,7 +113,6 @@ jQuery("input[name='username']").live('click', function() {
  * 0.1		20/08/2012	Genevieve Turner	Initial
  */
 jQuery("#updatePerm").live('click', function(){
-	console.log('in update permissions');
 	var value = jQuery("#groups").val();
 	var url = "/DataCommons/rest/user/permissions/" + value;
 	var username = jQuery("input[name='username']:checked").val();
@@ -113,6 +120,7 @@ jQuery("#updatePerm").live('click', function(){
 	jQuery("input[name='group_perm']:checked").each(function(i) {
 		permissions.push(jQuery(this).val());
 	});
+	jQuery("#message").hide();
 	jQuery.ajax({
 		url: url,
 		type: 'POST',
@@ -122,10 +130,14 @@ jQuery("#updatePerm").live('click', function(){
 			group_perm: permissions,
 		},
 		success: function(data,textStatus,jqXHR) {
-			jQuery("#message").append("<label class='msg-info'>User permissions updated</label>");
+			jQuery("#message").addClass("msg-success");
+			jQuery("#message").text("User permissions updated.");
+			jQuery("#message").show();
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
-			jQuery("#message").append("<label class='msg-error'>Error updating user permissions</label>");
+			jQuery("#message").addClass("msg-error");
+			jQuery("#message").text("Error updating user permissions");
+			jQuery("#message").show();
 		}
 	});
 });
