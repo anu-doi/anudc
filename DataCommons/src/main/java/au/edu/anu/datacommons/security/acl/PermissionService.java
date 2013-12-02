@@ -105,7 +105,7 @@ public class PermissionService {
 		// Get the uers permissions
 		List<Sid> sidList = new ArrayList<Sid>();
 		if (Util.isNotEmpty(username)) {
-			LOGGER.info("Username {}", username);
+			LOGGER.trace("Retrieving permissions for username {}", username);
 			Sid sid = new PrincipalSid(username.toLowerCase());
 			sidList.add(sid);
 		}
@@ -135,7 +135,7 @@ public class PermissionService {
 					}
 				}
 				catch(NotFoundException e) {
-					LOGGER.debug("No ACE found");
+					// No op.
 				}
 			}
 		}

@@ -312,7 +312,7 @@ public class UserResource {
 		List<LdapPerson> people = null;
 		try {
 			people = ldapRequest.search();
-			LOGGER.info("Number of people returned: {}", people.size());
+			LOGGER.trace("Query [fn={}, ln={}, uid={}]. Results: {}", firstname, lastname, uniId, people.size());
 		}
 		catch (NamingException e) {
 			LOGGER.error("Error querying ldap", e);
