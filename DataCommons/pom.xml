@@ -44,6 +44,10 @@
 					<groupId>commons-logging</groupId>
 					<artifactId>commons-logging</artifactId>
 				</exclusion>
+				<exclusion>
+					<artifactId>xml-apis</artifactId>
+					<groupId>xml-apis</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -65,6 +69,12 @@
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
 			<version>4.1.1.Final</version>
+			<exclusions>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.jasig.cas.client</groupId>
@@ -104,6 +114,12 @@
 			<groupId>xalan</groupId>
 			<artifactId>xalan</artifactId>
 			<version>2.7.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>commons-fileupload</groupId>
@@ -115,6 +131,10 @@
 			<artifactId>commons-io</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>gov.loc</groupId>
+			<artifactId>bagit</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-server</artifactId>
 			<version>${jersey.version}</version>
@@ -122,8 +142,6 @@
 		<dependency>
 			<groupId>org.apache.tomcat</groupId>
 			<artifactId>tomcat-api</artifactId>
-			<version>7.0.27</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
@@ -359,18 +377,14 @@
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
-			<version>1.9.5</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-all</artifactId>
-			<version>1.3</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-parsers</artifactId>
+			<artifactId>tika-core</artifactId>
 			<version>1.4</version>
 			<exclusions>
 				<exclusion>
@@ -406,6 +420,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-archive</artifactId>
 			<version>1.3.0</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -414,6 +429,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-audio</artifactId>
 			<version>1.0.0</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -422,6 +438,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-csv</artifactId>
 			<version>2.3.0</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -430,6 +447,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-email</artifactId>
 			<version>3.3.1</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -438,6 +456,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-html</artifactId>
 			<version>2.5.0</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -446,6 +465,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-image</artifactId>
 			<version>5.0.0</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -454,6 +474,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-metadata</artifactId>
 			<version>1.0.0</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -462,6 +483,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-multipage</artifactId>
 			<version>1.3.0</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -470,6 +492,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-office</artifactId>
 			<version>3.5.1</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -478,6 +501,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-pdf</artifactId>
 			<version>2.4.0</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -486,6 +510,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-plaintext</artifactId>
 			<version>3.5.0</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -494,6 +519,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-project</artifactId>
 			<version>2.3.1</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -502,6 +528,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-website</artifactId>
 			<version>1.0.0</version>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<!-- Download this dependency from http://sourceforge.net/projects/xena/files/ and install:
@@ -510,6 +537,7 @@
 			<groupId>au.gov.naa.digipres.xena</groupId>
 			<artifactId>plugin-xml</artifactId>
 			<version>2.3.0</version>
+			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
 
