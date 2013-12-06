@@ -8,7 +8,7 @@
 	description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur"
 	respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
-	<link href="http://styles.anu.edu.au/_anu/3/style/anu-forms.css"
+	<link href="//styles.anu.edu.au/_anu/3/style/anu-forms.css"
 		rel="stylesheet" type="text/css" />
 	<script type="text/javascript" src="<c:url value='/js/bagfiles.js' />"></script>
 	<script type="text/javascript">
@@ -116,7 +116,7 @@
 						<!-- Delete file -->
 						<sec:authorize access="isAuthenticated()"><sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
 							<td class="text-center">
-								<a href="javascript:void(0);" onclick="deleteFile('<c:url value="${it.dlBaseUri}${iFile.key}" />', '${iFile.key}')">
+								<a href="javascript:void(0);" onclick="deleteFile('${fn:replace(it.dlBaseUri, "\'", "\\\'")}${fn:replace(iFile.key, "\'", "\\\'")}')">
 									<img src="<c:url value='/images/delete_red.png' />" width="12" height="12" title="Delete ${iFile.value.filename}" />
 								</a>
 							</td>
