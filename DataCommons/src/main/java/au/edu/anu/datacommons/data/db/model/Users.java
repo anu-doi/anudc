@@ -73,7 +73,8 @@ public class Users
 	private String email;			// Transient
 
 	private Long user_type;
-	private UserRegistered user_registered;
+	private UserExtra userExtra;
+	//private UserRegistered user_registered;
 	
 	/**
 	 * getId
@@ -255,15 +256,29 @@ public class Users
 			}
 		}
 		else if (user_type.longValue() == 2) {
-			if (user_registered == null ) {
+			if (userExtra == null ) {
 				LOGGER.error("User {} does not have any details", id);
 				detailsFound = false;
 			}
 			else {
+				UserRegistered user_registered = (UserRegistered) userExtra;
 				displayName = user_registered.getGiven_name() + " " + user_registered.getLast_name();
 				givenName = user_registered.getGiven_name();
 				familyName = user_registered.getLast_name();
 				email = username;
+			}
+		}
+		else if (user_type.longValue() == 3) {
+			if (userExtra == null) {
+				LOGGER.error("User : {} does not have any details", id);
+				detailsFound = false;
+			}
+			else {
+				UserShibboleth shibbolethUser = (UserShibboleth) userExtra;
+				displayName = shibbolethUser.getDisplayName();
+				givenName = "";
+				familyName = "";
+				email = shibbolethUser.getEmail();
 			}
 		}
 		else {
@@ -324,11 +339,11 @@ public class Users
 	 * 
 	 * @return Registered user information
 	 */
-	@OneToOne (cascade=CascadeType.ALL) //, mappedBy="user")
+	/*@OneToOne (cascade=CascadeType.ALL) //, mappedBy="user")
 	@PrimaryKeyJoinColumn
 	public UserRegistered getUser_registered() {
 		return user_registered;
-	}
+	}*/
 
 	/**
 	 * setUser_registered
@@ -342,7 +357,17 @@ public class Users
 	 * 
 	 * @param user_registered
 	 */
-	public void setUser_registered(UserRegistered user_registered) {
+	/*public void setUser_registered(UserRegistered user_registered) {
 		this.user_registered = user_registered;
+	}*/
+
+	@OneToOne (cascade=CascadeType.ALL)
+	@PrimaryKeyJoinColumn
+	public UserExtra getUserExtra() {
+		return userExtra;
+	}
+
+	public void setUserExtra(UserExtra userExtra) {
+		this.userExtra = userExtra;
 	}
 }

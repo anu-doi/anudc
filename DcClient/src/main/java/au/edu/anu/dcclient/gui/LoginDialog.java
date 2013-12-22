@@ -28,8 +28,12 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -45,6 +49,8 @@ import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.dcclient.shibboleth.idp.ShibbolethIdp;
+import au.edu.anu.dcclient.shibboleth.idp.ShibbolethIdpController;
 import au.edu.anu.dcclient.tasks.GetUserInfoTask;
 import au.edu.anu.dcclient.tasks.SetAuthDefaultTask;
 
@@ -61,8 +67,10 @@ public class LoginDialog extends JDialog {
 	private String[] userInfo = null;
 
 	private JPanel contentPanel;
+	private JLabel lblIdp;
 	private JLabel lblUser;
 	private JLabel lblPassword;
+	private JComboBox<ShibbolethIdp> cboIdp;
 	private JTextField txtUser;
 	private JTextField txtPassword;
 	private JProgressBar progressBar;
@@ -91,17 +99,53 @@ public class LoginDialog extends JDialog {
 		getContentPane().add(this.contentPanel, BorderLayout.CENTER);
 		GridBagLayout gbl_contentPanel = new GridBagLayout();
 		gbl_contentPanel.columnWidths = new int[] { 73, 157, 0 };
-		gbl_contentPanel.rowHeights = new int[] { 20, 20, 0 };
+		//gbl_contentPanel.rowHeights = new int[] { 20, 20, 0 };
+		gbl_contentPanel.rowHeights = new int[] { 20, 20,20,0 };
 		gbl_contentPanel.columnWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
 		gbl_contentPanel.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
 		this.contentPanel.setLayout(gbl_contentPanel);
+		
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(0, 0, 5, 5);
 
+		int x = 0;
+		int y = 0;
+		
+		lblIdp = new JLabel("Site");
+		gbc.gridx = x++;
+		gbc.gridy = y;
+		this.contentPanel.add(this.lblIdp, gbc);
+		
+		ShibbolethIdpController controller = new ShibbolethIdpController();
+		List<ShibbolethIdp> idpList  = controller.getShibbolethIdpList();
+		//Sort the list so it is in alphabetical order
+		Collections.sort(idpList, new Comparator<ShibbolethIdp>() {
+			@Override
+			public int compare(ShibbolethIdp o1, ShibbolethIdp o2) {
+				return o1.toString().compareTo(o2.toString());
+			}
+		});
+		
+		cboIdp = new JComboBox<ShibbolethIdp>(idpList.toArray(new ShibbolethIdp[0]));
+		gbc.gridx = x++;
+		gbc.gridy = y;
+		this.contentPanel.add(this.cboIdp, gbc);
+		
+		gbc.gridx = x++;
+		gbc.gridy = y;
+		
+		x = 0;
+		y++;
+		
+		
 		this.lblUser = new JLabel("User");
 		GridBagConstraints gbc_lblUser = new GridBagConstraints();
 		gbc_lblUser.anchor = GridBagConstraints.NORTHWEST;
 		gbc_lblUser.insets = new Insets(0, 0, 5, 5);
-		gbc_lblUser.gridx = 0;
-		gbc_lblUser.gridy = 0;
+		//gbc_lblUser.gridx = 0;
+		//gbc_lblUser.gridy = 0;
+		gbc_lblUser.gridx = x++;
+		gbc_lblUser.gridy = y;
 		this.contentPanel.add(this.lblUser, gbc_lblUser);
 
 		this.txtUser = new JTextField();
@@ -109,17 +153,24 @@ public class LoginDialog extends JDialog {
 		gbc_txtUser.anchor = GridBagConstraints.NORTH;
 		gbc_txtUser.fill = GridBagConstraints.HORIZONTAL;
 		gbc_txtUser.insets = new Insets(0, 0, 5, 0);
-		gbc_txtUser.gridx = 1;
-		gbc_txtUser.gridy = 0;
+		//gbc_txtUser.gridx = 1;
+		//gbc_txtUser.gridy = 0;
+		gbc_txtUser.gridx = x++;
+		gbc_txtUser.gridy = y;
 		this.contentPanel.add(this.txtUser, gbc_txtUser);
 		this.txtUser.setColumns(10);
+		
+		x = 0;
+		y++;
 
 		this.lblPassword = new JLabel("Password");
 		GridBagConstraints gbc_lblPassword = new GridBagConstraints();
 		gbc_lblPassword.anchor = GridBagConstraints.WEST;
 		gbc_lblPassword.insets = new Insets(0, 0, 0, 5);
-		gbc_lblPassword.gridx = 0;
-		gbc_lblPassword.gridy = 1;
+		//gbc_lblPassword.gridx = 0;
+		//gbc_lblPassword.gridy = 1;
+		gbc_lblPassword.gridx = x++;
+		gbc_lblPassword.gridy = y;
 		this.contentPanel.add(this.lblPassword, gbc_lblPassword);
 
 		this.txtPassword = new JPasswordField();
@@ -127,12 +178,17 @@ public class LoginDialog extends JDialog {
 		GridBagConstraints gbc_txtPassword = new GridBagConstraints();
 		gbc_txtPassword.anchor = GridBagConstraints.NORTH;
 		gbc_txtPassword.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtPassword.gridx = 1;
-		gbc_txtPassword.gridy = 1;
+		//gbc_txtPassword.gridx = 1;
+		//gbc_txtPassword.gridy = 1;
+		gbc_txtPassword.gridx = x++;
+		gbc_txtPassword.gridy = y;
 		this.contentPanel.add(this.txtPassword, gbc_txtPassword);
 		
 		buttonPane = new JPanel();
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
+		
+		x = 0;
+		y++;
 
 		this.progressBar = new JProgressBar();
 		this.progressBar.setVisible(false);
@@ -197,7 +253,7 @@ public class LoginDialog extends JDialog {
 					optionSelected = JOptionPane.OK_OPTION;
 					
 					final SetAuthDefaultTask setAuthTask = new SetAuthDefaultTask(LoginDialog.this.txtUser.getText(),
-							LoginDialog.this.txtPassword.getText());
+							LoginDialog.this.txtPassword.getText(), ((ShibbolethIdp)LoginDialog.this.cboIdp.getSelectedItem()).getEntityID());
 					setAuthTask.execute();
 					LOGGER.info("SetAuthTask Created");
 					

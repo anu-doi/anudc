@@ -50,14 +50,14 @@ import javax.persistence.Table;
 @Entity
 @Table(name="user_registered")
 //@GenericGenerator(name="users-primarykey", strategy="foreign", parameters={@Parameter(name="property", value="users")})
-public class UserRegistered {
-	private Long id;
+public class UserRegistered extends UserExtra {
+	//private Long id;
 	private String last_name_;
 	private String given_name_;
 	private String institution_;
 	private String phone_;
 	private String address_;
-	private Users user;
+	//private Users user;
 	
 	/**
 	 * getId
@@ -71,11 +71,11 @@ public class UserRegistered {
 	 * 
 	 * @return the id of the user
 	 */
-	@Id
+	//@Id
 	//@GeneratedValue(generator = "users-primarykey")
-	public Long getId() {
+	/*public Long getId() {
 		return id;
-	}
+	}*/
 	
 	/**
 	 * setId
@@ -89,9 +89,9 @@ public class UserRegistered {
 	 * 
 	 * @param id The id of the user
 	 */
-	public void setId(Long id) {
+	/*public void setId(Long id) {
 		this.id = id;
-	}
+	}*/
 
 	/**
 	 * getLast_name
@@ -270,11 +270,11 @@ public class UserRegistered {
 	 * 
 	 * @param user The user for the registered information
 	 */
-	@OneToOne (cascade=CascadeType.ALL, mappedBy="user_registered")//()
+	/*@OneToOne (cascade=CascadeType.ALL, mappedBy="user_extra")//()
 	@PrimaryKeyJoinColumn
 	public Users getUser() {
 		return user;
-	}
+	}*/
 
 	/**
 	 * setUser
@@ -288,7 +288,7 @@ public class UserRegistered {
 	 * 
 	 * @param user The user for the registered information
 	 */
-	public void setUser(Users user) {
+	/*public void setUser(Users user) {
 		this.user = user;
-	}
+	}*/
 }

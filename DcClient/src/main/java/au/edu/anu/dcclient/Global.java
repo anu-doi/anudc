@@ -170,4 +170,14 @@ public abstract class Global
 	{
 		return UriBuilder.fromUri(getAppServerUriAsString()).path(globalProperties.getProperty("app.server.addLinkUri")).build();
 	}
+	
+	public static String getDiscoveryFeedUriAsString()
+	{
+		return getAppServerUriAsString() + globalProperties.getProperty("app.server.shib.disco_feed");
+	}
+	
+	public static String getShibbolethLoginUriAsString()
+	{
+		return getAppServerUriAsString() + globalProperties.getProperty("app.server.shib.login_uri");
+	}
 }

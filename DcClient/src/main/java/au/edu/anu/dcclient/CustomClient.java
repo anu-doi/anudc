@@ -21,6 +21,10 @@
 
 package au.edu.anu.dcclient;
 
+import java.util.List;
+
+import javax.ws.rs.core.Cookie;
+
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientRequest;
@@ -76,10 +80,24 @@ public class CustomClient {
 	 *            Password as String
 	 */
 	public static void setAuth(String username, String password) {
-		if (authFilter != null)
-			getInstance().removeFilter(authFilter);
+		//if (authFilter != null)
+		//	getInstance().removeFilter(authFilter);
+		removeAuthFilter();
 		authFilter = new HTTPBasicAuthFilter(username, password);
 		getInstance().addFilter(authFilter);
+	}
+	
+	public static void setAuth(List<Cookie> cookies) {
+		removeAuthFilter();
+		authFilter = new AuthenticationCookieFilter(cookies);
+		
+		getInstance().addFilter(authFilter);
+	}
+	
+	private static void removeAuthFilter() {
+		if (authFilter != null) {
+			getInstance().removeFilter(authFilter);
+		}
 	}
 
 }

@@ -1,0 +1,1 @@
+alter table audit_access alter column ip_address type varchar(50);

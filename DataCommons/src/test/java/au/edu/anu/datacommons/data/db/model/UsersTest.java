@@ -90,7 +90,8 @@ public class UsersTest {
 		entityTransaction.commit();
 		user_registered.setUser(user);
 		user_registered.setId(user.getId());
-		user.setUser_registered(user_registered);
+		user.setUserExtra(user_registered);
+		//user.setUser_registered(user_registered);
 
 		entityTransaction.begin();
 		entityManager.persist(user);
@@ -103,8 +104,9 @@ public class UsersTest {
 			assertEquals("testpassword1", savedUser.getPassword());
 			assertEquals(Boolean.TRUE, savedUser.getEnabled());
 			assertEquals(new Long(2), savedUser.getUser_type());
-			assertEquals("test", savedUser.getUser_registered().getGiven_name());
-			assertEquals("user", savedUser.getUser_registered().getLast_name());
+			UserRegistered savedRegistered = (UserRegistered) savedUser.getUserExtra();
+			assertEquals("test", savedRegistered.getGiven_name());
+			assertEquals("user", savedRegistered.getLast_name());
 			entityTransaction.begin();
 			entityManager.remove(savedUser);
 			entityTransaction.commit();

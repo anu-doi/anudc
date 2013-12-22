@@ -453,7 +453,7 @@ public class UserResource {
 		String phone = request.getParameter("phone");
 		String address = request.getParameter("address");
 		
-		UserRegistered user_registered = user.getUser_registered();
+		UserRegistered user_registered = (UserRegistered) user.getUserExtra();
 		if (user_registered == null) {
 			user_registered = new UserRegistered();
 		}
@@ -464,7 +464,8 @@ public class UserResource {
 		user_registered.setInstitution(institution);
 		user_registered.setPhone(phone);
 		user_registered.setAddress(address);
-		user.setUser_registered(user_registered);
+		//user.setUser_registered(user_registered);
+		user.setUserExtra(user_registered);
 		
 		return user;
 	}

@@ -22,14 +22,23 @@
 package au.edu.anu.dcclient;
 
 import java.awt.EventQueue;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.swing.UIManager;
 
+import org.opensaml.xml.ConfigurationException;
+import org.opensaml.xml.parse.BasicParserPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.dcclient.cli.CmdMgr;
 import au.edu.anu.dcclient.gui.MainWindow;
+import au.edu.anu.dcclient.shibboleth.auth.Registry;
 
 /**
  * Entry class for the DcClient application.
@@ -55,6 +64,17 @@ public class DcClient {
 	public static void main(String[] args) {
 		// If no command line arguments specified, start GUI.
 		if (args.length == 0) {
+			try {
+				Registry.initialise();
+				BasicParserPool ppMgr = new BasicParserPool();
+				ppMgr.setNamespaceAware(true);
+				LOGGER.info("Registry Initialised");
+			}
+			catch (ConfigurationException e) {
+				LOGGER.error("Exception configuring bootstrap", e);
+			}
+			//TODO remove the certificate disabling
+			disableCertificateValidation();
 			startGui();
 		} else {
 			CmdMgr cmdMgr = new CmdMgr(args);
@@ -83,5 +103,30 @@ public class DcClient {
 				}
 			}
 		});
+	}
+
+	public static void disableCertificateValidation() {
+		TrustManager[] trustAllCerts = new TrustManager[] {
+			new X509TrustManager() {
+				public X509Certificate[] getAcceptedIssuers() {
+					return new X509Certificate[0];
+				}
+				public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+				public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+			}
+		};
+		
+		/*HostnameVerifier hv = new HostnameVerifier() {
+			public boolean verify(String hostname, SSLSession session) { return true; }
+		};*/
+		
+		try {
+			SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(null, trustAllCerts, new SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+		//	HttpsURLConnection.setDefaultHostnameVerifier(hv);
+		}
+		catch (Exception e) {
+		}
 	}
 }

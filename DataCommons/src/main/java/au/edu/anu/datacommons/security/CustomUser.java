@@ -51,6 +51,8 @@ public class CustomUser extends User {
 	private static final long serialVersionUID = 1L;
 	private Long id;
 	private String displayName;
+	private String email;
+	private String institution;
 	
 	/**
 	 * Constructor
@@ -75,11 +77,22 @@ public class CustomUser extends User {
 	 */
 	public CustomUser (String username, String password, boolean enabled,
 			boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked,
-			List<GrantedAuthority> authorities, long id, String displayName) throws IllegalArgumentException {
+			List<GrantedAuthority> authorities, Long id, String displayName) throws IllegalArgumentException {
 		super(username, password, enabled, accountNonExpired, credentialsNonExpired,
 				accountNonLocked, authorities);
 		this.id = id;
 		this.displayName = displayName;
+	}
+	
+	public CustomUser (String username, String password, boolean enabled,
+			boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked,
+			List<GrantedAuthority> authorities, Long id, String displayName, String email, String institution) throws IllegalArgumentException {
+		super(username, password, enabled, accountNonExpired, credentialsNonExpired,
+				accountNonLocked, authorities);
+		this.id = id;
+		this.displayName = displayName;
+		this.institution = institution;
+		this.email = email;
 	}
 	
 	/**
@@ -106,6 +119,7 @@ public class CustomUser extends User {
 				accountNonLocked, authorities);
 		this.id = user.getId();
 		this.displayName = user.getDisplayName();
+		this.email = user.getEmail();
 	}
 
 	/**
@@ -172,6 +186,26 @@ public class CustomUser extends User {
 		this.displayName = displayName;
 	}
 	
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	public String getInstitution() {
+		return institution;
+	}
+
+	public void setInstitution(String institution) {
+		this.institution = institution;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
 	/**
 	 * toString
 	 * 

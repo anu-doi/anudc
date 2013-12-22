@@ -113,13 +113,20 @@ public class LoginServlet extends HttpServlet
 		RequestDispatcher requestDispatcher = null;
 		
 		if ("anu".equals(methodParam)) {
-			StringBuilder casURL = new StringBuilder();
+			/*StringBuilder casURL = new StringBuilder();
 			casURL.append(GlobalProps.getProperty(GlobalProps.PROP_CAS_SERVER));
 			casURL.append("/login?service=");
 			casURL.append(GlobalProps.getProperty(GlobalProps.PROP_APP_SERVER));
 			casURL.append(request.getServletContext().getContextPath());
 			casURL.append("/j_spring_cas_security_check");
-			response.sendRedirect(casURL.toString());
+			response.sendRedirect(casURL.toString());*/
+			StringBuilder shibURL = new StringBuilder();
+			shibURL.append(GlobalProps.getProperty(GlobalProps.PROP_APP_SERVER));
+			shibURL.append("/Shibboleth.sso/Login?target=");
+			shibURL.append(GlobalProps.getProperty(GlobalProps.PROP_APP_SERVER));
+			shibURL.append("/DataCommons");
+			LOGGER.info("URL: {}", shibURL.toString());
+			response.sendRedirect(shibURL.toString());
 			return;
 		}
 		else if ("registered".equals(methodParam)) {
