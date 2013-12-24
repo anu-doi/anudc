@@ -44,71 +44,37 @@ import javax.persistence.Table;
 @Entity
 @Table(name="authorities")
 public class Authorities {
-	private String username_;
-	private String authority_;
-	
+	private AuthoritiesPK id_;
+
 	/**
-	 * getUsername
-	 *
-	 * Gets the username
-	 *
+	 * getId
+	 * 
+	 * Get the id
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * 0.1		21/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/12/2013	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @return the username
+	 * @return The id
 	 */
 	@Id
-	public String getUsername() {
-		return username_;
+	public AuthoritiesPK getId() {
+		return id_;
 	}
-	
+
 	/**
-	 * setUsername
-	 *
-	 * Sets the username
-	 *
+	 * setId
+	 * 
+	 * Set the id
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
-	 * 0.1		21/08/2012	Genevieve Turner(GT)	Initial
+	 * 0.1		24/12/2013	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param username the username to set
+	 * @param id The id
 	 */
-	public void setUsername(String username) {
-		this.username_ = username;
-	}
-	
-	/**
-	 * getAuthority
-	 *
-	 * Gets the authority
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		21/08/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @return the authority
-	 */
-	public String getAuthority() {
-		return authority_;
-	}
-	
-	/**
-	 * setAuthority
-	 *
-	 * Sets the authority
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		21/08/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @param authority the authority to set
-	 */
-	public void setAuthority(String authority) {
-		this.authority_ = authority;
+	public void setId(AuthoritiesPK id) {
+		this.id_ = id;
 	}
 }

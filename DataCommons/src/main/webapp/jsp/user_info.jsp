@@ -33,19 +33,19 @@
 							The Australian National University
 						</c:when>
 						<c:otherwise>
-							${it.user.user_registered.institution}
+							${it.userExtra.institution}
 						</c:otherwise>
 					</c:choose>
 				</td>
 			</tr>
 			<tr>
 				<th valign="top"><label>Phone</label></th>
-				<td>${it.user.user_registered.phone}</td>
+				<td><c:catch var="exception">${it.user.userExtra.phone}</c:catch></td>
 			</tr>
 			<tr>
 				<th valign="top"><label>Address</label></th>
 				<% pageContext.setAttribute("newLineChar", "\n"); %>
-				<td>${fn:replace(it.user.user_registered.address, newLineChar,"<br/>")}</td>
+				<td><c:catch var="exception">${fn:replace(it.user.userExtra.address, newLineChar,"<br/>")}</c:catch></td>
 			</tr>
 		</table>
 	</div>
@@ -55,6 +55,7 @@
 		<input class="right" type="button" id="updateuser" name="updateuser" value="Update Details" onclick="window.location='${updateUserLink}'" />
 		</p>
 	</c:if>
+	<sec:authentication property="principal.authorities" />
 </anu:content>
 
 <anu:content layout="narrow">

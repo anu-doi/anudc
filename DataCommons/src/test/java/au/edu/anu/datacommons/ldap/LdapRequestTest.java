@@ -68,7 +68,7 @@ public class LdapRequestTest {
 		req.setQuery("(&(sn=smith)(givenName=janet*))");
 		List<LdapPerson> results = req.search();
 		for (LdapPerson p : results) {
-			LOGGER.trace("{} {} {}", p.getUniId(), p.getGivenName(), p.getFamilyName());
+			LOGGER.trace("{} {} {}", new Object[]{p.getUniId(), p.getGivenName(), p.getFamilyName()});
 		}
 		assertThat(results, hasSize(greaterThanOrEqualTo(1)));
 	}

@@ -47,6 +47,7 @@ public class GetUserInfoTask extends AbstractDcBagTask<String[], Object> {
 			stopWatch.start();
 			setProgress(10);
 			WebResource webResource = client.resource(getUserInfoUri());
+			LOGGER.info("Request URL: {}", getUserInfoUri());
 			setProgress(20);
 			response = webResource.get(ClientResponse.class);
 			setProgress(80);

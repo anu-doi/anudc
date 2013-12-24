@@ -201,8 +201,8 @@ public final class DcStorage implements Closeable {
 		filepath = removeDataPrefix(filepath);
 		File destFile = ff.getFile(getPayloadDir(pid), filepath);
 		synchronized (destFile) {
-			LOGGER.info("Adding file {} ({}) to record {}", filepath,
-					FileUtils.byteCountToDisplaySize(sourceFile.length()), pid);
+			LOGGER.info("Adding file {} ({}) to record {}", new Object[]{filepath,
+					FileUtils.byteCountToDisplaySize(sourceFile.length()), pid});
 			if (destFile.isFile()) {
 				scheduleFileArchival(pid, destFile, Operation.REPLACE);
 			}
@@ -659,7 +659,7 @@ public final class DcStorage implements Closeable {
 		} else {
 			LOGGER.info(
 					"File {} ({}) already exists in record {}. It will be archived and replaced with new file.",
-					fileToArchive.getName(), FileUtils.byteCountToDisplaySize(fileToArchive.length()), pid);
+					new Object[]{fileToArchive.getName(), FileUtils.byteCountToDisplaySize(fileToArchive.length()), pid});
 			ArchiveTask archiveTask = new ArchiveTask(this.archiveRootDir, pid, fileToArchive, Algorithm.MD5, op);
 			threadPool.submit(archiveTask);
 		}

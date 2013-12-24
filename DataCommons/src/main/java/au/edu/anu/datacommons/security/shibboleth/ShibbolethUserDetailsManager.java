@@ -23,6 +23,7 @@ import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.UsersDAO;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.Authorities;
+import au.edu.anu.datacommons.data.db.model.AuthoritiesPK;
 import au.edu.anu.datacommons.data.db.model.UserShibboleth;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.security.CustomUser;
@@ -72,12 +73,12 @@ public class ShibbolethUserDetailsManager implements UserDetailsManager {
 	protected List<GrantedAuthority> loadUserAuthorities(String username) {
 		LOGGER.debug("In loadUserAuthorities");
 		EntityManager em = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
-		Query query = em.createQuery("SELECT a FROM Authorities a WHERE username = :username");
+		Query query = em.createQuery("SELECT a FROM Authorities a WHERE a.id.username = :username");
 		query.setParameter("username", username);
 		List<Authorities> authorities = query.getResultList();
 		List<GrantedAuthority> grantedAuthorities = new ArrayList<GrantedAuthority>();
 		for (Authorities authority : authorities) {
-			grantedAuthorities.add(new GrantedAuthorityImpl(authority.getAuthority()));
+			grantedAuthorities.add(new GrantedAuthorityImpl(authority.getId().getAuthority()));
 		}
 		
 		return grantedAuthorities;
@@ -120,13 +121,18 @@ public class ShibbolethUserDetailsManager implements UserDetailsManager {
 		GenericDAO<Authorities, String> authorityDAO = new GenericDAOImpl<Authorities, String>(Authorities.class);
 		
 		Authorities authority = new Authorities();
-		authority.setUsername(user.getUsername());
-		authority.setAuthority("ROLE_REGISTERED");
+		AuthoritiesPK authorityPk = new AuthoritiesPK();
+		
+		authorityPk.setUsername(user.getUsername());
+		authorityPk.setAuthority("ROLE_REGISTERED");
+		authority.setId(authorityPk);
 		authorityDAO.create(authority);
 		if ("Australian National University".equals(institution)) {
 			authority = new Authorities();
-			authority.setUsername(user.getUsername());
-			authority.setAuthority("ROLE_ANU_USER");
+			authorityPk = new AuthoritiesPK();
+			authorityPk.setUsername(user.getUsername());
+			authorityPk.setAuthority("ROLE_ANU_USER");
+			authority.setId(authorityPk);
 			authorityDAO.create(authority);
 		}
 	}

@@ -88,7 +88,7 @@ public class UsersTest {
 		entityTransaction.begin();
 		entityManager.persist(user);
 		entityTransaction.commit();
-		user_registered.setUser(user);
+		//user_registered.setUser(user);
 		user_registered.setId(user.getId());
 		user.setUserExtra(user_registered);
 		//user.setUser_registered(user_registered);

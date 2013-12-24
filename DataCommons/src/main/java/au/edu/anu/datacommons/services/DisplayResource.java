@@ -215,8 +215,8 @@ public class DisplayResource
 		try
 		{
 			fedoraObject = fedoraObjectService.saveNew(tmplt, form, null);
-			LOGGER.info("User {} created record {} of group {} through Web UI.", getCurUsername(),
-					fedoraObject.getObject_id(), fedoraObject.getGroup_id());
+			LOGGER.info("User {} created record {} of group {} through Web UI.", new Object[]{getCurUsername(),
+					fedoraObject.getObject_id(), fedoraObject.getGroup_id()});
 			UriBuilder redirUri = UriBuilder.fromPath("/display").path(fedoraObject.getObject_id()).queryParam("layout", layout).queryParam("tmplt", tmplt);
 			resp = Response.seeOther(redirUri.build()).build();
 		}
@@ -269,8 +269,8 @@ public class DisplayResource
 		Response resp = null;
 		try {
 			fedoraObject = fedoraObjectService.saveNew(tmplt, form, null);
-			LOGGER.info("User {} created record {} of group {} through Web Service. Returning HTTP 201 response.", getCurUsername(),
-					fedoraObject.getObject_id(), fedoraObject.getGroup_id());
+			LOGGER.info("User {} created record {} of group {} through Web Service. Returning HTTP 201 response.", new Object[] {getCurUsername(),
+					fedoraObject.getObject_id(), fedoraObject.getGroup_id()});
 			URI createdUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(DisplayResource.class)
 					.path(DisplayResource.class, "getItem").build(fedoraObject.getObject_id());
 			resp = Response.created(createdUri).entity(fedoraObject.getObject_id()).build();

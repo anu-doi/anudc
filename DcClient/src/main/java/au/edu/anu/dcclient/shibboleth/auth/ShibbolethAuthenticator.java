@@ -155,7 +155,7 @@ public class ShibbolethAuthenticator {
 		}
 		else {
 			LOGGER.error("Exception received response of {} when {}", clientResponse.getStatus(), clientResponse.getEntity(String.class));
-			throw new ShibbolethAuthenticationException("Error retrieving information from Service Provider");
+			throw new ShibbolethAuthenticationException("Error retrieving information from IdP Provider");
 		}
 		
 	}

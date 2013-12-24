@@ -130,8 +130,8 @@ public class BagSummaryTaskTest {
 		for (Entry<String, FileSummary> fsEntry : bs.getFileSummaryMap().entrySet()) {
 			String filepath = fsEntry.getKey();
 			FileSummary fs = fsEntry.getValue();
-			LOGGER.trace("{}: {} {} {} {}", filepath, fs.getFilename(), fs.getFriendlySize(),
-					fs.getMessageDigests().get("MD5"), fs.getPresvFilepath());
+			LOGGER.trace("{}: {} {} {} {}", new Object[]{filepath, fs.getFilename(), fs.getFriendlySize(),
+					fs.getMessageDigests().get("MD5"), fs.getPresvFilepath()});
 		}
 	}
 

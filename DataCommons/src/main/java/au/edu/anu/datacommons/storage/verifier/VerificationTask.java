@@ -260,7 +260,7 @@ public class VerificationTask implements Callable<VerificationResults> {
 
 	private synchronized void addEntry(Severity severity, Category category, String filepath, String msg) {
 		this.results.addMessage(new ResultMessage(severity, category, filepath, msg == null ? "" : msg));
-		LOGGER.trace("{}-{}: [{}] {}", severity.toString(), category.toString(), filepath, msg == null ? "" : msg);
+		LOGGER.trace("{}-{}: [{}] {}", new Object[] {severity.toString(), category.toString(), filepath, msg == null ? "" : msg});
 	}
 
 }

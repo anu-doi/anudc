@@ -93,7 +93,7 @@ public class TempFileTask extends AbstractTempFileTask {
 				}
 				throw new IOException(errorMsg);
 			} else {
-				LOGGER.debug("Calculated {} {} matches expected {}", digester.getAlgorithm(), calculatedMd, expectedMd);
+				LOGGER.debug("Calculated {} {} matches expected {}", new Object[] {digester.getAlgorithm(), calculatedMd, expectedMd});
 			}
 		}
 		return savedFile;

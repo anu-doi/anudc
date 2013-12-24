@@ -78,8 +78,15 @@ public class GetBagSummaryTask extends AbstractDcBagTask<BagSummary, Void> {
 			WebResource webResource = client.resource(UriBuilder.fromUri(pidBagUri).build());
 			ClientResponse response = webResource.accept(MediaType.APPLICATION_JSON_TYPE).get(ClientResponse.class);
 			String entity = response.getEntity(String.class);
-			bagSummary = mapJsonToBagSummary(entity);
-			System.out.println(bagSummary.getNumFiles());
+			if (response.getStatus() == 200) {
+				LOGGER.info("Entity: {}", entity);
+				bagSummary = mapJsonToBagSummary(entity);
+				System.out.println(bagSummary.getNumFiles());
+				//TODO notification if no access
+			}
+			else {
+				throw new Exception(entity);
+			}
 		} finally {
 			stopWatch.end();
 			LOGGER.info("Time - Get Bag Info Task: {}", stopWatch.getFriendlyElapsed());

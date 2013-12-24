@@ -85,7 +85,7 @@ public class VerificationTaskTest {
 		
 		LOGGER.info("Verification results for {}", results.getBagId());
 		for (ResultMessage msg : results) {
-			LOGGER.trace("{}-{}: [{}] {}", msg.getSeverity(), msg.getCategory(), msg.getFilepath(), msg.getMessage());
+			LOGGER.trace("{}-{}: [{}] {}", new Object[]{msg.getSeverity(), msg.getCategory(), msg.getFilepath(), msg.getMessage()});
 		}
 	}
 

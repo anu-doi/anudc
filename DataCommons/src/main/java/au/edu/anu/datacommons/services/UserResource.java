@@ -43,7 +43,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -69,6 +68,7 @@ import au.edu.anu.datacommons.data.db.dao.UserRequestPasswordDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.UsersDAO;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.Authorities;
+import au.edu.anu.datacommons.data.db.model.AuthoritiesPK;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.UserRegistered;
 import au.edu.anu.datacommons.data.db.model.UserRequestPassword;
@@ -528,8 +528,10 @@ public class UserResource {
 		userDAO.update(user);
 		
 		Authorities authority = new Authorities();
-		authority.setUsername(emailAddr);
-		authority.setAuthority("ROLE_REGISTERED");
+		AuthoritiesPK authorityPk = new AuthoritiesPK();
+		authorityPk.setUsername(emailAddr);
+		authorityPk.setAuthority("ROLE_REGISTERED");
+		authority.setId(authorityPk);
 		GenericDAO<Authorities, String> authorityDAO = new GenericDAOImpl<Authorities, String>(Authorities.class);
 		authorityDAO.create(authority);
 		

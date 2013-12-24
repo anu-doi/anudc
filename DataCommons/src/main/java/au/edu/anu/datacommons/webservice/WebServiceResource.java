@@ -248,13 +248,13 @@ public class WebServiceResource
 							{
 								try
 								{
-									LOGGER.info("Beginning download of file {} from {} to add to {}...", filename, fileUrl, item.getPid());
+									LOGGER.info("Beginning download of file {} from {} to add to {}...", new Object[]{filename, fileUrl, item.getPid()});
 									dcStorage.addFileToBag(item.getPid(), new URL(fileUrl), filename);
-									LOGGER.info("Successfully downloaded file {} from {} and added to {}.", filename, fileUrl, item.getPid());
+									LOGGER.info("Successfully downloaded file {} from {} and added to {}.",new Object[]{ filename, fileUrl, item.getPid()});
 								}
 								catch (Exception e)
 								{
-									LOGGER.error("Failed to download file {} from {} to add to {}.", filename, fileUrl, item.getPid());
+									LOGGER.error("Failed to download file {} from {} to add to {}.", new Object[]{filename, fileUrl, item.getPid()});
 									LOGGER.error(e.getMessage(), e);
 								}
 							}
@@ -493,13 +493,12 @@ public class WebServiceResource
 		solrQuery.addFilterQuery(format("unpublished.type:\"{0}\"", type));
 		solrQuery.addField("id");
 
-		LOGGER.debug("Finding {} with external ID {}, belonging to ownerGroup {}...", type, extId, ownerGroup);
-
+		LOGGER.debug("Finding {} with external ID {}, belonging to ownerGroup {}...", new Object[]{type, extId, ownerGroup});
 		try
 		{
 			QueryResponse queryResponse = solrServer.query(solrQuery);
 			SolrDocumentList resultList = queryResponse.getResults();
-			LOGGER.debug("{} {}(s) found with external ID {}, belonging to ownerGroup {}.", resultList.getNumFound(), type, extId, ownerGroup);
+			LOGGER.debug("{} {}(s) found with external ID {}, belonging to ownerGroup {}.", new Object[]{resultList.getNumFound(), type, extId, ownerGroup});
 			if (resultList.getNumFound() == 0)
 			{
 				pid = "";

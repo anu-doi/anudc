@@ -492,14 +492,14 @@ public class UploadService {
 					}
 				}
 				
-				LOGGER.info("User {} requested {} bag files {} in {} as zip", getCurUsername(), filepaths.size(), filepaths, pid);
+				LOGGER.info("User {} requested {} bag files {} in {} as zip", new Object[]{getCurUsername(), filepaths.size(), filepaths, pid});
 				Users curUser = getCurUser();
 				if (curUser != null) {
 					addAccessLog(Operation.READ);
 				}
 				resp = getBagFilesAsZip(pid, filepaths, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), "zip"));
 			} else {
-				LOGGER.info("User {} requested bag file {} in {}", getCurUsername(), fileRequested, pid);
+				LOGGER.info("User {} requested bag file {} in {}", new Object[]{getCurUsername(), fileRequested, pid});
 				if (!dcStorage.fileExists(pid, fileRequested)) {
 					throw new NotFoundException(format("File {0} not found in {1}", fileRequested, pid));
 				}
@@ -532,7 +532,7 @@ public class UploadService {
 	public Response doAddFileToBag(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag,
 			InputStream is) {
 		Response resp = null;
-		LOGGER.info("User {} requested adding file {} in {}", getCurUsername(), fileInBag, pid);
+		LOGGER.info("User {} requested adding file {} in {}", new Object[]{getCurUsername(), fileInBag, pid});
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 		File uploadedFile = null;
 
@@ -575,7 +575,7 @@ public class UploadService {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doDeleteFileInBag(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag) {
 		Response resp = null;
-		LOGGER.info("User {} requested deletion of file {} in {}", getCurUsername(), fileInBag, pid);
+		LOGGER.info("User {} requested deletion of file {} in {}", new Object[]{getCurUsername(), fileInBag, pid});
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 		
 		try {
@@ -646,7 +646,7 @@ public class UploadService {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPutSetFilesPublic(@PathParam("pid") String pid, String isFilesPublic) {
 		Response resp = null;
-		LOGGER.info("User {} requested change status of files {} to {}", getCurUsername(), pid, isFilesPublic);
+		LOGGER.info("User {} requested change status of files {} to {}", new Object[]{getCurUsername(), pid, isFilesPublic});
 		if (isFilesPublic == null || isFilesPublic.length() == 0) {
 			resp = Response.status(Status.BAD_REQUEST).build();
 		} else {
@@ -674,7 +674,8 @@ public class UploadService {
 		Users curUser = getCurUser();
 		Response resp = null;
 		StringBuilder respEntity = new StringBuilder();
-		respEntity.append(curUser.getUsername());
+		//respEntity.append(curUser.getUsername());
+		respEntity.append(curUser.getEmail());
 		respEntity.append(":");
 		respEntity.append(curUser.getDisplayName());
 		resp = Response.ok(respEntity.toString()).build();

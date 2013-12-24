@@ -487,8 +487,8 @@ public class DcStorageTest {
 			String md5 = TestUtil.createFileOfSizeInRange(file, 1L, 5L, FileUtils.ONE_MB);
 			fileMap.put(file, md5);
 			assertTrue(file.isFile());
-			LOGGER.trace("Created file {} ({}) MD5: {}", file.getName(),
-					FileUtils.byteCountToDisplaySize(file.length()), md5);
+			LOGGER.trace("Created file {} ({}) MD5: {}", new Object[]{file.getName(),
+					FileUtils.byteCountToDisplaySize(file.length()), md5});
 		}
 		return fileMap;
 	}
@@ -543,8 +543,8 @@ public class DcStorageTest {
 		Bag bag = DcStorage.bagFactory.createBag(bagDir, LoadOption.BY_FILES);
 		SimpleResult result = bag.verifyValid();
 		for (SimpleMessage sm : result.getSimpleMessages()) {
-			LOGGER.trace("Code: {}, MessageType: {}, Message: {}, Subject: {}", sm.getCode(), sm.getMessageType(),
-					sm.getMessage(), sm.getSubject());
+			LOGGER.trace("Code: {}, MessageType: {}, Message: {}, Subject: {}", new Object[]{sm.getCode(), sm.getMessageType(),
+					sm.getMessage(), sm.getSubject()});
 			if (sm.getObjects() != null) {
 				for (String obj : sm.getObjects()) {
 					LOGGER.trace("\t{}", obj);

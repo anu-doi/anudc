@@ -117,7 +117,7 @@ public class TestUtil {
 	public static String createFileOfSize(File file, long sizeInBytes) throws IOException {
 		MessageDigest digester = createMd5Digester();
 		OutputStream os = null;
-		LOGGER.info("Creating {} ({}) ({} bytes)", file.getAbsolutePath(), FileUtils.byteCountToDisplaySize(sizeInBytes), sizeInBytes);
+		LOGGER.info("Creating {} ({}) ({} bytes)", new Object[]{file.getAbsolutePath(), FileUtils.byteCountToDisplaySize(sizeInBytes), sizeInBytes});
 		try {
 			os = new DigestOutputStream(new FileOutputStream(file), digester);
 			WritableByteChannel channel = Channels.newChannel(os);
