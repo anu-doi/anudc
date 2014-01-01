@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.upload;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 
@@ -56,8 +56,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-
-import net.sf.mpxj.mspdi.schema.Project.Tasks;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
@@ -95,7 +93,6 @@ import au.edu.anu.datacommons.storage.info.FileSummaryMap;
 import au.edu.anu.datacommons.storage.temp.PartTempFileTask;
 import au.edu.anu.datacommons.storage.temp.TempFileTask;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
-import au.edu.anu.datacommons.storage.verifier.VerificationTask;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
