@@ -57,7 +57,6 @@ import com.sun.jersey.core.util.Base64;
  * 
  */
 @WebListener
-@Component
 public final class WebContextListener implements ServletContextListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebContextListener.class);
 	protected static final int CONNECTION_TIMEOUT_MS = 30000;
@@ -76,7 +75,6 @@ public final class WebContextListener implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent sce) {
 		checkPythonPath();
 		checkFidoPath();
-		WebApplicationContextUtils.getRequiredWebApplicationContext(sce.getServletContext()).getAutowireCapableBeanFactory().autowireBean(this);
 		
 		// Disabling checks for other web applications as they may not start before this web application.
 //		checkFedoraServer();

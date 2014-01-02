@@ -25,8 +25,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.annotation.PreDestroy;
 
@@ -34,7 +32,6 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
-import org.apache.solr.common.SolrInputDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,11 +124,6 @@ public class StorageSearchService {
 
 	@PreDestroy
 	public void close() {
-		try {
-			solrServer.commit();
-		} catch (SolrServerException | IOException e) {
-			LOGGER.error("Unable to commit to Storage Search Index service at {}", solrServer.getBaseURL());
-		}
 		solrServer.shutdown();
 	}
 }
