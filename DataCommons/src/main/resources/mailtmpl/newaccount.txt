@@ -1,4 +1,4 @@
-Dear ${displayNam},
+Dear ${displayName},
 
 Your account has been created at The Australian National University Data Commons.
 
