@@ -183,3 +183,13 @@ function condEnableSelTasks() {
 		jQuery("#idDownloadZipSelected").attr("disabled", "disabled");
 	}
 }
+
+function showMetadataRow(filepath) {
+	escapedSelector = "meta-" + jqSelector(filepath);
+	jQuery("tr[id='" + escapedSelector + "']").slideToggle();
+}
+
+function jqSelector(str) {
+	return str.replace(/([;&,\.\+\*\~':"\!\^#$%@\[\]\(\)=>\|])/g, '\\$1');
+
+}

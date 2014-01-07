@@ -111,12 +111,16 @@
 						</td>
 						
 						<!-- Metadata slider -->
-						<td onclick="jQuery('tr[id=\'meta-${iFile.key}\']').slideToggle()"><a href="javascript:void(0);">Expand</a></td>
+						<c:set var="search" value="\'" />
+						<c:set var="replace" value="\\\'" />
+						<c:set var="escapedFilepath" value="${fn:replace(iFile.key, search, replace)}" />
+						<td onclick="showMetadataRow('${escapedFilepath}')"><a href="javascript:void(0);">Expand</a></td>
 						
 						<!-- Delete file -->
 						<sec:authorize access="isAuthenticated()"><sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
 							<td class="text-center">
-								<a href="javascript:void(0);" onclick="deleteFile('${fn:replace(it.dlBaseUri, "\'", "\\\'")}${fn:replace(iFile.key, "\'", "\\\'")}')">
+								<c:set var="escapedFileUri" value="${it.dlBaseUri}${escapedFilepath}" />
+								<a href="javascript:void(0);" onclick="deleteFile('${escapedFileUri}');">
 									<img src="<c:url value='/images/delete_red.png' />" width="12" height="12" title="Delete ${iFile.value.filename}" />
 								</a>
 							</td>
