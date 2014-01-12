@@ -23,9 +23,8 @@
 		<security:logout
 			logout-success-url="/" />
 		
-		<security:custom-filter ref="ShibbolethHeaderFilter" position="PRE_AUTH_FILTER" />
-		<!-- <security:custom-filter ref="casAuthenticationFilter" after="CAS_FILTER"/>
-		<security:custom-filter position="PRE_AUTH_FILTER" ref="tokenFilter" /> -->
+		<security:custom-filter ref="ShibbolethHeaderFilter" before="PRE_AUTH_FILTER" />
+		<security:custom-filter position="PRE_AUTH_FILTER" ref="tokenFilter" /> 
 	</security:http>
 	
 	<bean id="customAuthenticationEntryPoint" class="au.edu.anu.datacommons.security.CustomAuthenticationEntryPoint" />
@@ -46,36 +45,34 @@
 	
 	<bean id="shibbolethAuthenticationProvider" class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
 		<property name="preAuthenticatedUserDetailsService">
-			<bean id="userDetailsServiceWrapper" class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
+		<bean id="shibUserDetailsServiceWrapper" class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
 				<property name="userDetailsService" ref="shibUserDetailsService" />
 			</bean>
 		</property>
 	</bean>
 	
 	<security:authentication-manager alias="authenticationManager">
-		<!-- <security:authentication-provider ref="casAuthenticationProvider" /> -->
-		<security:authentication-provider ref="shibbolethAuthenticationProvider" />
-	 	<security:authentication-provider ref="ldapAuthProvider" />
+	 	<!-- <security:authentication-provider ref="ldapAuthProvider" /> -->
 		<security:authentication-provider ref="daoAuthenticationProvider" />
-		<!-- <security:authentication-provider ref="preauthAuthProvider" /> -->
+		<security:authentication-provider ref="preauthAuthProvider" /> 
+		<security:authentication-provider ref="shibbolethAuthenticationProvider" />
 	</security:authentication-manager>
 	
 	<security:ldap-server url="${ldap.uri}" manager-dn="" manager-password="" />
 	
 	<bean id="contextSource" class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
 		<constructor-arg value="${ldap.uri}" />
-	<!-- 	<property name="userDn" value="" /> -->
 		<property name="password" value="password" />
 	</bean>
 
 	<!-- Preauth begin -->
-	<!-- <bean id="preauthAuthProvider" class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
+	<bean id="preauthAuthProvider" class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
 		<property name="preAuthenticatedUserDetailsService">
 			<bean id="userDetailsServiceWrapper" class="org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper">
 				<property name="userDetailsService" ref="userService" />
 			</bean>
 		</property>
-	</bean> -->
+	</bean>
 
 	<bean id="tokenFilter" class="au.edu.anu.datacommons.security.tokenauth.TokenHeaderAuthenticationFilter">
 		<property name="authenticationManager" ref="authenticationManager" />

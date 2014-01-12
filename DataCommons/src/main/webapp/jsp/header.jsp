@@ -16,7 +16,7 @@
 			<li> <a href='<c:url value="/login" />'>Login</a></li>
 		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
-			<li><a href='<c:url value="/rest/user" />'>Welcome <sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.email" />)</a></li>
+			<li><a href='<c:url value="/rest/user" />'>Welcome <sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.email" />) </a></li>
 			<li><a href='<c:url value="/j_spring_security_logout" />'>Logout</a></li>
 		</sec:authorize>
 		</ul>

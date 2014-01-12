@@ -74,7 +74,6 @@ public class Users
 
 	private Long user_type;
 	private UserExtra userExtra;
-	//private UserRegistered user_registered;
 	
 	/**
 	 * getId
@@ -275,6 +274,7 @@ public class Users
 			}
 			else {
 				UserShibboleth shibbolethUser = (UserShibboleth) userExtra;
+				LOGGER.info("Shibboleth User {} email is {}", shibbolethUser.getDisplayName(), shibbolethUser.getEmail());
 				displayName = shibbolethUser.getDisplayName();
 				givenName = "";
 				familyName = "";
@@ -328,45 +328,21 @@ public class Users
 	}
 
 	/**
-	 * getUser_registered
+	 * Get t he extra user information.  This will be dependant upon what type of user object it is (i.e. a Shibboleth User or Registered User).
 	 * 
-	 * Gets information about the registered user
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.2		17/05/2012	Genevieve Turner (GT)	Initial
-	 * </pre>
-	 * 
-	 * @return Registered user information
+	 * @return The extra user information object
 	 */
-	/*@OneToOne (cascade=CascadeType.ALL) //, mappedBy="user")
-	@PrimaryKeyJoinColumn
-	public UserRegistered getUser_registered() {
-		return user_registered;
-	}*/
-
-	/**
-	 * setUser_registered
-	 * 
-	 * Sets information about the registered user
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.2		17/05/2012	Genevieve Turner (GT)	Initial
-	 * </pre>
-	 * 
-	 * @param user_registered
-	 */
-	/*public void setUser_registered(UserRegistered user_registered) {
-		this.user_registered = user_registered;
-	}*/
-
 	@OneToOne (cascade=CascadeType.ALL)
 	@PrimaryKeyJoinColumn
 	public UserExtra getUserExtra() {
 		return userExtra;
 	}
 
+	/**
+	 * Set t he extra user information.  This will be dependant upon what type of user object it is (i.e. a Shibboleth User or Registered User).
+	 * 
+	 * @param userExtra The extra user information object
+	 */
 	public void setUserExtra(UserExtra userExtra) {
 		this.userExtra = userExtra;
 	}

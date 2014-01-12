@@ -87,7 +87,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 */
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		username = username.toLowerCase();
+		//username = username.toLowerCase();
 		
 		Set<GrantedAuthority> dbAuthsSet = new HashSet<GrantedAuthority>();
 		
@@ -134,11 +134,12 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 * @return The custom user
 	 */
 	protected UserDetails createUserDetails(String username, UserDetails userDetails, List<GrantedAuthority> authorities) {
+		LOGGER.info("In createUserDetails for ANUUserDetailsService");
 		UsersDAO usersDAO = new UsersDAOImpl(Users.class);
 		Users users = usersDAO.getUserByName(username);
 		CustomUser user = null;
 		if (users != null) {
-			LOGGER.info("displayName: {})", users.getDisplayName());
+			LOGGER.info("displayName: {}", users.getDisplayName());
 		}
 		else {
 			Users newUser = new Users();
@@ -150,7 +151,10 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 			users = usersDAO.getSingleById(newUser.getId());
 			LOGGER.info("New User displayName: {})", users.getDisplayName());
 		}
-		user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authorities, users.getId(), users.getDisplayName());
+		user = new CustomUser(users, true, true, true, true, authorities);
+		/* (Users user, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired,
+					boolean accountNonLocked, List<GrantedAuthority> authorities)*/
+		//user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authorities, users.getId(), users.getDisplayName());
 		return user;
 	}
 

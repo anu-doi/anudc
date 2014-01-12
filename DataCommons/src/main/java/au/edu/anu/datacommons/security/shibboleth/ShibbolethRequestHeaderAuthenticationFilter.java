@@ -54,14 +54,13 @@ public class ShibbolethRequestHeaderAuthenticationFilter extends
 		Assert.notNull(loginHandler, "A ShibbolethLoginHandler must be set");
 	}
 	
+	@Override
 	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-		LOGGER.info("In getPreAuthenticatedPrincipal");
+		LOGGER.info("In getPreAuthenticatedPrincipal for ShibbolethRequestHeaderAuthenticationFilter");
 		if (!enable) {
 			return null;
 		}
-		LOGGER.info("Remote User: {}", request.getRemoteUser());
 		String o = (String) request.getAttribute("persistent-id");
-		LOGGER.info("Display Name: {}", request.getAttribute("displayName"));
 		if (o != null && !o.equals("")) {
 			if (!userDetailsManager.userExists(o)) {
 				loginHandler.newUserLogin(o, request);

@@ -41,7 +41,7 @@ import au.edu.anu.datacommons.config.PropertiesFile;
  * properties file.
  */
 public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
-	private static final Logger LOGGER = LoggerFactory.getLogger(TokenHeaderAuthenticationFilter.class);
+	static final Logger LOGGER = LoggerFactory.getLogger(TokenHeaderAuthenticationFilter.class);
 
 	private static final String TOKEN_HEADER = "X-Auth-Token";
 	private static Properties tokens;
@@ -64,16 +64,18 @@ public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedPro
 	 */
 	@Override
 	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
+		LOGGER.info("In getPreAuthenticatedPrincipal for TokenHeaderAuthenticationFilter" );
 		// Principal = Uni Id of user
 		String token = request.getHeader(TOKEN_HEADER);
 		String principal;
 		if (token != null && tokens != null) {
 			principal = tokens.getProperty(token);
-			if (principal != null)
-				principal = principal.toLowerCase();
+			LOGGER.info("Token Value: {}", principal);
+			//if (principal != null)
+			//	principal = principal.toLowerCase();
 		} else
 			principal = null;
-
+		LOGGER.info("Return Principal");
 		return principal;
 	}
 

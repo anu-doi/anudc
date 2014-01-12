@@ -16,10 +16,20 @@ public class ShibbolethLoginHandlerImpl implements ShibbolethLoginHandler {
 	private ShibbolethUserDetailsManager userDetailsManager;
 	private boolean createUsers = true;
 	
+	/**
+	 * Set the user details manager
+	 * 
+	 * @param userDetailsManager The user details manager
+	 */
 	public void setUserDetailsManager(ShibbolethUserDetailsManager userDetailsManager) {
 		this.userDetailsManager = userDetailsManager;
 	}
 	
+	/**
+	 * Set whether users are allowed to be created or not
+	 * 
+	 * @param on Whether users are allowed to be created
+	 */
 	public void setCreateUsers(boolean on) {
 		createUsers = on;
 	}
@@ -41,6 +51,7 @@ public class ShibbolethLoginHandlerImpl implements ShibbolethLoginHandler {
 	@Override
 	public void existingUserLogin(String username, HttpServletRequest request) {
 		LOGGER.info("In existingUserLogin");
+		LOGGER.info("Unscoped Affiliation: {}, Mail: {}",request.getAttribute("unscoped-affiliation"), request.getAttribute("mail"));
 		
 		String displayName = (String) request.getAttribute("displayName");
 		String institution = (String) request.getAttribute("o");

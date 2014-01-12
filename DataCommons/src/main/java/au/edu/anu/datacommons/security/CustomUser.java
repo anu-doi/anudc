@@ -23,6 +23,8 @@ package au.edu.anu.datacommons.security;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
@@ -48,6 +50,7 @@ import au.edu.anu.datacommons.data.db.model.Users;
  * 
  */
 public class CustomUser extends User {
+	static final Logger LOGGER = LoggerFactory.getLogger(CustomUser.class);
 	private static final long serialVersionUID = 1L;
 	private Long id;
 	private String displayName;
@@ -80,6 +83,7 @@ public class CustomUser extends User {
 			List<GrantedAuthority> authorities, Long id, String displayName) throws IllegalArgumentException {
 		super(username, password, enabled, accountNonExpired, credentialsNonExpired,
 				accountNonLocked, authorities);
+		LOGGER.debug("In custom user 1");
 		this.id = id;
 		this.displayName = displayName;
 	}
@@ -89,6 +93,7 @@ public class CustomUser extends User {
 			List<GrantedAuthority> authorities, Long id, String displayName, String email, String institution) throws IllegalArgumentException {
 		super(username, password, enabled, accountNonExpired, credentialsNonExpired,
 				accountNonLocked, authorities);
+		LOGGER.debug("In custom user 2, email: {}", email);
 		this.id = id;
 		this.displayName = displayName;
 		this.institution = institution;
@@ -117,6 +122,7 @@ public class CustomUser extends User {
 			boolean accountNonLocked, List<GrantedAuthority> authorities) throws IllegalArgumentException {
 		super(user.getUsername(), user.getPassword(), enabled, accountNonExpired, credentialsNonExpired,
 				accountNonLocked, authorities);
+		LOGGER.debug("In custom user 3, email: {}", user.getEmail());
 		this.id = user.getId();
 		this.displayName = user.getDisplayName();
 		this.email = user.getEmail();
@@ -150,7 +156,7 @@ public class CustomUser extends User {
 	 * 
 	 * @return The users id
 	 */
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
@@ -167,6 +173,7 @@ public class CustomUser extends User {
 	 * @return The users display name
 	 */
 	public String getDisplayName() {
+		LOGGER.info("In getDisplayName, {}", displayName);
 		return displayName;
 	}
 
@@ -183,29 +190,55 @@ public class CustomUser extends User {
 	 * @param displayName The users display name
 	 */
 	public void setDisplayName(String displayName) {
+		LOGGER.debug("In setDisplayName, {}", displayName);
 		this.displayName = displayName;
 	}
 	
+	/**
+	 * getEmail
+	 * 
+	 * Gets the email address.
+	 * 
+	 * @return The email address
+	 */
 	public String getEmail() {
+		LOGGER.debug("In getEmail, {}", email);
 		return email;
 	}
 
+	/**
+	 * setEmail
+	 * 
+	 * Sets the email address
+	 * 
+	 * @param email The email address
+	 */
 	public void setEmail(String email) {
+		LOGGER.debug("In setEmail, {}", email);
 		this.email = email;
 	}
 
+	/**
+	 * getInstitution
+	 * 
+	 * Get the institution
+	 * 
+	 * @return The institution
+	 */
 	public String getInstitution() {
 		return institution;
 	}
 
+	/**
+	 * setInstitution
+	 * 
+	 * Set the institution
+	 * 
+	 * @param institution The institution
+	 */
 	public void setInstitution(String institution) {
 		this.institution = institution;
 	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
 	/**
 	 * toString
 	 * 

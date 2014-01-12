@@ -51,6 +51,12 @@ public class ShibbolethUserDetailsManager implements UserDetailsManager {
 		return createUserDetails(username, user, grantedAuthorities);
 	}
 	
+	/**
+	 * Load information about users with the given username
+	 * 
+	 * @param username The username to find information for
+	 * @return The users
+	 */
 	protected List<UserDetails> loadUsersByUsername(String username) {
 		LOGGER.info("In loadUsersByUsername");
 		
@@ -61,6 +67,7 @@ public class ShibbolethUserDetailsManager implements UserDetailsManager {
 		List<UserDetails> anuUsers = new ArrayList<UserDetails>();
 		for (Users user : users) {
 			UserShibboleth shibbolethUser = (UserShibboleth) user.getUserExtra();
+			LOGGER.info("Shibboleth User: {}, username: {}, email address: {}", user.getUsername(), shibbolethUser.getDisplayName(), shibbolethUser.getEmail());
 			
 			CustomUser customUser = new CustomUser(user.getUsername(), user.getUsername(), true, true, true, true, new ArrayList<GrantedAuthority>(),
 					user.getId(), shibbolethUser.getDisplayName(), shibbolethUser.getEmail(), shibbolethUser.getInstitution());
@@ -70,6 +77,12 @@ public class ShibbolethUserDetailsManager implements UserDetailsManager {
 		return anuUsers;
 	}
 	
+	/**
+	 * Load the authorities associated with the given username
+	 * 
+	 * @param username The username
+	 * @return The granted authorities
+	 */
 	protected List<GrantedAuthority> loadUserAuthorities(String username) {
 		LOGGER.debug("In loadUserAuthorities");
 		EntityManager em = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
@@ -84,6 +97,14 @@ public class ShibbolethUserDetailsManager implements UserDetailsManager {
 		return grantedAuthorities;
 	}
 	
+	/**
+	 * Generate the UserDetails object from the provided information.
+	 * 
+	 * @param username The username
+	 * @param userFromUserQuery The user found from  previously found queries
+	 * @param combinedAuthorities The authorities the user has
+	 * @return The user details
+	 */
 	protected UserDetails createUserDetails(String username, UserDetails userFromUserQuery, List<GrantedAuthority> combinedAuthorities) {
 		LOGGER.debug("In createUserDetails");
 		CustomUser user = (CustomUser) userFromUserQuery;

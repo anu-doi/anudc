@@ -55,7 +55,6 @@
 		<input class="right" type="button" id="updateuser" name="updateuser" value="Update Details" onclick="window.location='${updateUserLink}'" />
 		</p>
 	</c:if>
-	<sec:authentication property="principal.authorities" />
 </anu:content>
 
 <anu:content layout="narrow">

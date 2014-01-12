@@ -70,13 +70,14 @@ public class RegisteredUserDetails extends JdbcDaoImpl {
 	 */
 	@Override
 	protected UserDetails createUserDetails(String username, UserDetails userDetails, List<GrantedAuthority> authorities) {
-		LOGGER.info("In createUserDetails");
+		LOGGER.info("In createUserDetail for RegisteredUserDetails");
 		UsersDAO usersDAO = new UsersDAOImpl(Users.class);
 		Users users = usersDAO.getUserByName(username);
 		CustomUser user = null;
 		LOGGER.info("displayName: {})", users.getDisplayName());
 		if (users != null) {
-			user = new CustomUser(userDetails.getUsername(), userDetails.getPassword(), userDetails.isEnabled(), true, true, true, authorities, users.getId(), users.getDisplayName());
+			user = new CustomUser(users, userDetails.isEnabled(), true, true, true, authorities);
+			//user = new CustomUser(userDetails.getUsername(), userDetails.getPassword(), userDetails.isEnabled(), true, true, true, authorities, users.getId(), users.getDisplayName());
 		}
 		else {
 			LOGGER.error("User {} not found in the database", username);

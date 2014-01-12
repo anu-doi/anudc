@@ -80,6 +80,7 @@ public class ANUUserDetailsContextMapper implements
 	@Override
 	public UserDetails mapUserFromContext(DirContextOperations ctx,
 			String username, Collection<GrantedAuthority> authorities) {
+		LOGGER.info("In mapUserFromContext");
 		//TODO Retrieve authorities from the database
 		List<GrantedAuthority> authoritiesList = new ArrayList<GrantedAuthority>(authorities);
 		addCustomAuthorities(username, authoritiesList);
@@ -89,18 +90,23 @@ public class ANUUserDetailsContextMapper implements
 		
 		CustomUser user = null;
 		if (users != null) {
-			user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authoritiesList, users.getId(), users.getDisplayName());
+			LOGGER.info("Existing user");
+			user = new CustomUser(users, true, true, true, true, authoritiesList);
+			//user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authoritiesList, users.getId(), users.getDisplayName());
 		}
 		else {
+			LOGGER.info("New user");
 			Users newUser = new Users();
 			newUser.setUsername(username);
 			newUser.setPassword(username);
 			newUser.setEnabled(Boolean.TRUE);
 			newUser.setUser_type(new Long(1));
-			usersDAO.create(newUser);
-
+			newUser = usersDAO.create(newUser);
+			
 			LOGGER.info("New User displayName: {})", newUser.getDisplayName());
-			user = new CustomUser(newUser.getUsername(), newUser.getPassword(), true, true, true, true, authoritiesList, newUser.getId(), newUser.getDisplayName());
+
+			user = new CustomUser(newUser, true, true, true, true, authoritiesList);
+			//user = new CustomUser(newUser.getUsername(), newUser.getPassword(), true, true, true, true, authoritiesList, newUser.getId(), newUser.getDisplayName());
 		}
 		LOGGER.info("Setting user details?");
 		return user;

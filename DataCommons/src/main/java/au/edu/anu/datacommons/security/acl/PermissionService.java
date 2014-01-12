@@ -106,7 +106,8 @@ public class PermissionService {
 		List<Sid> sidList = new ArrayList<Sid>();
 		if (Util.isNotEmpty(username)) {
 			LOGGER.info("Username {}", username);
-			Sid sid = new PrincipalSid(username.toLowerCase());
+			//Sid sid = new PrincipalSid(username.toLowerCase());
+			Sid sid = new PrincipalSid(username);
 			sidList.add(sid);
 		}
 		else {
