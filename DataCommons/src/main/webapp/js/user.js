@@ -26,7 +26,8 @@ jQuery("#groups").live('click', function() {
 		if (!username) {
 			return;
 		}
-		url = url + "?username=" + username;
+		// Ensure that characters such as + are url encoded
+		url = url + "?username=" + encodeURIComponent(username);
 	}
 	
 	jQuery.ajax({
@@ -55,7 +56,7 @@ jQuery("#findPeople").live('click', function() {
 		data: {
 			firstname: jQuery("#firstname").val(),
 			lastname: jQuery("#lastname").val(),
-			uniId: jQuery("#uniId").val()
+			email: jQuery("#email").val()
 		},
 		success: function(data) {
 			jQuery("#peopleList").text('');
@@ -63,16 +64,14 @@ jQuery("#findPeople").live('click', function() {
 			var headerrow = jQuery("<tr></tr>");
 			// Add a header
 			headerrow.append(jQuery("<th></th>"));
-			headerrow.append(jQuery("<th></th>").text('Uni ID'));
 			headerrow.append(jQuery("<th></th>").text('Name'));
 			headerrow.append(jQuery("<th></th>").text('Email'));
 			table.append(headerrow);
 			// Process the returned data
 			jQuery.map(data, function(item, i) {
 				var row = jQuery("<tr></tr>");
-				var radiobutton = jQuery("<input name='username' type='radio' />").attr("value",item.uniId);
+				var radiobutton = jQuery("<input name='username' type='radio' />").attr("value",item.username);
 				row.append(jQuery("<td></td>").html(radiobutton));
-				row.append(jQuery("<td></td>").text(item.uniId));
 				row.append(jQuery("<td></td>").text(item.displayName));
 				row.append(jQuery("<td></td>").text(item.email));
 				table.append(row);

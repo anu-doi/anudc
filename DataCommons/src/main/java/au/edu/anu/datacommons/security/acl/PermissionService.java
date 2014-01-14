@@ -105,8 +105,7 @@ public class PermissionService {
 		// Get the uers permissions
 		List<Sid> sidList = new ArrayList<Sid>();
 		if (Util.isNotEmpty(username)) {
-			LOGGER.info("Username {}", username);
-			//Sid sid = new PrincipalSid(username.toLowerCase());
+			LOGGER.trace("Retrieving permissions for username {}", username);
 			Sid sid = new PrincipalSid(username);
 			sidList.add(sid);
 		}
@@ -126,6 +125,16 @@ public class PermissionService {
 		// Would have liked to have had this in the previous try/catch but it appears
 		// to throw an exception when the permission is not found.
 		if (acl != null) {
+			if(LOGGER.isDebugEnabled()) {
+				if (acl.getEntries().size() > 0) {
+					for (AccessControlEntry entry : acl.getEntries()) {
+						LOGGER.debug("Id: {}, Mask: {}, Sid: {}", entry.getId(), entry.getSid(), entry.getPermission());
+						LOGGER.debug("Sids Equal: {}", entry.getSid().equals(sidList.get(0)));
+						LOGGER.debug("1: {} ", ((PrincipalSid) entry.getSid()).getPrincipal());
+						LOGGER.debug("2: {} ", ((PrincipalSid) sidList.get(0)).getPrincipal());
+					}
+				}
+			}
 			for (Permission permission : CustomACLPermission.getPermissionList()) {
 				try {
 					if (checkSinglePermission(acl,permission, sidList)) {
@@ -140,7 +149,6 @@ public class PermissionService {
 				}
 			}
 		}
-		
 		return permissionList;
 	}
 	

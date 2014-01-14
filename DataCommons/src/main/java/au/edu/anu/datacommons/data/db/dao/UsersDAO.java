@@ -21,6 +21,8 @@
 
 package au.edu.anu.datacommons.data.db.dao;
 
+import java.util.List;
+
 import au.edu.anu.datacommons.data.db.model.Users;
 
 /**
@@ -31,7 +33,7 @@ import au.edu.anu.datacommons.data.db.model.Users;
  * Class to perform actions with users in the database
  * 
  * JUnit Coverage:
- * None
+ * UsersDAOTest
  * 
  * <pre>
  * Version	Date		Developer				Description
@@ -52,4 +54,6 @@ public interface UsersDAO extends GenericDAO<Users, Long> {
 	 * @return The object with the username
 	 */
 	public Users getUserByName(String username);
+	
+	public List<Users> findUsers(String givenName, String surname, String email);
 }

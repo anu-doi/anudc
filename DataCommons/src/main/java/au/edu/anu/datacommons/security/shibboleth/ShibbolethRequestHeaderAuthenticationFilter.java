@@ -56,7 +56,7 @@ public class ShibbolethRequestHeaderAuthenticationFilter extends
 	
 	@Override
 	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-		LOGGER.info("In getPreAuthenticatedPrincipal for ShibbolethRequestHeaderAuthenticationFilter");
+		LOGGER.debug("In getPreAuthenticatedPrincipal for ShibbolethRequestHeaderAuthenticationFilter");
 		if (!enable) {
 			return null;
 		}

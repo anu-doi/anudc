@@ -64,7 +64,7 @@ public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedPro
 	 */
 	@Override
 	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-		LOGGER.info("In getPreAuthenticatedPrincipal for TokenHeaderAuthenticationFilter" );
+		LOGGER.debug("In getPreAuthenticatedPrincipal for TokenHeaderAuthenticationFilter" );
 		// Principal = Uni Id of user
 		String token = request.getHeader(TOKEN_HEADER);
 		String principal;

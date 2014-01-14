@@ -20,15 +20,15 @@
 	Search for User:<br/>
 	<label for="firstname" class="text-uni user-label">First Name</label><input id="firstname" name="firstname" type="text" /><br/>
 	<label for="lastname" class="text-uni user-label">Last Name</label><input id="lastname" name="lastname" type="text" /><br/>
-	<label for="uniId" class="text-uni user-label">Uni Id</label><input id="uniId" name="uniId" type="text" /><br/>
+	<label for="email" class="text-uni user-label">Email</label><input  id="email" name="email" type="text" /><br/>
 	<input type="button" id="findPeople" value="Search" />
 	</form>
 	<div id="peopleList"></div>
 	<div id="updateGroups">
 		Allowable groups to modify permissions for:<br/>
-		<select id="groups" size="5" style="width:170px;">
+		<select id="groups" size="5" style="width:275px;">
 			<c:forEach items="${it.groups}" var="group">
-				<option value="${group.id}">${group.group_name}</option>
+				<option value="${group.id}" title="${group.group_name}">${group.group_name}</option>
 			</c:forEach>
 		</select><br/>
 		<input type="checkbox" name="group_perm" class="chk_perm" value="1"/>READ<br/>
