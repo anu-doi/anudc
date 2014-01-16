@@ -208,10 +208,9 @@
 			<p class="msg-info">The Java upload applet below may take a few moments to display. When it does, either drag and drop files from your
 			system into the applet, or click on	the <em>Browse</em> button to select files from a dialog box.</p>
 			<form class="anuform" name="uploadForm" id="idUploadForm" enctype="multipart/form-data" method="post" action="/">
-				<input type="hidden" name="pid" value="${it.fo.object_id}" />
 				<applet code="wjhk.jupload2.JUploadApplet.class" name="JUpload" archive="<c:url value='/plugins/jupload-5.0.8.jar' />" width="680" height="500" mayscript
 					alt="The java plugin must be installed.">
-					<param name="postURL" value="<c:url value='/rest/upload;jsessionid=${cookie.JSESSIONID.value}' />" />
+					<param name="postURL" value="<c:url value='/rest/upload/${it.fo.object_id};jsessionid=${cookie.JSESSIONID.value}' />" />
 					<param name="stringUploadSuccess" value="^SUCCESS$" />
 					<param name="stringUploadError" value="^ERROR: (.*)$" />
 					<param name="stringUploadWarning" value="^WARNING: (.*)$" />

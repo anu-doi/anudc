@@ -22,10 +22,7 @@
 package au.edu.anu.datacommons.upload;
 
 import static java.text.MessageFormat.format;
-import gov.loc.repository.bagit.Manifest;
-import gov.loc.repository.bagit.Manifest.Algorithm;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -35,8 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -48,20 +43,12 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -75,23 +62,18 @@ import au.edu.anu.datacommons.collectionrequest.CollectionDropbox;
 import au.edu.anu.datacommons.collectionrequest.CollectionRequestItem;
 import au.edu.anu.datacommons.collectionrequest.PageMessages;
 import au.edu.anu.datacommons.collectionrequest.PageMessages.MessageType;
-import au.edu.anu.datacommons.data.db.dao.AccessLogRecordDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAO;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.datacommons.security.AccessLogRecord;
 import au.edu.anu.datacommons.security.AccessLogRecord.Operation;
 import au.edu.anu.datacommons.security.acl.CustomACLPermission;
-import au.edu.anu.datacommons.security.acl.PermissionService;
-import au.edu.anu.datacommons.security.service.FedoraObjectService;
+import au.edu.anu.datacommons.storage.AbstractStorageResource;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummaryMap;
-import au.edu.anu.datacommons.storage.temp.PartTempFileTask;
-import au.edu.anu.datacommons.storage.temp.TempFileTask;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 
 import com.sun.jersey.api.NotFoundException;
@@ -105,27 +87,9 @@ import com.sun.jersey.api.view.Viewable;
 @Path("/upload")
 @Component
 @Scope("request")
-public class UploadService {
+public class UploadService extends AbstractStorageResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UploadService.class);
 	private static final String BAGFILES_JSP = "/bagfiles.jsp";
-
-	@Context
-	private UriInfo uriInfo;
-	@Context
-	private HttpServletRequest request;
-	@Context
-	private HttpHeaders httpHeaders;
-
-	@Resource(name = "fedoraObjectServiceImpl")
-	private FedoraObjectService fedoraObjectService;
-
-	@Resource(name = "permissionService")
-	private PermissionService permissionService;
-	
-	@Resource(name = "dcStorage")
-	private DcStorage dcStorage;
-	
-	private AccessLogRecordDAOImpl accessLogDao = new AccessLogRecordDAOImpl(AccessLogRecord.class);
 
 	/**
 	 * Accepts POST requests from a JUpload applet and saves the files on the server for further processing. Creates a
@@ -134,103 +98,14 @@ public class UploadService {
 	 * @return A response with status information.
 	 */
 	@POST
-	@Path("/")
+	@Path("/{pid}")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doPostJUploadFilePart() {
-		Response resp = null;
-		List<FileItem> uploadedItems = null;
-		File savedFile = null;
-		int filePart = 0;
-		boolean isLastPart = false;
-
-		if (request.getParameter("jupart") != null && request.getParameter("jufinal") != null) {
-			filePart = Integer.parseInt(request.getParameter("jupart"));
-			isLastPart = request.getParameter("jufinal").equals("1");
-		}
-
-		try {
-			uploadedItems = parseUploadRequest(request);
-
-			// Retrieve pid and MD5 from request.
-			String md5 = null;
-			String pid = null;
-
-			for (FileItem fi : uploadedItems) {
-				if (fi.isFormField()) {
-					if (fi.getFieldName().equals("md5sum0")) {
-						md5 = fi.getString();
-					} else if (fi.getFieldName().equals("pid")) {
-						pid = fi.getString();
-					}
-				}
-			}
-			if (md5 == null || md5.length() == 0) {
-				throw new NullPointerException("MD5 cannot be null.");
-			}
-			if (pid == null || pid.length() == 0) {
-				throw new NullPointerException("Record Identifier cannot be null.");
-			}
-
-			// Check for write access to the fedora object.
-			FedoraObject fo = fedoraObjectService.getItemByPidWriteAccess(pid);
-
-			for (FileItem fi : uploadedItems) {
-				if (!fi.isFormField()) {
-					if (filePart > 0) {
-						String partFilename = DcStorage.convertToDiskSafe(pid) + "-" + md5;
-						PartTempFileTask task = new PartTempFileTask(fi.getInputStream(), filePart, isLastPart,
-								GlobalProps.getUploadDirAsFile(), partFilename);
-						task.setExpectedMessageDigest(Algorithm.MD5, md5);
-						savedFile = task.call();
-						if (savedFile != null) {
-							String uri = uriInfo.getPath().substring(0, uriInfo.getPath().indexOf(";jsessionid="));
-							uri = format("{0}/bag/{1}/data/{2}", uri, pid, fi.getName());
-							if (dcStorage.fileExists(pid, fi.getName())) {
-								addAccessLog(uri, Operation.UPDATE);
-							} else {
-								addAccessLog(uri, Operation.CREATE);
-							}
-							dcStorage.addFileToBag(pid, savedFile, fi.getName(), isPublishedAndPublic(fo));
-						}
-					} else {
-						TempFileTask task = new TempFileTask(fi.getInputStream(), GlobalProps.getUploadDirAsFile());
-						task.setExpectedMessageDigest(Algorithm.MD5, md5);
-						savedFile = task.call();
-						String uri = uriInfo.getPath().substring(0, uriInfo.getPath().indexOf(";jsessionid="));
-						uri = format("{0}/bag/{1}/data/{2}", uri, pid, fi.getName());
-						if (dcStorage.fileExists(pid, fi.getName())) {
-							addAccessLog(uri, Operation.UPDATE);
-						} else {
-							addAccessLog(uri, Operation.CREATE);
-						}
-						dcStorage.addFileToBag(pid, savedFile, fi.getName(), isPublishedAndPublic(fo));
-					}
-				}
-			}
-
-			resp = Response.ok("SUCCESS", MediaType.TEXT_PLAIN_TYPE).build();
-		} catch (Exception e) {
-			if (savedFile != null && savedFile.exists()) {
-				if (!savedFile.delete()) {
-					savedFile.deleteOnExit();
-				}
-			}
-			resp = Response.serverError().entity(e.getMessage()).type(MediaType.TEXT_PLAIN_TYPE).build();
-		} finally {
-			if (uploadedItems != null) {
-				for (FileItem fi : uploadedItems) {
-					if (!fi.isInMemory()) {
-						fi.delete();
-					}
-				}
-			}
-		}
-
-		return resp;
+	public Response doPostJUploadFilePart(@PathParam("pid") String pid) {
+		return processJUpload(pid, "/");
 	}
-	
+
 	/**
 	 * Returns the details of contents of a bag.
 	 * 
@@ -466,7 +341,7 @@ public class UploadService {
 					}
 					if (isAllowedItem) {
 						addAccessLog(Operation.READ);
-						resp = getBagFileOctetStreamResp(pid, filename);
+						resp = getBagFileOctetStreamResp(pid, removeDataPrefix(filename));
 					} else {
 						resp = Response.status(Status.FORBIDDEN).build();
 					}
@@ -535,6 +410,7 @@ public class UploadService {
 				resp = getBagFilesAsZip(pid, filepaths, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), "zip"));
 			} else {
 				LOGGER.info("User {} requested bag file {} in {}", getCurUsername(), fileRequested, pid);
+				fileRequested = removeDataPrefix(fileRequested);
 				if (!dcStorage.fileExists(pid, fileRequested)) {
 					throw new NotFoundException(format("File {0} not found in {1}", fileRequested, pid));
 				}
@@ -566,34 +442,8 @@ public class UploadService {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doAddFileToBag(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag,
 			InputStream is) {
-		Response resp = null;
 		LOGGER.info("User {} requested adding file {} in {}", getCurUsername(), fileInBag, pid);
-		FedoraObject fo = fedoraObjectService.getItemByPidWriteAccess(pid);
-		File uploadedFile = null;
-
-		try {
-			TempFileTask tfTask = new TempFileTask(is, GlobalProps.getUploadDirAsFile());
-			if (httpHeaders.getRequestHeader("Content-MD5") != null) {
-				String providedMd5 = httpHeaders.getRequestHeader("Content-MD5").get(0);
-				if (providedMd5 != null && providedMd5.length() > 0) {
-					tfTask.setExpectedMessageDigest(Manifest.Algorithm.MD5, providedMd5);
-				}
-			}
-			uploadedFile = tfTask.call();
-			if (dcStorage.fileExists(pid, fileInBag)) {
-				addAccessLog(Operation.UPDATE);
-			} else {
-				addAccessLog(Operation.CREATE);
-			}
-			dcStorage.addFileToBag(pid, uploadedFile, fileInBag, isPublishedAndPublic(fo));
-			resp = Response.ok(tfTask.getCalculatedMd()).build();
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-		} finally {
-			FileUtils.deleteQuietly(uploadedFile);
-		}
-		return resp;
+		return processRestUpload(pid, removeDataPrefix(fileInBag), is);
 	}
 
 	/**
@@ -609,21 +459,7 @@ public class UploadService {
 	@Path("bag/{pid}/{fileInBag:.*}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doDeleteFileInBag(@PathParam("pid") String pid, @PathParam("fileInBag") String fileInBag) {
-		Response resp = null;
-		LOGGER.info("User {} requested deletion of file {} in {}", getCurUsername(), fileInBag, pid);
-		fedoraObjectService.getItemByPidWriteAccess(pid);
-		
-		try {
-			if (dcStorage.fileExists(pid, fileInBag)) {
-				addAccessLog(Operation.DELETE);
-			}
-			dcStorage.deleteFileFromBag(pid, fileInBag);
-			resp = Response.ok(format("File {0} deleted from {1}", fileInBag, pid)).build();
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-		}
-		return resp;
+		return processDeleteFile(pid, removeDataPrefix(fileInBag));
 	}
 
 	/**
@@ -741,51 +577,6 @@ public class UploadService {
 	}
 
 	/**
-	 * Gets a Users object containing information about the currently logged in user.
-	 * 
-	 * @return Users object containing information about the currently logged in user.
-	 */
-	private Users getCurUser() {
-		return new UsersDAOImpl(Users.class).getUserByName(getCurUsername());
-	}
-	
-	private String getCurUsername() {
-		return SecurityContextHolder.getContext().getAuthentication().getName();
-	}
-
-
-	/**
-	 * Creates a Response object containing the contents of a single file in a bag of collection as Response object
-	 * containing InputStream.
-	 * 
-	 * @param pid
-	 *            Pid of the collection from which a bagfile is to be read.
-	 * @param fileInBag
-	 *            Name of file in bag whose contents are to be returned as InputStream.
-	 * @return Response object including HTTP headers and InputStream containing file contents.
-	 * @throws IOException 
-	 */
-	private Response getBagFileOctetStreamResp(String pid, String fileInBag) throws IOException {
-		Response resp = null;
-		InputStream is = null;
-
-		if (!dcStorage.fileExists(pid, fileInBag)) {
-			throw new NotFoundException(format("File {0} not found in record {1}", fileInBag, pid));
-		}
-		is = dcStorage.getFileStream(pid, fileInBag);
-		ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-		// Add filename, MD5 and file size to response header.
-		respBuilder = respBuilder.header("Content-Disposition",
-				format("attachment; filename=\"{0}\"", getFilenameFromPath(fileInBag)));
-		respBuilder = respBuilder.header("Content-MD5", dcStorage.getFileMd5(pid, fileInBag));
-		respBuilder = respBuilder.header("Content-Length", dcStorage.getFileSize(pid, fileInBag));
-		respBuilder = respBuilder.lastModified(dcStorage.getFileLastModified(pid, fileInBag));
-		resp = respBuilder.build();
-
-		return resp;
-	}
-
-	/**
 	 * Creates a Response object containing a Zip file comprised of data from multiple files in a bag of a collection.
 	 * 
 	 * @param pid
@@ -813,48 +604,6 @@ public class UploadService {
 		return resp;
 	}
 
-
-	/**
-	 * Gets the filename part from a full filename on the client that may contain file separators different from the
-	 * ones used on the server.
-	 * 
-	 * @param fullFilename
-	 *            Full path and filename as on the client's computer.
-	 * @return Filename only as String.
-	 */
-	private String getFilenameFromPath(String fullFilename) {
-		// Extract the type of slash being used in the filename.
-		char clientSlashType = (fullFilename.lastIndexOf("\\") > 0) ? '\\' : '/';
-
-		// Get the index where the filename starts. -1 if the path isn't specified.
-		int clientFilenameStartIndex = fullFilename.lastIndexOf(clientSlashType);
-
-		// Get the part of the string after the last instance of the path separator.
-		String filename = fullFilename.substring(clientFilenameStartIndex + 1, fullFilename.length());
-		return filename;
-	}
-
-	/**
-	 * Parses an HttpServletRequest and returns a list of FileItem objects. A fileItem can contain form data or a file
-	 * that was uploaded by a user.
-	 * 
-	 * @param request
-	 *            HttpServletRequest object to parse.
-	 * @return FileItem objects as List&lt;FileItem&gt;
-	 * @throws FileUploadException
-	 */
-	@SuppressWarnings("unchecked")
-	private List<FileItem> parseUploadRequest(HttpServletRequest request) throws FileUploadException {
-		// Create a new file upload handler.
-		ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory(GlobalProps.getMaxSizeInMem(),
-				GlobalProps.getUploadDirAsFile()));
-		return (List<FileItem>) upload.parseRequest(request);
-	}
-
-	private boolean isPublishedAndPublic(FedoraObject fo) {
-		return fo.getPublished() && fo.isFilesPublic();
-	}
-
 	private boolean hasRole(String[] roles) {
 		boolean hasRole = false;
 		for (GrantedAuthority authority : SecurityContextHolder.getContext().getAuthentication().getAuthorities()) {
@@ -873,15 +622,20 @@ public class UploadService {
 
 		return hasRole;
 	}
-	
-	private void addAccessLog(AccessLogRecord.Operation op) throws IOException {
-		addAccessLog(uriInfo.getPath(), op);
-	}
-	
-	private void addAccessLog(String uri, AccessLogRecord.Operation op) throws IOException {
-		AccessLogRecord alr = new AccessLogRecord(uri, getCurUser(), request.getRemoteAddr(),
-				request.getHeader("User-Agent"), op);
-		accessLogDao.create(alr);
-	}
 
+	/**
+	 * Removes the payload directory prefix from a filepath. For example, "data/somedir/abc.txt" returns
+	 * "somedir/abc.txt"
+	 * 
+	 * @param filepath
+	 *            filepath from which to remove the payload directory prefix.
+	 * 
+	 * @return filepath as String with "data/" prefix removed.
+	 */
+	private String removeDataPrefix(String filepath) {
+		if (filepath.startsWith("data/")) {
+			filepath = filepath.substring(filepath.indexOf("data/") + 5);
+		}
+		return filepath;
+	}
 }

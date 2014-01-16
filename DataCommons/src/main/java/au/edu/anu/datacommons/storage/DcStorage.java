@@ -30,11 +30,13 @@ import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.ManifestHelper;
 import gov.loc.repository.bagit.transformer.impl.TagManifestCompleter;
+import gov.loc.repository.bagit.utilities.FilenameHelper;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
 import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -42,11 +44,18 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,6 +65,10 @@ import java.util.zip.ZipOutputStream;
 
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
@@ -68,6 +81,7 @@ import org.springframework.stereotype.Component;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
+import au.edu.anu.datacommons.storage.DcStorage.FileInfo.Type;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask.Operation;
 import au.edu.anu.datacommons.storage.completer.CompleterTask;
@@ -78,6 +92,7 @@ import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
 import au.edu.anu.datacommons.storage.temp.TempFileTask;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 import au.edu.anu.datacommons.storage.verifier.VerificationTask;
+import au.edu.anu.datacommons.util.Util;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
@@ -86,23 +101,23 @@ public final class DcStorage implements Closeable {
 	public static final BagFactory bagFactory = new BagFactory();
 
 	ExecutorService threadPool = Executors.newSingleThreadExecutor();
-	
+
 	private StorageSearchService searchSvc;
-	
+
 	private Set<Manifest.Algorithm> algorithms;
 	private File bagsRootDir = null;
 	private FileFactory ff;
 	File archiveRootDir;
 	File stagingDir;
-	
+
 	public DcStorage(String bagsDirpath, FileFactory ff) throws IOException {
 		this(new File(bagsDirpath), ff);
 	}
 
-
 	/**
 	 * Initializes an instance of DataCommons Storage.
-	 * @throws IOException 
+	 * 
+	 * @throws IOException
 	 */
 	public DcStorage(File bagsDir, FileFactory ff) throws IOException {
 		this.bagsRootDir = bagsDir;
@@ -114,26 +129,23 @@ public final class DcStorage implements Closeable {
 			throw new IOException(format("Unable to create {0}. Check permissions.", bagsDir.getAbsolutePath()));
 		}
 	}
-	
+
 	public File getArchiveRootDir() {
 		return archiveRootDir;
 	}
-
 
 	public void setArchiveRootDir(File archiveRootDir) {
 		this.archiveRootDir = archiveRootDir;
 	}
 
-
 	public File getStagingDir() {
 		return stagingDir;
 	}
 
-
 	public void setStagingDir(File stagingDir) {
 		this.stagingDir = stagingDir;
 	}
-	
+
 	public FileFactory getFileFactory() {
 		return ff;
 	}
@@ -141,11 +153,10 @@ public final class DcStorage implements Closeable {
 	public void setFileFactory(FileFactory fileFactory) {
 		this.ff = fileFactory;
 	}
-	
+
 	public StorageSearchService getSearchSvc() {
 		return searchSvc;
 	}
-
 
 	public void setSearchSvc(StorageSearchService searchSvc) {
 		this.searchSvc = searchSvc;
@@ -165,13 +176,13 @@ public final class DcStorage implements Closeable {
 	 * @param filepath
 	 *            Filename to save as
 	 * @throws DcStorageException
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public void addFileToBag(String pid, URL fileUrl, String filepath, boolean shouldIndex) throws IOException {
 		if (fileUrl == null) {
 			throw new NullPointerException("File URL cannot be null.");
 		}
-		
+
 		File downloadedFile = null;
 		try {
 			TempFileTask dlTask = new TempFileTask(fileUrl, stagingDir);
@@ -198,7 +209,8 @@ public final class DcStorage implements Closeable {
 	 *             TODO
 	 * @throws DcStorageException
 	 */
-	public void addFileToBag(String pid, File sourceFile, String filepath, boolean shouldIndex) throws IOException, FileNotFoundException {
+	public void addFileToBag(String pid, File sourceFile, String filepath, boolean shouldIndex) throws IOException,
+			FileNotFoundException {
 		if (pid == null || pid.length() == 0) {
 			throw new NullPointerException("Pid cannot be null");
 		}
@@ -213,7 +225,6 @@ public final class DcStorage implements Closeable {
 					"Cannot add files to hidden directories. {0} contains hidden directories/files", filepath));
 		}
 
-		filepath = removeDataPrefix(filepath);
 		File destFile = ff.getFile(getPayloadDir(pid), filepath);
 		synchronized (destFile) {
 			LOGGER.info("Adding file {} ({}) to record {}", filepath,
@@ -228,7 +239,8 @@ public final class DcStorage implements Closeable {
 			}
 		}
 		CompleterTask compTask = new CompleterTask(bagFactory, ff, getBagDir(pid));
-		compTask.addPayloadFileAddedUpdated("data/" + filepath);
+		compTask.addPayloadFileAddedUpdated(FilenameHelper.removeBasePath(getBagDir(pid).getAbsolutePath(),
+				destFile.getAbsolutePath()));
 		threadPool.submit(compTask);
 		if (shouldIndex) {
 			indexFile(getBagDir(pid), destFile);
@@ -255,29 +267,73 @@ public final class DcStorage implements Closeable {
 		}
 		if (containsHiddenDirs(filepath)) {
 			throw new IllegalArgumentException(format(
-					"Cannot add files to hidden directories. {0} contains hidden directories/files", filepath));
+					"Cannot delete files from hidden directories. {0} contains hidden directories/files", filepath));
 		}
 
-		filepath = removeDataPrefix(filepath);
-		if (!fileExists(pid, filepath)) {
-			throw new FileNotFoundException(format("File {0} not found in record {1}.", filepath, pid));
+		if (fileExists(pid, filepath)) {
+			deleteFile(pid, filepath);
+		} else if (dirExists(pid, filepath)) {
+			deleteDir(pid, filepath);
+		} else {
+			throw new FileNotFoundException(format("File/Dir {0} not found in record {1}.", filepath, pid));
 		}
+	}
+
+	private void deleteDir(String pid, String filepath) throws IOException {
+		File dirToDel = ff.getFile(getPayloadDir(pid), filepath);
+		List<File> fileList = recurseAllFilesInDir(dirToDel);
+		for (File f : fileList) {
+			deleteFile(pid, FilenameHelper.removeBasePath(getPayloadDir(pid).getAbsolutePath(), f.getAbsolutePath()));
+		}
+		FileUtils.deleteDirectory(dirToDel);
+	}
+	
+	private List<File> recurseAllFilesInDir(File root) {
+		List<File> fileList = new ArrayList<File>();
+		File[] filesAndDirs = root.listFiles();
+		for (File f : filesAndDirs) {
+			if (f.isFile()) {
+				fileList.add(f);
+			} else if (f.isDirectory()) {
+				fileList.addAll(recurseAllFilesInDir(f));
+			}
+		}
+		return fileList;
+	}
+
+	private void deleteFile(String pid, String filepath) throws IOException {
 		File fileToDel = ff.getFile(getPayloadDir(pid), filepath);
 		synchronized (fileToDel) {
 			scheduleFileArchival(pid, fileToDel, Operation.DELETE);
-
-			// Delete blank parent directories.
-			for (File parentDir = fileToDel.getParentFile(); parentDir.isDirectory()
-					&& parentDir.listFiles().length == 0; parentDir = parentDir.getParentFile()) {
-				if (!parentDir.delete()) {
-					LOGGER.warn("Unable to delete empty directory {}", parentDir.getAbsolutePath());
-				}
-			}
 		}
 		CompleterTask compTask = new CompleterTask(bagFactory, ff, getBagDir(pid));
-		compTask.addPayloadFileDeleted("data/" + filepath);
+		compTask.addPayloadFileDeleted(FilenameHelper.removeBasePath(getBagDir(pid).getAbsolutePath(),
+				fileToDel.getAbsolutePath()));
 		threadPool.submit(compTask);
 		indexFile(getBagDir(pid), fileToDel);
+	}
+
+	public void addDirectory(String pid, String filepath) throws IOException {
+		if (pid == null || pid.length() == 0) {
+			throw new NullPointerException("Pid cannot be null");
+		}
+		if (filepath == null || filepath.length() == 0) {
+			throw new NullPointerException("Target filepath cannot be null");
+		}
+		if (containsHiddenDirs(filepath)) {
+			throw new IllegalArgumentException(format(
+					"Cannot add hidden directories. {0} contains hidden directories/files", filepath));
+		}
+
+		File newDir = ff.getFile(getPayloadDir(pid), filepath);
+		if (newDir.exists()) {
+			throw new IOException(format("A dir or file already exists at {0} in record {1}.", filepath, pid));
+		}
+
+		boolean success = newDir.mkdirs();
+		if (!success) {
+			throw new IOException(format("Unable to create {0} in {1}", filepath, pid));
+		}
 	}
 
 	/**
@@ -318,7 +374,7 @@ public final class DcStorage implements Closeable {
 	 *            Pid of the record whose bag contains the external reference to delete
 	 * @param url
 	 *            URL to delete
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public void deleteExtRefs(String pid, Collection<String> urls) throws FileNotFoundException, IOException {
 		if (pid == null || pid.length() == 0) {
@@ -353,16 +409,15 @@ public final class DcStorage implements Closeable {
 		compTask.setCompleteAllFiles();
 		threadPool.submit(compTask);
 	}
-	
+
 	public VerificationResults verifyBag(String pid) throws Exception {
 		if (!bagDirExists(pid)) {
 			throw new FileNotFoundException(format("No bag exists for record {0}", pid));
 		}
-		
+
 		VerificationTask vTask = new VerificationTask(ff, getBagDir(pid));
 		return vTask.call();
 	}
-	
 
 	/**
 	 * Checks if a bag exists for a specified collection.
@@ -420,6 +475,64 @@ public final class DcStorage implements Closeable {
 		return bs;
 	}
 
+	public SortedSet<FileInfo> getFilesInDir(String pid, String path) throws IOException {
+		if (pid == null || pid.length() == 0) {
+			throw new NullPointerException("Pid cannot be null");
+		}
+		if (!payloadDirExists(pid)) {
+			throw new FileNotFoundException(format("Record {0} doesn't contain any files", pid));
+		}
+		File payloadDir = getPayloadDir(pid);
+		File dir = ff.getFile(payloadDir, path);
+		if (!dir.isDirectory()) {
+			throw new FileNotFoundException(format("Directory {0} doesn't exist in {1}", path, pid));
+		}
+
+		File[] files = dir.listFiles(new StorageFileFilter(getPayloadDir(pid)));
+		SortedSet<FileInfo> fileInfos = new TreeSet<FileInfo>();
+		for (File f : files) {
+			FileInfo fi = new FileInfo();
+			fi.filename = f.getName();
+			fi.size = f.length();
+			fi.type = f.isDirectory() ? FileInfo.Type.DIR : FileInfo.Type.FILE;
+			fi.setRelFilepath(FilenameHelper.removeBasePath(payloadDir.getAbsolutePath(), f.getAbsolutePath()));
+			fileInfos.add(fi);
+		}
+
+		return fileInfos;
+	}
+
+	public List<FileInfo> getParentDirs(String pid, String path) throws IOException {
+		if (pid == null || pid.length() == 0) {
+			throw new NullPointerException("Pid cannot be null");
+		}
+		if (!payloadDirExists(pid)) {
+			throw new FileNotFoundException(format("Record {0} doesn't contain any files", pid));
+		}
+		File payloadDir = getPayloadDir(pid);
+		File item = ff.getFile(payloadDir, path);
+		if (item.isFile()) {
+			item = item.getParentFile();
+		}
+		List<FileInfo> parents = new ArrayList<FileInfo>();
+		while (!item.equals(payloadDir.getParentFile())) {
+			FileInfo parent = new FileInfo();
+			parent.setFilename(item.getName());
+			parent.setRelFilepath(FilenameHelper.removeBasePath(payloadDir.getAbsolutePath(), item.getAbsolutePath()));
+			parent.setSize(item.length());
+			parent.setType(FileInfo.Type.DIR);
+
+			parents.add(parent);
+			item = item.getParentFile();
+		}
+		File parent = ff.getFile(payloadDir, path).getParentFile();
+		if (parent.equals(payloadDir)) {
+			parent = null;
+		}
+		Collections.reverse(parents);
+		return parents;
+	}
+
 	/**
 	 * Gets an InputStream of a file within the bag of a specified collection.
 	 * 
@@ -432,7 +545,6 @@ public final class DcStorage implements Closeable {
 	 */
 	public InputStream getFileStream(String pid, String filepath) throws FileNotFoundException, IOException {
 		BufferedInputStream is = null;
-		filepath = removeDataPrefix(filepath);
 		try {
 			if (!fileExists(pid, filepath)) {
 				throw new FileNotFoundException(format("File {0} not found in record {1}", filepath, pid));
@@ -471,7 +583,7 @@ public final class DcStorage implements Closeable {
 
 				try {
 					for (String filepath : fileSet) {
-						ZipEntry zipEntry = new ZipEntry(removeDataPrefix(filepath));
+						ZipEntry zipEntry = new ZipEntry(filepath);
 						BagFile bagFile = bag.getBagFile(filepath);
 						if (bagFile != null) {
 							InputStream bagFileInStream = null;
@@ -518,7 +630,6 @@ public final class DcStorage implements Closeable {
 			throw new NullPointerException("Target filepath cannot be null");
 		}
 
-		filepath = removeDataPrefix(filepath);
 		if (!fileExists(pid, filepath)) {
 			throw new FileNotFoundException(format("File {0} doesn't exist in record {1}", filepath, pid));
 		}
@@ -545,23 +656,31 @@ public final class DcStorage implements Closeable {
 		if (!fileExists(pid, filepath)) {
 			throw new FileNotFoundException(format("File {0} not found in record {1}", filepath, pid));
 		}
-		File file = ff.getFile(getPayloadDir(pid), removeDataPrefix(filepath));
+		File file = ff.getFile(getPayloadDir(pid), filepath);
 		return file.length();
 	}
-	
+
 	public Date getFileLastModified(String pid, String filepath) throws FileNotFoundException, IOException {
 		if (!fileExists(pid, filepath)) {
 			throw new FileNotFoundException(format("File {0} doesn't exist in record {1}", filepath, pid));
 		}
-		return new Date(ff.getFile(getPayloadDir(pid), removeDataPrefix(filepath)).lastModified());
+		return new Date(ff.getFile(getPayloadDir(pid), filepath).lastModified());
 	}
 
 	public boolean fileExists(String pid, String filepath) throws IOException {
 		if (!payloadDirExists(pid)) {
 			return false;
 		}
-		File file = ff.getFile(getPayloadDir(pid), removeDataPrefix(filepath));
+		File file = ff.getFile(getPayloadDir(pid), filepath);
 		return file.isFile();
+	}
+
+	public boolean dirExists(String pid, String filepath) throws IOException {
+		if (!payloadDirExists(pid)) {
+			return false;
+		}
+		File dir = ff.getFile(getPayloadDir(pid), filepath);
+		return dir.isDirectory();
 	}
 
 	/**
@@ -583,16 +702,15 @@ public final class DcStorage implements Closeable {
 		File bagDir = ff.getFile(bagsRootDir, convertToDiskSafe(pid));
 		return bagDir.isDirectory();
 	}
-	
+
 	File getFile(String pid, String filepath) throws IOException {
-		filepath = removeDataPrefix(filepath);
 		if (!fileExists(pid, filepath)) {
-			 throw new FileNotFoundException(format("File {0} doesn't exist in record {1}", filepath, pid));
+			throw new FileNotFoundException(format("File {0} doesn't exist in record {1}", filepath, pid));
 		}
 		File file = ff.getFile(getPayloadDir(pid), filepath);
 		return file;
 	}
-	
+
 	File getPayloadDir(String pid) throws IOException {
 		File payloadDir = ff.getFile(getBagDir(pid), "data/");
 		synchronized (payloadDir) {
@@ -600,7 +718,7 @@ public final class DcStorage implements Closeable {
 		}
 		return payloadDir;
 	}
-	
+
 	/**
 	 * Returns a File object pointing to the directory containing the bag of a specified record. If the directory
 	 * doesn't exist, creates it and populates it with blank bag files. Use {@code bagDirExists} to check if directory
@@ -622,7 +740,7 @@ public final class DcStorage implements Closeable {
 		}
 		return bagDir;
 	}
-	
+
 	private void indexFile(final File bagDir, final File file) {
 		threadPool.submit(new Callable<Void>() {
 
@@ -638,10 +756,10 @@ public final class DcStorage implements Closeable {
 		if (pid == null || pid.length() == 0) {
 			throw new NullPointerException("Pid cannot be null");
 		}
-		
+
 		final File bagDir = getBagDir(pid);
 		final File plDir = getPayloadDir(pid);
-		
+
 		threadPool.submit(new Callable<Void>() {
 
 			@Override
@@ -649,18 +767,18 @@ public final class DcStorage implements Closeable {
 				searchSvc.indexAllFiles(bagDir, plDir);
 				return null;
 			}
-			
+
 		});
 	}
-	
+
 	public void deindexFilesInBag(String pid) throws IOException {
 		if (pid == null || pid.length() == 0) {
 			throw new NullPointerException("Pid cannot be null");
 		}
-		
+
 		final File bagDir = getBagDir(pid);
 		final File plDir = getPayloadDir(pid);
-		
+
 		threadPool.submit(new Callable<Void>() {
 
 			@Override
@@ -668,24 +786,8 @@ public final class DcStorage implements Closeable {
 				searchSvc.deindexAllFiles(bagDir, plDir);
 				return null;
 			}
-			
+
 		});
-	}
-	
-	/**
-	 * Removes the payload directory prefix from a filepath. For example, "data/somedir/abc.txt" returns
-	 * "somedir/abc.txt"
-	 * 
-	 * @param filepath
-	 *            filepath from which to remove the payload directory prefix.
-	 * 
-	 * @return filepath as String with "data/" prefix removed.
-	 */
-	private String removeDataPrefix(String filepath) {
-		if (filepath.startsWith("data/")) {
-			filepath = filepath.substring(filepath.indexOf("data/") + 5);
-		}
-		return filepath;
 	}
 
 	/**
@@ -717,22 +819,21 @@ public final class DcStorage implements Closeable {
 		// Create a placeholder datastream.
 		FedoraBroker.addDatastreamBySource(pid, "FILE" + "0", "FILE0", "<text>Files available.</text>");
 	}
-	
+
 	private void scheduleFileArchival(String pid, File fileToArchive, Operation op) throws IOException {
 		if (this.archiveRootDir == null) {
-			LOGGER.warn("Archive directory not specified. File {} will be deleted and not archived.", fileToArchive.getAbsolutePath());
+			LOGGER.warn("Archive directory not specified. File {} will be deleted and not archived.",
+					fileToArchive.getAbsolutePath());
 			if (!fileToArchive.delete()) {
 				throw new IOException(format("Unable to delete file {0}", fileToArchive.getAbsolutePath()));
 			}
 		} else {
-			LOGGER.info(
-					"File {} ({}) already exists in record {}. It will be archived and replaced with new file.",
+			LOGGER.info("File {} ({}) already exists in record {}. It will be archived and replaced with new file.",
 					fileToArchive.getName(), FileUtils.byteCountToDisplaySize(fileToArchive.length()), pid);
 			ArchiveTask archiveTask = new ArchiveTask(this.archiveRootDir, pid, fileToArchive, Algorithm.MD5, op);
 			threadPool.submit(archiveTask);
 		}
 	}
-
 
 	private void completeTagFiles(String pid) {
 		Bag bag = null;
@@ -844,10 +945,10 @@ public final class DcStorage implements Closeable {
 	public static String convertToDiskSafe(String source) {
 		return source.trim().toLowerCase().replaceAll("\\*|\\?|\\\\|:|/|\\s", "_");
 	}
-	
+
 	static boolean containsHiddenDirs(String filepath) {
 		boolean hasHiddenDirs = false;
-		
+
 		String unixFilepath = FilenameUtils.separatorsToUnix(filepath);
 		String[] parts = unixFilepath.split("/");
 		for (int i = 0; i < parts.length; i++) {
@@ -856,12 +957,131 @@ public final class DcStorage implements Closeable {
 				break;
 			}
 		}
-		
+
 		return hasHiddenDirs;
 	}
-	
+
 	private void initAlg() {
 		algorithms = new HashSet<Manifest.Algorithm>(1);
 		algorithms.add(Manifest.Algorithm.MD5);
 	}
+
+	@XmlRootElement
+	public static class RecordDataInfo {
+		private String pid;
+		private List<FileInfo> parents = new ArrayList<FileInfo>();
+		private Collection<FileInfo> files = new ArrayList<FileInfo>();
+		private String uri;
+
+		@XmlElement
+		public String getPid() {
+			return pid;
+		}
+
+		public void setPid(String pid) {
+			this.pid = pid;
+		}
+
+		@XmlElement
+		public List<FileInfo> getParents() {
+			return parents;
+		}
+
+		public void setParents(List<FileInfo> parents) {
+			this.parents = parents;
+		}
+
+		@XmlElementWrapper
+		public Collection<FileInfo> getFiles() {
+			return files;
+		}
+
+		public void setFiles(Collection<FileInfo> files) {
+			this.files = files;
+		}
+
+		@XmlElement
+		public String getUri() {
+			return uri;
+		}
+
+		public void setUri(String uri) {
+			this.uri = uri;
+		}
+	}
+
+	@XmlType
+	public static class FileInfo implements Comparable<FileInfo> {
+		public enum Type {
+			DIR, FILE
+		};
+
+		private String filename;
+		private String relFilepath;
+		private Type type;
+		private long size;
+		private String uri;
+
+		@XmlElement
+		public String getFilename() {
+			return filename;
+		}
+
+		public void setFilename(String filename) {
+			this.filename = filename;
+		}
+
+		@XmlElement
+		public String getRelFilepath() {
+			return relFilepath;
+		}
+
+		public void setRelFilepath(String relFilepath) {
+			this.relFilepath = relFilepath;
+		}
+
+		@XmlElement
+		public Type getType() {
+			return type;
+		}
+
+		public void setType(Type type) {
+			this.type = type;
+		}
+
+		@XmlElement
+		public long getSize() {
+			return size;
+		}
+
+		public void setSize(long size) {
+			this.size = size;
+		}
+
+		@XmlElement
+		public String getFriendlySize() {
+			return Util.byteCountToDisplaySize(this.size);
+		}
+
+		@XmlElement
+		public String getUri() {
+			return uri;
+		}
+
+		public void setUri(String uri) {
+			this.uri = uri;
+		}
+
+		@Override
+		public int compareTo(FileInfo o) {
+			if (this.type == Type.DIR && o.type == Type.FILE) {
+				return -1;
+			} else if (this.type == Type.FILE && o.type == Type.DIR) {
+				return 1;
+			} else {
+				return this.filename.compareToIgnoreCase(o.filename);
+			}
+		}
+	}
+
 }

@@ -50,6 +50,7 @@ public class TempFileTask extends AbstractTempFileTask {
 
 	private URL fileUrl = null;
 	private InputStream inputStream = null;
+	private long expectedSize = -1;
 	
 	private File savedFile = null;
 
@@ -62,13 +63,26 @@ public class TempFileTask extends AbstractTempFileTask {
 		super(dir);
 		this.inputStream = inputStream;
 	}
+	
+	public void setExpectedSize(long expectedSize) {
+		this.expectedSize = expectedSize;
+	}
 
 	@Override
 	public File call() throws Exception {
+		InputStream digestInputStream = wrapInputStream();
+		this.savedFile = File.createTempFile("TempFile", null, this.dir);
+		saveAs(digestInputStream, this.savedFile);
+		verifySavedFileSize();
+		verifySavedFileMessageDigest();
+		return savedFile;
+	}
+
+	private InputStream wrapInputStream() throws IOException {
 		InputStream digestInputStream = null;
 		if (this.fileUrl != null) {
 			if (this.digester != null) {
-				digestInputStream = new DigestInputStream(openUrlStream(this.fileUrl), this.digester) ;
+				digestInputStream = new DigestInputStream(openUrlStream(this.fileUrl), this.digester);
 			} else {
 				digestInputStream = openUrlStream(this.fileUrl);
 			}
@@ -79,9 +93,18 @@ public class TempFileTask extends AbstractTempFileTask {
 				digestInputStream = inputStream;
 			}
 		}
-		this.savedFile = File.createTempFile("TempFile", null, this.dir);
-		saveAs(digestInputStream, this.savedFile);
+		return digestInputStream;
+	}
 
+	private void verifySavedFileSize() throws IOException {
+		if (this.expectedSize != -1) {
+			if (this.savedFile.length() != this.expectedSize) {
+				throw new IOException(format("Actual size {0} bytes does not match expected {1} bytes", this.savedFile.length(), this.expectedSize));
+			}
+		}
+	}
+
+	private void verifySavedFileMessageDigest() throws IOException {
 		if (this.digester != null) {
 			this.calculatedMd = calcMessageDigest(this.digester);
 			if (!expectedMd.equals(calculatedMd)) {
@@ -96,7 +119,6 @@ public class TempFileTask extends AbstractTempFileTask {
 				LOGGER.debug("Calculated {} {} matches expected {}", digester.getAlgorithm(), calculatedMd, expectedMd);
 			}
 		}
-		return savedFile;
 	}
 
 	private InputStream openUrlStream(URL fileUrl) throws IOException {
