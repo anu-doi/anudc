@@ -919,6 +919,9 @@ public class CollectionRequestService
 					List<Question> curQuestions = questionDAO.getQuestionsForObject(pid, groupId, domainId, true);
 
 					// Check if each question Id provided as query parameters already exist. If not, add them.
+					if (curQuestions == null) {
+						LOGGER.error("Current Questions is null?");
+					}
 					for (Long iUpdatedId : qIdSet)
 					{
 						boolean isAlreadyMapped = false;

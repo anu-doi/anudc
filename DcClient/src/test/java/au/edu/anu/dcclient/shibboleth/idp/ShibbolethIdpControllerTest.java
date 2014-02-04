@@ -20,8 +20,9 @@ public class ShibbolethIdpControllerTest {
 	
 	@Test
 	public void test() {
-
-		/*TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager(){
+		// Uncomment to ignore the SSL trust i.e. who the person is, and who has one issued by a certificate authority
+		/*
+		TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager(){
 		    public X509Certificate[] getAcceptedIssuers(){return null;}
 		    public void checkClientTrusted(X509Certificate[] certs, String authType){}
 		    public void checkServerTrusted(X509Certificate[] certs, String authType){}
@@ -29,34 +30,28 @@ public class ShibbolethIdpControllerTest {
 
 		// Install the all-trusting trust manager
 		try {
-		SSLContext sc = SSLContext.getInstance("TLS");
-		sc.init(null, trustAllCerts, new SecureRandom());
-		HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-		HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-		public boolean verify(String hostname, SSLSession sslSession) {
-			//if (hostname.equals("localhost")) {
-				return true;
-			//}
-			//return false;
-		}
-		});
+			SSLContext sc = SSLContext.getInstance("TLS");
+			sc.init(null, trustAllCerts, new SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+			HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+			public boolean verify(String hostname, SSLSession sslSession) {
+					return true;
+			}
+			});
 		} catch (Exception e) {
 		    ;
 		}*/
 		
 		ShibbolethIdpController controller = new ShibbolethIdpController();
-		List<ShibbolethIdp> idpList = controller.getShibbolethIdpList();
+		List<IdentityProvider> idpList = controller.getShibbolethIdpList();
 		printList(idpList);
 	}
 	
-	private  void printList(List<ShibbolethIdp> idpList) {
+	private void printList(List<IdentityProvider> idpList) {
 		if (idpList != null) {
-			LOGGER.info("Number of Idp's found: {}", idpList.size());
-			for (ShibbolethIdp idp : idpList) {
-				LOGGER.info("Entity ID: {}", idp.getEntityID());
-				for (ShibbolethDisplayName displayName : idp.getDisplayNames()) {
-					LOGGER.info("Language: {}, Value: {}", displayName.getLanguage(), displayName.getValue());
-				}
+			LOGGER.info("Number of IdP's found: {}", idpList.size());
+			for (IdentityProvider idp : idpList) {
+				LOGGER.info("Entity ID: {}, Display Name: {}, ECP Location: {}", idp.getEntityID(), idp.getDisplayName(), idp.getEcpURL());
 			}
 		}
 		else {

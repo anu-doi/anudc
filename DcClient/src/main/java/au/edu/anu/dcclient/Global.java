@@ -171,11 +171,21 @@ public abstract class Global
 		return UriBuilder.fromUri(getAppServerUriAsString()).path(globalProperties.getProperty("app.server.addLinkUri")).build();
 	}
 	
-	public static String getDiscoveryFeedUriAsString()
+	/**
+	 * Get the URL where the list of ECP enabled IdP's are at
+	 * 
+	 * @return The URL
+	 */
+	public static String getIdpList()
 	{
-		return getAppServerUriAsString() + globalProperties.getProperty("app.server.shib.disco_feed");
+		return globalProperties.getProperty("idplist");
 	}
 	
+	/**
+	 * Get the URL to use to log in to the Shibboleth Service Provider
+	 * 
+	 * @return Shibboleth login URL
+	 */
 	public static String getShibbolethLoginUriAsString()
 	{
 		return getAppServerUriAsString() + globalProperties.getProperty("app.server.shib.login_uri");

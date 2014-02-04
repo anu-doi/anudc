@@ -49,6 +49,19 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
+/*
+ * ShibbolethAuthenticator
+ *
+ * Australian National University Data Commons
+ * 
+ * Authenticates a user to shibboleth
+ *
+ * JUnit coverage:
+ * None
+ * 
+ * @author Genevieve Turner
+ *
+ */
 public class ShibbolethAuthenticator {
 	static final Logger LOGGER = LoggerFactory.getLogger(ShibbolethAuthenticator.class);
 	
@@ -62,19 +75,33 @@ public class ShibbolethAuthenticator {
 	private static final String paosVersion = "ver=\"urn:liberty:paos:2003-08\"";
 	private static final String supportsService = "\"urn:oasis:names:tc:SAML:2.0:profiles:SSO:ecp\"";
 	
+	/**
+	 * Constructor
+	 * 
+	 * @param username The username of the person to authenticate
+	 * @param password The password of the person to authenticate
+	 * @param idp The url of the identity provider to authenticate against
+	 */
 	public ShibbolethAuthenticator(String username, String password, String idp) {
 		this.username_ = username;
 		this.password_ = password;
 		this.idp_ = idp;
 	}
 	
+	/**
+	 * Authenticate the user
+	 * 
+	 * @return The authentication cookies
+	 * @throws ShibbolethAuthenticationException
+	 */
 	public List<Cookie> authenticate() throws ShibbolethAuthenticationException {
 		String loginUrl = Global.getShibbolethLoginUriAsString();
 		if (idp_ == null || "".equals(idp_.trim())) {
 			throw new ShibbolethAuthenticationException("No Identity Provider selected");
 		}
 		LOGGER.info("IdP: {}", idp_);
-		if (idp_.endsWith("/profile/SAML2/SOAP/ECP")) {
+		if (idp_.endsWith("/SAML2/SOAP/ECP")) {
+			LOGGER.debug("Is the ECP end point");
 			//TODO figure out how to know what the ECP url is!
 			//Do nothing as this is the url we want
 		}
@@ -93,6 +120,13 @@ public class ShibbolethAuthenticator {
 		return cookies;
 	}
 	
+	/**
+	 * Get the service provider information.  This sends a get request to the Shibboleth Service Provider login url with the appropriate paos accept types and headers.
+	 * 
+	 * @param targetURL The service provider login url
+	 * @return The information returned
+	 * @throws ShibbolethAuthenticationException
+	 */
 	private AuthenticationInformation getServiceProviderInformation(String targetURL) throws ShibbolethAuthenticationException
 	{
 		LOGGER.info("In getServiceProviderInformation");
@@ -102,9 +136,8 @@ public class ShibbolethAuthenticator {
 		
 		WebResource resource = spClient_.resource(targetURL);
 		ClientResponse clientResponse = resource.accept("text/html, application/vnd.paos+xml").header("PAOS", paosVersion + ";" + supportsService).get(ClientResponse.class);
+		//Process the response
 		if (clientResponse.getStatus() == 200) {
-			//LOGGER.info("Response: {}", clientResponse.getEntity(String.class));
-			
 			AuthenticationInformation authInfo = storeAuthenticationInfo(clientResponse);
 			if  (authInfo.getAssertionConsumerServiceURL() == null) {
 				throw new ShibbolethAuthenticationException("No Paos request header found");
@@ -123,6 +156,16 @@ public class ShibbolethAuthenticator {
 		return null;
 	}
 	
+	/**
+	 * Send an authentication request to the IdP.
+	 * 
+	 * @param spAuthInfo Information about the service provider
+	 * @param idp The identity provider ECP end point URL
+	 * @param username The username of the person to authenticate
+	 * @param password The password of the person to authenticate
+	 * @return The information returned from the authentication request
+	 * @throws ShibbolethAuthenticationException
+	 */
 	private AuthenticationInformation requestIdpAuthentication(AuthenticationInformation spAuthInfo, String idp, String username, String password)  throws ShibbolethAuthenticationException
 	{
 		if (idpClient_ == null) {
@@ -131,18 +174,21 @@ public class ShibbolethAuthenticator {
 		ClientFilter clientFilter = new HTTPBasicAuthFilter(username, password);
 		idpClient_.addFilter(clientFilter);
 		
-		LOGGER.info("Idp URL: {}", idp);
+		LOGGER.debug("Idp URL: {}", idp);
 		WebResource resource = idpClient_.resource(idp);
 		WebResource.Builder builder = resource.getRequestBuilder();
 		
+		// Ensure the cookies from the sp are sent to the idp
 		for (NewCookie cookie : spAuthInfo.getCookies()) {
 			builder = builder.cookie(cookie);
 		}
+		//Create the soap envelope to send to the idp to authenticate the user
 		Envelope newEnvelope = (Envelope) buildObject(Envelope.DEFAULT_ELEMENT_NAME);
 		newEnvelope.setBody(spAuthInfo.getBody());;
 		
 		InputStream envelopeInputStream = envelopeToInputStream(newEnvelope);
 		ClientResponse clientResponse = builder.post(ClientResponse.class, envelopeInputStream);
+		//Process the response
 		if (clientResponse.getStatus() == 200) {
 			AuthenticationInformation authInfo = storeAuthenticationInfo(clientResponse);
 			if (authInfo.getAssertionConsumerServiceURL() == null) {
@@ -160,6 +206,13 @@ public class ShibbolethAuthenticator {
 		
 	}
 	
+	/**
+	 * Store the authentication information from the client response
+	 * 
+	 * @param clientResponse The client response
+	 * @return The information obtained from the shibboleth provider
+	 * @throws ShibbolethAuthenticationException
+	 */
 	private AuthenticationInformation storeAuthenticationInfo(ClientResponse clientResponse)  throws ShibbolethAuthenticationException
 	{
 		LOGGER.info("In storeAuthenticationInfo");
@@ -201,6 +254,12 @@ public class ShibbolethAuthenticator {
 		return authInfo;
 	}
 	
+	/**
+	 * Transform an envelope object to an input stream
+	 * @param envelope
+	 * @return
+	 * @throws ShibbolethAuthenticationException
+	 */
 	private InputStream envelopeToInputStream(Envelope envelope) throws ShibbolethAuthenticationException {
 		try {
 			Document doc = asDOMDocument(envelope);
@@ -217,6 +276,15 @@ public class ShibbolethAuthenticator {
 		}
 	}
 	
+	/**
+	 * Establish 
+	 * 
+	 * @param spAuthInfo The stored service provider information
+	 * @param idpAuthInfo The stored identity provider information
+	 * @param targetURL The service provider login url
+	 * @return A list of cookies that can be used to hold the session and authenticate the user
+	 * @throws ShibbolethAuthenticationException
+	 */
 	private List<NewCookie> establishSpSession(AuthenticationInformation spAuthInfo, AuthenticationInformation idpAuthInfo, String targetURL)
 			throws ShibbolethAuthenticationException {
 		Envelope spEnvelope = (Envelope) buildObject(Envelope.DEFAULT_ELEMENT_NAME);
@@ -246,6 +314,13 @@ public class ShibbolethAuthenticator {
 		return null;
 	}
 	
+	/**
+	 * Get the envelope from the input stream
+	 * 
+	 * @param is The input stream
+	 * @return The assocaited envelope
+	 * @throws ShibbolethAuthenticationException
+	 */
 	private Envelope getEnvelope(InputStream is) throws ShibbolethAuthenticationException 
 	{
 		XMLObject xmlObject = inputStreamToXMLObject(is);
@@ -254,12 +329,25 @@ public class ShibbolethAuthenticator {
 		return (Envelope) xmlObject;
 	}
 	
+	/**
+	 * Create an XMLObject for saml
+	 * 
+	 * @param qName The qualified name to create the object for
+	 * @return The created XMLObject
+	 */
 	private XMLObject buildObject(QName qName) {
 		XMLObjectBuilderFactory builderFactory = Configuration.getBuilderFactory();
 		XMLObject object = builderFactory.getBuilder(qName).buildObject(qName);
 		return object;
 	}
 	
+	/**
+	 * Transform an inputstream to a XMLObject
+	 * 
+	 * @param is The input stream
+	 * @return The XMLObject
+	 * @throws ShibbolethAuthenticationException
+	 */
 	private XMLObject inputStreamToXMLObject(InputStream is) throws ShibbolethAuthenticationException 
 	{
 		BasicParserPool ppMgr = new BasicParserPool();
@@ -287,6 +375,14 @@ public class ShibbolethAuthenticator {
 		return xmlObject;
 	}
 	
+	/**
+	 * Create a w3c document object from an XMLObject
+	 * 
+	 * @param object The XMLObject
+	 * @return The DOM Object
+	 * @throws ParserConfigurationException
+	 * @throws MarshallingException
+	 */
 	public Document asDOMDocument(XMLObject object) throws ParserConfigurationException, MarshallingException
 	{
 		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -297,6 +393,13 @@ public class ShibbolethAuthenticator {
 		return doc;
 	}
 	
+	/**
+	 * Create an input stream from a w3c document
+	 * @param doc The document
+	 * @return The input stream
+	 * @throws TransformerConfigurationException
+	 * @throws TransformerException
+	 */
 	public InputStream documentToInputStream(Document doc) throws TransformerConfigurationException, TransformerException
 	{
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

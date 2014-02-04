@@ -15,24 +15,41 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 
+/*
+ * ShibbolethIdpController
+ *
+ * Australian National University Data Commons
+ * 
+ * A controller that retrieves and proceses a list of 
+ *
+ * JUnit coverage:
+ * ShibbolethIdpControllerTest
+ * 
+ * @author Genevieve Turner
+ *
+ */
 public class ShibbolethIdpController {
 	static final Logger LOGGER = LoggerFactory.getLogger(ShibbolethIdpController.class);
 	
-	private static List<ShibbolethIdp> entities_;
+	private static List<IdentityProvider> entities_;
 	
-	public List<ShibbolethIdp> getShibbolethIdpList() {
+	public List<IdentityProvider> getShibbolethIdpList() {
 		if (entities_ == null) {
 			ClientConfig clientConfig = new DefaultClientConfig();
 			clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
 			Client client = Client.create(clientConfig);
-
-			//WebResource resource = client.resource("https://dc7-dev1.anu.edu.au/Shibboleth.sso/DiscoFeed");
-			WebResource resource = client.resource(Global.getDiscoveryFeedUriAsString());
+			
+			LOGGER.debug("IdP List URL: {}", Global.getIdpList());
+			WebResource resource = client.resource(Global.getIdpList());
 			ClientResponse response = resource.get(ClientResponse.class);
 			if (response.getStatus() == 200) {
-				entities_ = response.getEntity(new GenericType<List<ShibbolethIdp>>(){});
+				entities_ = response.getEntity(new GenericType<List<IdentityProvider>>(){});
+			}
+			else {
+				LOGGER.error("Error response status: {}", response.getStatus());
 			}
 		}
+		LOGGER.info("Returning Entities");
 		return entities_;
 	}
 }

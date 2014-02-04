@@ -49,7 +49,7 @@ import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.dcclient.shibboleth.idp.ShibbolethIdp;
+import au.edu.anu.dcclient.shibboleth.idp.IdentityProvider;
 import au.edu.anu.dcclient.shibboleth.idp.ShibbolethIdpController;
 import au.edu.anu.dcclient.tasks.GetUserInfoTask;
 import au.edu.anu.dcclient.tasks.SetAuthDefaultTask;
@@ -70,7 +70,7 @@ public class LoginDialog extends JDialog {
 	private JLabel lblIdp;
 	private JLabel lblUser;
 	private JLabel lblPassword;
-	private JComboBox<ShibbolethIdp> cboIdp;
+	private JComboBox<IdentityProvider> cboIdp;
 	private JTextField txtUser;
 	private JTextField txtPassword;
 	private JProgressBar progressBar;
@@ -89,7 +89,7 @@ public class LoginDialog extends JDialog {
 	private void initGui() {
 		setResizable(false);
 		setTitle("Login");
-		setSize(293, 128);
+		setSize(293, 160);
 		setModalityType(ModalityType.APPLICATION_MODAL);
 		setLocationRelativeTo(this.parent);
 		getContentPane().setLayout(new BorderLayout());
@@ -112,21 +112,24 @@ public class LoginDialog extends JDialog {
 		int y = 0;
 		
 		lblIdp = new JLabel("Site");
+		gbc.anchor =GridBagConstraints.NORTHWEST;
 		gbc.gridx = x++;
 		gbc.gridy = y;
 		this.contentPanel.add(this.lblIdp, gbc);
 		
 		ShibbolethIdpController controller = new ShibbolethIdpController();
-		List<ShibbolethIdp> idpList  = controller.getShibbolethIdpList();
+		List<IdentityProvider> idpList  = controller.getShibbolethIdpList();
 		//Sort the list so it is in alphabetical order
-		Collections.sort(idpList, new Comparator<ShibbolethIdp>() {
+		Collections.sort(idpList, new Comparator<IdentityProvider>() {
 			@Override
-			public int compare(ShibbolethIdp o1, ShibbolethIdp o2) {
-				return o1.toString().compareTo(o2.toString());
+			public int compare(IdentityProvider o1, IdentityProvider o2) {
+				return o1.toString().toLowerCase().compareTo(o2.toString().toLowerCase());
 			}
 		});
 		
-		cboIdp = new JComboBox<ShibbolethIdp>(idpList.toArray(new ShibbolethIdp[0]));
+		cboIdp = new JComboBox<IdentityProvider>(idpList.toArray(new IdentityProvider[0]));
+		gbc.anchor = GridBagConstraints.NORTH;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridx = x++;
 		gbc.gridy = y;
 		this.contentPanel.add(this.cboIdp, gbc);
@@ -165,7 +168,7 @@ public class LoginDialog extends JDialog {
 
 		this.lblPassword = new JLabel("Password");
 		GridBagConstraints gbc_lblPassword = new GridBagConstraints();
-		gbc_lblPassword.anchor = GridBagConstraints.WEST;
+		gbc_lblPassword.anchor = GridBagConstraints.NORTHWEST;
 		gbc_lblPassword.insets = new Insets(0, 0, 0, 5);
 		//gbc_lblPassword.gridx = 0;
 		//gbc_lblPassword.gridy = 1;
@@ -253,7 +256,7 @@ public class LoginDialog extends JDialog {
 					optionSelected = JOptionPane.OK_OPTION;
 					
 					final SetAuthDefaultTask setAuthTask = new SetAuthDefaultTask(LoginDialog.this.txtUser.getText(),
-							LoginDialog.this.txtPassword.getText(), ((ShibbolethIdp)LoginDialog.this.cboIdp.getSelectedItem()).getEntityID());
+							LoginDialog.this.txtPassword.getText(), ((IdentityProvider)LoginDialog.this.cboIdp.getSelectedItem()).getEcpURL());
 					setAuthTask.execute();
 					LOGGER.info("SetAuthTask Created");
 					
