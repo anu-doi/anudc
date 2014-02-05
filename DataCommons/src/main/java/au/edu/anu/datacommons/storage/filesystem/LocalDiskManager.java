@@ -23,17 +23,25 @@ package au.edu.anu.datacommons.storage.filesystem;
 
 import static java.text.MessageFormat.format;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.CopyOption;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileAttribute;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +54,8 @@ import com.sun.syndication.feed.rss.Channel;
 public class LocalDiskManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LocalDiskManager.class);
 	
+	private LockManager<Path> lockMgr = new LockManager<>();
+	
 	private Path root;
 
 	public LocalDiskManager(String rootPath) throws IOException {
@@ -56,7 +66,7 @@ public class LocalDiskManager {
 		super();
 		this.root = root.toAbsolutePath();
 		verifyIsDirectory(this.root);
-		verifyWritable(this.root);
+		verifyIsWritable(this.root);
 	}
 	
 	public boolean fileOrDirExists(String... relPath) {
@@ -75,17 +85,67 @@ public class LocalDiskManager {
 	}
 	
 	public void move(Path source, String... relPath) throws IOException {
-		verifyReadable(source);
+		verifyIsFile(source);
+		verifyIsReadable(source);
 
 		Path target = createTargetPath(relPath);
-		// TODO Lock target file and parent dirs.
-		Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
+		createDirs(target.getParent());
+		
+		try {
+			lockMgr.writeLock(target);
+			Files.move(source, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			Files.deleteIfExists(target);
+			throw e;
+		} finally {
+			lockMgr.writeUnlock(target);
+		}
 	}
 
 	public void write(InputStream is, String... relPath) throws IOException {
 		Path target = createTargetPath(relPath);
-		// TODO Lock target.
-		Files.copy(is, target);
+		createDirs(target.getParent());
+		
+		try {
+			lockMgr.writeLock(target);
+			Files.copy(is, target, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			Files.deleteIfExists(target);
+			throw e;
+		} finally {
+			IOUtils.closeQuietly(is);
+			lockMgr.writeUnlock(target);
+		}
+	}
+	
+	public void delete(String... relPath) throws IOException {
+		Path target = createTargetPath(relPath);
+		verifyIsFile(target);
+		verifyIsWritable(target);
+		
+		try {
+			lockMgr.writeLock(target);
+			Files.delete(target);
+		} finally {
+			lockMgr.writeUnlock(target);
+		}
+	}
+	
+	public InputStream getInputStream(String... relPath) throws IOException {
+		Path target = createTargetPath(relPath);
+		verifyIsFile(target);
+		verifyIsReadable(target);
+
+		return new LockableInputStream(Files.newInputStream(target), this.lockMgr, target); 
+	}
+	
+	public List<Path> enumFiles(boolean includeSubdirs, String... relPath) throws IOException {
+		Path target = createTargetPath(relPath);
+		verifyIsDirectory(target);
+		verifyIsReadable(target);
+		
+		List<Path> filesInDir = listFilesInDirRelPath(target, includeSubdirs);
+		return filesInDir;
 	}
 	
 	String createFullPath(String... relPath) {
@@ -96,6 +156,10 @@ public class LocalDiskManager {
 		return fullPath;
 	}
 	
+	private void createDirs(Path path) throws IOException {
+		Files.createDirectories(path);
+	}
+
 	private void verifyIsFile(Path path) throws IOException {
 		verifyExists(path);
 		if (!Files.isRegularFile(path)) {
@@ -110,14 +174,14 @@ public class LocalDiskManager {
 		}
 	}
 	
-	private void verifyReadable(Path path) throws IOException {
+	private void verifyIsReadable(Path path) throws IOException {
 		verifyExists(path);
 		if (!Files.isReadable(path)) {
 			throw new IOException(format("{0} is not readable.", path.toAbsolutePath().toString()));
 		}
 	}
 	
-	private void verifyWritable(Path path) throws IOException {
+	private void verifyIsWritable(Path path) throws IOException {
 		verifyExists(path);
 		if (!Files.isWritable(path)) {
 			throw new IOException(format("{0} is not writable.", path.toAbsolutePath().toString()));
@@ -132,7 +196,7 @@ public class LocalDiskManager {
 
 	private Path createTargetPath(String... relPath) {
 		Path target = Paths.get(root.toString(), relPath);
-		return target;
+		return lockMgr.getOrAdd(target);
 	}
 
 	private String stripLeadingSeparator(String path) {
@@ -140,6 +204,46 @@ public class LocalDiskManager {
 			return path.substring(1);
 		} else {
 			return path;
+		}
+	}
+	
+	private List<Path> listFilesInDirRelPath(Path root, boolean recurse) throws IOException {
+		List<Path> fileList = new ArrayList<>();
+		for (Path p : listFilesInDirFullPath(root, recurse)) {
+			fileList.add(root.relativize(p));
+		}
+		return fileList;
+	}
+	
+	private List<Path> listFilesInDirFullPath(Path root, boolean recurse) throws IOException {
+		List<Path> fileList = new ArrayList<>();
+		DirectoryStream<Path> dirStream = Files.newDirectoryStream(root);
+		for (Path p : dirStream) {
+			if (Files.isDirectory(p)) {
+				// fileList.add(p);
+				if (recurse) {
+					fileList.addAll(listFilesInDirFullPath(p, true));
+				}
+			} else if (Files.isRegularFile(p)) {
+				fileList.add(p);
+			}
+		}
+		return fileList;
+	}
+	
+	private static class LockableInputStream extends FilterInputStream {
+		private LockManager<Path> lockMgr;
+		private Path path;
+		
+		protected LockableInputStream(InputStream in, LockManager<Path> lockMgr, Path path) {
+			super(in instanceof BufferedInputStream ? in : new BufferedInputStream(in));
+		}
+		
+		@Override
+		public void close() throws IOException {
+			super.close();
+			lockMgr.readUnlock(path);
+			path = null;
 		}
 	}
 }
