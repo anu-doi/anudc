@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.storage;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
@@ -36,7 +36,6 @@ import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -44,15 +43,12 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -64,11 +60,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
@@ -76,42 +67,48 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
-import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.datacommons.security.service.FedoraObjectService;
-import au.edu.anu.datacommons.storage.DcStorage.FileInfo.Type;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask.Operation;
 import au.edu.anu.datacommons.storage.completer.CompleterTask;
 import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.info.BagSummary;
+import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.info.RecordDataInfo;
+import au.edu.anu.datacommons.storage.info.RecordDataInfoService;
 import au.edu.anu.datacommons.storage.search.StorageSearchService;
 import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
 import au.edu.anu.datacommons.storage.temp.TempFileTask;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 import au.edu.anu.datacommons.storage.verifier.VerificationTask;
-import au.edu.anu.datacommons.util.Util;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
+@Component
 public final class DcStorage implements Closeable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorage.class);
 	public static final BagFactory bagFactory = new BagFactory();
 
 	ExecutorService threadPool = Executors.newSingleThreadExecutor();
 
+	@Autowired(required = true)
+	private RecordDataInfoService rdiSvc;
+	@Autowired
 	private StorageSearchService searchSvc;
+	@Autowired(required = true)
+	FileFactory ff;
+	
 
 	private Set<Manifest.Algorithm> algorithms;
 	private File bagsRootDir = null;
-	private FileFactory ff;
 	File archiveRootDir;
 	File stagingDir;
 
-	public DcStorage(String bagsDirpath, FileFactory ff) throws IOException {
-		this(new File(bagsDirpath), ff);
+	public DcStorage(String bagsDirpath) throws IOException {
+		this(new File(bagsDirpath));
 	}
 
 	/**
@@ -119,9 +116,8 @@ public final class DcStorage implements Closeable {
 	 * 
 	 * @throws IOException
 	 */
-	public DcStorage(File bagsDir, FileFactory ff) throws IOException {
+	public DcStorage(File bagsDir) throws IOException {
 		this.bagsRootDir = bagsDir;
-		this.ff = ff;
 		initAlg();
 
 		// If the directory specified doesn't exist, create it.
@@ -144,26 +140,6 @@ public final class DcStorage implements Closeable {
 
 	public void setStagingDir(File stagingDir) {
 		this.stagingDir = stagingDir;
-	}
-
-	public FileFactory getFileFactory() {
-		return ff;
-	}
-
-	public void setFileFactory(FileFactory fileFactory) {
-		this.ff = fileFactory;
-	}
-
-	public StorageSearchService getSearchSvc() {
-		return searchSvc;
-	}
-
-	public void setSearchSvc(StorageSearchService searchSvc) {
-		this.searchSvc = searchSvc;
-	}
-
-	File getBagsRootDir() {
-		return bagsRootDir;
 	}
 
 	/**
@@ -474,63 +450,9 @@ public final class DcStorage implements Closeable {
 		BagSummary bs = bsTask.generateBagSummary();
 		return bs;
 	}
-
-	public SortedSet<FileInfo> getFilesInDir(String pid, String path) throws IOException {
-		if (pid == null || pid.length() == 0) {
-			throw new NullPointerException("Pid cannot be null");
-		}
-		if (!payloadDirExists(pid)) {
-			throw new FileNotFoundException(format("Record {0} doesn't contain any files", pid));
-		}
-		File payloadDir = getPayloadDir(pid);
-		File dir = ff.getFile(payloadDir, path);
-		if (!dir.isDirectory()) {
-			throw new FileNotFoundException(format("Directory {0} doesn't exist in {1}", path, pid));
-		}
-
-		File[] files = dir.listFiles(new StorageFileFilter(getPayloadDir(pid)));
-		SortedSet<FileInfo> fileInfos = new TreeSet<FileInfo>();
-		for (File f : files) {
-			FileInfo fi = new FileInfo();
-			fi.filename = f.getName();
-			fi.size = f.length();
-			fi.type = f.isDirectory() ? FileInfo.Type.DIR : FileInfo.Type.FILE;
-			fi.setRelFilepath(FilenameHelper.removeBasePath(payloadDir.getAbsolutePath(), f.getAbsolutePath()));
-			fileInfos.add(fi);
-		}
-
-		return fileInfos;
-	}
-
-	public List<FileInfo> getParentDirs(String pid, String path) throws IOException {
-		if (pid == null || pid.length() == 0) {
-			throw new NullPointerException("Pid cannot be null");
-		}
-		if (!payloadDirExists(pid)) {
-			throw new FileNotFoundException(format("Record {0} doesn't contain any files", pid));
-		}
-		File payloadDir = getPayloadDir(pid);
-		File item = ff.getFile(payloadDir, path);
-		if (item.isFile()) {
-			item = item.getParentFile();
-		}
-		List<FileInfo> parents = new ArrayList<FileInfo>();
-		while (!item.equals(payloadDir.getParentFile())) {
-			FileInfo parent = new FileInfo();
-			parent.setFilename(item.getName());
-			parent.setRelFilepath(FilenameHelper.removeBasePath(payloadDir.getAbsolutePath(), item.getAbsolutePath()));
-			parent.setSize(item.length());
-			parent.setType(FileInfo.Type.DIR);
-
-			parents.add(parent);
-			item = item.getParentFile();
-		}
-		File parent = ff.getFile(payloadDir, path).getParentFile();
-		if (parent.equals(payloadDir)) {
-			parent = null;
-		}
-		Collections.reverse(parents);
-		return parents;
+	
+	public RecordDataInfo getRecordDataInfo(String pid) throws IOException {
+		return rdiSvc.getRecordDataInfo(pid, getBagDir(pid).toPath());
 	}
 
 	/**
@@ -964,124 +886,6 @@ public final class DcStorage implements Closeable {
 	private void initAlg() {
 		algorithms = new HashSet<Manifest.Algorithm>(1);
 		algorithms.add(Manifest.Algorithm.MD5);
-	}
-
-	@XmlRootElement
-	public static class RecordDataInfo {
-		private String pid;
-		private List<FileInfo> parents = new ArrayList<FileInfo>();
-		private Collection<FileInfo> files = new ArrayList<FileInfo>();
-		private String uri;
-
-		@XmlElement
-		public String getPid() {
-			return pid;
-		}
-
-		public void setPid(String pid) {
-			this.pid = pid;
-		}
-
-		@XmlElement
-		public List<FileInfo> getParents() {
-			return parents;
-		}
-
-		public void setParents(List<FileInfo> parents) {
-			this.parents = parents;
-		}
-
-		@XmlElementWrapper
-		public Collection<FileInfo> getFiles() {
-			return files;
-		}
-
-		public void setFiles(Collection<FileInfo> files) {
-			this.files = files;
-		}
-
-		@XmlElement
-		public String getUri() {
-			return uri;
-		}
-
-		public void setUri(String uri) {
-			this.uri = uri;
-		}
-	}
-
-	@XmlType
-	public static class FileInfo implements Comparable<FileInfo> {
-		public enum Type {
-			DIR, FILE
-		};
-
-		private String filename;
-		private String relFilepath;
-		private Type type;
-		private long size;
-		private String uri;
-
-		@XmlElement
-		public String getFilename() {
-			return filename;
-		}
-
-		public void setFilename(String filename) {
-			this.filename = filename;
-		}
-
-		@XmlElement
-		public String getRelFilepath() {
-			return relFilepath;
-		}
-
-		public void setRelFilepath(String relFilepath) {
-			this.relFilepath = relFilepath;
-		}
-
-		@XmlElement
-		public Type getType() {
-			return type;
-		}
-
-		public void setType(Type type) {
-			this.type = type;
-		}
-
-		@XmlElement
-		public long getSize() {
-			return size;
-		}
-
-		public void setSize(long size) {
-			this.size = size;
-		}
-
-		@XmlElement
-		public String getFriendlySize() {
-			return Util.byteCountToDisplaySize(this.size);
-		}
-
-		@XmlElement
-		public String getUri() {
-			return uri;
-		}
-
-		public void setUri(String uri) {
-			this.uri = uri;
-		}
-
-		@Override
-		public int compareTo(FileInfo o) {
-			if (this.type == Type.DIR && o.type == Type.FILE) {
-				return -1;
-			} else if (this.type == Type.FILE && o.type == Type.DIR) {
-				return 1;
-			} else {
-				return this.filename.compareToIgnoreCase(o.filename);
-			}
-		}
 	}
 
 }

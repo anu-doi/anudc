@@ -45,9 +45,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
-import au.edu.anu.datacommons.storage.DcStorage.FileInfo;
-import au.edu.anu.datacommons.storage.DcStorage.FileInfo.Type;
-import au.edu.anu.datacommons.storage.DcStorage.RecordDataInfo;
+import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.info.FileInfo.Type;
+import au.edu.anu.datacommons.storage.info.RecordDataInfo;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
@@ -125,6 +125,7 @@ public class StorageResource extends AbstractStorageResource {
 	@Path("data/{path:.*}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response deleteFile(@PathParam("pid") String pid, @PathParam("path") String path) {
+		fedoraObjectService.getItemByPidWriteAccess(pid);
 		return processDeleteFile(pid, path);
 	}
 
@@ -142,23 +143,17 @@ public class StorageResource extends AbstractStorageResource {
 		}
 
 		Map<String, Object> model = new HashMap<String, Object>();
-		path = removeTrailingSlash(path);
 		try {
 			if (dcStorage.dirExists(pid, path)) {
 				LOGGER.info("User {} ({}) requested list of files in {}/data/{}", getCurUsername(), getRemoteIp(), pid, path);
-				RecordDataInfo fl = new RecordDataInfo();
-				fl.setFiles(dcStorage.getFilesInDir(pid, path));
-				fl.setParents(dcStorage.getParentDirs(pid, path));
-				addUris(pid, path, fl.getFiles());
-				addUris(pid, path, fl.getParents());
-				fl.setUri(uriInfo.getAbsolutePath().toString());
-
+				RecordDataInfo rdi = dcStorage.getRecordDataInfo(pid);
 				if (template != null) {
 					model.put("fo", fo);
-					model.put("fileList", fl);
+					model.put("rdi", rdi);
+					model.put("path", path);
 					resp = Response.ok(new Viewable(template, model)).build();
 				} else {
-					resp = Response.ok(fl).build();
+					resp = Response.ok(rdi).build();
 				}
 			} else if (dcStorage.fileExists(pid, path)) {
 				LOGGER.info("User {} ({}) requested file {}/data/{}", getCurUsername(), getRemoteIp(), pid, path);
@@ -171,17 +166,6 @@ public class StorageResource extends AbstractStorageResource {
 			resp = Response.ok(e.getMessage()).build();
 		}
 		return resp;
-	}
-
-	private void addUris(String pid, String path, Collection<FileInfo> files) {
-		for (FileInfo iFileInfo : files) {
-			String relPath = iFileInfo.getRelFilepath();
-			if (iFileInfo.getType() == Type.DIR) {
-				relPath = appendSeparator(relPath);
-			}
-			String uri = getUri(pid, relPath).toString();
-			iFileInfo.setUri(uri);
-		}
 	}
 
 	private String removeTrailingSlash(String path) {

@@ -90,10 +90,8 @@
 
 	<bean id="dcStorage" class="au.edu.anu.datacommons.storage.DcStorage" scope="singleton">
 		<constructor-arg value="${upload.bagsDir}" />
-		<constructor-arg ref="fileFactory" />
 		<property name="archiveRootDir" value="${upload.archiveBaseDir}" />
 		<property name="stagingDir" value="${upload.uploadDir}" />
-		<property name="searchSvc" ref="storageSearch" />
 	</bean>
 	
 	<bean id="fileFactory" class="au.edu.anu.datacommons.storage.filesystem.FileFactory">
@@ -102,5 +100,8 @@
 	
 	<bean id="storageSearch" class="au.edu.anu.datacommons.storage.search.StorageSearchService">
 		<constructor-arg value="${storage.search.url}" />
+	</bean>
+	
+	<bean id="recordDataInfoService" class="au.edu.anu.datacommons.storage.info.RecordDataInfoService">
 	</bean>
 </beans>

@@ -43,14 +43,26 @@
 
 <div class="doublewide nopadtop" id="files" class="list_view">
 	<c:choose>
-		<c:when test="${it.fileList != null}">
+		<c:when test="${it.rdi != null}">
+			<p class="msg-info">Record contains ${it.rdi.numFiles} file(s) totalling ${it.rdi.friendlySize}.</p>
+			
 			<!-- Navigation Breadcrumbs -->
 			<div class="left marginbottom" >
-				<c:forEach var="iParent" items="${it.fileList.parents}" varStatus="stat">
-					<a class="large" href="<c:url value='${iParent.uri}' />"><c:out value="${iParent.filename}" /></a>
-					<c:if test="${!stat.last}">
-						&nbsp;&gt;
-					</c:if>
+				<c:set var="parents" value="${it.rdi.getParents(it.path)}" />
+				<c:set var="parentUrl" value="" />
+				<c:forEach var="iLevel" begin="1" end="${fn:length(parents)}">
+					<c:set var="parentUrl" value="${parentUrl}../" />
+				</c:forEach>
+
+				<a class="large" href="<c:url value='${parentUrl}'/>">Data</a>
+				<c:forEach var="iParent" items="${parents}" varStatus="stat">
+					&nbsp;&gt;
+					<c:set var="parentUrl" value="" />
+					<c:forEach var="iLevel" begin="1" end="${fn:length(parents) - stat.count}">
+						<c:set var="parentUrl" value="${parentUrl}../" />
+					</c:forEach>
+					
+					<a class="large" href="<c:url value='${parentUrl}'/>"><c:out value="${iParent.filename}" /></a>
 				</c:forEach>
 			</div>
 			
@@ -73,13 +85,22 @@
 					<th class="col-action-icons">&nbsp;</th>
 				</tr>
 				
-				<c:forEach var="iFile" items="${it.fileList.files}" varStatus="stat">
+				<c:forEach var="iFile" items="${it.rdi.getFiles(it.path)}" varStatus="stat">
 					<tr id="filerow-${stat.count}" class="file-row">
+						<c:choose>
+							<c:when test="${iFile.type == 'DIR'}">
+								<c:set var="relUrl" value="${iFile.filename}/"></c:set>
+							</c:when>
+							<c:otherwise>
+								<c:set var="relUrl" value="${iFile.filename}"></c:set>
+							</c:otherwise>
+						</c:choose>
+						
 						<!-- Selection checkbox. -->
-						<td class="col-checkbox"><input type="checkbox" value="${iFile.uri}" onclick="condEnableSelTasks()" /></td>
+						<td class="col-checkbox"><input type="checkbox" value="${relUrl}" onclick="condEnableSelTasks()" /></td>
 						
 						<!-- Icon and filename as hyperlink -->
-						<td class="col-filename"><a class="nounderline" href="<c:url value='${iFile.uri}' />"> <c:choose>
+						<td class="col-filename"><a class="nounderline" href="<c:url value='${relUrl}'/>" title="${iFile.relFilepath }"> <c:choose>
 									<c:when test="${iFile.type == 'DIR'}">
 										<img src="//styles.anu.edu.au/_anu/images/icons/web/folder.png" onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder-over.png'"
 											onmouseout="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder.png'" />
@@ -88,9 +109,6 @@
 										<img src="//styles.anu.edu.au/_anu/images/icons/web/paper.png" onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper-over.png'"
 											onmouseout="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper.png'" />
 									</c:when>
-									<c:otherwise>
-										<c:out value='${iFile.type}' />
-									</c:otherwise>
 								</c:choose>
 						<c:out value="${iFile.filename}" /></a></td>
 
@@ -99,14 +117,16 @@
 						</td>
 						
 						<td class="col-filesize">
-							<c:out value="${iFile.friendlySize}" />
+							<c:if test="${iFile.type == 'FILE'}">
+								<c:out value="${iFile.friendlySize}" />
+							</c:if>
 						</td>
 						
 						<td class="col-action-icons">
 							<!-- Delete icon -->
 							<sec:authorize access="isAuthenticated()">
 								<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
-									<a href="javascript:void(0);" onclick="deleteFile('${iFile.uri}')">
+									<a href="javascript:void(0);" onclick="deleteFile('${relUrl}')">
 										<img src="<c:url value='/images/delete_red.png' />" width="24" height="24" title="Delete ${iFile.filename}" />
 									</a>
 								</sec:accesscontrollist>
@@ -119,7 +139,14 @@
 					
 					<!-- Additional file details -->
 					<tr id="filerow-extra-${stat.count}" class="file-row-extra" style="display: none">
-						<td colspan="0">Test</td>
+						<td colspan="0">
+							<table>
+								<tr>
+									<th>Last Modified</th>
+									<td>${iFile.lastModified}</td>
+								</tr>
+							</table>
+						</td>
 					</tr>
 				</c:forEach>
 			</table>
@@ -140,7 +167,7 @@
 			<form class="anuform" name="uploadForm" id="idUploadForm" enctype="multipart/form-data" method="post" action="/">
 				<applet code="wjhk.jupload2.JUploadApplet.class" name="JUpload" archive="<c:url value='/plugins/jupload-5.0.8.jar' />" width="680" height="500" mayscript
 					alt="The java plugin must be installed.">
-					<param name="postURL" value="<c:url value='${it.fileList.uri};jsessionid=${cookie.JSESSIONID.value}?src=jupload' />" />
+					<param name="postURL" value="<c:url value=';jsessionid=${cookie.JSESSIONID.value}?src=jupload' />" />
 					<param name="stringUploadSuccess" value="^SUCCESS$" />
 					<param name="stringUploadError" value="^ERROR: (.*)$" />
 					<param name="stringUploadWarning" value="^WARNING: (.*)$" />

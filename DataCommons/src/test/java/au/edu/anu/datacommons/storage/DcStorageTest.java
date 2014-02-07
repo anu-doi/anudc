@@ -116,7 +116,8 @@ public class DcStorageTest {
 		LOGGER.info("Bags root: {}", bagsRootDir.getRoot().getAbsolutePath());
 		LOGGER.info("Archive root: {}", archiveRootDir.getRoot().getAbsolutePath());
 		LOGGER.info("Temp dir: {}", tempDir.getRoot().getAbsolutePath());
-		dcStorage = new DcStorage(bagsRootDir.getRoot(), new FileFactory(200));
+		dcStorage = new DcStorage(bagsRootDir.getRoot());
+		dcStorage.ff = new FileFactory(200);
 		dcStorage.archiveRootDir = archiveRootDir.getRoot();
 	}
 

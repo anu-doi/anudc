@@ -248,7 +248,7 @@ function deleteFile(url) {
 function createDir() {
 	var dirName = prompt("Folder Name: ");
 	if (dirName != null && dirName != "") {
-		var dirUri = window.location.href + dirName;
+		var dirUri = dirName;
 		jQuery.ajax({
 			url : dirUri,
 			type : "POST"
