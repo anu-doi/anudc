@@ -120,20 +120,21 @@ public class UploadService extends AbstractStorageResource {
 		Response resp = null;
 		Map<String, Object> model = new HashMap<String, Object>();
 
-		FedoraObject fo = fedoraObjectService.getItemByPid(pid);;
+		FedoraObject fo = fedoraObjectService.getItemByPid(pid);
+		;
 		if (fo == null) {
 			throw new NotFoundException(format("Record {0} not found", pid));
 		}
-		LOGGER.info("User {} requested bag files page of {}", getCurUsername(), pid);
-		
+		LOGGER.info("User {} ({}) requested bag files page of {}", getCurUsername(), getRemoteIp(), pid);
+
 		// Check if record is published AND files are public. If not, check permissions.
 		if (!(isPublishedAndPublic(fo))) {
 			fo = null;
 			fo = fedoraObjectService.getItemByPidReadAccess(pid);
 		}
-		
+
 		model.put("fo", fo);
-		
+
 		if (dcStorage.bagExists(pid)) {
 			BagSummary bagSummary;
 			try {
@@ -155,11 +156,11 @@ public class UploadService extends AbstractStorageResource {
 				messages.add(MessageType.ERROR, e.getMessage(), model);
 			}
 		}
-		
+
 		resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
 		return resp;
 	}
-	
+
 	@GET
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Path("bag/{pid}/admin")
@@ -184,7 +185,7 @@ public class UploadService extends AbstractStorageResource {
 
 		return resp;
 	}
-	
+
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@Path("bag/{pid}/admin")
@@ -223,7 +224,6 @@ public class UploadService extends AbstractStorageResource {
 
 		return resp;
 	}
-	
 
 	@GET
 	@Path("bag/admin")
@@ -257,7 +257,7 @@ public class UploadService extends AbstractStorageResource {
 		resp = Response.ok(respStr.toString()).build();
 		return resp;
 	}
-	
+
 	/**
 	 * Returns a BagSummary in JSON or XML format.
 	 * 
@@ -266,17 +266,17 @@ public class UploadService extends AbstractStorageResource {
 	 * @return Response containing BagSummary in JSON or XML format.
 	 */
 	@GET
-	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 	@Path("bag/{pid}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doGetBagSummary(@PathParam("pid") String pid) {
 		Response resp = null;
-		
+
 		fedoraObjectService.getItemByPidReadAccess(pid);
 		if (!dcStorage.bagExists(pid)) {
 			throw new NotFoundException(format("Bag not found for {0}", pid));
 		}
-		
+
 		try {
 			addAccessLog(Operation.READ);
 			BagSummary bagSummary = dcStorage.getBagSummary(pid);
@@ -284,7 +284,7 @@ public class UploadService extends AbstractStorageResource {
 		} catch (IOException e) {
 			resp = Response.serverError().build();
 		}
-		
+
 		return resp;
 	}
 
@@ -376,12 +376,11 @@ public class UploadService extends AbstractStorageResource {
 		LOGGER.trace("pid: {}, filename: {}", pid, fileRequested);
 		Response resp = null;
 
-		FedoraObject fo = fedoraObjectService.getItemByPid(pid);;
+		FedoraObject fo = fedoraObjectService.getItemByPid(pid);
 		if (fo == null) {
 			throw new NotFoundException(format("Record {0} not found", pid));
 		}
-		LOGGER.info("User {} requested bag file {} from record {}", getCurUsername(), fileRequested, pid);
-		
+
 		// Check if record is published AND files are public. If not, check permissions.
 		if (!(isPublishedAndPublic(fo))) {
 			fo = null;
@@ -391,25 +390,27 @@ public class UploadService extends AbstractStorageResource {
 		try {
 			if (fileRequested.equals("zip")) {
 				FileSummaryMap fsMap = dcStorage.getBagSummary(pid).getFileSummaryMap();
-				
+
 				if (filepaths == null || filepaths.size() == 0) {
 					filepaths.addAll(fsMap.keySet());
 				} else {
-					for (Iterator<String> it = filepaths.iterator(); it.hasNext(); ) {
+					for (Iterator<String> it = filepaths.iterator(); it.hasNext();) {
 						if (!fsMap.containsKey(it.next())) {
 							it.remove();
 						}
 					}
 				}
-				
-				LOGGER.info("User {} requested {} bag files {} in {} as zip", getCurUsername(), filepaths.size(), filepaths, pid);
+
+				LOGGER.info("User {} ({}) requested {} bag files {} in {} as zip", getCurUsername(), getRemoteIp(),
+						filepaths.size(), filepaths, pid);
 				Users curUser = getCurUser();
 				if (curUser != null) {
 					addAccessLog(Operation.READ);
 				}
 				resp = getBagFilesAsZip(pid, filepaths, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), "zip"));
 			} else {
-				LOGGER.info("User {} requested bag file {} in {}", getCurUsername(), fileRequested, pid);
+				LOGGER.info("User {} ({}) requested bag file {} in {}", getCurUsername(), getRemoteIp(), fileRequested,
+						pid);
 				fileRequested = removeDataPrefix(fileRequested);
 				if (!dcStorage.fileExists(pid, fileRequested)) {
 					throw new NotFoundException(format("File {0} not found in {1}", fileRequested, pid));
@@ -420,7 +421,6 @@ public class UploadService extends AbstractStorageResource {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
-
 		return resp;
 	}
 
@@ -499,7 +499,7 @@ public class UploadService extends AbstractStorageResource {
 
 		return resp;
 	}
-	
+
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	@Path("bag/{pid}/ispublic")
@@ -527,7 +527,7 @@ public class UploadService extends AbstractStorageResource {
 			}
 			boolean isFilesPublic = Boolean.parseBoolean(isFilesPublicStr);
 			fedoraObjectService.setFilesPublic(pid, isFilesPublic);
-			
+
 			try {
 				if (!isFilesPublic) {
 					dcStorage.deindexFilesInBag(pid);
@@ -541,7 +541,7 @@ public class UploadService extends AbstractStorageResource {
 		}
 		return resp;
 	}
-	
+
 	/**
 	 * Returns information about the current logged on user in the format username:displayName. E.g.
 	 * "u1234567:John Smith"
@@ -562,17 +562,17 @@ public class UploadService extends AbstractStorageResource {
 		resp = Response.ok(respEntity.toString()).build();
 		return resp;
 	}
-	
+
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@Path("search")
 	public Response doGetStorageSearchPage() {
 		Response resp = null;
-		
+
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("solrUrl", GlobalProps.getStorageSolrUrl());
 		resp = Response.ok(new Viewable("/storagesearch.jsp", model)).build();
-		
+
 		return resp;
 	}
 

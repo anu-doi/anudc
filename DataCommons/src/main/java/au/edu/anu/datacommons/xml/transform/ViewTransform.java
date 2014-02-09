@@ -177,7 +177,6 @@ public class ViewTransform
 		InputStream xslStream = getInputStream(layout, Constants.XSL_SOURCE);
 		
 		if (xslStream == null) {
-			LOGGER.warn("XSL Stream is empty");
 			return values;
 		}
 		
@@ -588,10 +587,6 @@ public class ViewTransform
 		if(Util.isNotEmpty(pid)) {
 			xslStream = FedoraBroker.getDatastreamAsStream(pid, dsId);
 		}
-		else {
-			LOGGER.warn("No layout specified");
-		}
-		
 		return xslStream;
 	}
 	

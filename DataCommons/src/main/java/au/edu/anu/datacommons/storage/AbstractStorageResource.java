@@ -150,6 +150,10 @@ public class AbstractStorageResource {
 	protected String getCurUsername() {
 		return SecurityContextHolder.getContext().getAuthentication().getName();
 	}
+	
+	protected String getRemoteIp() {
+		return request.getRemoteAddr();
+	}
 
 	protected String appendSeparator(String path) {
 		if (path.length() > 0 && path.charAt(path.length() - 1) != '/') {
@@ -171,24 +175,6 @@ public class AbstractStorageResource {
 				request.getHeader("User-Agent"), op);
 		accessLogDao.create(alr);
 	}
-
-	/**
-	 * Parses an HttpServletRequest and returns a list of FileItem objects. A fileItem can contain form data or a file
-	 * that was uploaded by a user.
-	 * 
-	 * @param request
-	 *            HttpServletRequest object to parse.
-	 * @return FileItem objects as List&lt;FileItem&gt;
-	 * @throws FileUploadException
-	 */
-	@SuppressWarnings("unchecked")
-	private List<FileItem> parseUploadRequest(HttpServletRequest request) throws FileUploadException {
-		// Create a new file upload handler.
-		ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory(GlobalProps.getMaxSizeInMem(),
-				GlobalProps.getUploadDirAsFile()));
-		return (List<FileItem>) upload.parseRequest(request);
-	}
-
 
 	protected URI getUri(String pid, String filepath) {
 		return uriInfo.getBaseUriBuilder().path(StorageResource.class)
@@ -322,7 +308,7 @@ public class AbstractStorageResource {
 
 	protected Response processDeleteFile(String pid, String fileInBag) {
 		Response resp = null;
-		LOGGER.info("User {} requested deletion of file {} in {}", getCurUsername(), fileInBag, pid);
+		LOGGER.info("User {} ({}) requested deletion of file {} in {}", getCurUsername(), getRemoteIp(), fileInBag, pid);
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 		
 		try {
@@ -336,6 +322,23 @@ public class AbstractStorageResource {
 			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
 		return resp;
+	}
+
+	/**
+	 * Parses an HttpServletRequest and returns a list of FileItem objects. A fileItem can contain form data or a file
+	 * that was uploaded by a user.
+	 * 
+	 * @param request
+	 *            HttpServletRequest object to parse.
+	 * @return FileItem objects as List&lt;FileItem&gt;
+	 * @throws FileUploadException
+	 */
+	@SuppressWarnings("unchecked")
+	private List<FileItem> parseUploadRequest(HttpServletRequest request) throws FileUploadException {
+		// Create a new file upload handler.
+		ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory(GlobalProps.getMaxSizeInMem(),
+				GlobalProps.getUploadDirAsFile()));
+		return (List<FileItem>) upload.parseRequest(request);
 	}
 
 }

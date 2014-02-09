@@ -88,10 +88,10 @@ public class StorageResource extends AbstractStorageResource {
 	public Response uploadFile(@PathParam("pid") String pid, @PathParam("path") String path,
 			@QueryParam("src") String src, InputStream is) {
 		Response resp = null;
-		LOGGER.info("User {} requested file upload to {} in record {} [SOURCE:{}]", getCurUsername(),
-				uriInfo.getPath(true).toString(), pid, src);
+		LOGGER.info("User {} ({}) requested file upload to {} in record {} [SOURCE:{}]", getCurUsername(),
+				getRemoteIp(), uriInfo.getPath(true).toString(), pid, src);
 		fedoraObjectService.getItemByPidWriteAccess(pid);
-		
+
 		if (src == null || src.length() == 0) {
 			resp = processRestUpload(pid, path, is);
 		} else if (src.equals("jupload")) {
@@ -105,8 +105,8 @@ public class StorageResource extends AbstractStorageResource {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response createDir(@PathParam("pid") String pid, @PathParam("path") String path) {
 		Response resp = null;
-		LOGGER.info("User {} requested creation of directory {} in record {} file upload to {}",
-				getCurUsername(), uriInfo.getPath(true).toString(), pid);
+		LOGGER.info("User {} ({})requested creation of directory {} in record {} file upload to {}", getCurUsername(),
+				getRemoteIp(), uriInfo.getPath(true).toString(), pid);
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 
 		path = appendSeparator(path);
@@ -131,12 +131,11 @@ public class StorageResource extends AbstractStorageResource {
 	private Response createFileOrDirResponse(String pid, String path, String template) {
 		Response resp = null;
 
-		LOGGER.info("User {} requested files in {}/data/{}", getCurUsername(), pid, path);
 		FedoraObject fo = fedoraObjectService.getItemByPid(pid);
 		if (fo == null) {
 			throw new NotFoundException(uriInfo.getAbsolutePath());
 		}
-		
+
 		if (!(isPublishedAndPublic(fo))) {
 			fo = null;
 			fo = fedoraObjectService.getItemByPidReadAccess(pid);
@@ -146,6 +145,7 @@ public class StorageResource extends AbstractStorageResource {
 		path = removeTrailingSlash(path);
 		try {
 			if (dcStorage.dirExists(pid, path)) {
+				LOGGER.info("User {} ({}) requested list of files in {}/data/{}", getCurUsername(), getRemoteIp(), pid, path);
 				RecordDataInfo fl = new RecordDataInfo();
 				fl.setFiles(dcStorage.getFilesInDir(pid, path));
 				fl.setParents(dcStorage.getParentDirs(pid, path));
@@ -161,6 +161,7 @@ public class StorageResource extends AbstractStorageResource {
 					resp = Response.ok(fl).build();
 				}
 			} else if (dcStorage.fileExists(pid, path)) {
+				LOGGER.info("User {} ({}) requested file {}/data/{}", getCurUsername(), getRemoteIp(), pid, path);
 				resp = getBagFileOctetStreamResp(pid, path);
 			} else {
 				throw new NotFoundException(uriInfo.getAbsolutePath());

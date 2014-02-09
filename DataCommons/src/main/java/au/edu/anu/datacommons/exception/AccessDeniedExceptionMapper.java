@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -52,10 +53,13 @@ public class AccessDeniedExceptionMapper implements ExceptionMapper<AccessDenied
 	@Context
 	private HttpHeaders headers;
 	
+	@Context
+	protected HttpServletRequest request;
+	
 	@Override
 	public Response toResponse(AccessDeniedException exception) {
 		Response resp;
-		LOGGER.warn("User {} requested a resource to which they don't have access: {}", getCurUsername(), exception.getMessage());
+		LOGGER.warn("User {} ({}) requested a resource to which they don't have access: {}", getCurUsername(), getRemoteIp(), exception.getMessage());
 		List<MediaType> acceptableMediaTypes = headers.getAcceptableMediaTypes();
 		if (acceptableMediaTypes.contains(MediaType.TEXT_HTML_TYPE)) {
 			//Present  an unauthorized error page if the user is authenticated and not anonymous, otherwise allow the user to log in
@@ -77,5 +81,9 @@ public class AccessDeniedExceptionMapper implements ExceptionMapper<AccessDenied
 
 	private String getCurUsername() {
 		return SecurityContextHolder.getContext().getAuthentication().getName();
+	}
+	
+	protected String getRemoteIp() {
+		return request.getRemoteAddr();
 	}
 }

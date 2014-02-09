@@ -618,7 +618,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 
 		if (!values.containsKey("page")) {
-			LOGGER.error("Page is empty");
 			values.put("topage", "/error.jsp");
 		}
 		

@@ -201,7 +201,7 @@ public class PermissionService {
 			hasPermission = acl.isGranted(CustomACLPermission.getPermissionList(), sidList, false);
 		}
 		catch (NotFoundException e) {
-			LOGGER.debug("User doesn't have permissions");
+			// No op.
 		}
 		return hasPermission;
 	}
