@@ -26,6 +26,8 @@ th.col-filename,td.col-filename {
 
 td.col-filetype {
 	width: 20%;
+	overflow:hidden;
+	white-space:nowrap;
 }
 
 td.col-filesize {

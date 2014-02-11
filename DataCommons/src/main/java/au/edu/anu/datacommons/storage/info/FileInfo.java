@@ -2,8 +2,10 @@ package au.edu.anu.datacommons.storage.info;
 
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlType;
 
 import au.edu.anu.datacommons.util.Util;
@@ -19,6 +21,12 @@ public class FileInfo implements Comparable<FileInfo> {
 	private FileInfo.Type type;
 	private long size;
 	private Date lastModified;
+	
+	private Map<String, String> messageDigests;
+	private PronomFormat pronomFormat;
+	private Map<String, String[]> metadata;
+	private String scanResult;
+
 
 	@XmlElement
 	public String getFilename() {
@@ -68,6 +76,42 @@ public class FileInfo implements Comparable<FileInfo> {
 
 	public void setLastModified(Date lastModified) {
 		this.lastModified = lastModified;
+	}
+	
+	@XmlElementWrapper
+	public Map<String, String> getMessageDigests() {
+		return messageDigests;
+	}
+
+	public void setMessageDigests(Map<String, String> messageDigests) {
+		this.messageDigests = messageDigests;
+	}
+
+	@XmlElement
+	public PronomFormat getPronomFormat() {
+		return pronomFormat;
+	}
+
+	public void setPronomFormat(PronomFormat pronomFormat) {
+		this.pronomFormat = pronomFormat;
+	}
+
+	@XmlElementWrapper
+	public Map<String, String[]> getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(Map<String, String[]> metadata) {
+		this.metadata = metadata;
+	}
+
+	@XmlElement
+	public String getScanResult() {
+		return scanResult;
+	}
+
+	public void setScanResult(String scanResult) {
+		this.scanResult = scanResult;
 	}
 
 	@Override

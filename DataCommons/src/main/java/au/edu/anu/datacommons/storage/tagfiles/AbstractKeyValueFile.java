@@ -32,7 +32,12 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -49,78 +54,103 @@ public abstract class AbstractKeyValueFile extends ConcurrentHashMap<String, Str
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractKeyValueFile.class);
 	private static final long serialVersionUID = 1L;
 	
-	protected File file;
+	protected Path path;
+	protected boolean hasUnsavedChanges = false;
 
 	public AbstractKeyValueFile(File file) throws IOException {
+		this(file.toPath());
+	}
+	
+	public AbstractKeyValueFile(Path path) throws IOException {
 		super();
-		this.file = file;
-		if (file.isFile()) {
+		this.path = path;
+		if (Files.isRegularFile(this.path)) {
 			read();
 		}
 	}
 
 	public void read() throws IOException {
-		synchronized (file) {
-			BufferedReader reader = null;
-			try {
-				reader = new BufferedReader(new FileReader(this.file));
-				synchronized (this) {
-					for (String line = reader.readLine(); line != null;) {
-						// If the next line starts with white spaces concatinate it to the current line.
-						String nextLine = reader.readLine();
-						while (nextLine != null && nextLine.startsWith("  ")) {
-							line += nextLine.substring(2);
-							nextLine = reader.readLine();
-						}
-
-						if (line.length() > 0) {
-							String parts[] = unserializeKeyValue(line);
-							if (parts != null) {
-								this.put(parts[0], parts[1]);
-							}
-						}
-						line = nextLine;
+		synchronized (this) {
+			try (BufferedReader reader = Files.newBufferedReader(this.path, StandardCharsets.UTF_8)){
+				for (String line = reader.readLine(); line != null;) {
+					// If the next line starts with white spaces concatinate it to the current line.
+					String nextLine = reader.readLine();
+					while (nextLine != null && nextLine.startsWith("  ")) {
+						line += nextLine.substring(2);
+						nextLine = reader.readLine();
 					}
+
+					if (line.length() > 0) {
+						String parts[] = unserializeKeyValue(line);
+						if (parts != null) {
+							this.put(parts[0], parts[1]);
+						}
+					}
+					line = nextLine;
 				}
-			} finally {
-				IOUtils.closeQuietly(reader);
 			}
+			hasUnsavedChanges = false;
 		}
 	}
 	
 	public void write() throws IOException {
-		synchronized (file) {
-			BufferedWriter writer = null;
-			try {
-				writer = new BufferedWriter(new FileWriter(file));
-				synchronized (this) {
+		synchronized (this) {
+			if (hasUnsavedChanges) {
+				try (BufferedWriter writer = Files.newBufferedWriter(this.path, StandardCharsets.UTF_8)){
 					for (Entry<String, String> entry : this.entrySet()) {
 						writer.write(serializeEntry(entry));
 						writer.newLine();
 					}
 				}
-			} finally {
-				IOUtils.closeQuietly(writer);
+				hasUnsavedChanges = false;
 			}
 		}
 	}
 
 	@Override
+	public void clear() {
+		synchronized (this) {
+			super.clear();
+			hasUnsavedChanges = true;
+		}
+	}
+	
+	@Override
 	public String put(String key, String value) {
 		if (key == null) {
-			throw new NullPointerException(format("Key cannot be null. File: {0}", getFile().getAbsolutePath()));
+			throw new NullPointerException(format("Key cannot be null. File: {0}", this.path.toString()));
 		} else if (key.length() == 0) {
-			throw new IllegalArgumentException(format("Key cannot be a zero-length string. File: {0}", getFile()
-					.getAbsolutePath()));
+			throw new IllegalArgumentException(format("Key cannot be a zero-length string. File: {0}", this.path.toString()));
 		}
 		if (value == null) {
 			value = "";
 		}
-		return super.put(key, value);
+		
+		String oldValue;
+		synchronized(this) {
+			if (!this.containsKey(key) || !this.get(key).equals(value)) {
+				hasUnsavedChanges = true;
+			}
+			oldValue = super.put(key, value);
+		}
+		return oldValue;
 	}
 	
+	@Override
+	public String remove(Object key) {
+		String oldValue;
+		synchronized (this) {
+			if (this.containsKey(key)) {
+				hasUnsavedChanges = true;
+			}
+			oldValue = super.remove(key);
+		}
+		return oldValue;
+	}
+
+	@Deprecated
 	public File getFile() {
-		return this.file;
+		return this.path.toFile();
 	}
 
 	protected String[] unserializeKeyValue(String line) {
@@ -130,7 +160,7 @@ public abstract class AbstractKeyValueFile extends ConcurrentHashMap<String, Str
 			parts[0] = unescapeKey(parts[0]).trim();
 			parts[1] = parts[1].trim();
 		} else {
-			LOGGER.warn("Unparsable line: {} in file {}", line, this.file.getName());
+			LOGGER.warn("Unparsable line: {} in file {}", line, this.path.toString());
 			parts = null;
 		}
 		return parts;

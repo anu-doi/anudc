@@ -30,8 +30,9 @@ import java.util.Map.Entry;
  * 
  */
 public class ManifestTagFile extends AbstractKeyValueFile {
-
 	private static final long serialVersionUID = 1L;
+
+	public static final String FILEPATH = "manifest-md5.txt";
 
 	public ManifestTagFile(File file) throws IOException {
 		super(file);

@@ -22,6 +22,8 @@ public class RecordDataInfo {
 	private Collection<FileInfo> files = new ArrayList<FileInfo>();
 	private long size;
 	private long numFiles;
+	
+	private Collection<String> extRefs;
 
 	@XmlElement
 	public String getPid() {
@@ -42,12 +44,12 @@ public class RecordDataInfo {
 	}
 	
 	@XmlElement
-	public long getSizeBytes() {
+	public long getSize() {
 		return size;
 	}
 
-	public void setSizeBytes(long sizeBytes) {
-		this.size = sizeBytes;
+	public void setSize(long size) {
+		this.size = size;
 	}
 	
 	@XmlElement
@@ -57,6 +59,15 @@ public class RecordDataInfo {
 
 	public void setNumFiles(long numFiles) {
 		this.numFiles = numFiles;
+	}
+
+	@XmlElementWrapper
+	public Collection<String> getExtRefs() {
+		return extRefs;
+	}
+
+	public void setExtRefs(Collection<String> extRefs) {
+		this.extRefs = extRefs;
 	}
 	
 

@@ -22,6 +22,7 @@
 package au.edu.anu.datacommons.storage.info;
 
 import static java.text.MessageFormat.format;
+import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.utilities.FilenameHelper;
 
 import java.io.IOException;
@@ -30,34 +31,55 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.storage.info.FileInfo.Type;
+import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.ManifestTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
+import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 
 /**
  * @author Rahul Khanna
- *
+ * 
  */
+@Component
 public class RecordDataInfoService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecordDataInfoService.class);
-	
-	public RecordDataInfo getRecordDataInfo(String pid, Path bagDir) throws IOException {
+
+	@Autowired(required = true)
+	private TagFilesService tagFilesSvc;
+
+	public RecordDataInfo createRecordDataInfo(String pid, Path bagDir) throws IOException {
 		RecordDataInfo rdi = new RecordDataInfo();
 		rdi.setPid(pid);
-		
+
 		if (Files.isDirectory(getPayloadDir(bagDir))) {
-			populateFileInfos(rdi, bagDir);
+			populateFileInfos(rdi, pid, bagDir);
 		}
+
+		rdi.setExtRefs(tagFilesSvc.getAllEntries(pid, ExtRefsTagFile.class).values());
 		return rdi;
 	}
-	
-	public FileInfo getRecordFileInfo(Path bagDir, Path relPath) throws IOException {
+
+	public FileInfo createFileInfo(String pid, Path bagDir, Path relPath) throws IOException {
 		FileInfo fi = new FileInfo();
 		Path payloadDir = getPayloadDir(bagDir);
 		Path filepath = payloadDir.resolve(relPath);
@@ -72,21 +94,26 @@ public class RecordDataInfoService {
 		} else {
 			throw new IOException(format("Unexpected file object {0}", filepath));
 		}
-		
+
 		fi.setLastModified(new Date(Files.getLastModifiedTime(filepath).toMillis()));
+		fi.setMessageDigests(retrieveMessageDigests(pid, fi.getRelFilepath()));
+		fi.setPronomFormat(retrievePronomFormat(pid, fi.getRelFilepath()));
+		fi.setScanResult(retrieveScanResult(pid, fi.getRelFilepath()));
+		fi.setMetadata(retrieveMetadata(pid, fi.getRelFilepath()));
 		
+
 		return fi;
 	}
-	
-	private void populateFileInfos(RecordDataInfo rdi, Path bagDir) throws IOException {
+
+	private void populateFileInfos(RecordDataInfo rdi, String pid, Path bagDir) throws IOException {
 		long nFiles = 0L;
 		long sizeBytes = 0L;
-		
+
 		Path payloadDir = getPayloadDir(bagDir);
 		List<Path> fileList = listFilesInDirFullPath(payloadDir, true);
 		SortedSet<FileInfo> fileInfos = new TreeSet<FileInfo>();
 		for (Path p : fileList) {
-			FileInfo fi = getRecordFileInfo(bagDir, payloadDir.relativize(p));
+			FileInfo fi = createFileInfo(pid, bagDir, payloadDir.relativize(p));
 			if (fi.getType() == Type.FILE) {
 				nFiles++;
 				sizeBytes += fi.getSize();
@@ -95,12 +122,12 @@ public class RecordDataInfoService {
 			}
 			fileInfos.add(fi);
 		}
-		
+
 		rdi.setFiles(fileInfos);
-		rdi.setSizeBytes(sizeBytes);
+		rdi.setSize(sizeBytes);
 		rdi.setNumFiles(nFiles);
 	}
-	
+
 	private List<Path> listFilesInDirRelPath(Path root, boolean recurse) throws IOException {
 		List<Path> fileList = new ArrayList<>();
 		for (Path p : listFilesInDirFullPath(root, recurse)) {
@@ -108,7 +135,7 @@ public class RecordDataInfoService {
 		}
 		return fileList;
 	}
-	
+
 	private List<Path> listFilesInDirFullPath(Path root, boolean recurse) throws IOException {
 		List<Path> fileList = new ArrayList<>();
 		DirectoryStream<Path> dirStream = Files.newDirectoryStream(root);
@@ -127,6 +154,37 @@ public class RecordDataInfoService {
 		return fileList;
 	}
 	
+	private Map<String, String> retrieveMessageDigests(String pid, String relPath) throws IOException {
+		Map<String, String> mdMap = new HashMap<String, String>(1);
+		// MD5
+		mdMap.put(Manifest.Algorithm.MD5.javaSecurityAlgorithm, tagFilesSvc.getEntryValue(pid, ManifestTagFile.class, "data/" + relPath));
+		return mdMap;
+	}
+
+	private PronomFormat retrievePronomFormat(String pid, String relPath) throws IOException {
+		return new PronomFormat(tagFilesSvc.getEntryValue(pid, PronomFormatsTagFile.class, "data/" + relPath));
+	}
+	
+	private String retrieveScanResult(String pid, String relPath) throws IOException {
+		return tagFilesSvc.getEntryValue(pid, VirusScanTagFile.class, "data/" + relPath);
+	}
+	
+	private Map<String, String[]> retrieveMetadata(String pid, String relPath) throws IOException {
+		String metadataJson = tagFilesSvc.getEntryValue(pid, FileMetadataTagFile.class, "data/" + relPath);
+		return deserializeFromJson(metadataJson);
+	}
+	
+	private Map<String, String[]>deserializeFromJson(String jsonStr) throws JsonParseException, JsonMappingException, IOException {
+		Map<String, String[]> metadataMap;
+		if (jsonStr != null && jsonStr.length() > 0) {
+			ObjectMapper mapper = new ObjectMapper();
+			metadataMap = mapper.readValue(jsonStr, new TypeReference<Map<String, String[]>>() {});
+		} else {
+			metadataMap = Collections.unmodifiableMap(Collections.<String, String[]>emptyMap());
+		}
+		return metadataMap;
+	}
+
 	private boolean isExcluded(Path p) {
 		boolean isExcluded = false;
 		// Exclude files and folders starting with '.'
@@ -135,7 +193,7 @@ public class RecordDataInfoService {
 		}
 		return isExcluded;
 	}
-	
+
 	private Path getPayloadDir(Path bagDir) {
 		return bagDir.resolve("data/");
 	}

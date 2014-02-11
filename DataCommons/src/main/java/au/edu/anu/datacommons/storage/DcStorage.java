@@ -81,6 +81,7 @@ import au.edu.anu.datacommons.storage.info.RecordDataInfo;
 import au.edu.anu.datacommons.storage.info.RecordDataInfoService;
 import au.edu.anu.datacommons.storage.search.StorageSearchService;
 import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.temp.TempFileTask;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 import au.edu.anu.datacommons.storage.verifier.VerificationTask;
@@ -100,7 +101,6 @@ public final class DcStorage implements Closeable {
 	private StorageSearchService searchSvc;
 	@Autowired(required = true)
 	FileFactory ff;
-	
 
 	private Set<Manifest.Algorithm> algorithms;
 	private File bagsRootDir = null;
@@ -452,7 +452,7 @@ public final class DcStorage implements Closeable {
 	}
 	
 	public RecordDataInfo getRecordDataInfo(String pid) throws IOException {
-		return rdiSvc.getRecordDataInfo(pid, getBagDir(pid).toPath());
+		return rdiSvc.createRecordDataInfo(pid, getBagDir(pid).toPath());
 	}
 
 	/**

@@ -104,4 +104,8 @@
 	
 	<bean id="recordDataInfoService" class="au.edu.anu.datacommons.storage.info.RecordDataInfoService">
 	</bean>
+	
+	<bean id="tagFilesService" class="au.edu.anu.datacommons.storage.tagfiles.TagFilesService">
+		<constructor-arg value="${upload.bagsDir}" />
+	</bean>
 </beans>
