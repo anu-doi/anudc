@@ -24,10 +24,14 @@ package au.edu.anu.datacommons.data.db.model;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
 
 /**
  * UserRegistered
@@ -36,8 +40,7 @@ import javax.persistence.Table;
  * 
  * Entity class for the user_registered database table
  * 
- * JUnit Coverage:
- * UsersTest
+ * JUnit Coverage: UsersTest
  * 
  * <pre>
  * Version	Date		Developer				Description
@@ -48,8 +51,7 @@ import javax.persistence.Table;
  * 
  */
 @Entity
-@Table(name="user_registered")
-//@GenericGenerator(name="users-primarykey", strategy="foreign", parameters={@Parameter(name="property", value="users")})
+@Table(name = "user_registered")
 public class UserRegistered {
 	private Long id;
 	private String last_name_;
@@ -58,7 +60,7 @@ public class UserRegistered {
 	private String phone_;
 	private String address_;
 	private Users user;
-	
+
 	/**
 	 * getId
 	 * 
@@ -72,11 +74,12 @@ public class UserRegistered {
 	 * @return the id of the user
 	 */
 	@Id
-	//@GeneratedValue(generator = "users-primarykey")
+	@GeneratedValue(generator = "user-pk")
+	@GenericGenerator(name = "user-pk", strategy = "foreign", parameters = { @Parameter(name = "property", value = "user") })
 	public Long getId() {
 		return id;
 	}
-	
+
 	/**
 	 * setId
 	 * 
@@ -87,7 +90,8 @@ public class UserRegistered {
 	 * 0.1		17/05/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param id The id of the user
+	 * @param id
+	 *            The id of the user
 	 */
 	public void setId(Long id) {
 		this.id = id;
@@ -105,11 +109,11 @@ public class UserRegistered {
 	 * 
 	 * @return The surname of the user
 	 */
-	@Column(name="last_name")
+	@Column(name = "last_name")
 	public String getLast_name() {
 		return last_name_;
 	}
-	
+
 	/**
 	 * setLast_name
 	 * 
@@ -120,7 +124,8 @@ public class UserRegistered {
 	 * 0.1		17/05/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param last_name The surname of the user
+	 * @param last_name
+	 *            The surname of the user
 	 */
 	public void setLast_name(String last_name) {
 		this.last_name_ = last_name;
@@ -138,11 +143,11 @@ public class UserRegistered {
 	 * 
 	 * @return The given name of the user
 	 */
-	@Column(name="given_name")
+	@Column(name = "given_name")
 	public String getGiven_name() {
 		return given_name_;
 	}
-	
+
 	/**
 	 * setGiven_name
 	 * 
@@ -153,7 +158,8 @@ public class UserRegistered {
 	 * 0.1		17/05/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param given_name The given name of the user
+	 * @param given_name
+	 *            The given name of the user
 	 */
 	public void setGiven_name(String given_name) {
 		this.given_name_ = given_name;
@@ -161,9 +167,9 @@ public class UserRegistered {
 
 	/**
 	 * getInstitution
-	 *
+	 * 
 	 * Placeholder
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * X.X		21/08/2012	Genevieve Turner(GT)	Initial
@@ -171,22 +177,23 @@ public class UserRegistered {
 	 * 
 	 * @return the institution
 	 */
-	@Column(name="institution")
+	@Column(name = "institution")
 	public String getInstitution() {
 		return institution_;
 	}
 
 	/**
 	 * setInstitution
-	 *
+	 * 
 	 * Placeholder
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * X.X		21/08/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @param institution the institution to set
+	 * @param institution
+	 *            the institution to set
 	 */
 	public void setInstitution(String institution) {
 		this.institution_ = institution;
@@ -194,9 +201,9 @@ public class UserRegistered {
 
 	/**
 	 * getPhone
-	 *
+	 * 
 	 * Placeholder
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * X.X		21/08/2012	Genevieve Turner(GT)	Initial
@@ -204,22 +211,23 @@ public class UserRegistered {
 	 * 
 	 * @return the phone
 	 */
-	@Column(name="phone")
+	@Column(name = "phone")
 	public String getPhone() {
 		return phone_;
 	}
 
 	/**
 	 * setPhone
-	 *
+	 * 
 	 * Placeholder
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * X.X		21/08/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @param phone the phone to set
+	 * @param phone
+	 *            the phone to set
 	 */
 	public void setPhone(String phone) {
 		this.phone_ = phone;
@@ -227,9 +235,9 @@ public class UserRegistered {
 
 	/**
 	 * getAddress
-	 *
+	 * 
 	 * Placeholder
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * X.X		21/08/2012	Genevieve Turner(GT)	Initial
@@ -237,22 +245,23 @@ public class UserRegistered {
 	 * 
 	 * @return the address
 	 */
-	@Column(name="address")
+	@Column(name = "address")
 	public String getAddress() {
 		return address_;
 	}
 
 	/**
 	 * setAddress
-	 *
+	 * 
 	 * Placeholder
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * X.X		21/08/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @param address the address to set
+	 * @param address
+	 *            the address to set
 	 */
 	public void setAddress(String address) {
 		this.address_ = address;
@@ -268,9 +277,10 @@ public class UserRegistered {
 	 * 0.1		17/05/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param user The user for the registered information
+	 * @param user
+	 *            The user for the registered information
 	 */
-	@OneToOne (cascade=CascadeType.ALL, mappedBy="user_registered")//()
+	@OneToOne(cascade = CascadeType.ALL, mappedBy = "user_registered")
 	@PrimaryKeyJoinColumn
 	public Users getUser() {
 		return user;
@@ -286,7 +296,8 @@ public class UserRegistered {
 	 * 0.1		17/05/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 * 
-	 * @param user The user for the registered information
+	 * @param user
+	 *            The user for the registered information
 	 */
 	public void setUser(Users user) {
 		this.user = user;
