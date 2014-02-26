@@ -36,4 +36,9 @@ public class TimestampsTagFile extends AbstractKeyValueFile {
 	public TimestampsTagFile(File tagFile) throws IOException {
 		super(tagFile);
 	}
+	
+	@Override
+	public String getFilepath() {
+		return FILEPATH;
+	}
 }

@@ -32,9 +32,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -321,6 +323,43 @@ public class AbstractKeyValueFileTest {
 		assertThat(kvFile, hasEntry(kv[0], kv[1]));
 	}
 	
+	@Test
+	public void testInsertionRetrievalOrder() throws Exception {
+		File file = tempDir.newFile();
+		kvFile = new KeyValueFileImpl(file);
+		Map<String, String> randomMap = generateRandomKeyValues(1000, 64, 128);
+		kvFile.putAll(randomMap);
+
+		for (int i = 0; i < 5; i++) {
+			Iterator<Entry<String, String>> expecteds = kvFile.entrySet().iterator();
+			Iterator<Entry<String, String>> actuals = kvFile.entrySet().iterator();
+			while (actuals.hasNext()) {
+				Entry<String, String> actual = actuals.next();
+				Entry<String, String> expected = expecteds.next();
+				assertThat(actual.getKey(), is(expected.getKey()));
+				assertThat(actual.getValue(), is(expected.getValue()));
+			}
+			assertThat(expecteds.hasNext(), is(false));
+		}
+	}
+	
+	@Test
+	public void testSerialize() throws Exception {
+		File file = tempDir.newFile();
+		kvFile = new KeyValueFileImpl(file);
+		kvFile.putAll(generateRandomKeyValues(1000, 64, 128));
+		
+		assertThat(kvFile.entrySet(), hasSize(1000));
+		for (int i = 0; i < 5; i++) {
+			InputStream expected = kvFile.serialize();
+			InputStream actual = kvFile.serialize();
+			assertThat(IOUtils.contentEquals(expected, actual), is(true));
+		}
+		
+		kvFile.putAll(generateRandomKeyValues(1000, 64, 128));
+		
+	}
+	
 	private void logFileContents(File file) throws IOException {
 		BufferedReader reader = null;
 		StringBuilder sb = new StringBuilder();
@@ -347,7 +386,11 @@ public class AbstractKeyValueFileTest {
 			String key = Base64.encodeBase64String(keyBuffer);
 			rand.nextBytes(valBuffer);
 			String value = Base64.encodeBase64String(valBuffer);
-			map.put(key, value);
+			if (!map.containsKey(key)) {
+				map.put(key, value);
+			} else {
+				i--;
+			}
 		}
 		return map;
 	}
@@ -368,6 +411,11 @@ public class AbstractKeyValueFileTest {
 		
 		public KeyValueFileImpl(File file) throws IOException {
 			super(file);
+		}
+
+		@Override
+		public String getFilepath() {
+			return null;
 		}
 	}
 	
@@ -395,6 +443,11 @@ public class AbstractKeyValueFileTest {
 			parts[0] = parts[1];
 			parts[1] = temp;
 			return parts;
+		}
+
+		@Override
+		public String getFilepath() {
+			return null;
 		}
 	}
 }

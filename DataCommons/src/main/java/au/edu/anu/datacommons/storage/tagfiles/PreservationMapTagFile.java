@@ -35,4 +35,9 @@ public class PreservationMapTagFile extends AbstractKeyValueFile {
 	public PreservationMapTagFile(File tagFile) throws IOException {
 		super(tagFile);
 	}
+
+	@Override
+	public String getFilepath() {
+		return FILEPATH;
+	}
 }

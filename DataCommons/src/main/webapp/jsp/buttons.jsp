@@ -100,7 +100,7 @@
 			<p>
 				<a href="<c:url value='/rest/upload/bag/${it.fedoraObject.object_id}' />">Data Files</a>
 			</p>
-			<p><a href="<c:url value='/rest/record/${it.fedoraObject.object_id}/data/' />">Data Files (Beta)</a>
+			<p><a href="<c:url value='/rest/records/${it.fedoraObject.object_id}/data/' />">Data Files (Beta)</a>
 		</anu:box>
 	</c:if>
 	<!-- Bag Summary End -->

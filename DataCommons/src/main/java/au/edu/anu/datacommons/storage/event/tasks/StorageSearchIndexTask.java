@@ -19,26 +19,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.tagfiles;
+package au.edu.anu.datacommons.storage.event.tasks;
 
-import java.io.File;
-import java.io.IOException;
+import java.nio.file.Path;
+
+import au.edu.anu.datacommons.storage.search.StorageSearchService;
 
 /**
  * @author Rahul Khanna
- * 
+ *
  */
-public class VirusScanTagFile extends AbstractKeyValueFile {
-	private static final long serialVersionUID = 1L;
-
-	public static final String FILEPATH = "virus-scan.txt";
-
-	public VirusScanTagFile(File tagFile) throws IOException {
-		super(tagFile);
-	}
+public class StorageSearchIndexTask extends AbstractStorageEventTask {
+	private StorageSearchService searchSvc;
 	
+	public StorageSearchIndexTask(String pid, Path bagDir, String relPath, StorageSearchService searchSvc) {
+		super(pid, bagDir, relPath);
+		this.searchSvc = searchSvc;
+	}
+
 	@Override
-	public String getFilepath() {
-		return FILEPATH;
+	public Void call() throws Exception {
+		searchSvc.indexFile(this.bagDir.toFile(), absFilepath.toFile());
+		
+		return null;
 	}
 }

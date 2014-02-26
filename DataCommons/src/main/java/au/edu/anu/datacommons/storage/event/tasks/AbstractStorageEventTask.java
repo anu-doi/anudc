@@ -19,26 +19,46 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.tagfiles;
+package au.edu.anu.datacommons.storage.event.tasks;
 
-import java.io.File;
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.concurrent.Callable;
 
 /**
  * @author Rahul Khanna
- * 
+ *
  */
-public class VirusScanTagFile extends AbstractKeyValueFile {
-	private static final long serialVersionUID = 1L;
+public abstract class AbstractStorageEventTask implements Callable<Void> {
 
-	public static final String FILEPATH = "virus-scan.txt";
+	protected String pid;
+	protected Path bagDir;
+	protected String relPath;
+	protected String dataPrependedRelPath;
+	protected Path absFilepath;
 
-	public VirusScanTagFile(File tagFile) throws IOException {
-		super(tagFile);
+	public AbstractStorageEventTask(String pid, Path bagDir, String relPath) {
+		this.pid = pid;
+		this.bagDir = bagDir;
+		this.relPath = relPath;
+
+		if (relPath != null) {
+			this.dataPrependedRelPath = prependDataDir(relPath);
+			this.absFilepath = bagDir.resolve(dataPrependedRelPath);
+		}
 	}
 	
 	@Override
-	public String getFilepath() {
-		return FILEPATH;
+	public abstract Void call() throws Exception;
+
+	protected String prependDataDir(String relPath) {
+		return "data/" + relPath;
 	}
+
+	protected BufferedInputStream createInputStream() throws IOException {
+		return new BufferedInputStream(Files.newInputStream(absFilepath));
+	}
+
 }

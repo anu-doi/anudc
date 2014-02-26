@@ -121,7 +121,7 @@ function sendFileToServer(file, status, hash) {
 					var position = event.loaded || event.position;
 					var total = event.total;
 					if (event.lengthComputable) {
-						percent = Math.ceil(position / total * 100 / 2 + 50);
+						percent = Math.ceil(position * 100 / total);
 					}
 					// Set progress
 					status.setProgress(percent);
@@ -156,9 +156,9 @@ function handleFileUpload(files, obj) {
 		fd.append("file", files[i]);
 		var status = new createStatusbar(obj);
 		status.setFileNameSize(files[i].name, files[i].size);
-		// sendFileToServer(files[i], status);
 		activeUploads++;
-		calcMd5(files[i], status, sendFileToServer);
+		sendFileToServer(files[i], status);
+		// calcMd5(files[i], status, sendFileToServer);
 	}
 }
 
@@ -268,10 +268,10 @@ function toggleCheckboxes(element) {
 function condEnableSelTasks() {
 	if (jQuery(".tbl-files td input:checkbox:checked").length > 0) {
 		jQuery("#action-del-selected").removeClass("disabled");
-		// jQuery("#idDownloadZipSelected").removeAttr("disabled", "disabled");
+		jQuery("#action-dl-zip").removeClass("disabled");
 	} else {
 		jQuery("#action-del-selected").addClass("disabled");
-		// jQuery("#idDownloadZipSelected").attr("disabled", "disabled");
+		jQuery("#action-dl-zip").addClass("disabled");
 	}
 }
 
@@ -346,4 +346,79 @@ function calcMd5(file, status, callback) {
 	}
 	
 	loadNext();
+}
+
+function downloadAsZip() {
+	var zipUrl = window.location.href;
+	var isFirstParam = true;
+	jQuery("#tblFiles input:checkbox:checked").each(function(index) {
+		if (this.value != "") {
+			if (isFirstParam) {
+				zipUrl += "?";
+				isFirstParam = false;
+			} else {
+				zipUrl += "&";
+			}
+			zipUrl += "f=" + encodeURI(this.value);
+		}
+	});
+
+	window.location = zipUrl;
+}
+
+function addExtRef() {
+	var url = prompt("Please enter a URL:");
+	if (url != null && url != "") {
+		jQuery('img#loading').show();
+		jQuery.ajax({
+			url : window.location.href + "?action=addExtRef",
+			type : "POST",
+			data : {
+				"i" : url
+			}
+		}).fail(function() {
+			alert('Unable to add url.');
+		}).always(function() {
+			window.location = window.location.href.split("?")[0];
+		});
+	}
+}
+
+function deleteExtRef(extRefUrl) {
+	if (confirm("Are you sure you want to delete:\n" + extRefUrl)) {
+		jQuery('img#loading').show();
+		jQuery.ajax({
+			url : window.location.href + "?action=delExtRef",
+			type : "POST",
+			data : {
+				"i" : extRefUrl
+			}
+		}).fail(function() {
+			alert('Unable to delete file.');
+		}).always(function() {
+			window.location = window.location.href.split("?")[0];
+		});
+	}
+}
+
+function toggleIsFilesPublic(pid, curFlag) {
+	var newFlag;
+	if (curFlag == "false") {
+		newFlag = "true";
+	} else {
+		newFlag = "false";
+	}
+	
+	jQuery('img#loading').show();
+	jQuery.ajax({
+			url: window.location.href + "?action=filesPublic",
+			type: "POST",
+			data: {
+				"i": newFlag
+			}
+	}).done(function(msg, status) {
+		window.location = window.location.href + "?smsg=Files' public status changed successfully.";
+	}).fail(function(msg, status) {
+		alert("Unable to change Files Public status");
+	});
 }

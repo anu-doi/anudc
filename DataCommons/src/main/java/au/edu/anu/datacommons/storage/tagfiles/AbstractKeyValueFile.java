@@ -21,28 +21,27 @@
 
 package au.edu.anu.datacommons.storage.tagfiles;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
+import java.nio.file.StandardOpenOption;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.axis.utils.ByteArrayOutputStream;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,11 +49,11 @@ import org.slf4j.LoggerFactory;
  * @author Rahul Khanna
  * 
  */
-public abstract class AbstractKeyValueFile extends ConcurrentHashMap<String, String> {
+public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractKeyValueFile.class);
 	private static final long serialVersionUID = 1L;
 	
-	protected Path path;
+	protected final Path path;
 	protected boolean hasUnsavedChanges = false;
 
 	public AbstractKeyValueFile(File file) throws IOException {
@@ -64,33 +63,33 @@ public abstract class AbstractKeyValueFile extends ConcurrentHashMap<String, Str
 	public AbstractKeyValueFile(Path path) throws IOException {
 		super();
 		this.path = path;
-		if (Files.isRegularFile(this.path)) {
-			read();
-		}
+		read();
 	}
 
 	public void read() throws IOException {
-		synchronized (this) {
-			try (BufferedReader reader = Files.newBufferedReader(this.path, StandardCharsets.UTF_8)){
-				for (String line = reader.readLine(); line != null;) {
-					// If the next line starts with white spaces concatinate it to the current line.
-					String nextLine = reader.readLine();
-					while (nextLine != null && nextLine.startsWith("  ")) {
-						line += nextLine.substring(2);
-						nextLine = reader.readLine();
-					}
-
-					if (line.length() > 0) {
-						String parts[] = unserializeKeyValue(line);
-						if (parts != null) {
-							this.put(parts[0], parts[1]);
+		if (Files.isRegularFile(this.path)) {
+			synchronized (this) {
+				try (BufferedReader reader = Files.newBufferedReader(this.path, StandardCharsets.UTF_8)) {
+					for (String line = reader.readLine(); line != null;) {
+						// If the next line starts with white spaces concatinate it to the current line.
+						String nextLine = reader.readLine();
+						while (nextLine != null && nextLine.startsWith("  ")) {
+							line += nextLine.substring(2);
+							nextLine = reader.readLine();
 						}
+
+						if (line.length() > 0) {
+							String parts[] = unserializeKeyValue(line);
+							if (parts != null) {
+								this.put(parts[0], parts[1]);
+							}
+						}
+						line = nextLine;
 					}
-					line = nextLine;
 				}
 			}
-			hasUnsavedChanges = false;
 		}
+		hasUnsavedChanges = false;
 	}
 	
 	public void write() throws IOException {
@@ -103,15 +102,33 @@ public abstract class AbstractKeyValueFile extends ConcurrentHashMap<String, Str
 					}
 				}
 				hasUnsavedChanges = false;
+				LOGGER.trace("File {} written to disk.", this.path.toString());
 			}
 		}
 	}
-
+	
+	public InputStream serialize() throws IOException {
+		byte[] byteArray = null;
+		String lineSeparator = System.getProperty("line.separator");
+		synchronized (this) {
+			try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
+				for (Entry<String, String> entry : this.entrySet()) {
+					String line = serializeEntry(entry) + lineSeparator;
+					os.write(line.getBytes(StandardCharsets.UTF_8));
+				}
+				byteArray = os.toByteArray();
+			}
+		}
+		return new ByteArrayInputStream(byteArray);
+	}
+	
 	@Override
 	public void clear() {
 		synchronized (this) {
-			super.clear();
-			hasUnsavedChanges = true;
+			if (this.size() > 0) {
+				super.clear();
+				hasUnsavedChanges = true;
+			}
 		}
 	}
 	
@@ -136,8 +153,7 @@ public abstract class AbstractKeyValueFile extends ConcurrentHashMap<String, Str
 		return oldValue;
 	}
 	
-	@Override
-	public String remove(Object key) {
+	public String remove(String key) {
 		String oldValue;
 		synchronized (this) {
 			if (this.containsKey(key)) {
@@ -148,10 +164,11 @@ public abstract class AbstractKeyValueFile extends ConcurrentHashMap<String, Str
 		return oldValue;
 	}
 
-	@Deprecated
 	public File getFile() {
 		return this.path.toFile();
 	}
+	
+	public abstract String getFilepath();
 
 	protected String[] unserializeKeyValue(String line) {
 		String parts[];

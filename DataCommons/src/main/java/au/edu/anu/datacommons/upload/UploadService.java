@@ -52,7 +52,6 @@ import javax.ws.rs.core.UriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -69,7 +68,6 @@ import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.AccessLogRecord.Operation;
-import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.storage.AbstractStorageResource;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.info.BagSummary;
@@ -521,23 +519,7 @@ public class UploadService extends AbstractStorageResource {
 		if (isFilesPublicStr == null || isFilesPublicStr.length() == 0) {
 			resp = Response.status(Status.BAD_REQUEST).build();
 		} else {
-			FedoraObject fo = fedoraObjectService.getItemByPid(pid);
-			if (!permissionService.checkPermission(fo, CustomACLPermission.PUBLISH)) {
-				throw new AccessDeniedException(format("User does not have Publish permissions for record {0}.", pid));
-			}
-			boolean isFilesPublic = Boolean.parseBoolean(isFilesPublicStr);
-			fedoraObjectService.setFilesPublic(pid, isFilesPublic);
-
-			try {
-				if (!isFilesPublic) {
-					dcStorage.deindexFilesInBag(pid);
-				} else if (isFilesPublic && fo.getPublished()) {
-					dcStorage.indexFilesInBag(pid);
-				}
-			} catch (IOException e) {
-				LOGGER.warn("Error while processing files in record {} for indexing: {}", pid, e.getMessage());
-			}
-			resp = Response.ok().build();
+			resp = processSetFilesPublicFlag(pid, isFilesPublicStr);
 		}
 		return resp;
 	}
@@ -592,7 +574,7 @@ public class UploadService extends AbstractStorageResource {
 		Response resp = null;
 		InputStream zipStream;
 		try {
-			zipStream = dcStorage.getFilesAsZipStream(pid, fileSet);
+			zipStream = dcStorage.createZipStream(pid, fileSet);
 			ResponseBuilder respBuilder = Response.ok(zipStream, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 			respBuilder.header("Content-Disposition", format("attachment; filename=\"{0}\"", zipFilename));
 			resp = respBuilder.build();

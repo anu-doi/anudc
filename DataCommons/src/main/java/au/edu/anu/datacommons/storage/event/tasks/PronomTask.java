@@ -19,26 +19,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.tagfiles;
+package au.edu.anu.datacommons.storage.event.tasks;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.BufferedInputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import au.edu.anu.datacommons.storage.completer.fido.FidoParser;
+import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 
 /**
  * @author Rahul Khanna
- * 
+ *
  */
-public class VirusScanTagFile extends AbstractKeyValueFile {
-	private static final long serialVersionUID = 1L;
+public class PronomTask extends AbstractTagFileTask {
 
-	public static final String FILEPATH = "virus-scan.txt";
-
-	public VirusScanTagFile(File tagFile) throws IOException {
-		super(tagFile);
+	public PronomTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
+		super(pid, bagDir, relPath, tagFilesSvc);
 	}
-	
+
 	@Override
-	public String getFilepath() {
-		return FILEPATH;
+	public Void call() throws Exception {
+		try (InputStream fileStream = createInputStream()) {
+			FidoParser fido = new FidoParser(fileStream, absFilepath.getFileName().toString());
+			String fidoStr = fido.getFidoStr();
+			tagFilesSvc.addEntry(pid, PronomFormatsTagFile.class, dataPrependedRelPath, fidoStr);
+		}
+		return null;
 	}
 }

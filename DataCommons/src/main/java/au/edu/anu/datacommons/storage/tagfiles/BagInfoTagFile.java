@@ -23,20 +23,20 @@ package au.edu.anu.datacommons.storage.tagfiles;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * @author Rahul Khanna
- * 
+ *
  */
-public class VirusScanTagFile extends AbstractKeyValueFile {
+public class BagInfoTagFile extends AbstractKeyValueFile {
 	private static final long serialVersionUID = 1L;
+	public static final String FILEPATH = "bag-info.txt";
 
-	public static final String FILEPATH = "virus-scan.txt";
-
-	public VirusScanTagFile(File tagFile) throws IOException {
-		super(tagFile);
+	public BagInfoTagFile(File file) throws IOException {
+		super(file);
 	}
-	
+
 	@Override
 	public String getFilepath() {
 		return FILEPATH;

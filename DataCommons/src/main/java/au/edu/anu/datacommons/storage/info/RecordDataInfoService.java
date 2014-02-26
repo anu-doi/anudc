@@ -51,7 +51,8 @@ import org.springframework.stereotype.Component;
 import au.edu.anu.datacommons.storage.info.FileInfo.Type;
 import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
-import au.edu.anu.datacommons.storage.tagfiles.ManifestTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.ManifestMd5TagFile;
+import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
@@ -84,7 +85,13 @@ public class RecordDataInfoService {
 		Path payloadDir = getPayloadDir(bagDir);
 		Path filepath = payloadDir.resolve(relPath);
 		fi.setFilename(filepath.getFileName().toString());
-		fi.setRelFilepath(FilenameHelper.normalizePathSeparators(payloadDir.relativize(filepath).toString()).toString());
+		Path parent = payloadDir.relativize(filepath).getParent();
+		if (parent != null) {
+			fi.setDirpath(FilenameHelper.normalizePathSeparators(parent.toString()));
+		} else {
+			fi.setDirpath("");
+		}
+		fi.setRelFilepath(FilenameHelper.normalizePathSeparators(payloadDir.relativize(filepath).toString()));
 		fi.setSize(Files.size(filepath));
 		if (Files.isRegularFile(filepath)) {
 			fi.setType(Type.FILE);
@@ -100,8 +107,8 @@ public class RecordDataInfoService {
 		fi.setPronomFormat(retrievePronomFormat(pid, fi.getRelFilepath()));
 		fi.setScanResult(retrieveScanResult(pid, fi.getRelFilepath()));
 		fi.setMetadata(retrieveMetadata(pid, fi.getRelFilepath()));
+		fi.setPresvPath(retrievePresvFilepath(pid, fi.getRelFilepath()));
 		
-
 		return fi;
 	}
 
@@ -117,8 +124,6 @@ public class RecordDataInfoService {
 			if (fi.getType() == Type.FILE) {
 				nFiles++;
 				sizeBytes += fi.getSize();
-			} else {
-				fi.setRelFilepath(fi.getRelFilepath() + "/");
 			}
 			fileInfos.add(fi);
 		}
@@ -138,16 +143,17 @@ public class RecordDataInfoService {
 
 	private List<Path> listFilesInDirFullPath(Path root, boolean recurse) throws IOException {
 		List<Path> fileList = new ArrayList<>();
-		DirectoryStream<Path> dirStream = Files.newDirectoryStream(root);
-		for (Path p : dirStream) {
-			if (!isExcluded(p)) {
-				if (Files.isDirectory(p)) {
-					fileList.add(p);
-					if (recurse) {
-						fileList.addAll(listFilesInDirFullPath(p, true));
+		try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(root)) {
+			for (Path p : dirStream) {
+				if (!isExcluded(p)) {
+					if (Files.isDirectory(p)) {
+						fileList.add(p);
+						if (recurse) {
+							fileList.addAll(listFilesInDirFullPath(p, true));
+						}
+					} else if (Files.isRegularFile(p)) {
+						fileList.add(p);
 					}
-				} else if (Files.isRegularFile(p)) {
-					fileList.add(p);
 				}
 			}
 		}
@@ -157,23 +163,36 @@ public class RecordDataInfoService {
 	private Map<String, String> retrieveMessageDigests(String pid, String relPath) throws IOException {
 		Map<String, String> mdMap = new HashMap<String, String>(1);
 		// MD5
-		mdMap.put(Manifest.Algorithm.MD5.javaSecurityAlgorithm, tagFilesSvc.getEntryValue(pid, ManifestTagFile.class, "data/" + relPath));
+		mdMap.put(Manifest.Algorithm.MD5.javaSecurityAlgorithm,
+				tagFilesSvc.getEntryValue(pid, ManifestMd5TagFile.class, prependData(relPath)));
 		return mdMap;
 	}
 
 	private PronomFormat retrievePronomFormat(String pid, String relPath) throws IOException {
-		return new PronomFormat(tagFilesSvc.getEntryValue(pid, PronomFormatsTagFile.class, "data/" + relPath));
+		return new PronomFormat(tagFilesSvc.getEntryValue(pid, PronomFormatsTagFile.class, prependData(relPath)));
 	}
 	
 	private String retrieveScanResult(String pid, String relPath) throws IOException {
-		return tagFilesSvc.getEntryValue(pid, VirusScanTagFile.class, "data/" + relPath);
+		return tagFilesSvc.getEntryValue(pid, VirusScanTagFile.class, prependData(relPath));
 	}
 	
 	private Map<String, String[]> retrieveMetadata(String pid, String relPath) throws IOException {
-		String metadataJson = tagFilesSvc.getEntryValue(pid, FileMetadataTagFile.class, "data/" + relPath);
+		String metadataJson = tagFilesSvc.getEntryValue(pid, FileMetadataTagFile.class, prependData(relPath));
 		return deserializeFromJson(metadataJson);
 	}
 	
+	private String retrievePresvFilepath(String pid, String relFilepath) throws IOException {
+		String presv = tagFilesSvc.getEntryValue(pid, PreservationMapTagFile.class, prependData(relFilepath));
+		if (presv != null) {
+			if (!presv.equals("PRESERVED") && !presv.equals("UNCONVERTIBLE")) {
+				presv = stripData(presv);
+			} else {
+				presv = null;
+			}
+		}
+		return presv;
+	}
+
 	private Map<String, String[]>deserializeFromJson(String jsonStr) throws JsonParseException, JsonMappingException, IOException {
 		Map<String, String[]> metadataMap;
 		if (jsonStr != null && jsonStr.length() > 0) {
@@ -196,5 +215,13 @@ public class RecordDataInfoService {
 
 	private Path getPayloadDir(Path bagDir) {
 		return bagDir.resolve("data/");
+	}
+
+	private String prependData(String relFilepath) {
+		return "data/" + relFilepath;
+	}
+
+	private String stripData(String presv) {
+		return presv.replaceFirst("^data/", "");
 	}
 }

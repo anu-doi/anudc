@@ -27,6 +27,8 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.util.Util;
+
 public class TestUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TestUtil.class);
 	private static final int BUFFER_SIZE = 8192;
@@ -117,7 +119,6 @@ public class TestUtil {
 	public static String createFileOfSize(File file, long sizeInBytes) throws IOException {
 		MessageDigest digester = createMd5Digester();
 		OutputStream os = null;
-		LOGGER.info("Creating {} ({}) ({} bytes)", file.getAbsolutePath(), FileUtils.byteCountToDisplaySize(sizeInBytes), sizeInBytes);
 		try {
 			os = new DigestOutputStream(new FileOutputStream(file), digester);
 			WritableByteChannel channel = Channels.newChannel(os);
@@ -137,8 +138,9 @@ public class TestUtil {
 		} finally {
 			IOUtils.closeQuietly(os);
 		}
-
-		return new String(Hex.encodeHex(digester.digest(), true));
+		String md5 = new String(Hex.encodeHex(digester.digest(), true));
+		LOGGER.info("Created {} ({}) ({} bytes) MD5: {}", file.getAbsolutePath(), Util.byteCountToDisplaySize(sizeInBytes), sizeInBytes, md5);
+		return md5;
 	}
 	
 	private static MessageDigest createMd5Digester() {

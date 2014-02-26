@@ -36,6 +36,7 @@ td.col-filesize {
 
 td.col-action-icons {
 	width: 5%;
+	text-align: right;
 }
 
 img.clickable-icon {

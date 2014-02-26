@@ -18,6 +18,7 @@ public class FileInfo implements Comparable<FileInfo> {
 
 	private String filename;
 	private String relFilepath;
+	private String dirpath;
 	private FileInfo.Type type;
 	private long size;
 	private Date lastModified;
@@ -26,6 +27,7 @@ public class FileInfo implements Comparable<FileInfo> {
 	private PronomFormat pronomFormat;
 	private Map<String, String[]> metadata;
 	private String scanResult;
+	private String presvPath;
 
 
 	@XmlElement
@@ -44,6 +46,15 @@ public class FileInfo implements Comparable<FileInfo> {
 
 	public void setRelFilepath(String relFilepath) {
 		this.relFilepath = relFilepath;
+	}
+
+	@XmlElement
+	public String getDirpath() {
+		return dirpath;
+	}
+
+	public void setDirpath(String dirpath) {
+		this.dirpath = dirpath;
 	}
 
 	@XmlElement
@@ -112,6 +123,15 @@ public class FileInfo implements Comparable<FileInfo> {
 
 	public void setScanResult(String scanResult) {
 		this.scanResult = scanResult;
+	}
+
+	@XmlElement
+	public String getPresvPath() {
+		return presvPath;
+	}
+
+	public void setPresvPath(String presvPath) {
+		this.presvPath = presvPath;
 	}
 
 	@Override

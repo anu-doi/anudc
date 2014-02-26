@@ -27,14 +27,13 @@ import java.util.Map.Entry;
 
 /**
  * @author Rahul Khanna
- * 
+ *
  */
-public class ManifestTagFile extends AbstractKeyValueFile {
+public abstract class AbstractManifestTagFile extends AbstractKeyValueFile {
+
 	private static final long serialVersionUID = 1L;
 
-	public static final String FILEPATH = "manifest-md5.txt";
-
-	public ManifestTagFile(File file) throws IOException {
+	public AbstractManifestTagFile(File file) throws IOException {
 		super(file);
 	}
 

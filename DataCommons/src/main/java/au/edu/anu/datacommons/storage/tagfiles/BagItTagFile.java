@@ -26,17 +26,16 @@ import java.io.IOException;
 
 /**
  * @author Rahul Khanna
- * 
+ *
  */
-public class VirusScanTagFile extends AbstractKeyValueFile {
+public final class BagItTagFile extends AbstractKeyValueFile {
 	private static final long serialVersionUID = 1L;
+	public static final String FILEPATH = "bagit.txt";
 
-	public static final String FILEPATH = "virus-scan.txt";
-
-	public VirusScanTagFile(File tagFile) throws IOException {
-		super(tagFile);
+	public BagItTagFile(File file) throws IOException {
+		super(file);
 	}
-	
+
 	@Override
 	public String getFilepath() {
 		return FILEPATH;

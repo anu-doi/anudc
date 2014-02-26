@@ -19,26 +19,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.tagfiles;
+package au.edu.anu.datacommons.storage.event.tasks;
 
-import java.io.File;
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+
+import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
+import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 
 /**
  * @author Rahul Khanna
- * 
+ *
  */
-public class VirusScanTagFile extends AbstractKeyValueFile {
-	private static final long serialVersionUID = 1L;
+public class TimestampTask extends AbstractTagFileTask {
 
-	public static final String FILEPATH = "virus-scan.txt";
-
-	public VirusScanTagFile(File tagFile) throws IOException {
-		super(tagFile);
+	public TimestampTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
+		super(pid, bagDir, relPath, tagFilesSvc);
 	}
-	
+
 	@Override
-	public String getFilepath() {
-		return FILEPATH;
+	public Void call() throws Exception {
+		FileTime lastModifiedTime = Files.getLastModifiedTime(absFilepath);
+		tagFilesSvc.addEntry(pid, TimestampsTagFile.class, dataPrependedRelPath, Long.toString(lastModifiedTime.toMillis(), 10));
+		return null;
 	}
+
 }

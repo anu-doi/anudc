@@ -46,153 +46,173 @@
 		<c:when test="${it.rdi != null}">
 			<p class="msg-info">Record contains ${it.rdi.numFiles} file(s) totalling ${it.rdi.friendlySize}.</p>
 			
-			<!-- Navigation Breadcrumbs -->
-			<div class="left marginbottom" >
-				<c:set var="parents" value="${it.rdi.getParents(it.path)}" />
-				<c:set var="parentUrl" value="" />
-				<c:forEach var="iLevel" begin="1" end="${fn:length(parents)}">
-					<c:set var="parentUrl" value="${parentUrl}../" />
-				</c:forEach>
-
-				<a class="large" href="<c:url value='${parentUrl}'/>">Data</a>
-				<c:forEach var="iParent" items="${parents}" varStatus="stat">
-					&nbsp;&gt;
+			<form name="frmFiles" action="?action=zip" method="post" class="anuform">
+				<!-- Navigation Breadcrumbs -->
+				<div class="left" >
+					<c:set var="parents" value="${it.rdi.getParents(it.path)}" />
 					<c:set var="parentUrl" value="" />
-					<c:forEach var="iLevel" begin="1" end="${fn:length(parents) - stat.count}">
+					<c:forEach var="iLevel" begin="1" end="${fn:length(parents)}">
 						<c:set var="parentUrl" value="${parentUrl}../" />
 					</c:forEach>
-					
-					<a class="large" href="<c:url value='${parentUrl}'/>"><c:out value="${iParent.filename}" /></a>
-				</c:forEach>
-			</div>
-			
-			<!-- Actions -->
-			<div id="div-action-icons" class="right">
-				<sec:authorize access="isAuthenticated()">
-					<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
-						<img id="action-create-folder" class="clickable-icon" src="<c:url value='/images/folder-new.png' />" onclick="createDir();"></img>
-						<img id="action-del-selected" class="clickable-icon disabled" src="<c:url value='/images/delete_red.png' />" onclick="deleteSelected();"></img>
-					</sec:accesscontrollist>
-				</sec:authorize>
-			</div>
-
-			<table class="w-doublewide tbl-row-bdr noborder anu-long-area tbl-files">
-				<tr class="anu-sticky-header">
-					<th class="col-checkbox"><input type="checkbox" onchange="toggleCheckboxes(this);" /></th>
-					<th class="col-filename">Name</th>
-					<th class="col-filetype">Type</th>
-					<th class="col-filesize">Size</th>
-					<th class="col-action-icons">&nbsp;</th>
-				</tr>
+	
+					<c:set var="baseDataUrl" value="${parentUrl}" />
+					<a class="large" href="<c:url value='${baseDataUrl}'/>">Data</a>
+					<c:forEach var="iParent" items="${parents}" varStatus="stat">
+						&nbsp;&gt;
+						<c:set var="parentUrl" value="" />
+						<c:forEach var="iLevel" begin="1" end="${fn:length(parents) - stat.count}">
+							<c:set var="parentUrl" value="${parentUrl}../" />
+						</c:forEach>
+						
+						<a class="large" href="<c:url value='${parentUrl}'/>"><c:out value="${iParent.filename}" /></a>
+					</c:forEach>
+				</div>
 				
-				<c:forEach var="iFile" items="${it.rdi.getFiles(it.path)}" varStatus="stat">
-					<tr id="filerow-${stat.count}" class="file-row">
-						<c:choose>
-							<c:when test="${iFile.type == 'DIR'}">
-								<c:set var="relUrl" value="${iFile.filename}/"></c:set>
-							</c:when>
-							<c:otherwise>
-								<c:set var="relUrl" value="${iFile.filename}"></c:set>
-							</c:otherwise>
-						</c:choose>
-						
-						<!-- Selection checkbox. -->
-						<td class="col-checkbox"><input type="checkbox" value="${relUrl}" onclick="condEnableSelTasks()" /></td>
-						
-						<!-- Icon and filename as hyperlink -->
-						<td class="col-filename"><a class="nounderline" href="<c:url value='${relUrl}'/>" title="${iFile.relFilepath }">
-							<c:choose>
-								<c:when test="${iFile.type == 'DIR'}">
-									<img src="//styles.anu.edu.au/_anu/images/icons/web/folder.png" onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder-over.png'"
-											onmouseout="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder.png'" />
-								</c:when>
-								<c:when test="${iFile.type == 'FILE'}">
-									<img src="//styles.anu.edu.au/_anu/images/icons/web/paper.png" onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper-over.png'"
-											onmouseout="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper.png'" />
-								</c:when>
-							</c:choose>
-						<c:out value="${iFile.filename}" /></a></td>
+				<!-- Actions -->
+				<div id="div-action-icons" class="text-right">
+					<sec:authorize access="isAuthenticated()">
+						<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+							<img id="action-create-folder" class="clickable-icon" src="<c:url value='/images/folder-new.png' />" onclick="createDir();"></img>
+							<img id="action-del-selected" class="clickable-icon disabled" src="<c:url value='/images/delete_red.png' />" onclick="deleteSelected();"></img>
+						</sec:accesscontrollist>
+					</sec:authorize>
+					<img id="action-dl-zip" class="clickable-icon" src="<c:url value='/images/zip.png' />" onclick="document.frmFiles.submit()"></img>
+				</div>
 
-						<!-- Type column -->
-						<td class="col-filetype">
-							<c:choose>
-								<c:when test="${iFile.type == 'DIR'}">
-									DIR
-								</c:when>
-								<c:when test="${iFile.type == 'FILE'}">
-									<c:choose>
-										<c:when test="${not empty iFile.pronomFormat.formatName}">
-											<a class="link-ext" target="_blank" title="${iFile.pronomFormat.puid}" href="http://www.nationalarchives.gov.uk/pronom/<c:url value='${iFile.pronomFormat.puid}'/>">
-												<c:out value="${iFile.pronomFormat.formatName}" />
-											</a>
-										</c:when>
-										<c:otherwise>
-											Unknown
-										</c:otherwise>
-									</c:choose>
-								</c:when>
-							</c:choose>
-						</td>
-						
-						<td class="col-filesize">
-							<c:if test="${iFile.type == 'FILE'}">
-								<c:out value="${iFile.friendlySize}" />
-							</c:if>
-						</td>
-						
-						<td class="col-action-icons">
-							<!-- Delete icon -->
-							<sec:authorize access="isAuthenticated()">
-								<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
-									<a href="javascript:void(0);" onclick="deleteFile('${relUrl}')">
-										<img src="<c:url value='/images/delete_red.png' />" width="24" height="24" title="Delete ${iFile.filename}" />
-									</a>
-								</sec:accesscontrollist>
-							</sec:authorize>
-							
-							<!-- Expand -->
-							<span onclick="jQuery('#filerow-extra-${stat.count}').slideToggle();">Expand</span>
-						</td>
+				<div>
+				<table id="tblFiles" class="w-doublewide tbl-row-bdr noborder anu-long-area tbl-files">
+					<tr class="anu-sticky-header">
+						<th class="col-checkbox"><input type="checkbox" onchange="toggleCheckboxes(this);" /></th>
+						<th class="col-filename">Name</th>
+						<th class="col-filetype">Type</th>
+						<th class="col-filesize">Size</th>
+						<th class="col-action-icons">&nbsp;</th>
 					</tr>
 					
-					<!-- Additional file details -->
-					<tr id="filerow-extra-${stat.count}" class="file-row-extra" style="display: none">
-						<td colspan="0">
-							<table>
-								<!-- Last Modified -->
-								<tr>
-									<th>Last Modified</th>
-									<td>${iFile.lastModified}</td>
-								</tr>
-								
-								<!-- Message Digests -->
-								<c:if test="${not empty iFile.messageDigests}">
-									<tr><td colspan="0">&nbsp;</td></tr>
-									<c:forEach var="iMd" items="${iFile.messageDigests}">
-										<tr>
-											<th><c:out value="${iMd.key}" /></th>
-											<td><c:out value="${iMd.value}" /></td>
-										</tr>
-									</c:forEach>
+					<c:forEach var="iFile" items="${it.rdi.getFiles(it.path)}" varStatus="stat">
+						<tr id="filerow-${stat.count}" class="file-row">
+							<c:choose>
+								<c:when test="${iFile.type == 'DIR'}">
+									<c:set var="relUrl" value="${iFile.filename}/"></c:set>
+								</c:when>
+								<c:otherwise>
+									<c:set var="relUrl" value="${iFile.filename}"></c:set>
+								</c:otherwise>
+							</c:choose>
+							
+							<!-- Selection checkbox. -->
+							<td class="col-checkbox"><input type="checkbox" name="i" value="${relUrl}" onclick="condEnableSelTasks()" /></td>
+							
+							<!-- Icon and filename as hyperlink -->
+							<td class="col-filename"><a class="nounderline" href="<c:url value='${relUrl}'/>" title="${iFile.relFilepath}">
+								<c:choose>
+									<c:when test="${iFile.type == 'DIR'}">
+										<img src="//styles.anu.edu.au/_anu/images/icons/web/folder.png" onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder-over.png'"
+												onmouseout="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder.png'" />
+									</c:when>
+									<c:when test="${iFile.type == 'FILE'}">
+										<img src="//styles.anu.edu.au/_anu/images/icons/web/paper.png" onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper-over.png'"
+												onmouseout="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper.png'" />
+									</c:when>
+								</c:choose>
+							<c:out value="${iFile.filename}" /></a></td>
+	
+							<!-- Type column -->
+							<td class="col-filetype">
+								<c:choose>
+									<c:when test="${iFile.type == 'DIR'}">
+										DIR
+									</c:when>
+									<c:when test="${iFile.type == 'FILE'}">
+										<c:choose>
+											<c:when test="${not empty iFile.pronomFormat.formatName}">
+												<a class="link-ext" target="_blank" title="${iFile.pronomFormat.puid}" href="http://www.nationalarchives.gov.uk/pronom/<c:url value='${iFile.pronomFormat.puid}'/>">
+													<c:out value="${iFile.pronomFormat.formatName}" />
+												</a>
+											</c:when>
+											<c:otherwise>
+												Unknown
+											</c:otherwise>
+										</c:choose>
+									</c:when>
+								</c:choose>
+							</td>
+							
+							<td class="col-filesize">
+								<c:if test="${iFile.type == 'FILE'}">
+									<c:out value="${iFile.friendlySize}" />
+								</c:if>
+							</td>
+							
+							<td class="col-action-icons">
+								<!-- Preserved File Icon -->
+								<c:if test="${not empty iFile.presvPath}">
+									<a href="<c:url value='${baseDataUrl}${iFile.presvPath}' />">
+										<img class="clickable-icon" src="<c:url value='/images/ice_icon.png' />" title="Download preserved format" />
+									</a>
 								</c:if>
 								
-								<!-- File Metadata -->
-								<c:if test="${not empty iFile.metadata}">
-									<tr><td colspan="0">&nbsp;</td></tr>
-									<c:forEach var="iProperty" items="${iFile.metadata}">
-										<tr>
-											<th><c:out value="${iProperty.key}" /></th>
-											<c:forEach var="iPropertyVal" items="${iProperty.value}">
-												<td><c:out value="${iPropertyVal}" /></td>
-											</c:forEach>
-										</tr>
-									</c:forEach>
-								</c:if>
-							</table>
-						</td>
-					</tr>
-				</c:forEach>
-			</table>
+								<!-- Virus Scan Icon -->
+								<c:choose>
+									<c:when test="${fn:containsIgnoreCase(iFile.scanResult, 'found')}">
+										<img title="VIRUS FOUND!! ${iFile.scanResult}" class="clickable-icon" src="<c:url value='/images/circle_red.png' />"></img>
+									</c:when>
+								</c:choose>
+								
+								<!-- Delete icon -->
+								<sec:authorize access="isAuthenticated()">
+									<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+										<a href="javascript:void(0);" onclick="deleteFile('${relUrl}')">
+											<img class="clickable-icon" src="<c:url value='/images/delete_red.png' />" title="Delete ${iFile.filename}" />
+										</a>
+									</sec:accesscontrollist>
+								</sec:authorize>
+								
+								<!-- Expand -->
+								<img class="clickable-icon" src="<c:url value='/images/arrow-right.png' />" onclick="jQuery('#filerow-extra-${stat.count}').slideToggle();" />
+							</td>
+						</tr>
+						
+						<!-- Additional file details -->
+						<tr id="filerow-extra-${stat.count}" class="file-row-extra" style="display: none">
+							<td colspan="0">
+								<table>
+									<!-- Last Modified -->
+									<tr>
+										<th>Last Modified</th>
+										<td>${iFile.lastModified}</td>
+									</tr>
+									
+									<!-- Message Digests -->
+									<c:if test="${not empty iFile.messageDigests}">
+										<tr><td colspan="0">&nbsp;</td></tr>
+										<c:forEach var="iMd" items="${iFile.messageDigests}">
+											<tr>
+												<th><c:out value="${iMd.key}" /></th>
+												<td><c:out value="${iMd.value}" /></td>
+											</tr>
+										</c:forEach>
+									</c:if>
+									
+									<!-- File Metadata -->
+									<c:if test="${not empty iFile.metadata}">
+										<tr><td colspan="0">&nbsp;</td></tr>
+										<c:forEach var="iProperty" items="${iFile.metadata}">
+											<tr>
+												<th><c:out value="${iProperty.key}" /></th>
+												<c:forEach var="iPropertyVal" items="${iProperty.value}">
+													<td><c:out value="${iPropertyVal}" /></td>
+												</c:forEach>
+											</tr>
+										</c:forEach>
+									</c:if>
+								</table>
+							</td>
+						</tr>
+					</c:forEach>
+				</table>
+				</div>
+			</form>
 		</c:when>
 	</c:choose>
 
@@ -205,20 +225,43 @@
 		<!-- External relations -->
 		<sec:authorize access="isAuthenticated()">
 			<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
-				<button onclick="addExtRef('${it.fo.object_id}')">Add External Reference</button>
+				<button onclick="addExtRef()">Add External Reference</button>
 			</sec:accesscontrollist>
 		</sec:authorize>
 		<c:if test="${not empty it.rdi.extRefs}">
 			<ul>
 				<c:forEach var="iEntry" items="${it.rdi.extRefs}">
-					<li><a href="${iEntry}"><c:out
-								value='${iEntry}' /></a>&nbsp;&nbsp;<a
-						href="javascript:void(0);"
-						onclick="deleteExtRef('${it.fo.object_id}', '${iEntry}')">[Delete]</a></li>
+					<li>
+						<a href="${iEntry}"><c:out value='${iEntry}' /></a>&nbsp;&nbsp;
+						<img class="clickable-icon" src="<c:url value='/images/delete_red.png' />" onclick="deleteExtRef('${iEntry}');" />
+					</li>
 				</c:forEach>
 			</ul>
 		</c:if>
 	</div>
+</div>
+
+<div class="doublewide nopadtop" id="info" style="display: none;">
+	<c:choose>
+		<c:when test="${it.rdi != null}">
+			<table class="small w-doublewide">
+				<tr>
+					<th>Public</th>
+					<td><c:out value="${it.isFilesPublic}" />&nbsp;
+						<sec:accesscontrollist hasPermission="PUBLISH,ADMINISTRATION" domainObject="${it.fo}">
+							<a href="javascript:void(0);" onclick="toggleIsFilesPublic('${it.fo.object_id}', '${it.isFilesPublic}')">Change</a>
+						</sec:accesscontrollist>
+					</td>
+				</tr>
+				<c:forEach var="iEntry" items="${it.bagInfoTxt}">
+					<tr>
+						<th><c:out value="${iEntry.key}" /></th>
+						<td><c:out value="${iEntry.value}" /></td>
+					</tr>
+				</c:forEach>
+			</table>
+		</c:when>
+	</c:choose>
 </div>
 
 <sec:authorize access="isAuthenticated()">

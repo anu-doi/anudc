@@ -19,35 +19,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.verifier;
+package au.edu.anu.datacommons.storage.tagfiles;
 
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import au.edu.anu.datacommons.storage.filesystem.FileFactory;
-import au.edu.anu.datacommons.storage.verifier.ResultMessage.Category;
-import au.edu.anu.datacommons.storage.verifier.ResultMessage.Severity;
 
 /**
  * @author Rahul Khanna
  *
  */
-public class VerificationTaskTest {
-	private static final Logger LOGGER = LoggerFactory.getLogger(VerificationTaskTest.class);
-
-	private FileFactory ff;
+public class BagInfoTagFileTest {
+	private static final Logger LOGGER = LoggerFactory.getLogger(BagInfoTagFileTest.class);
+	
+	@Rule
+	public TemporaryFolder tempDir = new TemporaryFolder();
+	
+	private BagInfoTagFile tagFile;
 	
 	/**
 	 * @throws java.lang.Exception
@@ -68,7 +71,9 @@ public class VerificationTaskTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		ff = new FileFactory(200);
+		LOGGER.trace("Using temp dir: {}" , tempDir.getRoot().getAbsolutePath());
+		File file = tempDir.newFile();
+		tagFile = new BagInfoTagFile(file);
 	}
 
 	/**
@@ -79,14 +84,15 @@ public class VerificationTaskTest {
 	}
 
 	@Test
-	public void testMarshalling() throws Exception {
-		VerificationResults results = new VerificationResults("test_123");
-		results.addMessage(new ResultMessage(Severity.ERROR, Category.ARTIFACT_FOUND, "metadata/abc.ser", "Message"));
-		results.addMessage(new ResultMessage(Severity.WARN, Category.CHECKSUM_MISMATCH, "metadata/abc.ser", "Message"));
-		JAXBContext context = JAXBContext.newInstance(VerificationResults.class);
-		Marshaller m = context.createMarshaller();
-		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		m.marshal(results, System.out);
-
+	public void test() throws Exception {
+		assertThat(tagFile.entrySet(), hasSize(0));
+		tagFile.put("a", "b");
+		tagFile.write();
+		
+		File f = tagFile.getFile();
+		List<String> lines = FileUtils.readLines(f, StandardCharsets.UTF_8);
+		
+		assertThat(lines, contains("a: b"));
 	}
+
 }

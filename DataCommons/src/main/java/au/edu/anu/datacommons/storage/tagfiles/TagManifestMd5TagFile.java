@@ -26,15 +26,15 @@ import java.io.IOException;
 
 /**
  * @author Rahul Khanna
- * 
+ *
  */
-public class VirusScanTagFile extends AbstractKeyValueFile {
+public class TagManifestMd5TagFile extends AbstractManifestTagFile {
+
 	private static final long serialVersionUID = 1L;
+	public static final String FILEPATH = "tagmanifest-md5.txt";
 
-	public static final String FILEPATH = "virus-scan.txt";
-
-	public VirusScanTagFile(File tagFile) throws IOException {
-		super(tagFile);
+	public TagManifestMd5TagFile(File file) throws IOException {
+		super(file);
 	}
 	
 	@Override

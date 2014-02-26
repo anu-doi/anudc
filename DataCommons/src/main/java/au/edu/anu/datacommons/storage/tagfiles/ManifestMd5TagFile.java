@@ -23,20 +23,21 @@ package au.edu.anu.datacommons.storage.tagfiles;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map.Entry;
 
 /**
  * @author Rahul Khanna
  * 
  */
-public class VirusScanTagFile extends AbstractKeyValueFile {
+public class ManifestMd5TagFile extends AbstractManifestTagFile {
 	private static final long serialVersionUID = 1L;
 
-	public static final String FILEPATH = "virus-scan.txt";
+	public static final String FILEPATH = "manifest-md5.txt";
 
-	public VirusScanTagFile(File tagFile) throws IOException {
-		super(tagFile);
+	public ManifestMd5TagFile(File file) throws IOException {
+		super(file);
 	}
-	
+
 	@Override
 	public String getFilepath() {
 		return FILEPATH;

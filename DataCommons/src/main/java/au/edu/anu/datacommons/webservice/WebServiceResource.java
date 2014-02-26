@@ -69,6 +69,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -88,6 +89,7 @@ import au.edu.anu.datacommons.security.service.FedoraObjectException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
+import au.edu.anu.datacommons.tasks.ThreadPoolService;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.webservice.bindings.Collection;
@@ -106,10 +108,12 @@ public class WebServiceResource
 
 	private static final DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 	private static DocumentBuilder docBuilder;
-	private static ExecutorService threadExec;
 
 	private static JAXBContext context;
 	private static Unmarshaller um;
+
+	@Autowired(required = true)
+	ThreadPoolService threadPoolSvc;
 
 	@Resource(name = "fedoraObjectServiceImpl")
 	private FedoraObjectService fedoraObjectService;
@@ -117,46 +121,26 @@ public class WebServiceResource
 	@Resource(name = "dcStorage")
 	private DcStorage dcStorage;
 
-	static
-	{
+	static {
 		docBuilderFactory.setNamespaceAware(true);
-		try
-		{
+		try {
 			docBuilder = docBuilderFactory.newDocumentBuilder();
-		}
-		catch (ParserConfigurationException e)
-		{
-			// This should never happen as we're using default Document Builder Factory. If it does, then NPE is to be expected.
+		} catch (ParserConfigurationException e) {
+			// This should never happen as we're using default Document Builder Factory. If it does, then NPE is to be
+			// expected.
 			LOGGER.error(e.getMessage(), e);
 			docBuilder = null;
 		}
 
-		try
-		{
+		try {
 			ClassLoader cl = WebServiceResource.class.getClassLoader();
 			context = JAXBContext.newInstance("au.edu.anu.datacommons.webservice.bindings", cl);
 			um = context.createUnmarshaller();
-		}
-		catch (JAXBException e)
-		{
+		} catch (JAXBException e) {
 			LOGGER.error(e.getMessage(), e);
 			context = null;
 			um = null;
 		}
-		
-		threadExec = Executors.newSingleThreadExecutor(new ThreadFactory() {
-			// Reduced priority for these threads.
-			private final static int PRIORITY = (Thread.NORM_PRIORITY + Thread.MIN_PRIORITY) / 2;
-			
-			@Override
-			public Thread newThread(Runnable r)
-			{
-				Thread newThread = new Thread(r);
-				newThread.setPriority(PRIORITY);
-				newThread.setDaemon(true);
-				return newThread;
-			}
-		});
 	}
 
 	@Context
@@ -249,7 +233,7 @@ public class WebServiceResource
 								try
 								{
 									LOGGER.info("Beginning download of file {} from {} to add to {}...", filename, fileUrl, item.getPid());
-									dcStorage.addFileToBag(item.getPid(), new URL(fileUrl), filename, false);
+									dcStorage.addFile(item.getPid(), new URL(fileUrl), filename);
 									LOGGER.info("Successfully downloaded file {} from {} and added to {}.", filename, fileUrl, item.getPid());
 								}
 								catch (Exception e)
@@ -259,7 +243,7 @@ public class WebServiceResource
 								}
 							}
 						};
-						threadExec.execute(downloadRunnable);
+						threadPoolSvc.submit(downloadRunnable);
 					}
 					else
 					{

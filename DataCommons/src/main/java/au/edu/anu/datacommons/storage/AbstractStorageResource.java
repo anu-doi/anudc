@@ -51,6 +51,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -63,8 +64,10 @@ import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.AccessLogRecord;
 import au.edu.anu.datacommons.security.AccessLogRecord.Operation;
+import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
+import au.edu.anu.datacommons.storage.info.FileInfo;
 import au.edu.anu.datacommons.storage.temp.AbstractTempFileTask;
 import au.edu.anu.datacommons.storage.temp.PartTempFileTask;
 import au.edu.anu.datacommons.storage.temp.TempFileTask;
@@ -75,7 +78,6 @@ import au.edu.anu.datacommons.storage.temp.TempFileTask;
  */
 public class AbstractStorageResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStorageResource.class);
-	protected static final Charset CHARSET = Charset.forName("UTF-8");
 	
 	@Context
 	protected UriInfo uriInfo;
@@ -116,11 +118,12 @@ public class AbstractStorageResource {
 		is = dcStorage.getFileStream(pid, fileInBag);
 		ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 		// Add filename, MD5 and file size to response header.
+		FileInfo fileInfo = dcStorage.getFileInfo(pid, fileInBag);
 		respBuilder = respBuilder.header("Content-Disposition",
-				format("attachment; filename=\"{0}\"", extractFilenameFromPath(fileInBag)));
-		respBuilder = respBuilder.header("Content-MD5", dcStorage.getFileMd5(pid, fileInBag));
-		respBuilder = respBuilder.header("Content-Length", dcStorage.getFileSize(pid, fileInBag));
-		respBuilder = respBuilder.lastModified(dcStorage.getFileLastModified(pid, fileInBag));
+				format("attachment; filename=\"{0}\"", fileInfo.getFilename()));
+		respBuilder = respBuilder.header("Content-MD5", fileInfo.getMessageDigests().get("MD5"));
+		respBuilder = respBuilder.header("Content-Length", Long.toString(fileInfo.getSize(), 10));
+		respBuilder = respBuilder.lastModified(fileInfo.getLastModified());
 		resp = respBuilder.build();
 
 		return resp;
@@ -241,7 +244,7 @@ public class AbstractStorageResource {
 						} else {
 							addAccessLog(uri, Operation.CREATE);
 						}
-						dcStorage.addFileToBag(pid, savedFile, relPath, isPublishedAndPublic(fo));
+						dcStorage.addFile(pid, savedFile, relPath);
 					}
 				}
 			}
@@ -293,7 +296,7 @@ public class AbstractStorageResource {
 			} else {
 				addAccessLog(Operation.CREATE);
 			}
-			dcStorage.addFileToBag(pid, uploadedFile, path, isPublishedAndPublic(fo));
+			dcStorage.addFile(pid, uploadedFile, path);
 			resp = Response.ok(tfTask.getCalculatedMd()).build();
 		} catch (NumberFormatException e) {
 			throw new WebApplicationException(e, Status.BAD_REQUEST);
@@ -315,7 +318,7 @@ public class AbstractStorageResource {
 			if (dcStorage.fileExists(pid, fileInBag)) {
 				addAccessLog(Operation.DELETE);
 			}
-			dcStorage.deleteFileFromBag(pid, fileInBag);
+			dcStorage.deleteItem(pid, fileInBag);
 			resp = Response.ok(format("File {0} deleted from {1}", fileInBag, pid)).build();
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
@@ -339,6 +342,28 @@ public class AbstractStorageResource {
 		ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory(GlobalProps.getMaxSizeInMem(),
 				GlobalProps.getUploadDirAsFile()));
 		return (List<FileItem>) upload.parseRequest(request);
+	}
+
+	protected Response processSetFilesPublicFlag(String pid, String isFilesPublicStr) {
+		Response resp;
+		FedoraObject fo = fedoraObjectService.getItemByPid(pid);
+		if (!permissionService.checkPermission(fo, CustomACLPermission.PUBLISH)) {
+			throw new AccessDeniedException(format("User does not have Publish permissions for record {0}.", pid));
+		}
+		boolean isFilesPublic = Boolean.parseBoolean(isFilesPublicStr);
+		fedoraObjectService.setFilesPublic(pid, isFilesPublic);
+	
+		try {
+			if (!isFilesPublic) {
+				dcStorage.deindexFilesInBag(pid);
+			} else if (isFilesPublic && fo.getPublished()) {
+				dcStorage.indexFilesInBag(pid);
+			}
+		} catch (IOException e) {
+			LOGGER.warn("Error while processing files in record {} for indexing: {}", pid, e.getMessage());
+		}
+		resp = Response.ok().build();
+		return resp;
 	}
 
 }
