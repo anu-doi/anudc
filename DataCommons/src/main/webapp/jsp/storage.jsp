@@ -77,6 +77,12 @@
 						</sec:accesscontrollist>
 					</sec:authorize>
 					<img id="action-dl-zip" class="clickable-icon" src="<c:url value='/images/zip.png' />" onclick="document.frmFiles.submit()"></img>
+					<sec:authorize access="hasRole('ROLE_ADMIN')">
+						<a href="<c:url value='${baseDataUrl}../admin?task=verify' />">
+							<img id="action-verify-files" class="clickable-icon" src="<c:url value='/images/screwdriver-spanner.png' />"
+									onclick="verifyFiles('')"></img>
+						</a>
+					</sec:authorize>
 				</div>
 
 				<div>
@@ -107,11 +113,13 @@
 							<td class="col-filename"><a class="nounderline" href="<c:url value='${relUrl}'/>" title="${iFile.relFilepath}">
 								<c:choose>
 									<c:when test="${iFile.type == 'DIR'}">
-										<img src="//styles.anu.edu.au/_anu/images/icons/web/folder.png" onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder-over.png'"
+										<img src="//styles.anu.edu.au/_anu/images/icons/web/folder.png"
+												onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder-over.png'"
 												onmouseout="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder.png'" />
 									</c:when>
 									<c:when test="${iFile.type == 'FILE'}">
-										<img src="//styles.anu.edu.au/_anu/images/icons/web/paper.png" onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper-over.png'"
+										<img src="//styles.anu.edu.au/_anu/images/icons/web/paper.png"
+												onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper-over.png'"
 												onmouseout="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper.png'" />
 									</c:when>
 								</c:choose>
@@ -126,7 +134,8 @@
 									<c:when test="${iFile.type == 'FILE'}">
 										<c:choose>
 											<c:when test="${not empty iFile.pronomFormat.formatName}">
-												<a class="link-ext" target="_blank" title="${iFile.pronomFormat.puid}" href="http://www.nationalarchives.gov.uk/pronom/<c:url value='${iFile.pronomFormat.puid}'/>">
+												<a class="link-ext" target="_blank" title="${iFile.pronomFormat.puid}"
+														href="http://www.nationalarchives.gov.uk/pronom/<c:url value='${iFile.pronomFormat.puid}'/>">
 													<c:out value="${iFile.pronomFormat.formatName}" />
 												</a>
 											</c:when>
