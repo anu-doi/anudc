@@ -152,6 +152,9 @@ public class StorageEventListener {
 	}
 
 	private void processPreEventTasks(EventType type, String pid, Path bagDir, String relPath) throws IOException {
+		if (type.isOneOf(EventType.TAGFILE_UPDATE)) {
+			initBagDir(pid, bagDir);
+		}
 		if (type.isOneOf(EventType.READ_FILE, EventType.UPDATE_FILE, EventType.DELETE_FILE)) {
 			verifyFileExists(pid, bagDir, relPath);
 		}
@@ -218,20 +221,23 @@ public class StorageEventListener {
 		}
 	}
 
-	private void initBagIt(String pid, Path bagDir, String relPath) throws IOException {
-		Map<String, String> bagItEntries = tagFilesSvc.getAllEntries(pid, BagItTagFile.class);
-		if (bagItEntries.size() != 2) {
-			addBagItEntries(pid);
+	private void initBagDir(String pid, Path bagDir) throws IOException {
+		if (!Files.isDirectory(bagDir)) {
+			Files.createDirectory(bagDir);
+			initBagIt(pid);
 		}
 	}
 
-	private void addBagItEntries(String pid) throws IOException {
-		// Must clear all entries to ensure insertion order.
-		tagFilesSvc.clearAllEntries(pid, BagItTagFile.class);
-		tagFilesSvc.addEntry(pid, BagItTagFile.class, BagItTxtImpl.VERSION_KEY, Version.V0_97.versionString);
-		tagFilesSvc.addEntry(pid, BagItTagFile.class, BagItTxtImpl.CHARACTER_ENCODING_KEY, AbstractBagConstants.BAG_ENCODING);
+	private void initBagIt(String pid) throws IOException {
+		Map<String, String> bagItEntries = tagFilesSvc.getAllEntries(pid, BagItTagFile.class);
+		if (bagItEntries.size() != 2) {
+			// Must clear all entries to ensure insertion order.
+			tagFilesSvc.clearAllEntries(pid, BagItTagFile.class);
+			tagFilesSvc.addEntry(pid, BagItTagFile.class, BagItTxtImpl.VERSION_KEY, Version.V0_97.versionString);
+			tagFilesSvc.addEntry(pid, BagItTagFile.class, BagItTxtImpl.CHARACTER_ENCODING_KEY, AbstractBagConstants.BAG_ENCODING);
+		}
 	}
-	
+
 	private String normalizeRelPath(String relPath) throws IOException {
 		if (relPath != null) {
 			StringBuilder processed = new StringBuilder(FilenameHelper.normalizePathSeparators(relPath));
@@ -272,12 +278,10 @@ public class StorageEventListener {
 	private void createParentPath(String pid, Path bagDir, String relPath) throws IOException {
 		Path targetFile = getPayloadDir(bagDir).resolve(relPath);
 		if (!Files.isDirectory(bagDir.getParent())) {
-			throw new IllegalStateException(format("Bag Roots directory {0} doesn''t exist.", bagDir.getParent()
+			throw new IllegalStateException(format("Bags Root directory {0} doesn''t exist.", bagDir.getParent()
 					.toAbsolutePath().toString()));
 		}
-		if (!Files.isDirectory(bagDir)) {
-			initBagIt(pid, bagDir, relPath);
-		}
+		initBagDir(pid, bagDir);
 		Files.createDirectories(targetFile.getParent());
 	}
 
