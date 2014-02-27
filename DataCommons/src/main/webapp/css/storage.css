@@ -18,24 +18,24 @@ th.col-checkbox,td.col-checkbox {
 }
 
 th.col-filename,td.col-filename {
-	width: 50%;
+	width: 340px;
 	overflow:hidden;
 	text-overflow:ellipsis;
 	white-space:nowrap;
 }
 
 td.col-filetype {
-	width: 20%;
+	width: 100px;
 	overflow:hidden;
 	white-space:nowrap;
 }
 
-td.col-filesize {
-	width: 20%;
+th.col-filesize, td.col-filesize {
+	text-align: right;
+	width: 60px;
 }
 
 td.col-action-icons {
-	width: 5%;
 	text-align: right;
 }
 

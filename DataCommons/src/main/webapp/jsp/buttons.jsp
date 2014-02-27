@@ -87,20 +87,18 @@
 	<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
 		<anu:boxheader text="Files" />
 		<anu:box style="solid">
-			<c:if test="${not empty it.bagSummary}">
+			<c:if test="${not empty it.rdi}">
 				<p>
-					<c:out value="${it.bagSummary.numFiles}" />
+					<c:out value="${it.rdi.numFiles}" />
 					file(s) in collection. Size
-					<c:out value="${it.bagSummary.friendlySize}" />
+					<c:out value="${it.rdi.friendlySize}" />
 				</p>
 			</c:if>
-			<c:if test="${empty it.bagSummary}">
+			<c:if test="${empty it.rdi}">
 				<p>No files in collection.</p>
 			</c:if>
-			<p>
-				<a href="<c:url value='/rest/upload/bag/${it.fedoraObject.object_id}' />">Data Files</a>
-			</p>
-			<p><a href="<c:url value='/rest/records/${it.fedoraObject.object_id}/data/' />">Data Files (Beta)</a>
+			<p><a href="<c:url value='/rest/records/${it.fedoraObject.object_id}/data/' />">Data Files</a>
+			<p><a href="<c:url value='/rest/upload/bag/${it.fedoraObject.object_id}' />">Data Files (Legacy)</a></p>
 		</anu:box>
 	</c:if>
 	<!-- Bag Summary End -->

@@ -43,7 +43,7 @@
 
 <div class="doublewide nopadtop" id="files" class="list_view">
 	<c:choose>
-		<c:when test="${it.rdi != null}">
+		<c:when test="${not empty it.rdi}">
 			<p class="msg-info">Record contains ${it.rdi.numFiles} file(s) totalling ${it.rdi.friendlySize}.</p>
 			
 			<form name="frmFiles" action="?action=zip" method="post" class="anuform">
@@ -252,7 +252,7 @@
 
 <div class="doublewide nopadtop" id="info" style="display: none;">
 	<c:choose>
-		<c:when test="${it.rdi != null}">
+		<c:when test="${not empty it.rdi}">
 			<table class="small w-doublewide">
 				<tr>
 					<th>Public</th>

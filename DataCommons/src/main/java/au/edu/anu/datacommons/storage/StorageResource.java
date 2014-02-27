@@ -110,14 +110,20 @@ public class StorageResource extends AbstractStorageResource {
 	public Response postUploadFile(@PathParam("pid") String pid, @PathParam("path") String path,
 			@QueryParam("src") String src, InputStream is) {
 		Response resp = null;
+		if (src == null || src.length() == 0) {
+			List<String> userAgentHeader = httpHeaders.getRequestHeader("User-Agent");
+			if (userAgentHeader != null && !userAgentHeader.isEmpty()) {
+				src = userAgentHeader.get(0);
+			}
+		}
 		LOGGER.info("User {} ({}) requested file upload to {} in record {} [SOURCE:{}]", getCurUsername(),
 				getRemoteIp(), uriInfo.getPath(true).toString(), pid, src);
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 
-		if (src == null || src.length() == 0) {
-			resp = processRestUpload(pid, path, is);
-		} else if (src.equals("jupload")) {
+		if (src.equals("jupload")) {
 			resp = processJUpload(pid, path);
+		} else {
+			resp = processRestUpload(pid, path, is);
 		}
 		return resp;
 	}

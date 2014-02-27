@@ -22,41 +22,27 @@
 package au.edu.anu.datacommons.storage.event;
 
 import static java.text.MessageFormat.format;
-import gov.loc.repository.bagit.Bag.BagConstants;
 import gov.loc.repository.bagit.BagFactory.Version;
-import gov.loc.repository.bagit.BagInfoTxt;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.impl.AbstractBagConstants;
 import gov.loc.repository.bagit.impl.BagItTxtImpl;
 import gov.loc.repository.bagit.utilities.FilenameHelper;
-import gov.loc.repository.bagit.v0_95.impl.BagInfoTxtImpl;
-import gov.loc.repository.bagit.v0_97.impl.BagConstantsImpl;
 
-import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
-import org.apache.commons.io.FilenameUtils;
-import org.h2.store.fs.FilePath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +53,6 @@ import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask.Operation;
-import au.edu.anu.datacommons.storage.completer.fido.FidoParser;
 import au.edu.anu.datacommons.storage.event.tasks.BagCompletionTask;
 import au.edu.anu.datacommons.storage.event.tasks.ManifestMd5Task;
 import au.edu.anu.datacommons.storage.event.tasks.MetadataTask;
@@ -78,7 +63,6 @@ import au.edu.anu.datacommons.storage.event.tasks.TimestampTask;
 import au.edu.anu.datacommons.storage.event.tasks.VirusScanTask;
 import au.edu.anu.datacommons.storage.info.RecordDataInfoService;
 import au.edu.anu.datacommons.storage.search.StorageSearchService;
-import au.edu.anu.datacommons.storage.tagfiles.BagInfoTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.BagItTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.ManifestMd5TagFile;
@@ -222,6 +206,10 @@ public class StorageEventListener {
 	}
 
 	private void initBagDir(String pid, Path bagDir) throws IOException {
+		if (!Files.isDirectory(bagDir.getParent())) {
+			throw new IllegalStateException(format("Bags Root directory {0} doesn''t exist.", bagDir.getParent()
+					.toAbsolutePath().toString()));
+		}
 		if (!Files.isDirectory(bagDir)) {
 			Files.createDirectory(bagDir);
 			initBagIt(pid);
@@ -277,10 +265,6 @@ public class StorageEventListener {
 
 	private void createParentPath(String pid, Path bagDir, String relPath) throws IOException {
 		Path targetFile = getPayloadDir(bagDir).resolve(relPath);
-		if (!Files.isDirectory(bagDir.getParent())) {
-			throw new IllegalStateException(format("Bags Root directory {0} doesn''t exist.", bagDir.getParent()
-					.toAbsolutePath().toString()));
-		}
 		initBagDir(pid, bagDir);
 		Files.createDirectories(targetFile.getParent());
 	}
