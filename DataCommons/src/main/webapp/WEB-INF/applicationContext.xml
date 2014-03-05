@@ -116,8 +116,8 @@
 		</property>
 	</bean>
 	
-	<bean id="archiveRootDir" class="java.nio.file.Paths" factory-method="get">
-		<constructor-arg value="file:/${upload.archiveBaseDir}" />
+	<bean id="archiveRootDir" class="au.edu.anu.datacommons.storage.filesystem.PathCreator" factory-method="createPath">
+		<constructor-arg value="${upload.archiveBaseDir}"></constructor-arg>
 	</bean>
 	
 	<bean id="threadPoolService" class="au.edu.anu.datacommons.tasks.ThreadPoolService">
