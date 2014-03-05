@@ -120,6 +120,10 @@
 		<constructor-arg value="${upload.archiveBaseDir}"></constructor-arg>
 	</bean>
 	
+	<bean id="uploadDir" class="java.nio.file.Paths" factory-method="get">
+		<constructor-arg value="file:/${upload.uploadDir}" />
+	</bean>
+	
 	<bean id="threadPoolService" class="au.edu.anu.datacommons.tasks.ThreadPoolService">
 		<constructor-arg value="16" />
 	</bean>

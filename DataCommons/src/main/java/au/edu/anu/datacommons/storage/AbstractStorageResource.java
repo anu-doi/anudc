@@ -30,7 +30,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.Future;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -50,6 +53,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -70,7 +74,9 @@ import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.info.FileInfo;
 import au.edu.anu.datacommons.storage.temp.AbstractTempFileTask;
 import au.edu.anu.datacommons.storage.temp.PartTempFileTask;
+import au.edu.anu.datacommons.storage.temp.TempFileService;
 import au.edu.anu.datacommons.storage.temp.TempFileTask;
+import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 
 /**
  * @author Rahul Khanna
@@ -94,6 +100,9 @@ public class AbstractStorageResource {
 
 	@Resource(name = "dcStorage")
 	protected DcStorage dcStorage;
+	
+	@Autowired
+	protected TempFileService tmpFileSvc;
 	
 	protected AccessLogRecordDAOImpl accessLogDao = new AccessLogRecordDAOImpl(AccessLogRecord.class);
 
@@ -121,7 +130,10 @@ public class AbstractStorageResource {
 		FileInfo fileInfo = dcStorage.getFileInfo(pid, fileInBag);
 		respBuilder = respBuilder.header("Content-Disposition",
 				format("attachment; filename=\"{0}\"", fileInfo.getFilename()));
-		respBuilder = respBuilder.header("Content-MD5", fileInfo.getMessageDigests().get("MD5"));
+		String md5 = fileInfo.getMessageDigests().get("MD5");
+		if (md5 != null && md5.length() > 0) {
+			respBuilder = respBuilder.header("Content-MD5", md5);
+		}
 		respBuilder = respBuilder.header("Content-Length", Long.toString(fileInfo.getSize(), 10));
 		respBuilder = respBuilder.lastModified(fileInfo.getLastModified());
 		resp = respBuilder.build();
@@ -274,37 +286,44 @@ public class AbstractStorageResource {
 	protected Response processRestUpload(String pid, String path, InputStream is) {
 		Response resp;
 		FedoraObject fo = fedoraObjectService.getItemByPidWriteAccess(pid);
-		File uploadedFile = null;
-	
+		UploadedFileInfo ufi = null;
+
 		try {
-			TempFileTask tfTask = new TempFileTask(is, GlobalProps.getUploadDirAsFile());
+			long expectedLength = -1;
+			if (httpHeaders.getRequestHeader("Content-Length") != null) {
+				expectedLength = Long.parseLong(httpHeaders.getRequestHeader("content-length").get(0), 10);
+			}
+
+			String expectedMd5 = null;
 			if (httpHeaders.getRequestHeader("Content-MD5") != null) {
-				String providedMd5 = httpHeaders.getRequestHeader("Content-MD5").get(0);
-				if (providedMd5 != null && providedMd5.length() > 0) {
-					tfTask.setExpectedMessageDigest(Manifest.Algorithm.MD5, providedMd5);
-				}
+				expectedMd5 = httpHeaders.getRequestHeader("Content-MD5").get(0);
 			}
-			
-			if (httpHeaders.getRequestHeader("content-length") != null) {
-				long expectedSize = Long.parseLong(httpHeaders.getRequestHeader("content-length").get(0), 10);
-				tfTask.setExpectedSize(expectedSize);
-			}
-			
-			uploadedFile = tfTask.call();
+
+			LOGGER.info("User {} ({}) uploading file to {}/data/{}, Size: {}, MD5: {}", getCurUsername(),
+					getRemoteIp(), pid, path, expectedLength, expectedMd5);
+
+			Future<UploadedFileInfo> future = tmpFileSvc.saveInputStream(is, expectedLength, expectedMd5);
+			ufi = future.get();
 			if (dcStorage.fileExists(pid, path)) {
 				addAccessLog(Operation.UPDATE);
 			} else {
 				addAccessLog(Operation.CREATE);
 			}
-			dcStorage.addFile(pid, uploadedFile, path);
-			resp = Response.ok(tfTask.getCalculatedMd()).build();
+			dcStorage.addFile(pid, ufi.getFilepath().toFile(), path);
+			resp = Response.ok(ufi.getMd5()).build();
 		} catch (NumberFormatException e) {
 			throw new WebApplicationException(e, Status.BAD_REQUEST);
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		} finally {
-			FileUtils.deleteQuietly(uploadedFile);
+			if (ufi != null) {
+				try {
+					Files.deleteIfExists(ufi.getFilepath());
+				} catch (IOException e) {
+					LOGGER.error(e.getMessage(), e);
+				}
+			}
 		}
 		return resp;
 	}

@@ -163,7 +163,7 @@ public class TagFilesService implements AutoCloseable {
 	@PostConstruct
 	public void postConstruct() {
 		final long fWriteFreq = writeFreq;
-		threadPoolSvc.scheduleWithFixedDelay(new Runnable() {
+		threadPoolSvc.scheduleWhenIdleWithFixedDelay(new Runnable() {
 
 			@Override
 			public void run() {

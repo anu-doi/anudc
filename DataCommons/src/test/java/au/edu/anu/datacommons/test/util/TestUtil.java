@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -141,6 +142,12 @@ public class TestUtil {
 		String md5 = new String(Hex.encodeHex(digester.digest(), true));
 		LOGGER.info("Created {} ({}) ({} bytes) MD5: {}", file.getAbsolutePath(), Util.byteCountToDisplaySize(sizeInBytes), sizeInBytes, md5);
 		return md5;
+	}
+	
+	public static ByteArrayInputStream createInMemStream(int sizeInBytes) {
+		byte[] buffer = new byte[(int) sizeInBytes];
+		rand.nextBytes(buffer);
+		return new ByteArrayInputStream(buffer);
 	}
 	
 	private static MessageDigest createMd5Digester() {

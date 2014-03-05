@@ -116,8 +116,6 @@ public class StorageResource extends AbstractStorageResource {
 				src = userAgentHeader.get(0);
 			}
 		}
-		LOGGER.info("User {} ({}) requested file upload to {} in record {} [SOURCE:{}]", getCurUsername(),
-				getRemoteIp(), uriInfo.getPath(true).toString(), pid, src);
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 
 		if (src.equals("jupload")) {

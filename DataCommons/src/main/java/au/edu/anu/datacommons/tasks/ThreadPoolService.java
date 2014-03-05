@@ -50,15 +50,19 @@ public class ThreadPoolService implements AutoCloseable {
 	private Set<ExecutorService> execs = new HashSet<>();
 	
 	private ScheduledThreadPoolExecutor scheduledThreadPool;
-	private ThreadPoolExecutor cachedThreadPool; 
+	private ThreadPoolExecutor cachedThreadPool;
+	private ScheduledThreadPoolExecutor idleThreadPool;
 
 	public ThreadPoolService(int nThreads) {
-		scheduledThreadPool = new ScheduledThreadPoolExecutor(nThreads, Executors.defaultThreadFactory());
+		scheduledThreadPool = new ScheduledThreadPoolExecutor(nThreads, new ThreadPoolFactory("fixed", 4));
 		execs.add(scheduledThreadPool);
 		
 		cachedThreadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS,
-				new SynchronousQueue<Runnable>(), Executors.defaultThreadFactory());
+				new SynchronousQueue<Runnable>(), new ThreadPoolFactory("cache", 3));
 		execs.add(cachedThreadPool);
+		
+		idleThreadPool = new ScheduledThreadPoolExecutor(1, new ThreadPoolFactory("idle", Thread.MIN_PRIORITY));
+		execs.add(idleThreadPool);
 	}
 	
 	public <T> Future<T> submit(Callable<T> task) {
@@ -75,6 +79,14 @@ public class ThreadPoolService implements AutoCloseable {
 	
 	public <T> Future<T> submitCachedPool(Callable<T> task) {
 		return cachedThreadPool.submit(task);
+	}
+	
+	public <T> Future<T> submitIdlePool(Callable<T> task) {
+		return idleThreadPool.submit(task);
+	}
+	
+	public ScheduledFuture<?> scheduleWhenIdleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
+		return idleThreadPool.scheduleWithFixedDelay(command, initialDelay, delay, unit);
 	}
 	
 
