@@ -72,22 +72,20 @@ public class TagFilesService implements AutoCloseable {
 	public TagFilesService(Path bagsRoot) {
 		super();
 		this.bagsRoot = bagsRoot;
-		pidMap = Collections
-				.synchronizedMap(new LinkedHashMap<String, Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile>>(
-						cacheSize, 0.75f, true) {
+		pidMap = Collections.synchronizedMap(new LinkedHashMap<String, Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile>>(
+						cacheSize + 1, 0.75f, true) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					protected boolean removeEldestEntry(
 							Map.Entry<String, Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile>> eldest) {
-						synchronized (this) {
 							if (this.size() > cacheSize) {
-								writePidTagFiles(eldest.getKey());
+								writePidTagFiles(eldest);
+								LOGGER.trace("Cache maxed at {}. Removing tag files for {} from cache", cacheSize, eldest.getKey());
 								return true;
 							} else {
 								return false;
 							}
-						}
 					}
 				});
 	}
@@ -189,12 +187,14 @@ public class TagFilesService implements AutoCloseable {
 		}
 	}
 
-	private synchronized void loadPid(String pid) throws IOException {
+	private void loadPid(String pid) throws IOException {
 		if (isClosed) {
 			throw new IllegalStateException();
 		}
-		if (!pidMap.containsKey(pid)) {
-			pidMap.put(pid, readTagFiles(pid));
+		synchronized(pidMap) {
+			if (!pidMap.containsKey(pid)) {
+				pidMap.put(pid, readTagFiles(pid));
+			}
 		}
 	}
 
@@ -233,17 +233,17 @@ public class TagFilesService implements AutoCloseable {
 	}
 
 	private void writeAllPidTagFiles() {
-		Set<String> keySet = pidMap.keySet();
+		Set<Entry<String,Map<Class<? extends AbstractKeyValueFile>,AbstractKeyValueFile>>> entrySet = pidMap.entrySet();
 		synchronized(pidMap) {
-			Iterator<String> iter = keySet.iterator();
+			Iterator<Entry<String, Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile>>> iter = entrySet.iterator();
 			while (iter.hasNext()) {
 				writePidTagFiles(iter.next());
 			}
 		}
 	}
 
-	private void writePidTagFiles(String pid) {
-		Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFiles = pidMap.get(pid);
+	private void writePidTagFiles(Entry<String, Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile>> entry) {
+		Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFiles = entry.getValue();
 		if (tagFiles != null) {
 			for (Entry<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFileEntry : tagFiles.entrySet()) {
 				try {
