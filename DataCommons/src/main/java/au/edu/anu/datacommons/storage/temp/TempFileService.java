@@ -51,7 +51,7 @@ public class TempFileService {
 
 	public Future<UploadedFileInfo> saveInputStream(InputStream is, long expectedLength, String expectedMd5)
 			throws IOException {
-		return threadPoolSvc.submit(new SaveInputStreamTask(uploadDir, is, expectedLength, expectedMd5));
+		return threadPoolSvc.submitCachedPool(new SaveInputStreamTask(uploadDir, is, expectedLength, expectedMd5));
 	}
 	
 	public Future<UploadedFileInfo> saveInputStream(String urlStr, long expectedLength, String expectedMd5)

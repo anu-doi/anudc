@@ -102,11 +102,11 @@ public class PreservationFormatConverter {
 						}
 					}
 				} else {
-					LOGGER.debug("File {} not converted to preservation format: Normaliser {} not convertible.",
+					LOGGER.trace("File {} not converted to preservation format: Normaliser {} not convertible.",
 							this.input.getAbsolutePath(), type.getName());
 				}
 			} else {
-				LOGGER.debug("File {} not converted to preservation format: Type {} not in convertible list.",
+				LOGGER.trace("File {} not converted to preservation format: Type {} not in convertible list.",
 						this.input.getAbsolutePath(), type.getName());
 			}
 		} catch (XenaException e) {

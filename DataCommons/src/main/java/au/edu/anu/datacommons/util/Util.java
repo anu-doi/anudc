@@ -357,6 +357,8 @@ public final class Util
             if (displaySize.endsWith(".")) {
                 displaySize = displaySize.substring(0, displaySize.length() - 1);
             }
+        } else {
+        	displaySize += ".00";
         }
         return displaySize;
     }

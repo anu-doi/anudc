@@ -187,8 +187,6 @@ public final class DcStorage {
 		File destFile = ff.getFile(getPayloadDir(pid), filepath);
 		EventType eventType = destFile.isFile() ? eventType = EventType.UPDATE_FILE : EventType.ADD_FILE;
 		synchronized (destFile) {
-			LOGGER.info("Saving file {}/data/{} ({})", pid, filepath, Util.byteCountToDisplaySize(sourceFile.length()),
-					pid);
 			eventListener.notify(EventTime.PRE, eventType, pid, getBagDir(pid).toPath(), filepath);
 			// Directory would have been created as part of pre event actions. This is to double-check that it exists.
 			// Not having the directoryk throws an exception.
@@ -207,6 +205,8 @@ public final class DcStorage {
 			}
 			eventListener.notify(EventTime.POST, eventType, pid, getBagDir(pid).toPath(), filepath);
 		}
+		LOGGER.debug("Added file {}/data/{} ({})", pid, filepath, Util.byteCountToDisplaySize(sourceFile.length()),
+				pid);
 	}
 
 	/**

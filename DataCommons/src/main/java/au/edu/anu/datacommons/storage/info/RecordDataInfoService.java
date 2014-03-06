@@ -25,9 +25,12 @@ import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.utilities.FilenameHelper;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -80,7 +83,7 @@ public class RecordDataInfoService {
 		return rdi;
 	}
 
-	public FileInfo createFileInfo(String pid, Path bagDir, Path relPath) throws IOException {
+	public FileInfo createFileInfo(String pid, Path bagDir, Path relPath) throws NoSuchFileException, IOException {
 		FileInfo fi = new FileInfo();
 		Path payloadDir = getPayloadDir(bagDir);
 		Path filepath = payloadDir.resolve(relPath);
@@ -120,12 +123,16 @@ public class RecordDataInfoService {
 		List<Path> fileList = listFilesInDirFullPath(payloadDir, true);
 		SortedSet<FileInfo> fileInfos = new TreeSet<FileInfo>();
 		for (Path p : fileList) {
-			FileInfo fi = createFileInfo(pid, bagDir, payloadDir.relativize(p));
-			if (fi.getType() == Type.FILE) {
-				nFiles++;
-				sizeBytes += fi.getSize();
-			}
-			fileInfos.add(fi);
+			try {
+				FileInfo fi = createFileInfo(pid, bagDir, payloadDir.relativize(p));
+				if (fi.getType() == Type.FILE) {
+					nFiles++;
+					sizeBytes += fi.getSize();
+				}
+				fileInfos.add(fi);
+			} catch (NoSuchFileException e) {
+				// Not rethrowing as the file may have been deleted during enumeration. 
+			} 
 		}
 
 		rdi.setFiles(fileInfos);
@@ -156,6 +163,8 @@ public class RecordDataInfoService {
 					}
 				}
 			}
+		} catch (FileSystemException e) {
+			LOGGER.warn("Skipping inaccessible file/folder {}: ", root.toString(), e.getMessage());
 		}
 		return fileList;
 	}

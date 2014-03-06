@@ -77,6 +77,7 @@ import au.edu.anu.datacommons.storage.temp.PartTempFileTask;
 import au.edu.anu.datacommons.storage.temp.TempFileService;
 import au.edu.anu.datacommons.storage.temp.TempFileTask;
 import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
+import au.edu.anu.datacommons.util.Util;
 
 /**
  * @author Rahul Khanna
@@ -300,7 +301,7 @@ public class AbstractStorageResource {
 			}
 
 			LOGGER.info("User {} ({}) uploading file to {}/data/{}, Size: {}, MD5: {}", getCurUsername(),
-					getRemoteIp(), pid, path, expectedLength, expectedMd5);
+					getRemoteIp(), pid, path, Util.byteCountToDisplaySize(expectedLength), expectedMd5);
 
 			Future<UploadedFileInfo> future = tmpFileSvc.saveInputStream(is, expectedLength, expectedMd5);
 			ufi = future.get();
@@ -330,7 +331,7 @@ public class AbstractStorageResource {
 
 	protected Response processDeleteFile(String pid, String fileInBag) {
 		Response resp = null;
-		LOGGER.info("User {} ({}) requested deletion of file {} in {}", getCurUsername(), getRemoteIp(), fileInBag, pid);
+		LOGGER.info("User {} ({}) requested deletion of {}/data/{} in {}", getCurUsername(), getRemoteIp(), pid, fileInBag);
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 		
 		try {

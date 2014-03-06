@@ -78,7 +78,7 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 		Path targetFile = createTempFile();
 		try (ReadableByteChannel srcChannel = Channels.newChannel(this.dis);
 				FileChannel targetFileChannel = FileChannel.open(targetFile, StandardOpenOption.WRITE)) {
-			LOGGER.debug("Saving file to {} ({}) Computed MD5:{}...", targetFile.toString(),
+			LOGGER.debug("Saving file to {} ({}) Expected MD5:{}...", targetFile.toString(),
 					Util.byteCountToDisplaySize(expectedLength), expectedMd5);
 
 			long position = 0;

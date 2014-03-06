@@ -79,6 +79,9 @@ public class UtilTest {
 		testParams.put(900L * 1024L * 1024L - 400L, "899 MB");
 		testParams.put(90L * 1024L * 1024L - 400L, "89.9 MB");
 		testParams.put(9L * 1024L * 1024L - 400L, "8.99 MB");
+		testParams.put(1024L * 1024L, "1.00 MB");
+		testParams.put(1024L * 1024L - 1L, "1023 KB");
+		testParams.put(1023L, "1023 bytes");
 		testParams.put(1L, "1 byte");
 		testParams.put(2L, "2 bytes");
 		
