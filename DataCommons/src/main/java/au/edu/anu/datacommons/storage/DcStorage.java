@@ -199,13 +199,14 @@ public final class DcStorage {
 				}
 			}
 			
-			if (!sourceFile.renameTo(destFile)) {
+			boolean success = sourceFile.renameTo(destFile);
+			if (!success || !destFile.isFile()) {
 				throw new IOException(format("Unable to move {0} to {1}", sourceFile.getAbsolutePath(),
 						destFile.getAbsolutePath()));
 			}
 			eventListener.notify(EventTime.POST, eventType, pid, getBagDir(pid).toPath(), filepath);
 		}
-		LOGGER.debug("Added file {}/data/{} ({})", pid, filepath, Util.byteCountToDisplaySize(sourceFile.length()),
+		LOGGER.debug("Added file {}/data/{} ({})", pid, filepath, Util.byteCountToDisplaySize(destFile.length()),
 				pid);
 	}
 

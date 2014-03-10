@@ -21,9 +21,7 @@
 
 package au.edu.anu.datacommons.storage.event.tasks;
 
-import java.io.BufferedInputStream;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import au.edu.anu.datacommons.storage.completer.fido.FidoParser;
@@ -41,12 +39,11 @@ public class PronomTask extends AbstractTagFileTask {
 	}
 
 	@Override
-	public Void call() throws Exception {
+	protected void processTask() throws Exception {
 		try (InputStream fileStream = createInputStream()) {
 			FidoParser fido = new FidoParser(fileStream, absFilepath.getFileName().toString());
 			String fidoStr = fido.getFidoStr();
 			tagFilesSvc.addEntry(pid, PronomFormatsTagFile.class, dataPrependedRelPath, fidoStr);
 		}
-		return null;
 	}
 }

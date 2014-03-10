@@ -67,16 +67,10 @@ public class BagCompletionTask extends AbstractTagFileTask {
 	}
 
 	@Override
-	public Void call() throws Exception {
-		try {
-			waitForTasks();
-			updateBagInfo();
-			updateTagManifest();
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-		}
-
-		return null;
+	protected void processTask() throws Exception {
+		waitForTasks();
+		updateBagInfo();
+		updateTagManifest();	
 	}
 
 	private void waitForTasks() {

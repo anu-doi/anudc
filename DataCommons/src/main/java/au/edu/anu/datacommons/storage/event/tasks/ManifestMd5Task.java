@@ -35,14 +35,14 @@ import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
  *
  */
 public class ManifestMd5Task extends AbstractTagFileTask {
+
 	public ManifestMd5Task(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
 		super(pid, bagDir, relPath, tagFilesSvc);
 	}
 
 	@Override
-	public Void call() throws Exception {
+	protected void processTask() throws Exception {
 		String md = MessageDigestHelper.generateFixity(createInputStream(), Algorithm.MD5);
-		tagFilesSvc.addEntry(pid, ManifestMd5TagFile.class, dataPrependedRelPath, md);
-		return null;
+		tagFilesSvc.addEntry(pid, ManifestMd5TagFile.class, dataPrependedRelPath, md);		
 	}
 }

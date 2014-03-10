@@ -40,20 +40,19 @@ import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
  *
  */
 public class MetadataTask extends AbstractTagFileTask {
-
+	
 	public MetadataTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
 		super(pid, bagDir, relPath, tagFilesSvc);
 	}
 
 	@Override
-	public Void call() throws Exception {
+	protected void processTask() throws Exception {
 		try (InputStream fileStream = createInputStream()) {
 			MetadataExtractor me = new MetadataExtractorImpl(fileStream);
 			Map<String, String[]> metadataMap = me.getMetadataMap();
 			String metadataMapAsJson = serializeToJson(metadataMap);
 			tagFilesSvc.addEntry(pid, FileMetadataTagFile.class, dataPrependedRelPath, metadataMapAsJson);
 		}
-		return null;
 	}
 	
 	private String serializeToJson(Object obj) throws JsonGenerationException, JsonMappingException, IOException {

@@ -94,7 +94,7 @@
 	</bean>
 	
 	<bean id="fileFactory" class="au.edu.anu.datacommons.storage.filesystem.FileFactory">
-		<constructor-arg value="500" />
+		<constructor-arg value="50" />
 	</bean>
 	
 	<bean id="storageSearch" class="au.edu.anu.datacommons.storage.search.StorageSearchService">

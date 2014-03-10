@@ -30,19 +30,18 @@ import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 
 /**
  * @author Rahul Khanna
- *
+ * 
  */
 public class TimestampTask extends AbstractTagFileTask {
-
+	
 	public TimestampTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
 		super(pid, bagDir, relPath, tagFilesSvc);
 	}
 
 	@Override
-	public Void call() throws Exception {
+	protected void processTask() throws Exception {
 		FileTime lastModifiedTime = Files.getLastModifiedTime(absFilepath);
-		tagFilesSvc.addEntry(pid, TimestampsTagFile.class, dataPrependedRelPath, Long.toString(lastModifiedTime.toMillis(), 10));
-		return null;
+		String lastModifiedStr = Long.toString(lastModifiedTime.toMillis(), 10);
+		tagFilesSvc.addEntry(pid, TimestampsTagFile.class, dataPrependedRelPath, lastModifiedStr);
 	}
-
 }

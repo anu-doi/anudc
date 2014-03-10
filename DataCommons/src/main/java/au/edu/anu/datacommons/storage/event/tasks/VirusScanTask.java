@@ -35,19 +35,17 @@ import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
  *
  */
 public class VirusScanTask extends AbstractTagFileTask {
-
+	
 	public VirusScanTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
 		super(pid, bagDir, relPath, tagFilesSvc);
 	}
 
 	@Override
-	public Void call() throws Exception {
+	protected void processTask() throws Exception {
 		ClamScan cs = new ClamScan(GlobalProps.getClamScanHost(), GlobalProps.getClamScanPort(), GlobalProps.getClamScanTimeout());
 		try (InputStream fileStream = createInputStream()) {
 			ScanResult sr = cs.scan(fileStream);
 			tagFilesSvc.addEntry(pid, VirusScanTagFile.class, dataPrependedRelPath, sr.getResult());
 		}
-		return null;
 	}
-
 }

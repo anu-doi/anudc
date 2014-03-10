@@ -21,7 +21,9 @@
 
 package au.edu.anu.datacommons.tasks;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -46,29 +48,31 @@ import org.springframework.stereotype.Component;
 @Component
 public class ThreadPoolService implements AutoCloseable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPoolService.class);
-	
+
 	private Set<ExecutorService> execs = new HashSet<>();
-	
+
 	private ScheduledThreadPoolExecutor scheduledThreadPool;
 	private ThreadPoolExecutor cachedThreadPool;
 	private ScheduledThreadPoolExecutor idleThreadPool;
 
+	private List<Runnable> cleanupTasks = new ArrayList<Runnable>();
+
 	public ThreadPoolService(int nThreads) {
-		scheduledThreadPool = new ScheduledThreadPoolExecutor(nThreads, new ThreadPoolFactory("fixed", 4));
+		scheduledThreadPool = new ScheduledThreadPoolExecutor(nThreads, new ThreadPoolFactory("fixed", Thread.NORM_PRIORITY - 1));
 		execs.add(scheduledThreadPool);
-		
+
 		cachedThreadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS,
-				new SynchronousQueue<Runnable>(), new ThreadPoolFactory("cache", 3));
+				new SynchronousQueue<Runnable>(), new ThreadPoolFactory("cache", Thread.NORM_PRIORITY - 2));
 		execs.add(cachedThreadPool);
-		
+
 		idleThreadPool = new ScheduledThreadPoolExecutor(1, new ThreadPoolFactory("idle", Thread.MIN_PRIORITY));
 		execs.add(idleThreadPool);
 	}
-	
+
 	public <T> Future<T> submit(Callable<T> task) {
 		return scheduledThreadPool.submit(task);
 	}
-	
+
 	public Future<?> submit(Runnable task) {
 		return scheduledThreadPool.submit(task);
 	}
@@ -76,28 +80,33 @@ public class ThreadPoolService implements AutoCloseable {
 	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
 		return scheduledThreadPool.scheduleWithFixedDelay(command, initialDelay, delay, unit);
 	}
-	
+
 	public <T> Future<T> submitCachedPool(Callable<T> task) {
 		return cachedThreadPool.submit(task);
 	}
-	
+
 	public <T> Future<T> submitIdlePool(Callable<T> task) {
 		return idleThreadPool.submit(task);
 	}
-	
-	public ScheduledFuture<?> scheduleWhenIdleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
+
+	public ScheduledFuture<?> scheduleWhenIdleWithFixedDelay(Runnable command, long initialDelay, long delay,
+			TimeUnit unit) {
 		return idleThreadPool.scheduleWithFixedDelay(command, initialDelay, delay, unit);
 	}
-	
+
+	public synchronized void addCleanupTask(Runnable task) {
+		this.cleanupTasks.add(task);
+	}
 
 	public Runnable convert(final Callable<?> callable) {
 		return new Runnable() {
-			
+
 			@Override
 			public void run() {
 				try {
 					callable.call();
 				} catch (Exception e) {
+					// Can't rethrow exception as run()'s method signature doesn't allow it.
 					LOGGER.error(e.getMessage(), e);
 				}
 			}
@@ -114,6 +123,17 @@ public class ThreadPoolService implements AutoCloseable {
 		for (ExecutorService es : execs) {
 			es.awaitTermination(10, TimeUnit.MINUTES);
 		}
-		LOGGER.info("Thread Pool Service Shutdown: SUCCESS");
+		LOGGER.info("Thread Pool Service Shutdown: SUCCESS.");
+
+		LOGGER.info("Cleanup tasks: RUNNING...");
+		for (Runnable task : cleanupTasks) {
+			try {
+				task.run();
+			} catch (Exception e) {
+				// Error in cleanup tasks cannot be handled by the application.
+				LOGGER.error(e.getMessage(), e);
+			}
+		}
+		LOGGER.info("Cleanup tasks: FINISHED.");
 	}
 }

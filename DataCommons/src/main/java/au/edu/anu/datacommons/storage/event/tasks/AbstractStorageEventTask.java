@@ -27,17 +27,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.util.StopWatch;
+
 /**
  * @author Rahul Khanna
  *
  */
 public abstract class AbstractStorageEventTask implements Callable<Void> {
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStorageEventTask.class);
+	
 	protected String pid;
 	protected Path bagDir;
 	protected String relPath;
 	protected String dataPrependedRelPath;
 	protected Path absFilepath;
+	
+	protected StopWatch stopwatch = new StopWatch();
 
 	public AbstractStorageEventTask(String pid, Path bagDir, String relPath) {
 		this.pid = pid;
@@ -51,7 +59,17 @@ public abstract class AbstractStorageEventTask implements Callable<Void> {
 	}
 	
 	@Override
-	public abstract Void call() throws Exception;
+	public Void call() throws Exception {
+		beginTask();
+		try {
+			processTask();
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			throw e;
+		}
+		endTask();
+		return null;
+	}
 
 	protected String prependDataDir(String relPath) {
 		return "data/" + relPath;
@@ -60,5 +78,16 @@ public abstract class AbstractStorageEventTask implements Callable<Void> {
 	protected BufferedInputStream createInputStream() throws IOException {
 		return new BufferedInputStream(Files.newInputStream(absFilepath));
 	}
+	
+	protected void beginTask() {
+		stopwatch.start();
+	}
 
+	protected void endTask() {
+		stopwatch.stop();
+		LOGGER.trace("Time elapsed - {} task for {}/{}: {}", this.getClass().getSimpleName(), pid, dataPrependedRelPath,
+				stopwatch.getTimeElapsedFormatted());
+	}
+	
+	protected abstract void processTask() throws Exception;
 }

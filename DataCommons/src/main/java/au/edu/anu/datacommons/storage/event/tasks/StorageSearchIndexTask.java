@@ -30,6 +30,7 @@ import au.edu.anu.datacommons.storage.search.StorageSearchService;
  *
  */
 public class StorageSearchIndexTask extends AbstractStorageEventTask {
+
 	private StorageSearchService searchSvc;
 	
 	public StorageSearchIndexTask(String pid, Path bagDir, String relPath, StorageSearchService searchSvc) {
@@ -38,9 +39,7 @@ public class StorageSearchIndexTask extends AbstractStorageEventTask {
 	}
 
 	@Override
-	public Void call() throws Exception {
-		searchSvc.indexFile(this.bagDir.toFile(), absFilepath.toFile());
-		
-		return null;
+	protected void processTask() throws Exception {
+		searchSvc.indexFile(this.bagDir.toFile(), absFilepath.toFile());		
 	}
 }

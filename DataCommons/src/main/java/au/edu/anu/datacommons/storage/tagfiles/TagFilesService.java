@@ -53,17 +53,30 @@ import au.edu.anu.datacommons.tasks.ThreadPoolService;
  * 
  */
 @Component
-public class TagFilesService implements AutoCloseable {
+public class TagFilesService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TagFilesService.class);
 
 	@Autowired(required = true)
 	private ThreadPoolService threadPoolSvc;
 
-	private volatile boolean isClosed = false;
 	private final Map<String, Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile>> pidMap;
 	private final Path bagsRoot;
 	private long writeFreq;
 	private int cacheSize;
+	
+	private Runnable writeAllPidTagFilesTask = new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					writeAllPidTagFiles();
+				} catch (Exception e) {
+					// Not rethrowing this exception so the this task continues to get executed next time.
+					LOGGER.error(e.getMessage(), e);
+				}
+			}
+
+	};
 
 	public TagFilesService(String bagsRoot) {
 		this(Paths.get(bagsRoot));
@@ -162,35 +175,11 @@ public class TagFilesService implements AutoCloseable {
 
 	@PostConstruct
 	public void postConstruct() {
-		final long fWriteFreq = writeFreq;
-		threadPoolSvc.scheduleWhenIdleWithFixedDelay(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					writeAllPidTagFiles();
-				} catch (Exception e) {
-					// Not rethrowing this exception so the this task continues to get executed next time.
-					LOGGER.error(e.getMessage(), e);
-				}
-			}
-
-		}, fWriteFreq, fWriteFreq, TimeUnit.SECONDS);
-	}
-
-	@Override
-	@PreDestroy
-	public void close() throws Exception {
-		if (!isClosed) {
-			writeAllPidTagFiles();
-			isClosed = true;
-		}
+		threadPoolSvc.scheduleWhenIdleWithFixedDelay(writeAllPidTagFilesTask, writeFreq, writeFreq, TimeUnit.SECONDS);
+		threadPoolSvc.addCleanupTask(writeAllPidTagFilesTask);
 	}
 
 	private void loadPid(String pid) throws IOException {
-		if (isClosed) {
-			throw new IllegalStateException();
-		}
 		synchronized(pidMap) {
 			if (!pidMap.containsKey(pid)) {
 				pidMap.put(pid, readTagFiles(pid));

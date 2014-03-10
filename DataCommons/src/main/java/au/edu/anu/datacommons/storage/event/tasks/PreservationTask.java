@@ -25,9 +25,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.completer.preserve.PreservationFormatConverter;
 import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
@@ -39,7 +36,6 @@ import au.gov.naa.digipres.xena.kernel.normalise.NormaliserResults;
  * 
  */
 public class PreservationTask extends AbstractTagFileTask {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PreservationTask.class);
 	public static final String PRESERVATION_PATH = "data/.preserve/";
 
 	private DcStorage dcStorageSvc;
@@ -49,45 +45,32 @@ public class PreservationTask extends AbstractTagFileTask {
 		this.dcStorageSvc = dcStorageSvc;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see au.edu.anu.datacommons.storage.event.tasks.AbstractStorageEventTask#call()
-	 */
 	@Override
-	public Void call() throws Exception {
+	protected void processTask() throws Exception {
 		if (this.dataPrependedRelPath.startsWith(PRESERVATION_PATH)) {
 			tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath, "PRESERVED");
 		} else {
 			preserveFile();
 		}
-
-		return null;
 	}
 
-	private void preserveFile() {
-		try {
-			Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
-			PreservationFormatConverter pfc = new PreservationFormatConverter(this.absFilepath.toFile(),
-					tempDir.toFile());
-			NormaliserResults results = pfc.convert();
-			if (results != null) {
-				Path convertedFileInTemp = Paths.get(results.getDestinationDirString(), results.getOutputFileName());
+	private void preserveFile() throws IOException {
+		Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
+		PreservationFormatConverter pfc = new PreservationFormatConverter(this.absFilepath.toFile(),
+				tempDir.toFile());
+		NormaliserResults results = pfc.convert();
+		if (results != null) {
+			Path convertedFileInTemp = Paths.get(results.getDestinationDirString(), results.getOutputFileName());
 
-				String presvRelpath = this.dataPrependedRelPath
-						.toString()
-						.replaceFirst("data/", PRESERVATION_PATH)
-						.replaceFirst(this.absFilepath.getFileName().toString() + "$",
-								results.getOutputFileName());
-				this.dcStorageSvc.addHiddenFile(pid, convertedFileInTemp.toFile(), presvRelpath.replaceFirst("data/", ""));
-				tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath, presvRelpath);
-			} else {
-				tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, this.dataPrependedRelPath, "UNCONVERTIBLE");
-			}
-		} catch (IOException e) {
-			LOGGER.warn("Unable to create preservation format for {}/{}. Exception: {}", pid,
-					this.dataPrependedRelPath, e.getMessage());
+			String presvRelpath = this.dataPrependedRelPath
+					.toString()
+					.replaceFirst("data/", PRESERVATION_PATH)
+					.replaceFirst(this.absFilepath.getFileName().toString() + "$",
+							results.getOutputFileName());
+			this.dcStorageSvc.addHiddenFile(pid, convertedFileInTemp.toFile(), presvRelpath.replaceFirst("data/", ""));
+			tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath, presvRelpath);
+		} else {
+			tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, this.dataPrependedRelPath, "UNCONVERTIBLE");
 		}
-
 	}
 }

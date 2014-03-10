@@ -43,6 +43,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.util.StopWatch;
 import au.edu.anu.datacommons.util.Util;
 
 /**
@@ -76,6 +77,8 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 	public UploadedFileInfo call() throws Exception {
 		UploadedFileInfo ufi;
 		Path targetFile = createTempFile();
+		StopWatch sw = new StopWatch();
+		sw.start();
 		try (ReadableByteChannel srcChannel = Channels.newChannel(this.dis);
 				FileChannel targetFileChannel = FileChannel.open(targetFile, StandardOpenOption.WRITE)) {
 			LOGGER.debug("Saving file to {} ({}) Expected MD5:{}...", targetFile.toString(),
@@ -92,8 +95,9 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 			verifyMd5(computedMd5);
 
 			ufi = new UploadedFileInfo(targetFile, position, computedMd5);
-			LOGGER.debug("Saved file to {} ({}) Computed MD5:{}", ufi.getFilepath().toString(),
-					Util.byteCountToDisplaySize(ufi.getSize()), ufi.getMd5());
+			sw.stop();
+			LOGGER.debug("Saved file to {} ({}) Computed MD5:{}, Time: {}, Speed: {}", ufi.getFilepath().toString(),
+					Util.byteCountToDisplaySize(ufi.getSize()), ufi.getMd5(), sw.getTimeElapsedFormatted(), sw.getRate(ufi.getSize()));
 		} catch (Exception e) {
 			LOGGER.error("Error saving file to {} ({}) Expected MD5:{} - {}", targetFile.toString(),
 					Util.byteCountToDisplaySize(this.expectedLength), this.expectedMd5, e.getMessage());
