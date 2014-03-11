@@ -117,11 +117,11 @@
 	</bean>
 	
 	<bean id="archiveRootDir" class="au.edu.anu.datacommons.storage.filesystem.PathCreator" factory-method="createPath">
-		<constructor-arg value="${upload.archiveBaseDir}"></constructor-arg>
+		<constructor-arg value="${upload.archiveBaseDir}" />
 	</bean>
 	
-	<bean id="uploadDir" class="java.nio.file.Paths" factory-method="get">
-		<constructor-arg value="file:/${upload.uploadDir}" />
+	<bean id="uploadDir" class="au.edu.anu.datacommons.storage.filesystem.PathCreator" factory-method="createPath">
+		<constructor-arg value="${upload.uploadDir}" />
 	</bean>
 	
 	<bean id="threadPoolService" class="au.edu.anu.datacommons.tasks.ThreadPoolService">

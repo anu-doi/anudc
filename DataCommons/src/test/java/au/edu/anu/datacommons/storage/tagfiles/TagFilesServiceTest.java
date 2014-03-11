@@ -93,7 +93,6 @@ public class TagFilesServiceTest {
 		final String pid = "test:123";
 		createPidDir(pid);
 		tfSvc.addEntry(pid, FileMetadataTagFile.class, "key1", "val1");
-		tfSvc.close();
 		LOGGER.trace("{}", "Test");
 	}
 
@@ -134,7 +133,6 @@ public class TagFilesServiceTest {
 		for (Future<Void> f : futures) {
 			f.get();
 		}
-		tfSvc.close();
 
 		LOGGER.trace("Done");
 	}

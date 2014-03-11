@@ -41,6 +41,9 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.URL;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystemException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -50,6 +53,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -231,7 +235,7 @@ public final class DcStorage {
 		} else if (dirExists(pid, filepath)) {
 			deleteDir(pid, filepath);
 		} else {
-			throw new FileNotFoundException(format("File/Dir {0} not found in record {1}.", filepath, pid));
+			throw new FileNotFoundException(format("File/Dir {0}/data/{1} not found.", pid, filepath));
 		}
 	}
 	
@@ -241,7 +245,10 @@ public final class DcStorage {
 		for (File f : fileList) {
 			processDeleteFile(pid, FilenameHelper.removeBasePath(getPayloadDir(pid).getAbsolutePath(), f.getAbsolutePath()));
 		}
-		FileUtils.deleteDirectory(dirToDel);
+		deleteTree(dirToDel.toPath());
+		if (dirToDel.isDirectory()) {
+			throw new IOException(format("Unable to delete {0}/data/{1}", pid, filepath));
+		}
 	}
 
 	public void processDeleteFile(String pid, String filepath) throws IOException {
@@ -262,10 +269,10 @@ public final class DcStorage {
 		List<File> fileList = new ArrayList<File>();
 		File[] filesAndDirs = root.listFiles();
 		for (File f : filesAndDirs) {
-			if (f.isFile()) {
-				fileList.add(f);
-			} else if (f.isDirectory()) {
+			if (f.isDirectory()) {
 				fileList.addAll(recurseAllFilesInDir(f));
+			} else if (f.isFile()) {
+				fileList.add(f);
 			}
 		}
 		return fileList;
@@ -332,7 +339,8 @@ public final class DcStorage {
 		}
 	
 		VerificationTask vTask = new VerificationTask(pid, getBagDir(pid).toPath(), tagFilesSvc, this.threadPoolSvc);
-		return vTask.call();
+		Future<VerificationResults> vTaskFuture = threadPoolSvc.submitIdlePool(vTask);
+		return vTaskFuture.get();
 	}
 
 	public void recompleteBag(String pid) throws IOException {
@@ -568,6 +576,41 @@ public final class DcStorage {
 
 		});
 	}
+
+	private void deleteTree(Path dir) throws IOException {
+		if (Files.exists(dir)) {
+			try (DirectoryStream<Path> dirItems = Files.newDirectoryStream(dir)) {
+				for (Path item : dirItems) {
+					if (Files.isDirectory(item)) {
+						deleteTree(item);
+					}
+					if (Files.isRegularFile(item)) {
+						Files.delete(item);
+					}
+				}
+			}
+			
+			// Retry code required on Windows machines. If a directory is open in another thread, then deleting it
+			// throws an exception.
+			boolean retry = false;
+			do {
+				try {
+					Files.delete(dir);
+					retry = false;
+				} catch (FileSystemException e) {
+					LOGGER.warn("Retrying delete {}", dir.toString());
+					retry = true;
+					try {
+						Thread.sleep(500L);
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			} while (retry);
+		}
+	}
+	
 
 	/**
 	 * Creates a specified directory if it doesn't already exists. No action taken if it exists.

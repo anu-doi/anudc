@@ -79,7 +79,13 @@ public class StopWatch {
 	 * @return Process rate as String e.g. 1.00 MB/sec
 	 */
 	public String getRate(long bytes) {
-		long rate = bytes / TimeUnit.MILLISECONDS.toSeconds(getTimeElapsedMillis());
+		long seconds = TimeUnit.MILLISECONDS.toSeconds(getTimeElapsedMillis());
+		long rate;
+		if (seconds > 0) {
+			rate = bytes / seconds;
+		} else {
+			rate = 0;
+		}
 		return Util.byteCountToDisplaySize(rate) + "/sec";
 	}
 

@@ -27,6 +27,7 @@ import gov.loc.repository.bagit.utilities.FilenameHelper;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
@@ -130,7 +131,7 @@ public class RecordDataInfoService {
 					sizeBytes += fi.getSize();
 				}
 				fileInfos.add(fi);
-			} catch (NoSuchFileException e) {
+			} catch (NoSuchFileException | AccessDeniedException e ) {
 				// Not rethrowing as the file may have been deleted during enumeration. 
 			} 
 		}

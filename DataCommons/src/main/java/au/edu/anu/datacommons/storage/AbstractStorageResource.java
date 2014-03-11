@@ -331,7 +331,7 @@ public class AbstractStorageResource {
 
 	protected Response processDeleteFile(String pid, String fileInBag) {
 		Response resp = null;
-		LOGGER.info("User {} ({}) requested deletion of {}/data/{} in {}", getCurUsername(), getRemoteIp(), pid, fileInBag);
+		LOGGER.info("User {} ({}) requested deletion of {}/data/{}", getCurUsername(), getRemoteIp(), pid, fileInBag);
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 		
 		try {
