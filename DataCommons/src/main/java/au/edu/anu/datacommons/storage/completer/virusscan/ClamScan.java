@@ -239,7 +239,7 @@ public class ClamScan {
             if (read > 0) {
             	response = new String(buffer, 0, read);
             }
-            LOGGER.debug("ClamAV Response: {}", response.trim());
+            LOGGER.trace("ClamAV Response: {}", response.trim());
             sr = new ScanResult(response.trim());
         } catch (IOException e) {
             LOGGER.error(e.getMessage(), e);

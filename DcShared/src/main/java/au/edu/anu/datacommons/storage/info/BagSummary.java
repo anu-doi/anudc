@@ -21,8 +21,15 @@
 
 package au.edu.anu.datacommons.storage.info;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.apache.commons.io.FileUtils;
 
@@ -41,6 +48,7 @@ import org.apache.commons.io.FileUtils;
  * </ul>
  * </li>
  */
+@XmlRootElement
 public class BagSummary {
 	private FileSummaryMap fsMap = null;
 	private Map<String, String> bagInfoTxt = null;
@@ -53,7 +61,7 @@ public class BagSummary {
 
 	public BagSummary(FileSummaryMap fsMap) {
 		this.fsMap = fsMap;
-		friendlySize = FileUtils.byteCountToDisplaySize(bagSize);
+		this.friendlySize = FileUtils.byteCountToDisplaySize(bagSize);
 	}
 
 	/**
@@ -118,8 +126,8 @@ public class BagSummary {
 	 * 
 	 * @return ExtRefsTxt
 	 */
-	public Map<String, String> getExtRefsTxt() {
-		return Collections.unmodifiableMap(extRefsTxt);
+	public Collection<String> getExtRefs() {
+		return Collections.unmodifiableCollection(extRefsTxt.values());
 	}
 	
 	public void setExtRefsTxt(Map<String, String> extRefsTxt) {

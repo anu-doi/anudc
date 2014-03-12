@@ -25,6 +25,7 @@ import static java.text.MessageFormat.format;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -750,13 +751,9 @@ public class CollectionRequestService
 
 			// External references list.
 
-			Map<String, String> extRefs = dcStorage.getBagSummary(dropbox.getCollectionRequest().getPid()).getExtRefsTxt();
-			if (extRefs != null && extRefs.entrySet().size() > 0)
-			{
-				Map<String, String> fetchables = new HashMap<String, String>();
-				for (Entry<String, String> extRefEntry : extRefs.entrySet())
-					fetchables.put(extRefEntry.getValue(), extRefEntry.getValue());
-				model.put("fetchables", fetchables);
+			Collection<String> extRefs = dcStorage.getBagSummary(dropbox.getCollectionRequest().getPid()).getExtRefs();
+			if (extRefs != null && extRefs.size() > 0) {
+				model.put("fetchables", extRefs);
 			}
 
 			// Make a log of access

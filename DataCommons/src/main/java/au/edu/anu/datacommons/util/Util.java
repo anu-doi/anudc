@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URLDecoder;
 import java.security.MessageDigest;
@@ -47,6 +48,7 @@ import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -285,4 +287,79 @@ public final class Util
 		}
 		return stringBuffer.toString();
 	}
+	
+	/**
+	 * Returns a human-readable version of the file size, where the input represents a specific number of bytes.
+	 * Attempts to fix the following bug where a 1.99 GB file was returned as a 1 GB file. The logic below tries to
+	 * return 3 significant digits e.g. 123 MB, 12.3 MB or 1.23 MB.
+	 * 
+	 * @see <a href="https://issues.apache.org/jira/browse/IO-226">https://issues.apache.org/jira/browse/IO-226</a>
+	 * @param size
+	 *            size of file
+	 * @return human-readable file size as String
+	 */
+    public static String byteCountToDisplaySize(BigInteger size) {
+        String displaySize;
+
+        final BigDecimal sizeBD = new BigDecimal(size);
+        if (size.divide(FileUtils.ONE_EB_BI).compareTo(BigInteger.ZERO) > 0) {
+            displaySize = getThreeSigFigs(sizeBD.divide(new BigDecimal(FileUtils.ONE_EB_BI))) + " EB";
+        } else if (size.divide(FileUtils.ONE_PB_BI).compareTo(BigInteger.ZERO) > 0) {
+        	displaySize = getThreeSigFigs(sizeBD.divide(new BigDecimal(FileUtils.ONE_PB_BI))) + " PB";
+        } else if (size.divide(FileUtils.ONE_TB_BI).compareTo(BigInteger.ZERO) > 0) {
+        	displaySize = getThreeSigFigs(sizeBD.divide(new BigDecimal(FileUtils.ONE_TB_BI))) + " TB";
+        } else if (size.divide(FileUtils.ONE_GB_BI).compareTo(BigInteger.ZERO) > 0) {
+        	displaySize = getThreeSigFigs(sizeBD.divide(new BigDecimal(FileUtils.ONE_GB_BI))) + " GB";
+        } else if (size.divide(FileUtils.ONE_MB_BI).compareTo(BigInteger.ZERO) > 0) {
+        	displaySize = getThreeSigFigs(sizeBD.divide(new BigDecimal(FileUtils.ONE_MB_BI))) + " MB";
+        } else if (size.divide(FileUtils.ONE_KB_BI).compareTo(BigInteger.ZERO) > 0) {
+        	displaySize = getThreeSigFigs(sizeBD.divide(new BigDecimal(FileUtils.ONE_KB_BI))) + " KB";
+        } else {
+            displaySize = String.valueOf(size) + (size.compareTo(BigInteger.ONE) != 0 ? " bytes" : " byte");
+        }
+        return displaySize;
+    }
+
+	/**
+	 * Returns a human-readable version of the file size, where the input represents a specific number of bytes.
+	 * Attempts to fix the following bug where a 1.99 GB file was returned as a 1 GB file. The logic below tries to
+	 * return 3 significant digits e.g. 123 MB, 12.3 MB or 1.23 MB.
+	 * 
+	 * @see <a href="https://issues.apache.org/jira/browse/IO-226">https://issues.apache.org/jira/browse/IO-226</a>
+	 * @param size
+	 *            size of file
+	 * @return human-readable file size as String
+	 */
+    public static String byteCountToDisplaySize(long size) {
+        return byteCountToDisplaySize(BigInteger.valueOf(size));
+    }
+    
+    private static String getThreeSigFigs(BigDecimal size) {
+        String number = size.toString();
+        StringBuffer trimmedNumber = new StringBuffer();
+        int cnt = 0;
+        boolean hasDecimal = false;
+        for (final char digit : number.toCharArray()) {
+            if (cnt < 3 || !hasDecimal) {
+                trimmedNumber.append(digit);
+            }
+            if (digit == '.') {
+                hasDecimal = true;
+            } else {
+                cnt++;
+            }
+        }
+        String displaySize = trimmedNumber.toString();
+        if (hasDecimal) {
+            while (displaySize.endsWith("0")) {
+                displaySize = displaySize.substring(0, displaySize.length() - 1);
+            }
+            if (displaySize.endsWith(".")) {
+                displaySize = displaySize.substring(0, displaySize.length() - 1);
+            }
+        } else {
+        	displaySize += ".00";
+        }
+        return displaySize;
+    }
 }

@@ -99,7 +99,7 @@ public class PermissionService {
 	 * @param username The username to get permissions for
 	 * @return A list of permissions given the constraints
 	 */
-	public List<Permission> getListOfPermission(Class clazz, Long id, String username) {
+	public List<Permission> getListOfPermission(Class<?> clazz, Long id, String username) {
 		ObjectIdentity objectIdentity = new ObjectIdentityImpl(clazz, id);
 		
 		// Get the uers permissions

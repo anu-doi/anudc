@@ -104,7 +104,10 @@ public class DisplayResource
 	static final Logger LOGGER = LoggerFactory.getLogger(DisplayResource.class);
 
 	@Context
-	UriInfo uriInfo;
+	private UriInfo uriInfo;
+	
+	@Context
+	private HttpServletRequest request;
 
 	@Resource(name = "fedoraObjectServiceImpl")
 	private FedoraObjectService fedoraObjectService;
@@ -134,7 +137,7 @@ public class DisplayResource
 	@Produces(MediaType.TEXT_HTML)
 	public Response getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item)
 	{
-		LOGGER.info("User {} requested record page of {}", getCurUsername(), item);
+		LOGGER.info("User {} ({}) requested record page of {}", getCurUsername(), request.getRemoteAddr(), item);
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		Map<String, Object> values = fedoraObjectService.getViewPage(fedoraObject, layout, tmplt);
 

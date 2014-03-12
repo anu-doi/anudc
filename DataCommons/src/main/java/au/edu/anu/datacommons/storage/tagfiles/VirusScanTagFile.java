@@ -36,4 +36,9 @@ public class VirusScanTagFile extends AbstractKeyValueFile {
 	public VirusScanTagFile(File tagFile) throws IOException {
 		super(tagFile);
 	}
+	
+	@Override
+	public String getFilepath() {
+		return FILEPATH;
+	}
 }

@@ -24,6 +24,7 @@ package au.edu.anu.datacommons.storage;
 import static java.text.MessageFormat.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
 import gov.loc.repository.bagit.BagFile;
@@ -40,6 +41,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -60,6 +63,7 @@ import java.util.zip.ZipInputStream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.xmlbeans.impl.xb.xsdschema.impl.AnyDocumentImpl.AnyImpl;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -67,13 +71,20 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.event.StorageEventListener;
 import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummary;
 import au.edu.anu.datacommons.storage.info.FileSummaryMap;
+import au.edu.anu.datacommons.storage.info.RecordDataInfoService;
 import au.edu.anu.datacommons.storage.tagfiles.AbstractKeyValueFile;
 import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
@@ -81,6 +92,7 @@ import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
+import au.edu.anu.datacommons.tasks.ThreadPoolService;
 import au.edu.anu.datacommons.test.util.TestUtil;
 
 /**
@@ -92,15 +104,21 @@ import au.edu.anu.datacommons.test.util.TestUtil;
 public class DcStorageTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorageTest.class);
 
+	@InjectMocks
 	private DcStorage dcStorage;
 	private long pidCounter;
+
+	@Mock
+	private StorageEventListener listener;
+	@Mock
+	private RecordDataInfoService rdiSvc;
+	@Mock
+	private ThreadPoolService threadPoolSvc;
 
 	@Rule
 	public TemporaryFolder bagsRootDir = new TemporaryFolder();
 	@Rule
 	public TemporaryFolder tempDir = new TemporaryFolder();
-	@Rule
-	public TemporaryFolder archiveRootDir = new TemporaryFolder();
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -114,36 +132,32 @@ public class DcStorageTest {
 	public void setUp() throws Exception {
 		pidCounter = 1L;
 		LOGGER.info("Bags root: {}", bagsRootDir.getRoot().getAbsolutePath());
-		LOGGER.info("Archive root: {}", archiveRootDir.getRoot().getAbsolutePath());
 		LOGGER.info("Temp dir: {}", tempDir.getRoot().getAbsolutePath());
-		dcStorage = new DcStorage(bagsRootDir.getRoot(), new FileFactory(200));
-		dcStorage.archiveRootDir = archiveRootDir.getRoot();
+		dcStorage = new DcStorage(bagsRootDir.getRoot());
+		dcStorage.ff = new FileFactory(200);
+		MockitoAnnotations.initMocks(this);
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		dcStorage.close();
 	}
-	
+
 	@Test
 	public void testBasicAddDelete() throws Exception {
 		String pid = getNextPid();
 		assertFalse(dcStorage.bagExists(pid));
-		
+
+		Path srcFile = tempDir.newFile().toPath();
+		TestUtil.createFileOfSizeInRange(srcFile.toFile(), 2L, 5L, FileUtils.ONE_KB);
+
 		// Add a file.
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		dcStorage.addFileToBag(pid, new URL("http://www.anu.edu.au/mac/images/uploads/anu_agenda_19Jan.doc"), "c/File 3.doc");
-		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
-		
-		assertTrue(new File(dcStorage.getBagDir(pid), "data/c/File 3.doc").isFile());
-		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
-		
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		dcStorage.deleteFileFromBag(pid, "c/File 3.doc");
-		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
-	
-		assertFalse(new File(dcStorage.getBagDir(pid), "data/c/File 3.doc").isFile());
-		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
+		String targetFilepath = "c/File 3.doc";
+		dcStorage.addFile(pid, srcFile.toFile(), targetFilepath);
+		assertTrue(Files.isRegularFile(getPayloadDir(pid).resolve(targetFilepath)));
+
+		// Delete the added file
+		dcStorage.deleteItem(pid, "c/File 3.doc");
+		assertFalse(Files.isRegularFile(getPayloadDir(pid).resolve(targetFilepath)));
 	}
 
 	@Test
@@ -154,150 +168,48 @@ public class DcStorageTest {
 
 		// Add a file.
 		File file1 = tempDir.newFile();
-		String file1Md5 = TestUtil.createFileOfSize(file1, 2L, FileUtils.ONE_MB);
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		dcStorage.addFileToBag(pid, file1, "a/File 1.txt");
-		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
+		String file1Md5 = TestUtil.createFileOfSizeInRange(file1, 2L, 4L, FileUtils.ONE_MB);
+		String file1TargetPath = "a/File 1.txt";
+		dcStorage.addFile(pid, file1, file1TargetPath);
 
-		assertTrue(dcStorage.bagExists(pid));
-		assertTrue(new File(dcStorage.getBagDir(pid), "data/a/File 1.txt").isFile());
-		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
+		assertTrue(Files.isRegularFile(getPayloadDir(pid).resolve(file1TargetPath)));
 
 		// Read the contents of the file added as InputStream and verify MD5.
-		InputStream fileStream = dcStorage.getFileStream(pid, "a/File 1.txt");
-		assertTrue(MessageDigestHelper.fixityMatches(fileStream, Algorithm.MD5, file1Md5));
+		assertTrue(MessageDigestHelper.fixityMatches(Files.newInputStream(getPayloadDir(pid).resolve(file1TargetPath)),
+				Algorithm.MD5, file1Md5));
 
 		// Add a file by downloading it from the web.
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		dcStorage.addFileToBag(pid, new URL("http://samplepdf.com/sample.pdf"), "b/File 2.pdf");
-		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
+		File file2 = tempDir.newFile();
+		String file2Md5 = TestUtil.createFileOfSizeInRange(file2, 3L, 5L, FileUtils.ONE_MB);
+		String file2TargetPath = "b/File 2.pdf";
+		dcStorage.addFile(pid, file2, file2TargetPath);
 
-		assertTrue(new File(dcStorage.getBagDir(pid), "data/b/File 2.pdf").isFile());
-		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
-
-		// Get a Bag Summary.
-		BagSummary bagSummary = dcStorage.getBagSummary(pid);
-		assertEquals(pid, bagSummary.getPid());
-		assertEquals(0, bagSummary.getExtRefsTxt().size());
-		assertEquals(2, bagSummary.getFileSummaryMap().size());
-		Set<String> filepaths = bagSummary.getFileSummaryMap().keySet();
-		for (String filepath : filepaths) {
-			LOGGER.trace("Payload file: {}", filepath);
-		}
-		assertTrue(filepaths.contains("data/a/File 1.txt"));
-		assertTrue(filepaths.contains("data/b/File 2.pdf"));
+		assertTrue(Files.isRegularFile(getPayloadDir(pid).resolve(file2TargetPath)));
 
 		// With 2 payload files, get a zip stream of the 2 files.
-		ZipInputStream zipIs = new ZipInputStream(dcStorage.getFilesAsZipStream(pid, filepaths));
-		checkZipStream(zipIs, filepaths, bagSummary.getFileSummaryMap());
+		when(threadPoolSvc.submitCachedPool((Callable<?>) org.mockito.Matchers.any())).thenAnswer(new Answer() {
+
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				ExecutorService tp = Executors.newSingleThreadExecutor();
+				tp.submit((Callable<?>) invocation.getArguments()[0]);
+				tp.shutdown();
+				return null;
+			}
+			
+		});
+		ZipInputStream zipIs = new ZipInputStream(dcStorage.createZipStream(pid, Arrays.asList(file1TargetPath, file2TargetPath)));
+		Map<String, String> filepaths = new HashMap<String, String>();
+		filepaths.put(file1TargetPath, file1Md5);
+		filepaths.put(file2TargetPath, file2Md5);
+		checkZipStream(zipIs, filepaths);
 
 		// Delete the previously added files.
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		dcStorage.deleteFileFromBag(pid, "data/a/File 1.txt");
-		dcStorage.deleteFileFromBag(pid, "data/b/File 2.pdf");
-		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
+		dcStorage.deleteItem(pid, file1TargetPath);
+		dcStorage.deleteItem(pid, file2TargetPath);
 
-		assertFalse(new File(dcStorage.getBagDir(pid), "data/a/File 1.txt").isFile());
-		assertFalse(new File(dcStorage.getBagDir(pid), "data/b/File 2.pdf").isFile());
-		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
-	}
-
-	@Test
-	public void testExtRef() throws IOException, InterruptedException {
-		String pid = getNextPid();
-		ExtRefsTagFile extRefsTagFile;
-		// Add 2 external reference.
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		dcStorage.addExtRefs(pid, Arrays.asList("www.google.com.au", "www.facebook.com"));
-		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
-
-		File extRefsFile = new File(dcStorage.getBagDir(pid), ExtRefsTagFile.FILEPATH);
-		assertTrue(extRefsFile.isFile());
-		assertNotEquals(0L, extRefsFile.length());
-		extRefsTagFile = new ExtRefsTagFile(extRefsFile);
-		assertEquals(2, extRefsTagFile.size());
-		assertTrue(verifyBagAt(extRefsFile.getParentFile()));
-
-		// Delete one of the 2 external references.
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		dcStorage.deleteExtRefs(pid, Arrays.asList("www.google.com.au"));
-		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
-		extRefsTagFile = new ExtRefsTagFile(extRefsFile);
-		assertEquals(1, extRefsTagFile.size());
-		assertTrue(verifyBagAt(extRefsFile.getParentFile()));
-
-		// Delete the 1 remaining external reference.
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		dcStorage.deleteExtRefs(pid, Arrays.asList("www.facebook.com"));
-		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
-		extRefsTagFile = new ExtRefsTagFile(extRefsFile);
-		assertEquals(0, extRefsTagFile.size());
-		assertTrue(verifyBagAt(extRefsFile.getParentFile()));
-	}
-	
-	@Test
-	public void testThreadedExtRef() throws IOException, InterruptedException, ExecutionException {
-		final String pid = getNextPid();
-		final int nExtRefs = 10;
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		
-		ExecutorService workerPool = Executors.newCachedThreadPool();
-		List<Future<Throwable>> futures = new ArrayList<Future<Throwable>>();
-		for (int i = 0; i < nExtRefs; i++) {
-			futures.add(workerPool.submit(new Callable<Throwable>() {
-
-				@Override
-				public Throwable call() throws Exception {
-					try {
-						dcStorage.addExtRefs(pid, Arrays.asList("www." + Thread.currentThread().getName() + ".com"));
-					} catch (Throwable e) {
-						return e;
-					}
-					return null;
-				}
-				
-			}));
-		}
-		
-		for (Future<Throwable> f : futures) {
-			assertNull(f.get());
-		}
-		futures.clear();
-		
-		shutdownExecutor(dcStorage.threadPool, 1, TimeUnit.MINUTES);
-		ExtRefsTagFile extRefsTagFile = new ExtRefsTagFile(new File(dcStorage.getBagDir(pid), ExtRefsTagFile.FILEPATH));
-		assertEquals(nExtRefs, extRefsTagFile.size());
-		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
-		
-		BagSummary bs = dcStorage.getBagSummary(pid);
-		assertEquals(10, bs.getExtRefsTxt().size());
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		for (String url : bs.getExtRefsTxt().values()) {
-			final String fUrl = url;
-			futures.add(workerPool.submit(new Callable<Throwable>() {
-
-				@Override
-				public Throwable call() throws Exception {
-					try {
-						dcStorage.deleteExtRefs(pid, Arrays.asList(fUrl));
-					} catch (Throwable e) {
-						return e;
-					}
-
-					return null;
-				}
-				
-			}));
-		}
-		
-		for (Future<Throwable> f : futures) {
-			assertNull(f.get());
-		}
-		futures.clear();
-		
-		extRefsTagFile = new ExtRefsTagFile(new File(dcStorage.getBagDir(pid), ExtRefsTagFile.FILEPATH));
-		assertEquals(0, extRefsTagFile.size());
-		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
+		assertFalse(Files.isRegularFile(getPayloadDir(pid).resolve(file1TargetPath)));
+		assertFalse(Files.isRegularFile(getPayloadDir(pid).resolve(file2TargetPath)));
 	}
 
 	@Test
@@ -306,98 +218,62 @@ public class DcStorageTest {
 		ExecutorService workerPool = Executors.newCachedThreadPool();
 		final String pid = getNextPid();
 		int nFiles = 10;
-		Map<File, String> fileMap = new HashMap<File, String>(nFiles);
-		List<Future<Throwable>> futures = new ArrayList<Future<Throwable>>();
+		Map<File, String> srcFileMap = new HashMap<File, String>(nFiles);
+		List<Future<Void>> futures = new ArrayList<Future<Void>>();
 
-		fileMap.putAll(createFiles(tempDir.getRoot(), nFiles));
+		srcFileMap.putAll(createFiles(tempDir.getRoot(), nFiles));
 
 		// Add the created files to a bag.
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		for (Entry<File, String> entry : fileMap.entrySet()) {
+		for (Entry<File, String> entry : srcFileMap.entrySet()) {
 			final Entry<File, String> fEntry = entry;
-			futures.add(workerPool.submit(new Callable<Throwable>() {
+			futures.add(workerPool.submit(new Callable<Void>() {
 
 				@Override
-				public Throwable call() throws Exception {
-					try {
-						dcStorage.addFileToBag(pid, fEntry.getKey(), fEntry.getKey().getName());
-					} catch (FileNotFoundException e) {
-						LOGGER.error(e.getMessage(), e);
-						return e;
-					} catch (IOException e) {
-						LOGGER.error(e.getMessage(), e);
-						return e;
-					}
+				public Void call() throws Exception {
+					dcStorage.addFile(pid, fEntry.getKey(), fEntry.getKey().getName());
 					return null;
 				}
 
 			}));
 		}
 
-		for (Future<Throwable> f : futures) {
-			assertNull(f.get());
+		for (Future<Void> f : futures) {
+			f.get();
 		}
 		futures.clear();
 
-		shutdownExecutor(dcStorage.threadPool, nFiles, TimeUnit.MINUTES);
-		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
-
-		BagSummary bagSummary = dcStorage.getBagSummary(pid);
-		assertEquals(fileMap.size(), bagSummary.getFileSummaryMap().size());
-		for (Entry<String, FileSummary> fsMapEntry : bagSummary.getFileSummaryMap().entrySet()) {
-			assertTrue(fileMap.containsValue(fsMapEntry.getValue().getMessageDigests()
-					.get(Algorithm.MD5.javaSecurityAlgorithm)));
-		}
-
 		// Create 10 new files and replace existing files with the new ones.
-		Map<File, String> replacementFileMap = new HashMap<File, String>(fileMap);
-		for (File oldFile : fileMap.keySet()) {
+		Map<File, String> replacementFileMap = new HashMap<File, String>(srcFileMap);
+		for (File oldFile : srcFileMap.keySet()) {
 			assertFalse(oldFile.isFile());
 			File file = tempDir.newFile(oldFile.getName());
 			String md5 = TestUtil.createFileOfSizeInRange(file, 1L, 5L, FileUtils.ONE_MB);
 			replacementFileMap.put(file, md5);
 		}
 
-		assertEquals(fileMap.size(), replacementFileMap.size());
-		assertThat(fileMap.keySet(), everyItem(isIn(replacementFileMap.keySet())));
-		assertThat(fileMap.values(), everyItem(not(isIn(replacementFileMap.values()))));
+		assertEquals(srcFileMap.size(), replacementFileMap.size());
+		assertThat(srcFileMap.keySet(), everyItem(isIn(replacementFileMap.keySet())));
+		assertThat(srcFileMap.values(), everyItem(not(isIn(replacementFileMap.values()))));
 
 		// Replce existing files in the bag with the replacement files created.
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
 		for (Entry<File, String> entry : replacementFileMap.entrySet()) {
 			final Entry<File, String> fEntry = entry;
-			futures.add(workerPool.submit(new Callable<Throwable>() {
+			futures.add(workerPool.submit(new Callable<Void>() {
 
 				@Override
-				public Throwable call() throws Exception {
-					try {
-						dcStorage.addFileToBag(pid, fEntry.getKey(), fEntry.getKey().getName());
-					} catch (FileNotFoundException e) {
-						LOGGER.error(e.getMessage(), e);
-						return e;
-					} catch (IOException e) {
-						LOGGER.error(e.getMessage(), e);
-						return e;
-					}
+				public Void call() throws Exception {
+					dcStorage.addFile(pid, fEntry.getKey(), fEntry.getKey().getName());
 					return null;
 				}
 			}));
 		}
 
 		for (Future<?> f : futures) {
-			assertNull(f.get());
+			f.get();
 		}
 		futures.clear();
 
-		shutdownExecutor(dcStorage.threadPool, nFiles, TimeUnit.MINUTES);
-		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
-		bagSummary = dcStorage.getBagSummary(pid);
-		for (Entry<String, FileSummary> fsMapEntry : bagSummary.getFileSummaryMap().entrySet()) {
-			assertTrue(replacementFileMap.containsValue(fsMapEntry.getValue().getMessageDigests()
-					.get(Algorithm.MD5.javaSecurityAlgorithm)));
-		}
-
-		File[] payloadFiles = dcStorage.getPayloadDir(pid).listFiles();
+		File[] payloadFiles = getPayloadDir(pid).toFile().listFiles();
 		for (int i = 0; i < payloadFiles.length; i++) {
 			if (payloadFiles[i].isFile()) {
 				replacementFileMap.containsValue(MessageDigestHelper.generateFixity(payloadFiles[i], Algorithm.MD5));
@@ -411,61 +287,37 @@ public class DcStorageTest {
 		final String pid = getNextPid();
 		int nFiles = 10;
 		Map<File, String> fileMap = new HashMap<File, String>(nFiles);
-		List<Future<Throwable>> futures = new ArrayList<Future<Throwable>>();
+		List<Future<Void>> futures = new ArrayList<>();
 
 		// Create nFiles temp files.
 		fileMap.putAll(createFiles(tempDir.getRoot(), nFiles));
 
 		// Add created files to the bag and save as the same file.
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
 		for (Entry<File, String> entry : fileMap.entrySet()) {
 			final Entry<File, String> fEntry = entry;
-			futures.add(workerPool.submit(new Callable<Throwable>() {
+			futures.add(workerPool.submit(new Callable<Void>() {
 
 				@Override
-				public Throwable call() throws Exception {
-					try {
-						dcStorage.addFileToBag(pid, fEntry.getKey(), "Single file.data");
-					} catch (FileNotFoundException e) {
-						LOGGER.error(e.getMessage(), e);
-						return e;
-					} catch (IOException e) {
-						LOGGER.error(e.getMessage(), e);
-						return e;
-					}
+				public Void call() throws Exception {
+					dcStorage.addFile(pid, fEntry.getKey(), "Single file.data");
 					return null;
 				}
 
 			}));
 		}
 
-		for (Future<Throwable> f : futures) {
-			assertNull(f.get());
+		for (Future<?> f : futures) {
+			f.get();
 		}
 		futures.clear();
 
-		shutdownExecutor(dcStorage.threadPool, nFiles, TimeUnit.MINUTES);
-		File file = new File(dcStorage.getPayloadDir(pid), "Single File.data");
+		File file = getPayloadDir(pid).resolve("Single File.data").toFile();
 		assertTrue(file.isFile());
 		String md5 = MessageDigestHelper.generateFixity(file, Algorithm.MD5);
+		LOGGER.trace("Final payload file has MD5: {}", md5);
 		assertThat(fileMap, hasValue(md5));
-		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
 	}
 
-	@Test
-	public void testAddFileThenImmediatelyDelete() throws IOException, InterruptedException {
-		String pid = getNextPid();
-		dcStorage.threadPool = Executors.newSingleThreadExecutor();
-		File file = tempDir.newFile();
-		String md5 = TestUtil.createFileOfSize(file, 5L, FileUtils.ONE_MB);
-		String filepath = "File.txt";
-		dcStorage.addFileToBag(pid, file, filepath);
-		dcStorage.deleteFileFromBag(pid, filepath);
-		shutdownExecutor(dcStorage.threadPool, 30, TimeUnit.SECONDS);
-		assertFalse(new File(dcStorage.getPayloadDir(pid), filepath).isFile());
-		assertTrue(verifyBagAt(dcStorage.getBagDir(pid)));
-	}
-	
 	@Test
 	public void testFilepathsWithHiddenDirs() {
 		Map<String, Boolean> dataset = new HashMap<String, Boolean>();
@@ -487,8 +339,6 @@ public class DcStorageTest {
 			String md5 = TestUtil.createFileOfSizeInRange(file, 1L, 5L, FileUtils.ONE_MB);
 			fileMap.put(file, md5);
 			assertTrue(file.isFile());
-			LOGGER.trace("Created file {} ({}) MD5: {}", new Object[]{file.getName(),
-					FileUtils.byteCountToDisplaySize(file.length()), md5});
 		}
 		return fileMap;
 	}
@@ -500,39 +350,32 @@ public class DcStorageTest {
 	 *            ZipInputStream to check
 	 * @param filepaths
 	 *            Collection of relative filepaths that the zip's entry should contain.
+	 * @param list 
 	 * @param fsMap
 	 * @throws IOException
 	 */
-	private void checkZipStream(ZipInputStream zipIs, Collection<String> filepaths, FileSummaryMap fsMap)
-			throws IOException {
+	private void checkZipStream(ZipInputStream zipIs, Map<String, String> filepaths) throws IOException {
 		int nZipEntries = 0;
 		for (ZipEntry zipEntry = zipIs.getNextEntry(); zipEntry != null; zipEntry = zipIs.getNextEntry()) {
 			LOGGER.trace("Checking ZipEntry {}", zipEntry.getName());
-			ByteArrayOutputStream extractedFileOutStream = null;
 			byte[] fileContents;
-			try {
-				extractedFileOutStream = new ByteArrayOutputStream();
+			try (ByteArrayOutputStream extractedFileOutStream = new ByteArrayOutputStream()){
 				byte[] buffer = new byte[8192];
 				for (int numBytesRead = zipIs.read(buffer); numBytesRead != -1; numBytesRead = zipIs.read(buffer)) {
 					extractedFileOutStream.write(buffer, 0, numBytesRead);
 				}
 				fileContents = extractedFileOutStream.toByteArray();
-			} finally {
-				IOUtils.closeQuietly(extractedFileOutStream);
 			}
 			ByteArrayInputStream extractedFileInStream = null;
 			try {
 				extractedFileInStream = new ByteArrayInputStream(fileContents);
-				assertEquals(
-						fsMap.getFileSummary("data/" + zipEntry.getName()).getMessageDigests()
-								.get(Algorithm.MD5.javaSecurityAlgorithm),
-						MessageDigestHelper.generateFixity(extractedFileInStream, Algorithm.MD5));
+				assertEquals(filepaths.get(zipEntry.getName()), MessageDigestHelper.generateFixity(extractedFileInStream, Algorithm.MD5));
 			} finally {
 				IOUtils.closeQuietly(extractedFileInStream);
 			}
 			nZipEntries++;
 		}
-		assertEquals(fsMap.size(), nZipEntries);
+		assertEquals(filepaths.size(), nZipEntries);
 	}
 
 	private synchronized String getNextPid() {
@@ -603,8 +446,11 @@ public class DcStorageTest {
 		return result.isSuccess();
 	}
 
-	private void shutdownExecutor(ExecutorService exec, long timeout, TimeUnit unit) throws InterruptedException {
-		exec.shutdown();
-		exec.awaitTermination(timeout, unit);
+	private Path getBagDir(String pid) {
+		return bagsRootDir.getRoot().toPath().resolve(DcStorage.convertToDiskSafe(pid));
+	}
+	
+	private Path getPayloadDir(String pid) {
+		return getBagDir(pid).resolve("data/");
 	}
 }

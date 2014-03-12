@@ -36,4 +36,9 @@ public class PronomFormatsTagFile extends AbstractKeyValueFile {
 	public PronomFormatsTagFile(File tagFile) throws IOException {
 		super(tagFile);
 	}
+	
+	@Override
+	public String getFilepath() {
+		return FILEPATH;
+	}
 }

@@ -90,12 +90,41 @@
 
 	<bean id="dcStorage" class="au.edu.anu.datacommons.storage.DcStorage" scope="singleton">
 		<constructor-arg value="${upload.bagsDir}" />
-		<constructor-arg ref="fileFactory" />
-		<property name="archiveRootDir" value="${upload.archiveBaseDir}" />
 		<property name="stagingDir" value="${upload.uploadDir}" />
 	</bean>
 	
 	<bean id="fileFactory" class="au.edu.anu.datacommons.storage.filesystem.FileFactory">
-		<constructor-arg value="500" />
+		<constructor-arg value="50" />
+	</bean>
+	
+	<bean id="storageSearch" class="au.edu.anu.datacommons.storage.search.StorageSearchService">
+		<constructor-arg value="${storage.search.url}" />
+	</bean>
+	
+	<bean id="recordDataInfoService" class="au.edu.anu.datacommons.storage.info.RecordDataInfoService">
+	</bean>
+	
+	<bean id="tagFilesService" class="au.edu.anu.datacommons.storage.tagfiles.TagFilesService" depends-on="threadPoolService">
+		<constructor-arg value="${upload.bagsDir}" />
+		<property name="writeFreq" value="${storage.tagfiles.writeFreqSec}" />
+		<property name="maxEntries" value="${storage.tagfiles.cacheSize}" />
+	</bean>
+	
+	<bean id="storageEventListener" class="au.edu.anu.datacommons.storage.event.StorageEventListener">
+		<property name="archiveRootDir">
+			<ref bean="archiveRootDir"/>
+		</property>
+	</bean>
+	
+	<bean id="archiveRootDir" class="au.edu.anu.datacommons.storage.filesystem.PathCreator" factory-method="createPath">
+		<constructor-arg value="${upload.archiveBaseDir}"></constructor-arg>
+	</bean>
+	
+	<bean id="uploadDir" class="java.nio.file.Paths" factory-method="get">
+		<constructor-arg value="file:/${upload.uploadDir}" />
+	</bean>
+	
+	<bean id="threadPoolService" class="au.edu.anu.datacommons.tasks.ThreadPoolService">
+		<constructor-arg value="16" />
 	</bean>
 </beans>

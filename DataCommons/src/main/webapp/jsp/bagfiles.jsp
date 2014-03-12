@@ -8,7 +8,7 @@
 	description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur"
 	respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
-	<link href="http://styles.anu.edu.au/_anu/3/style/anu-forms.css"
+	<link href="//styles.anu.edu.au/_anu/3/style/anu-forms.css"
 		rel="stylesheet" type="text/css" />
 	<script type="text/javascript" src="<c:url value='/js/bagfiles.js' />"></script>
 	<script type="text/javascript">
@@ -25,6 +25,7 @@
 	<jsp:include page="/jsp/statusmessages.jsp">
 		<jsp:param value="${it}" name="it" />
 	</jsp:include>
+	<img id="loading" src="<c:url value='/images/ajax-loader.gif' />" style="display: none"></img>
 
 	<div id="tabs" class="pagetabs-nav nopadbottom">
 		<ul>
@@ -110,12 +111,16 @@
 						</td>
 						
 						<!-- Metadata slider -->
-						<td onclick="jQuery('tr[id=\'meta-${iFile.key}\']').slideToggle()"><a href="javascript:void(0);">Expand</a></td>
+						<c:set var="search" value="\'" />
+						<c:set var="replace" value="\\\'" />
+						<c:set var="escapedFilepath" value="${fn:replace(iFile.key, search, replace)}" />
+						<td onclick="showMetadataRow('${escapedFilepath}')"><a href="javascript:void(0);">Expand</a></td>
 						
 						<!-- Delete file -->
 						<sec:authorize access="isAuthenticated()"><sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
 							<td class="text-center">
-								<a href="javascript:void(0);" onclick="deleteFile('<c:url value="${it.dlBaseUri}${iFile.key}" />', '${iFile.key}')">
+								<c:set var="escapedFileUri" value="${it.dlBaseUri}${escapedFilepath}" />
+								<a href="javascript:void(0);" onclick="deleteFile('${escapedFileUri}');">
 									<img src="<c:url value='/images/delete_red.png' />" width="12" height="12" title="Delete ${iFile.value.filename}" />
 								</a>
 							</td>
@@ -184,20 +189,17 @@
 				<button onclick="addExtRef('${it.fo.object_id}')">Add	External Reference</button>
 			</sec:accesscontrollist>
 		</sec:authorize>
-		<c:if test="${not empty it.extRefsTxt}">
+		<c:if test="${not empty it.extRefs}">
 			<ul>
-				<c:forEach var="iEntry" items="${it.extRefsTxt}">
-					<li><a href="${iEntry.value}"><c:out
-								value='${iEntry.value}' /></a>&nbsp;&nbsp;<a
+				<c:forEach var="iEntry" items="${it.extRefs}">
+					<li><a href="${iEntry}"><c:out
+								value='${iEntry}' /></a>&nbsp;&nbsp;<a
 						href="javascript:void(0);"
-						onclick="deleteExtRef('${it.fo.object_id}', '${iEntry.value}')">[Delete]</a></li>
+						onclick="deleteExtRef('${it.fo.object_id}', '${iEntry}')">[Delete]</a></li>
 				</c:forEach>
 			</ul>
 		</c:if>
 	</div>
-
-	<img id="loading" src="<c:url value='/images/ajax-loader.gif' />"
-		style="display: none"></img>
 </div>
 
 <sec:authorize access="isAuthenticated()">
@@ -206,10 +208,9 @@
 			<p class="msg-info">The Java upload applet below may take a few moments to display. When it does, either drag and drop files from your
 			system into the applet, or click on	the <em>Browse</em> button to select files from a dialog box.</p>
 			<form class="anuform" name="uploadForm" id="idUploadForm" enctype="multipart/form-data" method="post" action="/">
-				<input type="hidden" name="pid" value="${it.fo.object_id}" />
 				<applet code="wjhk.jupload2.JUploadApplet.class" name="JUpload" archive="<c:url value='/plugins/jupload-5.0.8.jar' />" width="680" height="500" mayscript
 					alt="The java plugin must be installed.">
-					<param name="postURL" value="<c:url value='/rest/upload;jsessionid=${cookie.JSESSIONID.value}' />" />
+					<param name="postURL" value="<c:url value='/rest/upload/${it.fo.object_id};jsessionid=${cookie.JSESSIONID.value}' />" />
 					<param name="stringUploadSuccess" value="^SUCCESS$" />
 					<param name="stringUploadError" value="^ERROR: (.*)$" />
 					<param name="stringUploadWarning" value="^WARNING: (.*)$" />

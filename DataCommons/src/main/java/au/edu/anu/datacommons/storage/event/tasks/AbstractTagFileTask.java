@@ -19,25 +19,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.verifier;
+package au.edu.anu.datacommons.storage.event.tasks;
 
-import java.io.File;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.nio.file.Path;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 
 /**
  * @author Rahul Khanna
  *
  */
-public class StorageVerifier {
-	private static final Logger LOGGER = LoggerFactory.getLogger(StorageVerifier.class);
-	
-	ExecutorService execSvc = Executors.newCachedThreadPool();
-	
-	public void verify(File bagDir) {
-		
+public abstract class AbstractTagFileTask extends AbstractStorageEventTask {
+
+	protected TagFilesService tagFilesSvc;
+	public AbstractTagFileTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
+		super(pid, bagDir, relPath);
+		this.tagFilesSvc = tagFilesSvc;
 	}
 }

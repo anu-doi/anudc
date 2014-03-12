@@ -45,11 +45,11 @@ import org.slf4j.LoggerFactory;
  * 
  */
 public class PersistenceManager {
-	static final Logger LOGGER = LoggerFactory.getLogger(PersistenceManager.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceManager.class);
 	
 	private static final PersistenceManager singleton_ = new PersistenceManager();
 	
-	protected EntityManagerFactory emf;
+	private EntityManagerFactory emf;
 	
 	/**
 	 * getInstance
@@ -77,7 +77,6 @@ public class PersistenceManager {
 	 * 
 	 */
 	private PersistenceManager() {
-		
 	}
 	
 	/**
@@ -111,9 +110,13 @@ public class PersistenceManager {
 	 */
 	public void closeEntityManagerFactory() {
 		if (emf != null) {
-			emf.close();
-			emf = null;
-			LOGGER.info("Persistence finished at " + new java.util.Date());
+			try {
+				emf.close();
+				emf = null;
+				LOGGER.info("Persistence finished at " + new java.util.Date());
+			} catch (IllegalStateException e) {
+				// No op as the emf is already closed.
+			}
 		}
 	}
 	
@@ -127,8 +130,10 @@ public class PersistenceManager {
 	 * 0.1		03/05/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 */
-	protected void createEntityManagerFactory() {
-		this.emf = Persistence.createEntityManagerFactory("datacommons");
-		LOGGER.info("Persistence started at " + new java.util.Date());
+	protected synchronized void createEntityManagerFactory() {
+		if (this.emf == null) {
+			this.emf = Persistence.createEntityManagerFactory("datacommons");
+			LOGGER.info("Persistence started at " + new java.util.Date());
+		}
 	}
 }

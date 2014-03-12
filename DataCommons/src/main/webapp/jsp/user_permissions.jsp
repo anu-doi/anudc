@@ -1,44 +1,62 @@
-<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 
-<anu:header id="1998" title="ANU Data Commons - User Information" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
-	ssl="true">
+<anu:header id="1998" title="ANU Data Commons - User Information" description="description" subject="subject" respOfficer="Doug Moncur"
+	respOfficerContact="mailto:doug.moncur@anu.edu.au" ssl="true">
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
-	<link href="http://styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
+	<link href="//styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/default.css' />" />
 	<script type="text/javascript" src="<c:url value='/js/user.js' />"></script>
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublenarrow" title="Update User Permissions">
-	<div id="message"></div>
-	<form id="form">
-	Search for User:<br/>
-	<label for="firstname" class="text-uni user-label">First Name</label><input id="firstname" name="firstname" type="text" /><br/>
-	<label for="lastname" class="text-uni user-label">Last Name</label><input id="lastname" name="lastname" type="text" /><br/>
-	<label for="email" class="text-uni user-label">Email</label><input  id="email" name="email" type="text" /><br/>
-	<input type="button" id="findPeople" value="Search" />
+<anu:content layout="doublewide" title="Update User Permissions">
+	<p id="message"></p>
+	<form id="form" class="anuform" onsubmit="return false;">
+		<fieldset>
+			<legend>Search User</legend>
+			<p>
+				<label for="firstname">First Name</label><input id="firstname" name="firstname" type="text" size="50" />
+			</p>
+			<p>
+				<label for="lastname">Last Name</label><input id="lastname" name="lastname" type="text" size="50" />
+			</p>
+			<p>
+				<label for="uniId">Email</label><input id="email" name="email" type="text" size="50" />
+			</p>
+			<p>
+				<input type="submit" id="findPeople" value="Search" class="btn-uni-grad" />
+			<p>
+		</fieldset>
 	</form>
-	<div id="peopleList"></div>
-	<div id="updateGroups">
-		Allowable groups to modify permissions for:<br/>
-		<select id="groups" size="5" style="width:275px;">
-			<c:forEach items="${it.groups}" var="group">
-				<option value="${group.id}" title="${group.group_name}">${group.group_name}</option>
-			</c:forEach>
-		</select><br/>
-		<input type="checkbox" name="group_perm" class="chk_perm" value="1"/>READ<br/>
-		<input type="checkbox" name="group_perm" class="chk_perm" value="2"/>WRITE<br/>
-		<input type="checkbox" name="group_perm" class="chk_perm" value="16"/>ADMINISTRATION<br/>
-		<input type="checkbox" name="group_perm" class="chk_perm" value="32"/>REVIEW<br/>
-		<input type="checkbox" name="group_perm" class="chk_perm" value="64"/>PUBLISH<br/>
-		<input type="checkbox" name="group_perm" class="chk_perm" value="128"/>PUBLISH MULTIPLE<br/>
-		<input type="checkbox" name="group_perm" class="chk_perm" value="256"/>ASSIGN PERMISSIONS<br/>
-		<input type="button" name="updatePerm" id="updatePerm" value="Update" />
+	<div id="peopleList" class="w-doublewide"></div>
+	<div id="updateGroups" class="w-wide">
+		<p>Allowable groups to modify permissions for:</p>
+		<p>
+			<select id="groups" size="10" style="width: 300px">
+				<c:forEach items="${it.groups}" var="group">
+					<option value="${group.id}">${group.group_name} [${group.id}]</option>
+				</c:forEach>
+			</select>
+		</p>
+	</div>
+	<div id="permissions" class="w-wide">
+		<ul class="nobullet">
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="1" />READ</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="2" />WRITE</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="16" />ADMINISTRATION</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="32" />REVIEW</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="64" />PUBLISH</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="128" />PUBLISH MULTIPLE</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="256" />ASSIGN PERMISSIONS</li>
+		</ul>
+		<p>
+			<input type="button" name="updatePerm" id="updatePerm" value="Update" />
+		</p>
 	</div>
 </anu:content>
 

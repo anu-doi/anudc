@@ -79,17 +79,6 @@ public class VerificationTaskTest {
 	}
 
 	@Test
-	public void testBagVerification() throws Exception {
-		VerificationTask vt = new VerificationTask(ff, new File("C:\\Rahul\\FileUpload\\Bags\\test_427"));
-		VerificationResults results = vt.call();
-		
-		LOGGER.info("Verification results for {}", results.getBagId());
-		for (ResultMessage msg : results) {
-			LOGGER.trace("{}-{}: [{}] {}", new Object[]{msg.getSeverity(), msg.getCategory(), msg.getFilepath(), msg.getMessage()});
-		}
-	}
-
-	@Test
 	public void testMarshalling() throws Exception {
 		VerificationResults results = new VerificationResults("test_123");
 		results.addMessage(new ResultMessage(Severity.ERROR, Category.ARTIFACT_FOUND, "metadata/abc.ser", "Message"));

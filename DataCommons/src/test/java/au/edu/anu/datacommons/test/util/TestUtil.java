@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -26,6 +27,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.util.Util;
 
 public class TestUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TestUtil.class);
@@ -117,7 +120,6 @@ public class TestUtil {
 	public static String createFileOfSize(File file, long sizeInBytes) throws IOException {
 		MessageDigest digester = createMd5Digester();
 		OutputStream os = null;
-		LOGGER.info("Creating {} ({}) ({} bytes)", new Object[]{file.getAbsolutePath(), FileUtils.byteCountToDisplaySize(sizeInBytes), sizeInBytes});
 		try {
 			os = new DigestOutputStream(new FileOutputStream(file), digester);
 			WritableByteChannel channel = Channels.newChannel(os);
@@ -137,8 +139,15 @@ public class TestUtil {
 		} finally {
 			IOUtils.closeQuietly(os);
 		}
-
-		return new String(Hex.encodeHex(digester.digest(), true));
+		String md5 = new String(Hex.encodeHex(digester.digest(), true));
+		LOGGER.info("Created {} ({}) ({} bytes) MD5: {}", file.getAbsolutePath(), Util.byteCountToDisplaySize(sizeInBytes), sizeInBytes, md5);
+		return md5;
+	}
+	
+	public static ByteArrayInputStream createInMemStream(int sizeInBytes) {
+		byte[] buffer = new byte[(int) sizeInBytes];
+		rand.nextBytes(buffer);
+		return new ByteArrayInputStream(buffer);
 	}
 	
 	private static MessageDigest createMd5Digester() {

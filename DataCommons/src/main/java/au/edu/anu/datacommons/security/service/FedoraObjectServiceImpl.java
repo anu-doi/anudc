@@ -70,6 +70,7 @@ import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.storage.info.BagSummary;
+import au.edu.anu.datacommons.storage.info.RecordDataInfo;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
@@ -589,15 +590,11 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			if (fedoraObject != null)
 			{
 				// Add bag summary to model.
-				if (dcStorage.bagExists(fedoraObject.getObject_id()))
-				{
-					try
-					{
-						BagSummary bagSummary = dcStorage.getBagSummary(fedoraObject.getObject_id());
-						values.put("bagSummary", bagSummary);
-					}
-					catch (IOException e)
-					{
+				if (dcStorage.bagExists(fedoraObject.getObject_id())) {
+					try {
+						RecordDataInfo rdi = dcStorage.getRecordDataInfo(fedoraObject.getObject_id());
+						values.put("rdi", rdi);
+					} catch (IOException e) {
 						LOGGER.error(e.getMessage(), e);
 					}
 				}
@@ -618,7 +615,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 
 		if (!values.containsKey("page")) {
-			LOGGER.error("Page is empty");
 			values.put("topage", "/error.jsp");
 		}
 		
@@ -953,5 +949,11 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	
 	public FedoraObject getItemByPidWriteAccess(String pid) {
 		return getItemByPid(pid);
+	}
+	
+	@Override
+	public List<FedoraObject> getAllPublishedAndPublic() {
+		FedoraObjectDAOImpl dao = new FedoraObjectDAOImpl(FedoraObject.class);
+		return dao.getAllPublishedAndPublic();
 	}
 }

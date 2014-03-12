@@ -1,27 +1,28 @@
-<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
-<%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib" %>
 
 <anu:header id="1998" title="Login" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au" ssl="true">
 	<script type="text/javascript" src="<c:url value='/js/global.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/login.js' />"></script>
-
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublenarrow" extraClass="nopadbottom" title="Login">
-	<div id="login-error">${error}</div>
+<anu:content layout="doublewide" extraClass="nopadbottom" title="Login">
+	<c:if test="${not empty error}">
+		<div id="login-error" class="msg-error">${error}</div>
+	</c:if>
 	
-	<form class="anuform" name="frmLogin" method="post" action='<c:url value="/j_spring_security_check" />'>
+	<form class="anuform" name="frmLogin" method="post" onsubmit="usernameToLowerCase()" action='<c:url value="/j_spring_security_check" />'>
 		<p>
 			<label class="req" for="j_username">Username: </label>
-			<input type="text" class="text" name="j_username" value="" autofocus="autofocus">
+			<input type="text" class="text" name="j_username" value="" autofocus="autofocus" size="40">
 		</p>
 		<p>
 			<label for="j_password">Password: </label>
-			<input type='password' name='j_password' />
+			<input type='password' name='j_password' size="40" />
 		</p>
 		<p>
 		<p class="text-right">

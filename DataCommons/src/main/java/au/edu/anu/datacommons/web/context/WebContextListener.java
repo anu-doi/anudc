@@ -30,6 +30,10 @@ import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Enumeration;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletContextEvent;
@@ -53,7 +57,6 @@ import com.sun.jersey.core.util.Base64;
  * 
  */
 @WebListener
-@Component
 public final class WebContextListener implements ServletContextListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebContextListener.class);
 	protected static final int CONNECTION_TIMEOUT_MS = 30000;
@@ -72,7 +75,6 @@ public final class WebContextListener implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent sce) {
 		checkPythonPath();
 		checkFidoPath();
-		WebApplicationContextUtils.getRequiredWebApplicationContext(sce.getServletContext()).getAutowireCapableBeanFactory().autowireBean(this);
 		
 		// Disabling checks for other web applications as they may not start before this web application.
 //		checkFedoraServer();
@@ -83,6 +85,7 @@ public final class WebContextListener implements ServletContextListener {
 	 * @see ServletContextListener#contextDestroyed(ServletContextEvent)
 	 */
 	public void contextDestroyed(ServletContextEvent sce) {
+		deregisterDrivers();
 	}
 
 	private void checkPythonPath() {
@@ -187,5 +190,18 @@ public final class WebContextListener implements ServletContextListener {
 		StringWriter writer = new StringWriter();
 		IOUtils.copy(netstream, writer, encoding);
 		return writer.toString();
+	}
+
+	private void deregisterDrivers() {
+		Enumeration<Driver> drivers = DriverManager.getDrivers();
+		while (drivers.hasMoreElements()) {
+			try {
+				Driver iDrv = drivers.nextElement();
+				DriverManager.deregisterDriver(iDrv);
+				LOGGER.trace("Deregistered driver: {}", iDrv.getClass().getCanonicalName());
+			} catch (SQLException e) {
+				LOGGER.error("Unable to deregister driver: {}", e.getMessage());
+			}
+		}
 	}
 }

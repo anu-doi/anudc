@@ -221,6 +221,10 @@ public final class GlobalProps {
 	public static String getFidoPath() {
 		return getProperty(PROP_FIDO_PATH);
 	}
+	
+	public static String getStorageSolrUrl() {
+		return getProperty("storage.search.url");
+	}
 
 	private static void createIfNotExists(File dir) {
 		if (!dir.exists()) {

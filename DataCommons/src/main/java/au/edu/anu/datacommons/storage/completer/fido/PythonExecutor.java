@@ -86,7 +86,7 @@ public class PythonExecutor {
 				}
 				cmdLineAsStr.append(" ");
 			}
-			LOGGER.debug("Executing: {}", cmdLineAsStr.toString().trim());
+			LOGGER.trace("Executing: {}", cmdLineAsStr.toString().trim());
 		}
 		ProcessBuilder pb = new ProcessBuilder(cmdLine);
 		pythonProcess = pb.start();

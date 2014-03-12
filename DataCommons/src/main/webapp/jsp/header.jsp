@@ -27,6 +27,7 @@
 <anu:menu showSearch="true" id="1108" shortTitle="Public Data" ssl="true">
 	<anu:submenu title="Data Commons">
 		<li><a href="<c:url value='/' />">Home (Search)</a></li>
+		<li><a href="<c:url value='/rest/upload/search' />">Data Search</a>
 		<sec:authorize access="hasRole('ROLE_REGISTERED')">
 			<li><a href="<c:url value='/rest/collreq' />">Collection Request</a>
 				<ul>

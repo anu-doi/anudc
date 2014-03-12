@@ -61,7 +61,7 @@ public class MetadataExtractorImpl implements MetadataExtractor {
 			Parser parser = new AutoDetectParser(new AutoDetectParser(), new FitsParser());
 			ParseContext parseContext = new ParseContext();
 			parser.parse(dataStream, textHandler, this.metadata, parseContext);
-			LOGGER.debug("Parsing using Tika successful. {} metadata elements extracted.", metadata.size());
+			LOGGER.trace("Parsing using Tika successful. {} metadata elements extracted.", metadata.size());
 			extractMetadataToMap();
 			
 			if (LOGGER.isTraceEnabled()) {

@@ -36,4 +36,9 @@ private static final long serialVersionUID = 1L;
 	public FileMetadataTagFile(File tagFile) throws IOException {
 		super(tagFile);
 	}
+	
+	@Override
+	public String getFilepath() {
+		return FILEPATH;
+	}
 }
