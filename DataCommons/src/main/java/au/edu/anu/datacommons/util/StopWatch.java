@@ -58,9 +58,11 @@ public class StopWatch {
 	public String getTimeElapsedFormatted() {
 		String formatted;
 		long hr = TimeUnit.MILLISECONDS.toHours(getTimeElapsedMillis());
-        long min = TimeUnit.MILLISECONDS.toMinutes(getTimeElapsedMillis() - TimeUnit.HOURS.toMillis(hr));
-        long sec = TimeUnit.MILLISECONDS.toSeconds(getTimeElapsedMillis() - TimeUnit.HOURS.toMillis(hr) - TimeUnit.MINUTES.toMillis(min));
-        long ms = TimeUnit.MILLISECONDS.toMillis(getTimeElapsedMillis() - TimeUnit.HOURS.toMillis(hr) - TimeUnit.MINUTES.toMillis(min) - TimeUnit.SECONDS.toMillis(sec));
+		long min = TimeUnit.MILLISECONDS.toMinutes(getTimeElapsedMillis() - TimeUnit.HOURS.toMillis(hr));
+		long sec = TimeUnit.MILLISECONDS.toSeconds(getTimeElapsedMillis() - TimeUnit.HOURS.toMillis(hr)
+				- TimeUnit.MINUTES.toMillis(min));
+		long ms = TimeUnit.MILLISECONDS.toMillis(getTimeElapsedMillis() - TimeUnit.HOURS.toMillis(hr)
+				- TimeUnit.MINUTES.toMillis(min) - TimeUnit.SECONDS.toMillis(sec));
 		if (hr > 0) {
 			formatted = String.format("%d:%02d:%02d.%03d", hr, min, sec, ms);
 		} else if (min > 0) {
@@ -79,10 +81,9 @@ public class StopWatch {
 	 * @return Process rate as String e.g. 1.00 MB/sec
 	 */
 	public String getRate(long bytes) {
-		long seconds = TimeUnit.MILLISECONDS.toSeconds(getTimeElapsedMillis());
 		long rate;
-		if (seconds > 0) {
-			rate = bytes / seconds;
+		if (getTimeElapsedMillis() > 0) {
+			rate = bytes * 1000L / getTimeElapsedMillis();
 		} else {
 			rate = 0;
 		}

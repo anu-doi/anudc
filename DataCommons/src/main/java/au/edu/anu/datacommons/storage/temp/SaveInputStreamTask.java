@@ -39,7 +39,6 @@ import java.util.Date;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,10 +54,12 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 	
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS");
 	
-	private Path uploadDir;
-	private DigestInputStream dis;
-	private long expectedLength;
-	private String expectedMd5;
+	protected Path uploadDir;
+	protected DigestInputStream dis;
+	protected long expectedLength;
+	protected String expectedMd5;
+	protected long actualLength;
+	protected String actualMd5;
 
 	
 	public SaveInputStreamTask(Path uploadDir, InputStream is, long expectedLength, String expectedMd5) throws IOException {
@@ -79,34 +80,37 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 		Path targetFile = createTempFile();
 		StopWatch sw = new StopWatch();
 		sw.start();
-		try (ReadableByteChannel srcChannel = Channels.newChannel(this.dis);
-				FileChannel targetFileChannel = FileChannel.open(targetFile, StandardOpenOption.WRITE)) {
-			LOGGER.debug("Saving file to {} ({}) Expected MD5:{}...", targetFile.toString(),
+		try {
+			LOGGER.debug("Saving {} ({}) Expected MD5:{}...", targetFile.toString(),
 					Util.byteCountToDisplaySize(expectedLength), expectedMd5);
-
-			long position = 0;
-			long count = 0;
-			while ((count = targetFileChannel.transferFrom(srcChannel, position, Long.MAX_VALUE)) > 0) {
-				position += count;
-			}
-
-			verifyLength(position);
-			String computedMd5 = Hex.encodeHexString(dis.getMessageDigest().digest());
-			verifyMd5(computedMd5);
-
-			ufi = new UploadedFileInfo(targetFile, position, computedMd5);
+			this.actualLength = saveStreamToFile(this.dis, targetFile);
+			this.actualMd5 = Hex.encodeHexString(dis.getMessageDigest().digest());
+			verifyExpecteds();
+			ufi = new UploadedFileInfo(targetFile, this.actualLength, this.actualMd5);
 			sw.stop();
-			LOGGER.debug("Saved file to {} ({}) Computed MD5:{}, Time: {}, Speed: {}", ufi.getFilepath().toString(),
+			LOGGER.debug("Saved {} ({}) Computed MD5:{}, Time: {}, Speed: {}", ufi.getFilepath().toString(),
 					Util.byteCountToDisplaySize(ufi.getSize()), ufi.getMd5(), sw.getTimeElapsedFormatted(), sw.getRate(ufi.getSize()));
 		} catch (Exception e) {
-			LOGGER.error("Error saving file to {} ({}) Expected MD5:{} - {}", targetFile.toString(),
+			LOGGER.error("Error saving {} ({}) Expected MD5:{} - {}", targetFile.toString(),
 					Util.byteCountToDisplaySize(this.expectedLength), this.expectedMd5, e.getMessage());
 			throw e;
 		}
 		return ufi;
 	}
+	
+	protected long saveStreamToFile(InputStream srcStream, Path targetFile) throws IOException {
+		long position = 0;
+		try (ReadableByteChannel srcChannel = Channels.newChannel(srcStream);
+				FileChannel targetFileChannel = FileChannel.open(targetFile, StandardOpenOption.WRITE)) {
+			long count = 0;
+			while ((count = targetFileChannel.transferFrom(srcChannel, position, Long.MAX_VALUE)) > 0) {
+				position += count;
+			}
+		}
+		return position;
+	}
 
-	private Path createTempFile() throws IOException {
+	protected Path createTempFile() throws IOException {
 		Path tempFile;
 		synchronized (uploadDir) {
 			do {
@@ -118,26 +122,31 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 		return tempFile;
 	}
 
-	private void verifyLength(long position) throws IOException {
+	protected void verifyExpecteds() throws IOException {
+		verifyLength();
+		verifyMd5();
+	}
+	
+	protected void verifyLength() throws IOException {
 		if (this.expectedLength > 0) {
-			if (position != expectedLength) {
+			if (this.actualLength != this.expectedLength) {
 				throw new IOException(format("Saved stream''s length invalid - Expected: {0} ({1}), Actual: {2} ({3})",
-						this.expectedLength, Util.byteCountToDisplaySize(this.expectedLength), position,
-						Util.byteCountToDisplaySize(position)));
+						this.expectedLength, Util.byteCountToDisplaySize(this.expectedLength), this.actualLength,
+						Util.byteCountToDisplaySize(this.actualLength)));
 			}
 		}
 	}
 	
-	private void verifyMd5(String computedMd5) throws IOException {
+	protected void verifyMd5() throws IOException {
 		if (this.expectedMd5 != null) {
-			if (!expectedMd5.equals(computedMd5)) {
+			if (!expectedMd5.equals(this.actualMd5)) {
 				throw new IOException(format("Saved stream''s MD5 invalid - Expected: {0}, Actual: {1}", expectedMd5,
-						computedMd5));
+						this.actualMd5));
 			}
 		}
 	}
 
-	private MessageDigest createMd5Digest() {
+	protected MessageDigest createMd5Digest() {
 		try {
 			return MessageDigest.getInstance("MD5");
 		} catch (NoSuchAlgorithmException e) {

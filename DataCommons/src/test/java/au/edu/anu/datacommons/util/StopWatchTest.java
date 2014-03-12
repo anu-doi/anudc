@@ -107,6 +107,9 @@ public class StopWatchTest {
 		sw.stop = new Date(sw.start.getTime() + TimeUnit.MINUTES.toMillis(1L));
 		String rate = sw.getRate(60L * FileUtils.ONE_MB);
 		assertThat(rate, is("1.00 MB/sec"));
+		
+		sw.stop = new Date(sw.start.getTime() + TimeUnit.SECONDS.toMillis(1L));
+		rate = sw.getRate(10L * FileUtils.ONE_MB);
 		LOGGER.trace(rate);
 	}
 }

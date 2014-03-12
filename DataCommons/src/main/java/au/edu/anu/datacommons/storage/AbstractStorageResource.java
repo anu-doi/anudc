@@ -22,16 +22,12 @@
 package au.edu.anu.datacommons.storage;
 
 import static java.text.MessageFormat.format;
-import gov.loc.repository.bagit.Manifest;
-import gov.loc.repository.bagit.Manifest.Algorithm;
+import gov.loc.repository.bagit.utilities.FilenameHelper;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Future;
 
@@ -42,24 +38,19 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-
-import com.sun.jersey.api.NotFoundException;
 
 import au.edu.anu.datacommons.data.db.dao.AccessLogRecordDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
@@ -72,12 +63,11 @@ import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.info.FileInfo;
-import au.edu.anu.datacommons.storage.temp.AbstractTempFileTask;
-import au.edu.anu.datacommons.storage.temp.PartTempFileTask;
 import au.edu.anu.datacommons.storage.temp.TempFileService;
-import au.edu.anu.datacommons.storage.temp.TempFileTask;
 import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.edu.anu.datacommons.util.Util;
+
+import com.sun.jersey.api.NotFoundException;
 
 /**
  * @author Rahul Khanna
@@ -197,24 +187,24 @@ public class AbstractStorageResource {
 				.path(StorageResource.class, "getFileOrDirAsHtml").build(pid, filepath);
 	}
 
-	protected Response processJUpload(String pid, String path) {
+	protected Response processJUpload(String pid, String dirPath) {
 		Response resp = null;
 		List<FileItem> uploadedItems = null;
-		File savedFile = null;
 		int filePart = 0;
 		boolean isLastPart = false;
-	
+
 		if (request.getParameter("jupart") != null && request.getParameter("jufinal") != null) {
 			filePart = Integer.parseInt(request.getParameter("jupart"));
 			isLastPart = request.getParameter("jufinal").equals("1");
 		}
-	
+
+		UploadedFileInfo ufi = null;
 		try {
 			uploadedItems = parseUploadRequest(request);
-	
+
 			// Retrieve pid and MD5 from request.
 			String md5 = null;
-	
+
 			for (FileItem fi : uploadedItems) {
 				if (fi.isFormField()) {
 					if (fi.getFieldName().equals("md5sum0")) {
@@ -228,47 +218,39 @@ public class AbstractStorageResource {
 			if (pid == null || pid.length() == 0) {
 				throw new NullPointerException("Record Identifier cannot be null.");
 			}
-	
+
 			// Check for write access to the fedora object.
 			FedoraObject fo = fedoraObjectService.getItemByPidWriteAccess(pid);
-	
+
 			for (FileItem fi : uploadedItems) {
 				if (!fi.isFormField()) {
-					AbstractTempFileTask task;
+					Future<UploadedFileInfo> future;
 					if (filePart > 0) {
-						String partFilename = format("{0}-{1}-{2}.part", DcStorage.convertToDiskSafe(path),
+						String partFilename = format("{0}-{1}-{2}.part", DcStorage.convertToDiskSafe(dirPath),
 								DcStorage.convertToDiskSafe(pid), md5);
-						task = new PartTempFileTask(fi.getInputStream(), filePart, isLastPart,
-								GlobalProps.getUploadDirAsFile(), partFilename);
+						// Not specifying expected size of merged file because JUpload provides only part file's size.
+						future = tmpFileSvc.savePartStream(fi.getInputStream(), filePart, isLastPart, partFilename, -1,
+								md5);
 					} else {
-						task = new TempFileTask(fi.getInputStream(), GlobalProps.getUploadDirAsFile());
+						future = tmpFileSvc.saveInputStream(fi.getInputStream(), fi.getSize(), md5);
 					}
-					task.setExpectedMessageDigest(Algorithm.MD5, md5);
-					savedFile = task.call();
-	
-					String uri = uriInfo.getPath(true).substring(0, uriInfo.getPath().indexOf(";jsessionid="));
-	
-					if (savedFile != null) {
-						String relPath = path;
-						relPath = appendSeparator(relPath);
-						relPath += fi.getName();
-						if (dcStorage.fileExists(pid, relPath)) {
-							addAccessLog(uri, Operation.UPDATE);
+					ufi = future.get();
+
+					if (ufi != null) {
+						String relPath = FilenameHelper
+								.normalizePathSeparators(appendSeparator(dirPath) + fi.getName());
+						if (dcStorage.fileExists(pid, dirPath)) {
+							addAccessLog(Operation.UPDATE);
 						} else {
-							addAccessLog(uri, Operation.CREATE);
+							addAccessLog(Operation.CREATE);
 						}
-						dcStorage.addFile(pid, savedFile, relPath);
+						dcStorage.addFile(pid, ufi.getFilepath().toFile(), relPath);
 					}
 				}
 			}
-	
+
 			resp = Response.ok("SUCCESS", MediaType.TEXT_PLAIN_TYPE).build();
 		} catch (Exception e) {
-			if (savedFile != null && savedFile.exists()) {
-				if (!savedFile.delete()) {
-					savedFile.deleteOnExit();
-				}
-			}
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.serverError().entity("ERROR: " + e.getMessage()).type(MediaType.TEXT_PLAIN_TYPE).build();
 		} finally {
@@ -280,7 +262,7 @@ public class AbstractStorageResource {
 				}
 			}
 		}
-	
+
 		return resp;
 	}
 
