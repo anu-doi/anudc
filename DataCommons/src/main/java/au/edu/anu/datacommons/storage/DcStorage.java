@@ -22,15 +22,9 @@
 package au.edu.anu.datacommons.storage;
 
 import static java.text.MessageFormat.format;
-import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFactory;
-import gov.loc.repository.bagit.BagFactory.LoadOption;
-import gov.loc.repository.bagit.BagFile;
 import gov.loc.repository.bagit.Manifest;
-import gov.loc.repository.bagit.Manifest.Algorithm;
-import gov.loc.repository.bagit.transformer.impl.TagManifestCompleter;
 import gov.loc.repository.bagit.utilities.FilenameHelper;
-import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -41,20 +35,23 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.URL;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystemException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -75,7 +72,8 @@ import au.edu.anu.datacommons.storage.info.RecordDataInfoService;
 import au.edu.anu.datacommons.storage.search.StorageSearchService;
 import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
-import au.edu.anu.datacommons.storage.temp.TempFileTask;
+import au.edu.anu.datacommons.storage.temp.TempFileService;
+import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 import au.edu.anu.datacommons.storage.verifier.VerificationTask;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
@@ -98,6 +96,8 @@ public final class DcStorage {
 	private ThreadPoolService threadPoolSvc;
 	@Autowired(required = true)
 	private TagFilesService tagFilesSvc;
+	@Autowired
+	private TempFileService tmpFileSvc;
 
 	private Set<Manifest.Algorithm> algorithms;
 	private File bagsRootDir = null;
@@ -143,17 +143,22 @@ public final class DcStorage {
 			throw new NullPointerException("File URL cannot be null.");
 		}
 
-		File downloadedFile = null;
+		Future<UploadedFileInfo> futureTask = tmpFileSvc.saveInputStream(fileUrl.toString(), -1, null);
+		
+		UploadedFileInfo ufi = null;
 		try {
-			TempFileTask dlTask = new TempFileTask(fileUrl, stagingDir);
-			try {
-				downloadedFile = dlTask.call();
-			} catch (Exception e) {
+			ufi = futureTask.get();
+			addFile(pid, ufi.getFilepath().toFile(), filepath);
+		} catch (InterruptedException | ExecutionException e) {
+			if (e.getCause() instanceof IOException) {
+				throw (IOException) e.getCause();
+			} else {
 				throw new IOException(e);
 			}
-			addFile(pid, downloadedFile, filepath);
 		} finally {
-			FileUtils.deleteQuietly(downloadedFile);
+			if (ufi != null) {
+				Files.deleteIfExists(ufi.getFilepath());
+			}
 		}
 	}
 
@@ -231,7 +236,7 @@ public final class DcStorage {
 		} else if (dirExists(pid, filepath)) {
 			deleteDir(pid, filepath);
 		} else {
-			throw new FileNotFoundException(format("File/Dir {0} not found in record {1}.", filepath, pid));
+			throw new FileNotFoundException(format("File/Dir {0}/data/{1} not found.", pid, filepath));
 		}
 	}
 	
@@ -241,7 +246,10 @@ public final class DcStorage {
 		for (File f : fileList) {
 			processDeleteFile(pid, FilenameHelper.removeBasePath(getPayloadDir(pid).getAbsolutePath(), f.getAbsolutePath()));
 		}
-		FileUtils.deleteDirectory(dirToDel);
+		deleteTree(dirToDel.toPath());
+		if (dirToDel.isDirectory()) {
+			throw new IOException(format("Unable to delete {0}/data/{1}", pid, filepath));
+		}
 	}
 
 	public void processDeleteFile(String pid, String filepath) throws IOException {
@@ -262,10 +270,10 @@ public final class DcStorage {
 		List<File> fileList = new ArrayList<File>();
 		File[] filesAndDirs = root.listFiles();
 		for (File f : filesAndDirs) {
-			if (f.isFile()) {
-				fileList.add(f);
-			} else if (f.isDirectory()) {
+			if (f.isDirectory()) {
 				fileList.addAll(recurseAllFilesInDir(f));
+			} else if (f.isFile()) {
+				fileList.add(f);
 			}
 		}
 		return fileList;
@@ -332,7 +340,8 @@ public final class DcStorage {
 		}
 	
 		VerificationTask vTask = new VerificationTask(pid, getBagDir(pid).toPath(), tagFilesSvc, this.threadPoolSvc);
-		return vTask.call();
+		Future<VerificationResults> vTaskFuture = threadPoolSvc.submitIdlePool(vTask);
+		return vTaskFuture.get();
 	}
 
 	public void recompleteBag(String pid) throws IOException {
@@ -568,6 +577,41 @@ public final class DcStorage {
 
 		});
 	}
+
+	private void deleteTree(Path dir) throws IOException {
+		if (Files.exists(dir)) {
+			try (DirectoryStream<Path> dirItems = Files.newDirectoryStream(dir)) {
+				for (Path item : dirItems) {
+					if (Files.isDirectory(item)) {
+						deleteTree(item);
+					}
+					if (Files.isRegularFile(item)) {
+						Files.delete(item);
+					}
+				}
+			}
+			
+			// Retry code required on Windows machines. If a directory is open in another thread, then deleting it
+			// throws an exception.
+			boolean retry = false;
+			do {
+				try {
+					Files.delete(dir);
+					retry = false;
+				} catch (FileSystemException e) {
+					LOGGER.warn("Retrying delete {}", dir.toString());
+					retry = true;
+					try {
+						Thread.sleep(500L);
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			} while (retry);
+		}
+	}
+	
 
 	/**
 	 * Creates a specified directory if it doesn't already exists. No action taken if it exists.

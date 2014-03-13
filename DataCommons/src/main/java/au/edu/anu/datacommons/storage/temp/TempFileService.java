@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.storage.temp;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -51,13 +52,24 @@ public class TempFileService {
 
 	public Future<UploadedFileInfo> saveInputStream(InputStream is, long expectedLength, String expectedMd5)
 			throws IOException {
-		return threadPoolSvc.submitCachedPool(new SaveInputStreamTask(uploadDir, is, expectedLength, expectedMd5));
+		SaveInputStreamTask saveStreamTask = new SaveInputStreamTask(uploadDir, is, expectedLength, expectedMd5);
+		Future<UploadedFileInfo> taskFuture = threadPoolSvc.submitCachedPool(saveStreamTask);
+		return taskFuture;
 	}
 	
 	public Future<UploadedFileInfo> saveInputStream(String urlStr, long expectedLength, String expectedMd5)
 			throws MalformedURLException, IOException {
 		URL url = new URL(urlStr);
 		InputStream urlStream = url.openStream();
-		return saveInputStream(urlStream, expectedLength, expectedMd5);
+		Future<UploadedFileInfo> taskFuture = saveInputStream(urlStream, expectedLength, expectedMd5);
+		return taskFuture;
+	}
+	
+	public Future<UploadedFileInfo> savePartStream(InputStream is, int part, boolean isLastPart, String fileId,
+			long expectedLength, String expectedMd5) throws IOException {
+		SavePartStreamTask partStreamTask = new SavePartStreamTask(uploadDir, fileId, is, part, isLastPart,
+				expectedLength, expectedMd5);
+		Future<UploadedFileInfo> taskFuture = threadPoolSvc.submitCachedPool(partStreamTask);
+		return taskFuture;
 	}
 }	
