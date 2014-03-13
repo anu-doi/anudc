@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface ShibbolethLoginHandler {
 	/**
-	 * 
+	 * Process the login for a user the system has not seen before.
 	 * 
 	 * @param id The id of the user logging in
 	 * @param request The http request for the login
@@ -25,6 +25,7 @@ public interface ShibbolethLoginHandler {
 	public void newUserLogin(String id, HttpServletRequest request);
 	
 	/**
+	 * Process the login for a user the system has seen before.
 	 * 
 	 * @param id The id of the user logging in
 	 * @param request The http request for the login
