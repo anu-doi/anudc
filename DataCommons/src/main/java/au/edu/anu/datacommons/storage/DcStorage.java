@@ -40,6 +40,7 @@ import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -205,11 +206,12 @@ public final class DcStorage {
 				}
 			}
 			
-			boolean success = sourceFile.renameTo(destFile);
-			if (!success || !destFile.isFile()) {
-				throw new IOException(format("Unable to move {0} to {1}", sourceFile.getAbsolutePath(),
-						destFile.getAbsolutePath()));
-			}
+			Files.move(sourceFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+//			boolean success = sourceFile.renameTo(destFile);
+//			if (!success || !destFile.isFile()) {
+//				throw new IOException(format("Unable to move {0} to {1}", sourceFile.getAbsolutePath(),
+//						destFile.getAbsolutePath()));
+//			}
 			eventListener.notify(EventTime.POST, eventType, pid, getBagDir(pid).toPath(), filepath);
 		}
 		LOGGER.debug("Added file {}/data/{} ({})", pid, filepath, Util.byteCountToDisplaySize(destFile.length()),
