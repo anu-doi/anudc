@@ -192,6 +192,8 @@ public class StorageResource extends AbstractStorageResource {
 				VerificationResults results = dcStorage.verifyBag(pid);
 				model.put("results", results);
 				resp = Response.ok(new Viewable("/verificationresults.jsp", model)).build();
+			} else if (task.equals("complete")) {
+				dcStorage.recompleteBag(pid);
 			}
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);

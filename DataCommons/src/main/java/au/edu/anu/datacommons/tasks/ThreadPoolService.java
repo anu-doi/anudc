@@ -65,7 +65,7 @@ public class ThreadPoolService implements AutoCloseable {
 				new SynchronousQueue<Runnable>(), new ThreadPoolFactory("cache", Thread.NORM_PRIORITY - 2));
 		execs.add(cachedThreadPool);
 
-		idleThreadPool = new ScheduledThreadPoolExecutor(1, new ThreadPoolFactory("idle", Thread.MIN_PRIORITY));
+		idleThreadPool = new ScheduledThreadPoolExecutor(nThreads, new ThreadPoolFactory("idle", Thread.MIN_PRIORITY));
 		execs.add(idleThreadPool);
 	}
 

@@ -74,13 +74,15 @@ public class BagCompletionTask extends AbstractTagFileTask {
 	}
 
 	private void waitForTasks() {
-		for (Future<?> f : waitTasks) {
-			try {
-				f.get();
-			} catch (InterruptedException | ExecutionException e) {
-				// Not rethrowing the exception as outcome of the tasks is irrelevant. If another thread depends on a
-				// task's successful completion then it can call the future's .get() and handle exception.
-				LOGGER.warn("Task {} threw exception: {}", e);
+		if (waitTasks != null) {
+			for (Future<?> f : waitTasks) {
+				try {
+					f.get();
+				} catch (InterruptedException | ExecutionException e) {
+					// Not rethrowing the exception as outcome of the tasks is irrelevant. If another thread depends on a
+					// task's successful completion then it can call the future's .get() and handle exception.
+					LOGGER.warn("Task {} threw exception: {}", e);
+				}
 			}
 		}
 	}

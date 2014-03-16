@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,6 +95,8 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 			LOGGER.error("Error saving {} ({}) Expected MD5:{} - {}", targetFile.toString(),
 					Util.byteCountToDisplaySize(this.expectedLength), this.expectedMd5, e.getMessage());
 			throw e;
+		} finally {
+			IOUtils.closeQuietly(dis);
 		}
 		return ufi;
 	}

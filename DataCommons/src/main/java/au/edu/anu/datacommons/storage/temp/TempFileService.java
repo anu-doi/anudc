@@ -21,7 +21,6 @@
 
 package au.edu.anu.datacommons.storage.temp;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;

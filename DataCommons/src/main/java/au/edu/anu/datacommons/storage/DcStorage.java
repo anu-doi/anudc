@@ -74,6 +74,7 @@ import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.temp.TempFileService;
 import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
+import au.edu.anu.datacommons.storage.verifier.CompletionTask;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 import au.edu.anu.datacommons.storage.verifier.VerificationTask;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
@@ -348,9 +349,9 @@ public final class DcStorage {
 		if (!bagDirExists(pid)) {
 			throw new FileNotFoundException(format("No bag exists for record {0}", pid));
 		}
-		CompleterTask compTask = new CompleterTask(bagFactory, ff, getBagDir(pid));
-		compTask.setCompleteAllFiles();
-		threadPoolSvc.submit(compTask);
+		CompletionTask completionTask = new CompletionTask(pid, getBagDir(pid).toPath(), tagFilesSvc, eventListener,
+				threadPoolSvc, this);
+		threadPoolSvc.submitIdlePool(completionTask);
 	}
 
 	/**
