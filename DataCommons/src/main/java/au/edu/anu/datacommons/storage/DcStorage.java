@@ -40,6 +40,7 @@ import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -74,6 +75,7 @@ import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.temp.TempFileService;
 import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
+import au.edu.anu.datacommons.storage.verifier.CompletionTask;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 import au.edu.anu.datacommons.storage.verifier.VerificationTask;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
@@ -204,11 +206,12 @@ public final class DcStorage {
 				}
 			}
 			
-			boolean success = sourceFile.renameTo(destFile);
-			if (!success || !destFile.isFile()) {
-				throw new IOException(format("Unable to move {0} to {1}", sourceFile.getAbsolutePath(),
-						destFile.getAbsolutePath()));
-			}
+			Files.move(sourceFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+//			boolean success = sourceFile.renameTo(destFile);
+//			if (!success || !destFile.isFile()) {
+//				throw new IOException(format("Unable to move {0} to {1}", sourceFile.getAbsolutePath(),
+//						destFile.getAbsolutePath()));
+//			}
 			eventListener.notify(EventTime.POST, eventType, pid, getBagDir(pid).toPath(), filepath);
 		}
 		LOGGER.debug("Added file {}/data/{} ({})", pid, filepath, Util.byteCountToDisplaySize(destFile.length()),
@@ -348,9 +351,9 @@ public final class DcStorage {
 		if (!bagDirExists(pid)) {
 			throw new FileNotFoundException(format("No bag exists for record {0}", pid));
 		}
-		CompleterTask compTask = new CompleterTask(bagFactory, ff, getBagDir(pid));
-		compTask.setCompleteAllFiles();
-		threadPoolSvc.submit(compTask);
+		CompletionTask completionTask = new CompletionTask(pid, getBagDir(pid).toPath(), tagFilesSvc, eventListener,
+				threadPoolSvc, this);
+		threadPoolSvc.submitIdlePool(completionTask);
 	}
 
 	/**
