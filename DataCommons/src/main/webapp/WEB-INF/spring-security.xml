@@ -20,12 +20,13 @@
 			authentication-success-handler-ref="authenticationSuccessHandler"
 			authentication-failure-url="/login?error=true&amp;method=registered" />
 		
-		<security:logout
-			logout-success-url="/" />
+		<security:logout success-handler-ref="customLogoutSuccessHandler"/>
 		
 		<security:custom-filter ref="ShibbolethHeaderFilter" before="PRE_AUTH_FILTER" />
 		<security:custom-filter position="PRE_AUTH_FILTER" ref="tokenFilter" /> 
 	</security:http>
+	
+	<bean id="customLogoutSuccessHandler" class="au.edu.anu.datacommons.security.CustomLogoutSuccessHandler" />
 	
 	<bean id="customAuthenticationEntryPoint" class="au.edu.anu.datacommons.security.CustomAuthenticationEntryPoint" />
 	

@@ -1,3 +1,24 @@
+/*******************************************************************************
+ * Australian National University Data Commons
+ * Copyright (C) 2013  The Australian National University
+ * 
+ * This file is part of Australian National University Data Commons.
+ * 
+ * Australian National University Data Commons is free software: you
+ * can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
 package au.edu.anu.datacommons.security.shibboleth;
 
 import java.util.ArrayList;
@@ -28,6 +49,19 @@ import au.edu.anu.datacommons.data.db.model.UserShibboleth;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.security.CustomUser;
 
+/**
+ * ShibbolethUserDetailsManager
+ *
+ * Australian National University Data Commons
+ * 
+ * Processes user details functions for a Shibboleth user
+ *
+ * JUnit coverage:
+ * None
+ * 
+ * @author Genevieve Turner
+ *
+ */
 public class ShibbolethUserDetailsManager implements UserDetailsManager {
 	static final Logger LOGGER = LoggerFactory.getLogger(ShibbolethUserDetailsManager.class);
 
@@ -132,12 +166,11 @@ public class ShibbolethUserDetailsManager implements UserDetailsManager {
 		user.setUser_type(new Long(3));
 		
 		UsersDAO userDAO = new UsersDAOImpl(Users.class);
-		user = userDAO.create(user);
 		
-		UserShibboleth userShibboleth = new UserShibboleth(user.getId(), displayName, email, institution);
+		UserShibboleth userShibboleth = new UserShibboleth(user, displayName, email, institution);
 		user.setUserExtra(userShibboleth);
-		
-		userDAO.update(user);
+
+		user = userDAO.create(user);
 		
 		GenericDAO<Authorities, String> authorityDAO = new GenericDAOImpl<Authorities, String>(Authorities.class);
 		
