@@ -109,7 +109,7 @@ public class StorageEventListenerTest {
 		String pid = "test:1";
 		Path bagDir = Paths.get(bagsRoot.getRoot().getAbsolutePath(), "test_1");
 		String relPath = "dir1/dir2/a.txt";
-		listener.notify(EventTime.PRE, EventType.ADD_FILE, pid, bagDir, relPath);
+		listener.notify(EventTime.PRE, EventType.ADD_FILE, pid, bagDir, relPath, null);
 		assertThat(Files.isDirectory(bagDir.resolve("data/").resolve(relPath).getParent()), is(true));
 
 		InOrder inOrder = Mockito.inOrder(tfSvc);
@@ -124,7 +124,7 @@ public class StorageEventListenerTest {
 		LinkedHashMap<String, String> mockedMap = mock(LinkedHashMap.class);
 		when(mockedMap.size()).thenReturn(2);
 		when(tfSvc.getAllEntries(pid, BagItTagFile.class)).thenReturn(mockedMap);
-		listener.notify(EventTime.PRE, EventType.ADD_FILE, pid, bagDir, relPath2);
+		listener.notify(EventTime.PRE, EventType.ADD_FILE, pid, bagDir, relPath2, null);
 		verify(tfSvc, times(1)).clearAllEntries(pid, BagItTagFile.class);
 	}
 	

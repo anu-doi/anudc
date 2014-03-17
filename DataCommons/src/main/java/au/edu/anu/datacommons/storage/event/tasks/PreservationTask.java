@@ -22,6 +22,7 @@
 package au.edu.anu.datacommons.storage.event.tasks;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -29,6 +30,7 @@ import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.completer.preserve.PreservationFormatConverter;
 import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
+import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.gov.naa.digipres.xena.kernel.normalise.NormaliserResults;
 
 /**
@@ -67,7 +69,8 @@ public class PreservationTask extends AbstractTagFileTask {
 					.replaceFirst("data/", PRESERVATION_PATH)
 					.replaceFirst(this.absFilepath.getFileName().toString() + "$",
 							results.getOutputFileName());
-			this.dcStorageSvc.addHiddenFile(pid, convertedFileInTemp.toFile(), presvRelpath.replaceFirst("data/", ""));
+			UploadedFileInfo srcFileInfo = new UploadedFileInfo(convertedFileInTemp, Files.size(convertedFileInTemp), null);
+			this.dcStorageSvc.addHiddenFile(pid, srcFileInfo, presvRelpath.replaceFirst("data/", ""));
 			tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath, presvRelpath);
 		} else {
 			tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, this.dataPrependedRelPath, "UNCONVERTIBLE");

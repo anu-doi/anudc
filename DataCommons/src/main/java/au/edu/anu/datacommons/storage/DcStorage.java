@@ -150,7 +150,7 @@ public final class DcStorage {
 		UploadedFileInfo ufi = null;
 		try {
 			ufi = futureTask.get();
-			addFile(pid, ufi.getFilepath().toFile(), filepath);
+			addFile(pid, ufi, filepath);
 		} catch (InterruptedException | ExecutionException e) {
 			if (e.getCause() instanceof IOException) {
 				throw (IOException) e.getCause();
@@ -176,25 +176,25 @@ public final class DcStorage {
 	 *             TODO
 	 * @throws DcStorageException
 	 */
-	public void addFile(String pid, File sourceFile, String filepath) throws IOException,
+	public void addFile(String pid, UploadedFileInfo sourceFileInfo, String filepath) throws IOException,
 			FileNotFoundException {
 		checkNoHiddenParts(filepath);
-		processAddFile(pid, sourceFile, filepath);
+		processAddFile(pid, sourceFileInfo, filepath);
 	}
 
-	public void addHiddenFile(String pid, File sourceFile, String filepath) throws IOException {
-		processAddFile(pid, sourceFile, filepath);
+	public void addHiddenFile(String pid, UploadedFileInfo sourceFileInfo, String filepath) throws IOException {
+		processAddFile(pid, sourceFileInfo, filepath);
 	}
 	
-	private void processAddFile(String pid, File sourceFile, String filepath) throws FileNotFoundException, IOException {
+	private void processAddFile(String pid, UploadedFileInfo sourceFileInfo, String filepath) throws FileNotFoundException, IOException {
 		validatePid(pid);
-		verifySourceFile(sourceFile);
+		verifySourceFile(sourceFileInfo.getFilepath());
 		normalizeRelPath(filepath);
 
 		File destFile = ff.getFile(getPayloadDir(pid), filepath);
-		EventType eventType = destFile.isFile() ? eventType = EventType.UPDATE_FILE : EventType.ADD_FILE;
 		synchronized (destFile) {
-			eventListener.notify(EventTime.PRE, eventType, pid, getBagDir(pid).toPath(), filepath);
+			EventType eventType = destFile.isFile() ? eventType = EventType.UPDATE_FILE : EventType.ADD_FILE;
+			eventListener.notify(EventTime.PRE, eventType, pid, getBagDir(pid).toPath(), filepath, sourceFileInfo);
 			// Directory would have been created as part of pre event actions. This is to double-check that it exists.
 			// Not having the directoryk throws an exception.
 			createDirIfNotExists(destFile.getParentFile());
@@ -206,13 +206,8 @@ public final class DcStorage {
 				}
 			}
 			
-			Files.move(sourceFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-//			boolean success = sourceFile.renameTo(destFile);
-//			if (!success || !destFile.isFile()) {
-//				throw new IOException(format("Unable to move {0} to {1}", sourceFile.getAbsolutePath(),
-//						destFile.getAbsolutePath()));
-//			}
-			eventListener.notify(EventTime.POST, eventType, pid, getBagDir(pid).toPath(), filepath);
+			Files.move(sourceFileInfo.getFilepath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			eventListener.notify(EventTime.POST, eventType, pid, getBagDir(pid).toPath(), filepath, sourceFileInfo);
 		}
 		LOGGER.debug("Added file {}/data/{} ({})", pid, filepath, Util.byteCountToDisplaySize(destFile.length()),
 				pid);
@@ -258,14 +253,14 @@ public final class DcStorage {
 	public void processDeleteFile(String pid, String filepath) throws IOException {
 		File fileToDel = ff.getFile(getPayloadDir(pid), filepath);
 		synchronized (fileToDel) {
-			eventListener.notify(EventTime.PRE, EventType.DELETE_FILE, pid, getBagDir(pid).toPath(), filepath);
+			eventListener.notify(EventTime.PRE, EventType.DELETE_FILE, pid, getBagDir(pid).toPath(), filepath, null);
 			// File should have been moved from its original location as part of pre-event tasks so no need to delete.
 			if (fileToDel.isFile()) {
 				if (!fileToDel.delete()) {
 					throw new IOException(format("Unable to delete file {0}/data/{1}", pid, filepath));
 				}
 			}
-			eventListener.notify(EventTime.POST, EventType.DELETE_FILE, pid, getBagDir(pid).toPath(), filepath);
+			eventListener.notify(EventTime.POST, EventType.DELETE_FILE, pid, getBagDir(pid).toPath(), filepath, null);
 		}
 	}
 
@@ -310,11 +305,11 @@ public final class DcStorage {
 		validatePid(pid);
 		verifyNonEmptyCollection(urls);
 		
-		eventListener.notify(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, getBagDir(pid).toPath(), null);
+		eventListener.notify(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, getBagDir(pid).toPath(), null, null);
 		for (String url : urls) {
 			tagFilesSvc.addEntry(pid, ExtRefsTagFile.class, base64Encode(url), url);
 		}
-		eventListener.notify(EventTime.POST, EventType.TAGFILE_UPDATE, pid, getBagDir(pid).toPath(), null);
+		eventListener.notify(EventTime.POST, EventType.TAGFILE_UPDATE, pid, getBagDir(pid).toPath(), null, null);
 	}
 
 	/**
@@ -330,11 +325,11 @@ public final class DcStorage {
 		validatePid(pid);
 		verifyNonEmptyCollection(urls);
 		
-		eventListener.notify(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, getBagDir(pid).toPath(), null);
+		eventListener.notify(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, getBagDir(pid).toPath(), null, null);
 		for (String url : urls) {
 			tagFilesSvc.removeEntry(pid, ExtRefsTagFile.class, base64Encode(url));
 		}
-		eventListener.notify(EventTime.POST, EventType.TAGFILE_UPDATE, pid, getBagDir(pid).toPath(), null);
+		eventListener.notify(EventTime.POST, EventType.TAGFILE_UPDATE, pid, getBagDir(pid).toPath(), null, null);
 	}
 
 	public VerificationResults verifyBag(String pid) throws Exception {
@@ -663,9 +658,9 @@ public final class DcStorage {
 		}
 	}
 
-	private void verifySourceFile(File sourceFile) throws FileNotFoundException {
-		if (sourceFile == null || !sourceFile.isFile()) {
-			throw new FileNotFoundException(format("Source file {0} doesn't exist.", sourceFile.getAbsolutePath()));
+	private void verifySourceFile(Path sourceFile) throws FileNotFoundException {
+		if (sourceFile == null || !Files.isRegularFile(sourceFile)) {
+			throw new FileNotFoundException(format("Source file {0} doesn't exist.", sourceFile.toString()));
 		}
 	}
 	

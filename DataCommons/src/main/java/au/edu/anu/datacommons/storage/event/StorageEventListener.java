@@ -71,6 +71,7 @@ import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
+import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 import au.edu.anu.datacommons.util.Util;
 
@@ -123,19 +124,19 @@ public class StorageEventListener {
 		this.archiveRootDir = archiveRootDir;
 	}
 
-	public void notify(EventTime time, EventType type, String pid, Path bagDir, String relPath) throws IOException {
+	public void notify(EventTime time, EventType type, String pid, Path bagDir, String relPath, UploadedFileInfo ufi) throws IOException {
 		relPath = normalizeRelPath(relPath);
 		if (time == EventTime.PRE) {
-			processPreEventTasks(type, pid, bagDir, relPath);
+			processPreEventTasks(type, pid, bagDir, relPath, ufi);
 		} else if (time == EventTime.POST) {
-			processPostEventTasks(type, pid, bagDir, relPath);
+			processPostEventTasks(type, pid, bagDir, relPath, ufi);
 		} else {
 			throw new RuntimeException(format("Unexpected event time - {0}", time));
 		}
 			
 	}
 
-	private void processPreEventTasks(EventType type, String pid, Path bagDir, String relPath) throws IOException {
+	private void processPreEventTasks(EventType type, String pid, Path bagDir, String relPath, UploadedFileInfo ufi) throws IOException {
 		if (type.isOneOf(EventType.TAGFILE_UPDATE)) {
 			initBagDir(pid, bagDir);
 		}
@@ -154,12 +155,17 @@ public class StorageEventListener {
 		}
 	}
 	
-	private void processPostEventTasks(EventType type, final String pid, Path bagDir, String relPath) throws IOException {
+	private void processPostEventTasks(EventType type, final String pid, Path bagDir, String relPath, UploadedFileInfo ufi) throws IOException {
 		List<Future<?>> waitList = new ArrayList<>();
+		String dataPrependedRelPath = "data/" + relPath;
 		if (type.isOneOf(EventType.ADD_FILE, EventType.UPDATE_FILE)) {
 			waitList.add(threadPoolSvc.submit(new PreservationTask(pid, bagDir, relPath, tagFilesSvc, dcStorage)));
 			
-			waitList.add(threadPoolSvc.submit(new ManifestMd5Task(pid, bagDir, relPath, tagFilesSvc)));
+			if (ufi.getMd5() != null) {
+				tagFilesSvc.addEntry(pid, ManifestMd5TagFile.class, dataPrependedRelPath, ufi.getMd5());
+			} else {
+				waitList.add(threadPoolSvc.submit(new ManifestMd5Task(pid, bagDir, relPath, tagFilesSvc)));
+			}
 			waitList.add(threadPoolSvc.submit(new MetadataTask(pid, bagDir, relPath, tagFilesSvc)));
 			waitList.add(threadPoolSvc.submit(new PronomTask(pid, bagDir, relPath, tagFilesSvc)));
 			waitList.add(threadPoolSvc.submit(new TimestampTask(pid, bagDir, relPath, tagFilesSvc)));
@@ -173,8 +179,6 @@ public class StorageEventListener {
 			touchBagDir(bagDir);
 		}
 		if (type.isOneOf(EventType.DELETE_FILE)) {
-			String dataPrependedRelPath = "data/" + relPath;
-			
 			String presvRelpath = tagFilesSvc.getEntryValue(pid, PreservationMapTagFile.class, dataPrependedRelPath);
 			if (presvRelpath != null && !presvRelpath.equals("UNCONVERTIBLE")) {
 				tagFilesSvc.removeEntry(pid, PreservationMapTagFile.class, presvRelpath);
