@@ -92,6 +92,7 @@ import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
+import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 import au.edu.anu.datacommons.test.util.TestUtil;
 
@@ -152,7 +153,7 @@ public class DcStorageTest {
 
 		// Add a file.
 		String targetFilepath = "c/File 3.doc";
-		dcStorage.addFile(pid, srcFile.toFile(), targetFilepath);
+		dcStorage.addFile(pid, new UploadedFileInfo(srcFile, Files.size(srcFile), null), targetFilepath);
 		assertTrue(Files.isRegularFile(getPayloadDir(pid).resolve(targetFilepath)));
 
 		// Delete the added file
@@ -170,7 +171,7 @@ public class DcStorageTest {
 		File file1 = tempDir.newFile();
 		String file1Md5 = TestUtil.createFileOfSizeInRange(file1, 2L, 4L, FileUtils.ONE_MB);
 		String file1TargetPath = "a/File 1.txt";
-		dcStorage.addFile(pid, file1, file1TargetPath);
+		dcStorage.addFile(pid, new UploadedFileInfo(file1.toPath(), Files.size(file1.toPath()), null), file1TargetPath);
 
 		assertTrue(Files.isRegularFile(getPayloadDir(pid).resolve(file1TargetPath)));
 
@@ -182,7 +183,7 @@ public class DcStorageTest {
 		File file2 = tempDir.newFile();
 		String file2Md5 = TestUtil.createFileOfSizeInRange(file2, 3L, 5L, FileUtils.ONE_MB);
 		String file2TargetPath = "b/File 2.pdf";
-		dcStorage.addFile(pid, file2, file2TargetPath);
+		dcStorage.addFile(pid, new UploadedFileInfo(file2.toPath(), Files.size(file2.toPath()), null), file2TargetPath);
 
 		assertTrue(Files.isRegularFile(getPayloadDir(pid).resolve(file2TargetPath)));
 
@@ -196,9 +197,10 @@ public class DcStorageTest {
 				tp.shutdown();
 				return null;
 			}
-			
+
 		});
-		ZipInputStream zipIs = new ZipInputStream(dcStorage.createZipStream(pid, Arrays.asList(file1TargetPath, file2TargetPath)));
+		ZipInputStream zipIs = new ZipInputStream(dcStorage.createZipStream(pid,
+				Arrays.asList(file1TargetPath, file2TargetPath)));
 		Map<String, String> filepaths = new HashMap<String, String>();
 		filepaths.put(file1TargetPath, file1Md5);
 		filepaths.put(file2TargetPath, file2Md5);
@@ -230,7 +232,9 @@ public class DcStorageTest {
 
 				@Override
 				public Void call() throws Exception {
-					dcStorage.addFile(pid, fEntry.getKey(), fEntry.getKey().getName());
+					dcStorage.addFile(pid,
+							new UploadedFileInfo(fEntry.getKey().toPath(), Files.size(fEntry.getKey().toPath()), null),
+							fEntry.getKey().getName());
 					return null;
 				}
 
@@ -262,7 +266,9 @@ public class DcStorageTest {
 
 				@Override
 				public Void call() throws Exception {
-					dcStorage.addFile(pid, fEntry.getKey(), fEntry.getKey().getName());
+					dcStorage.addFile(pid,
+							new UploadedFileInfo(fEntry.getKey().toPath(), Files.size(fEntry.getKey().toPath()), null),
+							fEntry.getKey().getName());
 					return null;
 				}
 			}));
@@ -299,7 +305,9 @@ public class DcStorageTest {
 
 				@Override
 				public Void call() throws Exception {
-					dcStorage.addFile(pid, fEntry.getKey(), "Single file.data");
+					dcStorage.addFile(pid,
+							new UploadedFileInfo(fEntry.getKey().toPath(), Files.size(fEntry.getKey().toPath()), null),
+							"Single file.data");
 					return null;
 				}
 
@@ -350,7 +358,7 @@ public class DcStorageTest {
 	 *            ZipInputStream to check
 	 * @param filepaths
 	 *            Collection of relative filepaths that the zip's entry should contain.
-	 * @param list 
+	 * @param list
 	 * @param fsMap
 	 * @throws IOException
 	 */
@@ -359,7 +367,7 @@ public class DcStorageTest {
 		for (ZipEntry zipEntry = zipIs.getNextEntry(); zipEntry != null; zipEntry = zipIs.getNextEntry()) {
 			LOGGER.trace("Checking ZipEntry {}", zipEntry.getName());
 			byte[] fileContents;
-			try (ByteArrayOutputStream extractedFileOutStream = new ByteArrayOutputStream()){
+			try (ByteArrayOutputStream extractedFileOutStream = new ByteArrayOutputStream()) {
 				byte[] buffer = new byte[8192];
 				for (int numBytesRead = zipIs.read(buffer); numBytesRead != -1; numBytesRead = zipIs.read(buffer)) {
 					extractedFileOutStream.write(buffer, 0, numBytesRead);
@@ -369,7 +377,8 @@ public class DcStorageTest {
 			ByteArrayInputStream extractedFileInStream = null;
 			try {
 				extractedFileInStream = new ByteArrayInputStream(fileContents);
-				assertEquals(filepaths.get(zipEntry.getName()), MessageDigestHelper.generateFixity(extractedFileInStream, Algorithm.MD5));
+				assertEquals(filepaths.get(zipEntry.getName()),
+						MessageDigestHelper.generateFixity(extractedFileInStream, Algorithm.MD5));
 			} finally {
 				IOUtils.closeQuietly(extractedFileInStream);
 			}
@@ -449,7 +458,7 @@ public class DcStorageTest {
 	private Path getBagDir(String pid) {
 		return bagsRootDir.getRoot().toPath().resolve(DcStorage.convertToDiskSafe(pid));
 	}
-	
+
 	private Path getPayloadDir(String pid) {
 		return getBagDir(pid).resolve("data/");
 	}
