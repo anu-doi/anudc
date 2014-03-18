@@ -31,6 +31,7 @@ import gov.loc.repository.bagit.utilities.FilenameHelper;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -281,8 +282,22 @@ public class StorageEventListener {
 			ArchiveTask archiveTask = new ArchiveTask(this.archiveRootDir.toFile(), pid, fileToArchive.toFile(), Algorithm.MD5, op);
 			threadPoolSvc.submit(archiveTask);
 		} else {
-			Files.delete(fileToArchive);
-			LOGGER.warn("Archive directory not specified. {}/data/{} deleted.", pid, relPath);
+			for (int i = 0; ; i++) {
+				try {
+					Files.delete(fileToArchive);
+					LOGGER.warn("Archive directory not specified. {}/data/{} deleted.", pid, relPath);
+					break;
+				} catch (FileSystemException e) {
+					if (i >= 5) {
+						throw e;
+					}
+					try {
+						Thread.sleep(1000L);
+					} catch (InterruptedException e1) {
+						// No op.
+					}
+				}
+			}
 		}		
 	}
 
