@@ -22,7 +22,7 @@
 			</a>
 		</strong>
 	</p>
-	<p class="right"><a href='<c:url value="/login?method=registered" />' onclick="return false;">Alternative Login</a></p>
+	<p class="right"><a href='<c:url value="/login?method=registered" />'>Alternative Login</a></p>
 </anu:content>
 
 <anu:content layout="doublewide" extraClass="nopadbottom">
@@ -30,7 +30,7 @@
 		Note: The Australian Access Federation (AAF) is a federated login utilized by research institutions in Australia.
 		If you belong to one of the member institutions please login via AAF, otherwise use the alternative login.
 	</p>
-	<p><a href="#" id="aaflist">Click to view a list of AAF member institutions</a></p>
+	<p><a href="#" id="aaflist" onclick="return false;">Click to view a list of AAF member institutions</a></p>
 	<div id="idplist"></div>
 </anu:content>
 

@@ -21,7 +21,7 @@ jQuery("#aaflist").live('click', function() {
 				ul.append(li);
 			});
 			jQuery("#idplist").html('');
-			jQuery("#idplist").append("<h2>AAF Institutions</h2>").append(ul);
+			jQuery("#idplist").append("<h2>AAF Member Institutions</h2>").append(ul);
 		}
 	});
 });
