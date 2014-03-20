@@ -14,7 +14,7 @@
 
 <anu:content layout="doublewide" extraClass="nopadbottom" title="Select Login Method">
 
-	<p class="center"><img alt="AAF Logo" src='<c:url value="/images/aaf_logo.png" />'></p>
+	<p class="center"><a href="http://www.aaf.edu.au"><img alt="AAF Logo" src='<c:url value="/images/aaf_logo.png" />'></a></p>
 	<p class="text-center bg-uni50 padtop padbottom large">
 		<strong>
 			<a href='<c:url value="/login?method=aaf" />'>
