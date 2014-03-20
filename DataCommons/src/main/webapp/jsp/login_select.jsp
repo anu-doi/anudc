@@ -6,25 +6,32 @@
 <anu:header id="1998" title="Login" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
 	<script type="text/javascript" src="<c:url value='/js/global.js' />"></script>
+	<script type="text/javascript" src="<c:url value='/js/aaf.js' />"></script>
 
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublenarrow" extraClass="nopadbottom" title="Select Login Method">
-	<div id="login-error">${error}</div>
+<anu:content layout="doublewide" extraClass="nopadbottom" title="Select Login Method">
 
-	<label for="loginmethod">Select Login Method</label>
-	<form method="GET" action="<c:url value='/login' />">
-		<select name="method" id="method" onchange="this.form.submit()">
-			<option value="">Please select a login method</option>
-			<option value="anu">ANU User</option>
-			<option value="registered">Registered User</option>
-		</select>
-	</form>
-	<br />
-	<a href="<c:url value='/rest/user/new' />">Register</a>
+	<p class="center"><img alt="AAF Logo" src='<c:url value="/images/aaf_logo.png" />'></p>
+	<p class="text-center bg-uni50 padtop padbottom large">
+		<strong>
+			<a href='<c:url value="/login?method=aaf" />'>
+				Login using Australian Access Federation (AAF) credentials
+			</a>
+		</strong>
+	</p>
+	<p class="right"><a href='<c:url value="/login?method=registered" />' onclick="return false;">Alternative Login</a></p>
+</anu:content>
 
+<anu:content layout="doublewide" extraClass="nopadbottom">
+	<p>
+		Note: The Australian Access Federation (AAF) is a federated login utilized by research institutions in Australia.
+		If you belong to one of the member institutions please login via AAF, otherwise use the alternative login.
+	</p>
+	<p><a href="#" id="aaflist">Click to view a list of AAF member institutions</a></p>
+	<div id="idplist"></div>
 </anu:content>
 
 <jsp:include page="/jsp/footer.jsp" />

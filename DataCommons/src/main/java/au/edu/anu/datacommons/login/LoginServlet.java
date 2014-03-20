@@ -112,7 +112,7 @@ public class LoginServlet extends HttpServlet
 		}
 		RequestDispatcher requestDispatcher = null;
 		
-		if ("anu".equals(methodParam)) {
+		if ("aaf".equals(methodParam)) {
 			StringBuilder shibURL = new StringBuilder();
 			shibURL.append(GlobalProps.getProperty(GlobalProps.PROP_APP_SERVER));
 			shibURL.append("/Shibboleth.sso/Login?target=");
