@@ -27,8 +27,13 @@
 
 <anu:content layout="doublewide" extraClass="nopadbottom">
 	<p>
-		Note: The Australian Access Federation (AAF) is a federated login utilized by research institutions in Australia.
-		If you belong to one of the member institutions please login via AAF, otherwise use the alternative login.
+		<ul class="noindent">
+			<li>Australian National University users should select AAF login</li>
+			<li>Users at other Australian Universities and research institutions should be able to log in via AAF</li>
+			<li>If your institution is not a member of the AAF, please select the alternate login link</li>
+			<li>If you are unsure whether your institution is an AAF member click on the list of AAF members to see 
+			if your institution is listed</li>
+		</ul>
 	</p>
 	<p><a href="#" id="aaflist" onclick="return false;">Click to view a list of AAF member institutions</a></p>
 	<div id="idplist"></div>
