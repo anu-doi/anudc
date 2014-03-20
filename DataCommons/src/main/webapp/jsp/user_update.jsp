@@ -23,10 +23,10 @@
 		<input type="password" id="password" name="password" class="required "/>
 		<br/>
 		<label for="firstname" class="req">First Name</label>
-		<input type="text" id="firstname" name="firstname" class="required" value="${it.user.user_registered.given_name}"/>
+		<input type="text" id="firstname" name="firstname" class="required" value="${it.user.userExtra.given_name}"/>
 		<br/>
 		<label for="lastname" class="req">Last Name</label>
-		<input type="text" id="lastname" name="lastname" class="required" value="${it.user.user_registered.last_name}"/>
+		<input type="text" id="lastname" name="lastname" class="required" value="${it.user.userExtra.last_name}"/>
 		<br/>
 		<label for="newpassword">New Password</label>
 		<input type="password" id="newpassword" name="newpassword"/>
@@ -35,13 +35,13 @@
 		<input type="password" id="newpassword2" name="newpassword2"/>
 		<br/>
 		<label for="institution" class="req">Institutional Affiliation</label>
-		<input type="text" id="institution" name="institution" class="required" value="${it.user.user_registered.institution}"/>
+		<input type="text" id="institution" name="institution" class="required" value="${it.user.userExtra.institution}"/>
 		<br/>
 		<label for="phone">Phone</label>
-		<input type="text" id="phone" name="phone" value="${it.user.user_registered.phone}"/>
+		<input type="text" id="phone" name="phone" value="${it.user.userExtra.phone}"/>
 		<br/>
 		<label for="address">Address</label>
-		<textarea id="address" name="address">${it.user.user_registered.address}</textarea>
+		<textarea id="address" name="address">${it.user.userExtra.address}</textarea>
 		<br/>
 		<input type="submit" value="Submit" />
 	</form>

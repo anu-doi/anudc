@@ -33,7 +33,7 @@
 							The Australian National University
 						</c:when>
 						<c:otherwise>
-							${it.userExtra.institution}
+							${it.user.userExtra.institution}
 						</c:otherwise>
 					</c:choose>
 				</td>
