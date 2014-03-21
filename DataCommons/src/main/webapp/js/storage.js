@@ -2,6 +2,7 @@ function documentReady() {
 	initTabs();
 	initPing();
 	initDragDrop();
+	initHandlers();
 	condEnableSelTasks();
 
 	// jQuery("tr.file-row").on("click", selTblRow);
@@ -54,7 +55,10 @@ function initTabs() {
 				"div.pagetabs-nav > ul > li > a[href=" + window.location.hash
 						+ "]").click();
 	}
-	history.replaceState(null, null, window.location.href.split("?")[0]);
+	try {
+		history.replaceState(null, null, window.location.href.split("?")[0]);
+	} catch (err) {		
+	}
 }
 
 function initPing() {
@@ -72,40 +76,65 @@ function pingServer() {
 	});
 }
 
+function initHandlers() {
+	jQuery("#action-create-folder").on("click", createDir);
+	jQuery("#action-del-selected").on("click", deleteSelected);
+	jQuery("#action-dl-zip").on("click", function() {
+		document.frmFiles.submit();
+	});
+	jQuery("#selectall").on("change", function() {
+		toggleCheckboxes(this);
+	});
+	jQuery("td.col-checkbox > input[type='checkbox'][name='i']").on("click", function(e) {
+		condEnableSelTasks();
+	});
+	jQuery("img.clickable-icon[id^='expand']").on("click", function(e) {
+		var idExpandable=this.id.replace(/^expand-/, "filerow-extra-");
+		jQuery("#" + idExpandable).slideToggle();
+	});
+}
+
 
 // Code from http://hayageek.com/drag-and-drop-file-upload-jquery/
 function initDragDrop() {
 	var obj = jQuery("#dragandrophandler");
-	obj.on("dragenter", function(e) {
-		e.stopPropagation();
-		e.preventDefault();
-		jQuery(this).css("border", "2px solid #0B85A1");
-	});
-	obj.on("dragover", function(e) {
-		e.stopPropagation();
-		e.preventDefault();
-	});
-	obj.on("drop", function(e) {
+	if (window.File && window.FileReader) {
+		obj.on("dragenter", function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			jQuery(this).css("border", "2px solid #0B85A1");
+		});
+		obj.on("dragover", function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+		});
+		obj.on("drop", function(e) {
 
-		jQuery(this).css("border", "2px dotted #0B85A1");
-		e.preventDefault();
-		var files = e.originalEvent.dataTransfer.files;
-		handleFileUpload(files, obj);
-	});
+			jQuery(this).css("border", "2px dotted #0B85A1");
+			e.preventDefault();
+			var files = e.originalEvent.dataTransfer.files;
+			handleFileUpload(files, obj);
+		});
 
-	jQuery(document).on("dragenter", function(e) {
-		e.stopPropagation();
-		e.preventDefault();
-	});
-	jQuery(document).on("dragover", function(e) {
-		e.stopPropagation();
-		e.preventDefault();
-		obj.css("border", "2px dotted #0B85A1");
-	});
-	jQuery(document).on("drop", function(e) {
-		e.stopPropagation();
-		e.preventDefault();
-	});
+		jQuery(document).on("dragenter", function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+		});
+		jQuery(document).on("dragover", function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			obj.css("border", "2px dotted #0B85A1");
+		});
+		jQuery(document).on("drop", function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+		});
+	
+		obj.text("Drag & Drop Files Here");
+	} else {
+		obj.hide();
+		obj.parent().append("<p class='msg-warn'>This browser doesn't support drag and drop file upload. Please click on Upload Files tab to upload files using the Java applet.</p>");
+	}
 }
 
 activeUploads = 0;
@@ -151,9 +180,8 @@ function sendFileToServer(file, status, hash) {
 
 
 function handleFileUpload(files, obj) {
+	console.log(typeof files);
 	for (var i = 0; i < files.length; i++) {
-		var fd = new FormData();
-		fd.append("file", files[i]);
 		var status = new createStatusbar(obj);
 		status.setFileNameSize(files[i].name, files[i].size);
 		activeUploads++;
@@ -202,7 +230,6 @@ function createStatusbar(obj) {
 		}
 	};
 	this.setAbort = function(jqxhr) {
-		console.log(jqxhr);
 		var sb = this.statusbar;
 		this.abort.click(function() {
 			jqxhr.abort();
@@ -267,11 +294,15 @@ function toggleCheckboxes(element) {
 
 function condEnableSelTasks() {
 	if (jQuery(".tbl-files td input:checkbox:checked").length > 0) {
-		jQuery("#action-del-selected").removeClass("disabled");
-		jQuery("#action-dl-zip").removeClass("disabled");
+		// jQuery("#action-del-selected").removeClass("disabled");
+		jQuery("#action-del-selected").show();
+		// jQuery("#action-dl-zip").removeClass("disabled");
+		jQuery("#action-dl-zip").show();
 	} else {
-		jQuery("#action-del-selected").addClass("disabled");
-		jQuery("#action-dl-zip").addClass("disabled");
+		// jQuery("#action-del-selected").addClass("disabled");
+		jQuery("#action-del-selected").hide();
+		// jQuery("#action-dl-zip").addClass("disabled");
+		jQuery("#action-dl-zip").hide();
 	}
 }
 
@@ -281,7 +312,6 @@ function deleteSelected(pid) {
 		var activeAjax = 0;
 		jQuery(".tbl-files td input:checkbox:checked").each(function(index) {
 			if (this.value != "") {
-				console.log("Deleting: " + this.value);
 				var url = this.value;
 				activeAjax++;
 				jQuery.ajax({
@@ -417,7 +447,7 @@ function toggleIsFilesPublic(pid, curFlag) {
 				"i": newFlag
 			}
 	}).done(function(msg, status) {
-		window.location = window.location.href + "?smsg=Files' public status changed successfully.";
+		window.location = window.location.href + "?smsg=Public status changed successfully.";
 	}).fail(function(msg, status) {
 		alert("Unable to change Files Public status");
 	});

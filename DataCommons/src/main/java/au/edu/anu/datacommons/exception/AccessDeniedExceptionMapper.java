@@ -60,8 +60,8 @@ public class AccessDeniedExceptionMapper implements ExceptionMapper<AccessDenied
 	public Response toResponse(AccessDeniedException exception) {
 		Response resp;
 		LOGGER.warn("User {} ({}) requested a resource to which they don't have access: {}", getCurUsername(), getRemoteIp(), exception.getMessage());
-		List<MediaType> acceptableMediaTypes = headers.getAcceptableMediaTypes();
-		if (acceptableMediaTypes.contains(MediaType.TEXT_HTML_TYPE)) {
+		List<MediaType> acceptableTypes = headers.getAcceptableMediaTypes();
+		if (acceptableTypes.contains(MediaType.TEXT_HTML_TYPE) || acceptableTypes.contains(MediaType.WILDCARD_TYPE)) {
 			//Present  an unauthorized error page if the user is authenticated and not anonymous, otherwise allow the user to log in
 			if (SecurityContextHolder.getContext().getAuthentication() != null && SecurityContextHolder.getContext().getAuthentication().isAuthenticated() &&
 					!(SecurityContextHolder.getContext().getAuthentication() instanceof AnonymousAuthenticationToken)) {

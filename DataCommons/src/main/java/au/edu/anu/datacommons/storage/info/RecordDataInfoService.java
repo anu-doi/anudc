@@ -99,6 +99,11 @@ public class RecordDataInfoService {
 		fi.setSize(Files.size(filepath));
 		if (Files.isRegularFile(filepath)) {
 			fi.setType(Type.FILE);
+			fi.setMessageDigests(retrieveMessageDigests(pid, fi.getRelFilepath()));
+			fi.setPronomFormat(retrievePronomFormat(pid, fi.getRelFilepath()));
+			fi.setScanResult(retrieveScanResult(pid, fi.getRelFilepath()));
+			fi.setMetadata(retrieveMetadata(pid, fi.getRelFilepath()));
+			fi.setPresvPath(retrievePresvFilepath(pid, fi.getRelFilepath()));
 		} else if (Files.isDirectory(filepath)) {
 			fi.setType(Type.DIR);
 			fi.setRelFilepath(fi.getRelFilepath() + "/");
@@ -107,11 +112,6 @@ public class RecordDataInfoService {
 		}
 
 		fi.setLastModified(new Date(Files.getLastModifiedTime(filepath).toMillis()));
-		fi.setMessageDigests(retrieveMessageDigests(pid, fi.getRelFilepath()));
-		fi.setPronomFormat(retrievePronomFormat(pid, fi.getRelFilepath()));
-		fi.setScanResult(retrieveScanResult(pid, fi.getRelFilepath()));
-		fi.setMetadata(retrieveMetadata(pid, fi.getRelFilepath()));
-		fi.setPresvPath(retrievePresvFilepath(pid, fi.getRelFilepath()));
 		
 		return fi;
 	}
