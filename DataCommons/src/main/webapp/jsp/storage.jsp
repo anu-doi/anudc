@@ -48,7 +48,7 @@
 			
 			<form name="frmFiles" action="?action=zip" method="post" class="anuform">
 				<!-- Navigation Breadcrumbs -->
-				<div class="left" >
+				<div class="nav-breadcrumbs">
 					<c:set var="parents" value="${it.rdi.getParents(it.path)}" />
 					<c:set var="parentUrl" value="" />
 					<c:forEach var="iLevel" begin="1" end="${fn:length(parents)}">
@@ -66,27 +66,30 @@
 						
 						<a class="large" href="<c:url value='${parentUrl}'/>"><c:out value="${iParent.filename}" /></a>
 					</c:forEach>
+
+					<!-- Actions -->
+					<div id="div-action-icons" class="right text-right">
+						<sec:authorize access="isAuthenticated()">
+							<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+								<!-- Create Folder icon -->
+								<img id="action-create-folder" class="clickable-icon" src="<c:url value='/images/folder-new.png' />"></img>
+								<!-- Delete Selected Files icon -->
+								<img id="action-del-selected" class="clickable-icon" src="<c:url value='/images/delete_red.png' />"></img>
+							</sec:accesscontrollist>
+						</sec:authorize>
+						
+						<!-- Download selected files as Zip icon -->
+						<img id="action-dl-zip" class="clickable-icon" src="<c:url value='/images/zip.png' />"></img>
+						
+						<!-- Check bag files icon -->
+						<sec:authorize access="hasRole('ROLE_ADMIN')">
+							<a href="<c:url value='${baseDataUrl}../admin?task=verify' />">
+								<img id="action-verify-files" class="clickable-icon" src="<c:url value='/images/screwdriver-spanner.png' />"></img>
+							</a>
+						</sec:authorize>
+					</div>
 				</div>
 				
-				<!-- Actions -->
-				<div id="div-action-icons" class="text-right">
-					<sec:authorize access="isAuthenticated()">
-						<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
-							<!-- Create Folder icon -->
-							<img id="action-create-folder" class="clickable-icon" src="<c:url value='/images/folder-new.png' />"></img>
-							<!-- Delete Selected Files icon -->
-							<img id="action-del-selected" class="clickable-icon" src="<c:url value='/images/delete_red.png' />"></img>
-						</sec:accesscontrollist>
-					</sec:authorize>
-					<!-- Download selected files as Zip icon -->
-					<img id="action-dl-zip" class="clickable-icon" src="<c:url value='/images/zip.png' />"></img>
-					<sec:authorize access="hasRole('ROLE_ADMIN')">
-						<a href="<c:url value='${baseDataUrl}../admin?task=verify' />">
-							<!-- Check bag files icon -->
-							<img id="action-verify-files" class="clickable-icon" src="<c:url value='/images/screwdriver-spanner.png' />"></img>
-						</a>
-					</sec:authorize>
-				</div>
 
 				<div>
 				<table id="tblFiles" class="w-doublewide tbl-row-bdr noborder anu-long-area tbl-files">

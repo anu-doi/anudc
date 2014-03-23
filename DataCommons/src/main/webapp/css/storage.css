@@ -1,5 +1,9 @@
 @CHARSET "UTF-8";
 
+div.nav-breadcrumbs {
+	height: 32px;
+}
+
 table.tbl-files {
 	table-layout: fixed;
 	width: 100%;
