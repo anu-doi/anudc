@@ -89,7 +89,7 @@ public class ANUEnhancedPublish extends GenericPublish implements Publish {
 	 * @return The publish location
 	 */
 	public PublishLocation getPublishLocation(String code) {
-		PublishLocationDAO publishLocationDAO = new PublishLocationDAOImpl(PublishLocation.class);
+		PublishLocationDAO publishLocationDAO = new PublishLocationDAOImpl();
 		PublishLocation location = publishLocationDAO.getByCode(code);
 		return location;
 	}

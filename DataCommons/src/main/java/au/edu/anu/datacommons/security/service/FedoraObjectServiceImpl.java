@@ -172,7 +172,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		if (decodedPid == null) {
 			return null;
 		}
-		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
+		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl();
 		FedoraObject item = object.getSingleByName(decodedPid);
 		if (item != null) {
 			LOGGER.trace("Retrieved item {}", item.getObject_id());
@@ -481,7 +481,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	public void addLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException {
 		String link = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI);
 		
-		LinkTypeDAO linkTypeDAO = new LinkTypeDAOImpl(LinkType.class);
+		LinkTypeDAO linkTypeDAO = new LinkTypeDAOImpl();
 		LinkType linkTypeRecord = linkTypeDAO.getByCode(linkType);
 		if (null == linkTypeRecord) {
 			throw new WebApplicationException(Response.status(400).entity("Invalid relation type").build());
@@ -527,7 +527,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			throws FedoraClientException {
 		String link = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI);
 		
-		LinkTypeDAO linkTypeDAO = new LinkTypeDAOImpl(LinkType.class);
+		LinkTypeDAO linkTypeDAO = new LinkTypeDAOImpl();
 		LinkType linkTypeRecord = linkTypeDAO.getByCode(linkType);
 		if (null == linkTypeRecord) {
 			throw new WebApplicationException(Response.status(400).entity("Invalid relation type").build());
@@ -926,7 +926,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	@Override
 	public boolean isFilesPublic(String pid) {
 		boolean isFilesPublic = false;
-		FedoraObjectDAOImpl dao = new FedoraObjectDAOImpl(FedoraObject.class);
+		FedoraObjectDAOImpl dao = new FedoraObjectDAOImpl();
 		FedoraObject item = dao.getSingleByName(pid);
 		Boolean filesPublicObj = item.isFilesPublic();
 		if (filesPublicObj != null) {
@@ -937,7 +937,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	
 	@Override
 	public void setFilesPublic(String pid, boolean isFilesPublic) {
-		FedoraObjectDAOImpl dao = new FedoraObjectDAOImpl(FedoraObject.class);
+		FedoraObjectDAOImpl dao = new FedoraObjectDAOImpl();
 		FedoraObject item = dao.getSingleByName(pid);
 		item.setFilesPublic(new Boolean(isFilesPublic));
 		dao.update(item);
@@ -953,7 +953,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	
 	@Override
 	public List<FedoraObject> getAllPublishedAndPublic() {
-		FedoraObjectDAOImpl dao = new FedoraObjectDAOImpl(FedoraObject.class);
+		FedoraObjectDAOImpl dao = new FedoraObjectDAOImpl();
 		return dao.getAllPublishedAndPublic();
 	}
 }

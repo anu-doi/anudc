@@ -49,7 +49,7 @@ import au.edu.anu.datacommons.data.db.PersistenceManager;
  */
 public class QuestionMapDAOImpl extends GenericDAOImpl<QuestionMap, Long> implements
 		QuestionMapDAO {
-	static final Logger LOGGER = LoggerFactory.getLogger(QuestionDAOImpl.class);
+	static final Logger LOGGER = LoggerFactory.getLogger(QuestionMapDAOImpl.class);
 	
 	private static final String fedoraObjectQueryStr = "SELECT qm FROM QuestionMap qm WHERE qm.pid = :pid AND qm.question = :question";
 	private static final String groupQueryStr = "SELECT qm FROM QuestionMap qm WHERE qm.group.id = :groupId AND qm.question = :question";
@@ -64,11 +64,9 @@ public class QuestionMapDAOImpl extends GenericDAOImpl<QuestionMap, Long> implem
 	 * Version	Date		Developer				Description
 	 * 0.1		29/06/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
-	 * 
-	 * @param type The class type to retrieve/set objects
 	 */
-	public QuestionMapDAOImpl(Class<QuestionMap> type) {
-		super(type);
+	public QuestionMapDAOImpl() {
+		super(QuestionMap.class);
 	}
 	
 	/**

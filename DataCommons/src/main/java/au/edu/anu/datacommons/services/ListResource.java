@@ -203,7 +203,7 @@ public class ListResource {
 			throw new ValidateException("Either the category for the current object or for the associated object is missing");
 		}
 		
-		LinkRelationDAO linkRelationDAO = new LinkRelationDAOImpl(LinkRelation.class);
+		LinkRelationDAO linkRelationDAO = new LinkRelationDAOImpl();
 		List<LinkRelation> linkRelations = linkRelationDAO.getRelations(category1, category2);
 		HashMap<String, String> relations = new HashMap<String, String>();
 

@@ -175,7 +175,7 @@ public class CollectionRequestService
 
 		List<Groups> reviewGroups = groupService.getReviewGroups();
 
-		CollectionRequestDAO collectionRequestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
+		CollectionRequestDAO collectionRequestDAO = new CollectionRequestDAOImpl();
 
 		List<CollectionRequest> collReqs = collectionRequestDAO.getPermittedRequests(id, reviewGroups);
 		LOGGER.info("Number of collection requests: {}", collReqs.size());
@@ -219,7 +219,7 @@ public class CollectionRequestService
 			LOGGER.debug("Retrieving Collection Request with ID: {}...", collReqId);
 
 			// Find the Collection Request with the specified ID.
-			CollectionRequestDAO collectionRequestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
+			CollectionRequestDAO collectionRequestDAO = new CollectionRequestDAOImpl();
 			CollectionRequest collReq = collectionRequestDAO.getSingleByIdEager(collReqId);
 
 			// Check if the Collection Request actually exists. If not, throw Exception.
@@ -290,12 +290,12 @@ public class CollectionRequestService
 		// Save the Collection Request for further processing.
 		try
 		{
-			Users user = new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
+			Users user = new UsersDAOImpl().getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
 			FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 			CollectionRequest newCollReq = new CollectionRequest(pid, user, request.getRemoteAddr(), fedoraObject);
 
 			// Get a list of questions assigned to the Pid.
-			QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
+			QuestionDAO questionDAO = new QuestionDAOImpl();
 			List<Question> reqQuestionList = questionDAO.getQuestionsByPid(pid, true);
 
 			// Iterate through the questions that need to be answered for the pid, get the answers for those questions and add to CR.
@@ -328,7 +328,7 @@ public class CollectionRequestService
 			LOGGER.debug("All mandatory questions answered for this Pid.");
 
 			// Save the newly created CR and add success message to message set.
-			CollectionRequestDAO requestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
+			CollectionRequestDAO requestDAO = new CollectionRequestDAOImpl();
 			requestDAO.create(newCollReq);
 
 			uriBuilder = UriBuilder.fromPath("/collreq/").path(newCollReq.getId().toString());
@@ -403,7 +403,7 @@ public class CollectionRequestService
 			LOGGER.debug("Saving Collection Request ID {} with updated details...", collReqId);
 
 			// Get the CR with the provided ID.
-			CollectionRequestDAO collectionRequestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
+			CollectionRequestDAO collectionRequestDAO = new CollectionRequestDAOImpl();
 			collReq = collectionRequestDAO.getSingleByIdEager(collReqId);
 
 			// Check if the CR exists.
@@ -421,7 +421,7 @@ public class CollectionRequestService
 						"Cannot change status of a CR with an Approved or Rejected status. A new CR must be submitted by the requestor for processing.");
 
 			// Add a status row to the status history for that CR.
-			Users user = new UsersDAOImpl(Users.class).getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
+			Users user = new UsersDAOImpl().getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
 			CollectionRequestStatus newStatus = new CollectionRequestStatus(collReq, status, reason, user);
 			collReq.addStatus(newStatus);
 			collReq = collectionRequestDAO.update(collReq);
@@ -562,10 +562,10 @@ public class CollectionRequestService
 		{
 			List<CollectionDropbox> dropboxes = null;
 			String username = SecurityContextHolder.getContext().getAuthentication().getName();
-			UsersDAO userDAO = new UsersDAOImpl(Users.class);
+			UsersDAO userDAO = new UsersDAOImpl();
 			Users user = userDAO.getUserByName(username);
 
-			DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
+			DropboxDAO dropboxDAO = new DropboxDAOImpl();
 			dropboxes = dropboxDAO.getUserDropboxes(user);
 			model.put("dropboxes", dropboxes);
 
@@ -620,7 +620,7 @@ public class CollectionRequestService
 		try
 		{
 			// Find the dropbox with the specified ID.
-			DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
+			DropboxDAO dropboxDAO = new DropboxDAOImpl();
 			CollectionDropbox dropbox = dropboxDAO.getSingleById(dropboxId);
 
 			// Check if a valid dropbox exists and was retrieved.
@@ -710,7 +710,7 @@ public class CollectionRequestService
 		try
 		{
 			LOGGER.debug("Finding dropbox with access code {}...", dropboxAccessCode);
-			DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
+			DropboxDAO dropboxDAO = new DropboxDAOImpl();
 			CollectionDropbox dropbox = dropboxDAO.getSingleByAccessCode(dropboxAccessCode);
 
 			if (dropbox == null)
@@ -866,8 +866,9 @@ public class CollectionRequestService
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostQuestionAsHtml(@Context UriInfo uriInfo, @FormParam("submit") String submit, @FormParam("q") String questionText,
-			@FormParam("pid") String pid, @FormParam("qid") Set<Long> qIdSet, @FormParam("group") Long groupId, @FormParam("domain") Long domainId)
+			@FormParam("pid") String pid, @FormParam("qid") Set<Long> qIdSet, @FormParam("group") Long groupId, @FormParam("domain") Long domainId, @FormParam("idPidQ") Set<Long> requiredQuestions, @FormParam("optQid") Set<Long> optQidSet)
 	{
+		LOGGER.debug("Number of req q's: {}, Number of opt q's: {}", qIdSet.size(), optQidSet.size());
 		Response resp = null;
 		UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(CollectionRequestService.class).path(CollectionRequestService.class, "doGetQuestionsAsHtml");
 
@@ -891,7 +892,7 @@ public class CollectionRequestService
 					LOGGER.debug("Saving question in question bank...", pid);
 					// Create Question object and persist it.
 					Question question = new Question(questionText);
-					QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
+					QuestionDAO questionDAO = new QuestionDAOImpl();
 					questionDAO.create(question);
 					uriBuilder = uriBuilder.queryParam("smsg", "The question <em>" + question.getQuestionText() + "</em> saved in the Question Bank.");
 					LOGGER.info("Saved question in question bank: {}", question.getQuestionText());
@@ -909,60 +910,10 @@ public class CollectionRequestService
 			{
 				try
 				{
-					QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
-					QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl(QuestionMap.class);
-
-					// Get list of questions currently assigned to the pid, group, or domain
-					List<Question> curQuestions = questionDAO.getQuestionsForObject(pid, groupId, domainId, true);
-
-					// Check if each question Id provided as query parameters already exist. If not, add them.
-					for (Long iUpdatedId : qIdSet)
-					{
-						boolean isAlreadyMapped = false;
-						for (Question iCurQuestion : curQuestions)
-						{
-							if (iCurQuestion.getId() == iUpdatedId.longValue())
-							{
-								isAlreadyMapped = true;
-								break;
-							}
-						}
-
-						if (!isAlreadyMapped)
-						{
-							Question question = questionDAO.getSingleById(iUpdatedId);
-							LOGGER.debug("Adding Question '{}' against Pid {}", question.getQuestionText(), pid);
-							QuestionMap qm = null;
-							//Create the question map for the pid, group or domain
-							if (pid != null && pid.trim().length() > 0) {
-								qm = new QuestionMap(pid, question, true);
-							}
-							else if (groupId != null) {
-								GenericDAO genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
-								Groups group = (Groups) genericDAO.getSingleById(groupId);
-								qm = new QuestionMap(group, question, true);
-							}
-							else if (domainId != null) {
-								GenericDAO genericDAO = new GenericDAOImpl<Domains, Long>(Domains.class);
-								Domains domain = (Domains) genericDAO.getSingleById(domainId);
-								qm = new QuestionMap(domain, question, true);
-							}
-							if (qm != null) {
-								questionMapDAO.create(qm);
-							}
-						}
-					}
-
-					// Check if each question for a pid, group, or domain is provided in the updated list. If not, delete it.
-					for (Question iCurQuestion : curQuestions)
-					{
-						if (!qIdSet.contains(iCurQuestion.getId()))
-						{
-							LOGGER.debug("Mapping of Question ID" + iCurQuestion.getId() + "to be deleted...");
-							QuestionMap questionMap = questionMapDAO.getSingleByObjectAndQuestion(iCurQuestion, pid, groupId, domainId);
-							questionMapDAO.delete(questionMap.getId());
-						}
-					}
+					QuestionDAO questionDAO = new QuestionDAOImpl();
+					QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl();
+					updateQuestions(questionDAO, questionMapDAO, qIdSet, pid, groupId, domainId, Boolean.TRUE);
+					updateQuestions(questionDAO, questionMapDAO, optQidSet, pid, groupId, domainId, Boolean.FALSE);
 
 					uriBuilder = uriBuilder.queryParam("smsg", "Question List updated for this Item.");
 				}
@@ -982,6 +933,69 @@ public class CollectionRequestService
 		}
 
 		return resp;
+	}
+	
+	/**
+	 * Save the questions to the database
+	 * 
+	 * @param questionDAO The question DAO
+	 * @param questionMapDAO The question map DAO
+	 * @param questions The list of questions to check
+	 * @param pid The pid to assign the values to
+	 * @param groupId The group to assign the questions to
+	 * @param domainId The domain to assign the questions to
+	 * @param required Whether set of questions are required questions or not
+	 */
+	private void updateQuestions(QuestionDAO questionDAO, QuestionMapDAO questionMapDAO, Set<Long> questions, String pid, Long groupId, Long domainId, Boolean required) {
+
+		List<Question> curQuestions = questionDAO.getQuestionsForObject(pid, groupId, domainId, required);
+		for (Long iUpdatedId : questions)
+		{
+			boolean isAlreadyMapped = false;
+			for (Question iCurQuestion : curQuestions)
+			{
+				if (iCurQuestion.getId() == iUpdatedId.longValue())
+				{
+					isAlreadyMapped = true;
+					break;
+				}
+			}
+
+			if (!isAlreadyMapped)
+			{
+				Question question = questionDAO.getSingleById(iUpdatedId);
+				LOGGER.debug("Adding Question '{}' against Pid {}", question.getQuestionText(), pid);
+				QuestionMap qm = null;
+				//Create the question map for the pid, group or domain
+				if (pid != null && pid.trim().length() > 0) {
+					qm = new QuestionMap(pid, question, required);
+				}
+				else if (groupId != null) {
+					GenericDAO<Groups, Long> genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
+					Groups group = (Groups) genericDAO.getSingleById(groupId);
+					qm = new QuestionMap(group, question, required);
+				}
+				else if (domainId != null) {
+					GenericDAO<Domains, Long> genericDAO = new GenericDAOImpl<Domains, Long>(Domains.class);
+					Domains domain = (Domains) genericDAO.getSingleById(domainId);
+					qm = new QuestionMap(domain, question, required);
+				}
+				if (qm != null) {
+					questionMapDAO.create(qm);
+				}
+			}
+		}
+		
+		// Check if each question for a pid, group, or domain is provided in the updated list. If not, delete it.
+		for (Question iCurQuestion : curQuestions)
+		{
+			if (!questions.contains(iCurQuestion.getId()))
+			{
+				LOGGER.debug("Mapping of Question ID" + iCurQuestion.getId() + "to be deleted...");
+				QuestionMap questionMap = questionMapDAO.getSingleByObjectAndQuestion(iCurQuestion, pid, groupId, domainId);
+				questionMapDAO.delete(questionMap.getId());
+			}
+		}
 	}
 
 	/**
@@ -1021,9 +1035,11 @@ public class CollectionRequestService
 		{
 			try
 			{
-				QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
+				QuestionDAO questionDAO = new QuestionDAOImpl();
 				List<Question> reqQuestions = questionDAO.getQuestionsByPid(pid, true);
+				LOGGER.info("Number of req questions: {}", reqQuestions.size());
 				List<Question> optQuestions = questionDAO.getQuestionsByPid(pid, false);
+				LOGGER.info("Number of opt questions: {}", optQuestions.size());
 				resp = processQuestionsJsonResponse(reqQuestions, optQuestions);
 			}
 			catch (Exception e)
@@ -1034,7 +1050,7 @@ public class CollectionRequestService
 		}
 		else if ("listGroupQuestions".equals(task)) {
 			try {
-				QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
+				QuestionDAO questionDAO = new QuestionDAOImpl();
 				List<Question> reqQuestions = questionDAO.getQuestionsByGroup(groupId, true);
 				List<Question> optQuestions = questionDAO.getQuestionsByGroup(groupId, false);
 				resp = processQuestionsJsonResponse(reqQuestions, optQuestions);
@@ -1046,7 +1062,7 @@ public class CollectionRequestService
 		}
 		else if ("listDomainQuestions".equals(task)) {
 			try {
-				QuestionDAO questionDAO = new QuestionDAOImpl(Question.class);
+				QuestionDAO questionDAO = new QuestionDAOImpl();
 				List<Question> reqQuestions = questionDAO.getQuestionsByDomain(domainId, true);
 				List<Question> optQuestions = questionDAO.getQuestionsByDomain(domainId, false);
 				resp = processQuestionsJsonResponse(reqQuestions, optQuestions);
@@ -1071,7 +1087,7 @@ public class CollectionRequestService
 				Long id = customUser.getId();
 
 				List<Groups> reviewGroups = groupService.getReviewGroups();
-				CollectionRequestDAO requestDAO = new CollectionRequestDAOImpl(CollectionRequest.class);
+				CollectionRequestDAO requestDAO = new CollectionRequestDAOImpl();
 				List<CollectionRequest> reqStatusList = requestDAO.getPermittedRequests(id, reviewGroups);
 
 				// Add the details of each CR into a JSONObject. Then add that JSONObject to a JSONArray.
@@ -1116,7 +1132,7 @@ public class CollectionRequestService
 	 */
 	private List<Question> getAllQuestions()
 	{
-		List<Question> questions = new QuestionDAOImpl(Question.class).getAll();
+		List<Question> questions = new QuestionDAOImpl().getAll();
 		return questions;
 	}
 	

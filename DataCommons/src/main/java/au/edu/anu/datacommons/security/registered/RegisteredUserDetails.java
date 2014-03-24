@@ -71,7 +71,7 @@ public class RegisteredUserDetails extends JdbcDaoImpl {
 	@Override
 	protected UserDetails createUserDetails(String username, UserDetails userDetails, List<GrantedAuthority> authorities) {
 		LOGGER.info("In createUserDetails");
-		UsersDAO usersDAO = new UsersDAOImpl(Users.class);
+		UsersDAO usersDAO = new UsersDAOImpl();
 		Users users = usersDAO.getUserByName(username);
 		CustomUser user = null;
 		LOGGER.info("displayName: {})", users.getDisplayName());

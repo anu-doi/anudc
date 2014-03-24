@@ -99,7 +99,7 @@ public class PermissionService {
 	 * @param username The username to get permissions for
 	 * @return A list of permissions given the constraints
 	 */
-	public List<Permission> getListOfPermission(Class clazz, Long id, String username) {
+	public List<Permission> getListOfPermission(Class<?> clazz, Long id, String username) {
 		ObjectIdentity objectIdentity = new ObjectIdentityImpl(clazz, id);
 		
 		// Get the uers permissions
@@ -355,7 +355,7 @@ public class PermissionService {
 		// On the updateAcl action if the acl_sid row does not exist
 		// There may be something in the spring security framework that can be used instead
 		// however at this point in time I am unsure as to what it is.
-		AclSidDAO aclSidDAO = new AclSidDAOImpl(AclSid.class);
+		AclSidDAO aclSidDAO = new AclSidDAOImpl();
 		AclSid aclSid = aclSidDAO.getAclSidByUsername(username);
 		if (aclSid == null) {
 			aclSid = new AclSid();

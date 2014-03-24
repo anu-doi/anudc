@@ -71,11 +71,9 @@ public class QuestionDAOImpl extends GenericDAOImpl<Question, Long> implements
 	 * Version	Date		Developer				Description
 	 * 0.1		29/06/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
-	 * 
-	 * @param type The class type to retrieve/set objects
 	 */
-	public QuestionDAOImpl(Class<Question> type) {
-		super(type);
+	public QuestionDAOImpl() {
+		super(Question.class);
 	}
 	
 	/**
@@ -102,13 +100,17 @@ public class QuestionDAOImpl extends GenericDAOImpl<Question, Long> implements
 			query.setParameter("pid", pid);
 			
 			List<Object[]> results = query.getResultList();
-			filterQuestionRequirement(results, required);
+			LOGGER.info("Number of results: {}", results.size());
 			
-			if (questions == null || questions.size() == 0) {
-				FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
+			//if (questions == null || questions.size() == 0) {
+			if (results == null || results.size() == 0) {
+				FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl();
 				FedoraObject fedoraObject = fedoraObjectDAO.getSingleByName(pid);
 				
 				questions = getParentQuestions(entityManager, new Long(3), fedoraObject.getId(), required);
+			}
+			else {
+				questions = filterQuestionRequirement(results, required);
 			}
 		}
 		finally {
@@ -140,10 +142,12 @@ public class QuestionDAOImpl extends GenericDAOImpl<Question, Long> implements
 			groupQuery.setParameter("groupId", groupId);
 
 			List<Object[]> results = groupQuery.getResultList();
-			filterQuestionRequirement(results, required);
 			
-			if (questions == null || questions.size() == 0) {
+			if (results == null || results.size() == 0) {
 				questions = getParentQuestions(entityManager, new Long(2), groupId, required);
+			}
+			else {
+				questions = filterQuestionRequirement(results, required);
 			}
 		}
 		finally {
@@ -173,10 +177,12 @@ public class QuestionDAOImpl extends GenericDAOImpl<Question, Long> implements
 			domainQuery.setParameter("domainId", domainId);
 
 			List<Object[]> results = domainQuery.getResultList();
-			filterQuestionRequirement(results, required);
 			
-			if (questions == null || questions.size() == 0) {
+			if (results == null || results.size() == 0) {
 				questions = getParentQuestions(entityManager, new Long(1), domainId, required);
+			}
+			else {
+				questions = filterQuestionRequirement(results, required);
 			}
 		}
 		finally {
@@ -253,17 +259,20 @@ public class QuestionDAOImpl extends GenericDAOImpl<Question, Long> implements
 			if (pid != null && pid.trim().length() > 0) {
 				Query query = entityManager.createQuery(fedoraObjectStr);
 				query.setParameter("pid", pid);
-				questions = query.getResultList();
+				List<Object[]> results = query.getResultList();
+				questions = filterQuestionRequirement(results, required);
 			}
 			else if (groupId != null) {
 				Query query = entityManager.createQuery(groupQueryStr);
 				query.setParameter("groupId", groupId);
-				questions = query.getResultList();
+				List<Object[]> results = query.getResultList();
+				questions = filterQuestionRequirement(results, required);
 			}
 			else if (domainId != null) {
 				Query query = entityManager.createQuery(domainQueryStr);
 				query.setParameter("domainId", domainId);
-				questions = query.getResultList();
+				List<Object[]> results = query.getResultList();
+				questions = filterQuestionRequirement(results, required);
 			}
 		}
 		finally {

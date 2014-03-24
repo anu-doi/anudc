@@ -95,7 +95,7 @@ public class AbstractStorageResource {
 	@Autowired
 	protected TempFileService tmpFileSvc;
 	
-	protected AccessLogRecordDAOImpl accessLogDao = new AccessLogRecordDAOImpl(AccessLogRecord.class);
+	protected AccessLogRecordDAOImpl accessLogDao = new AccessLogRecordDAOImpl();
 
 	/**
 	 * Creates a Response object containing the contents of a single file in a bag of collection as Response object
@@ -150,7 +150,7 @@ public class AbstractStorageResource {
 	 * @return Users object containing information about the currently logged in user.
 	 */
 	protected Users getCurUser() {
-		return new UsersDAOImpl(Users.class).getUserByName(getCurUsername());
+		return new UsersDAOImpl().getUserByName(getCurUsername());
 	}
 	
 	protected String getCurUsername() {

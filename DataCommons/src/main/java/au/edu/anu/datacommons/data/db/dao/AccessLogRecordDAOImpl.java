@@ -26,8 +26,8 @@ import au.edu.anu.datacommons.security.AccessLogRecord;
 public class AccessLogRecordDAOImpl extends GenericDAOImpl<AccessLogRecord, Long> implements AccessLogRecordDAO
 {
 
-	public AccessLogRecordDAOImpl(Class<AccessLogRecord> type)
+	public AccessLogRecordDAOImpl()
 	{
-		super(type);
+		super(AccessLogRecord.class);
 	}
 }

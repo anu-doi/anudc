@@ -134,7 +134,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 * @return The custom user
 	 */
 	protected UserDetails createUserDetails(String username, UserDetails userDetails, List<GrantedAuthority> authorities) {
-		UsersDAO usersDAO = new UsersDAOImpl(Users.class);
+		UsersDAO usersDAO = new UsersDAOImpl();
 		Users users = usersDAO.getUserByName(username);
 		CustomUser user = null;
 		if (users != null) {

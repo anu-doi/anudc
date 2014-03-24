@@ -404,7 +404,7 @@ public class ANDSValidate implements Validate{
 		sparqlQuery.addFilter(filterString.toString(), "");
 		
 		// Match external link patterns to particular types e.g. nla id's to parties
-		ExternalLinkDAO externalLinkDAO = new ExternalLinkDAOImpl(ExternalLinkPattern.class);
+		ExternalLinkDAO externalLinkDAO = new ExternalLinkDAOImpl();
 		List<ExternalLinkPattern> patterns = externalLinkDAO.getByObjectType(type);
 		for (ExternalLinkPattern pattern : patterns) {
 			StringBuilder patternString = new StringBuilder();

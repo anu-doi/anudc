@@ -54,11 +54,9 @@ public class AclSidDAOImpl extends GenericDAOImpl<AclSid, Long> implements AclSi
 	 * Version	Date		Developer				Description
 	 * 0.1		28/08/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
-	 * 
-	 * @param type
 	 */
-	public AclSidDAOImpl(Class<AclSid> type) {
-		super(type);
+	public AclSidDAOImpl() {
+		super(AclSid.class);
 	}
 	
 	/**

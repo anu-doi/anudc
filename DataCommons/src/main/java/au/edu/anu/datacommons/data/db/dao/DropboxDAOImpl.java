@@ -64,11 +64,9 @@ public class DropboxDAOImpl extends GenericDAOImpl<CollectionDropbox, Long> impl
 	 * Version	Date		Developer				Description
 	 * 0.1		29/06/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
-	 * 
-	 * @param type The class type to retrieve/set objects
 	 */
-	public DropboxDAOImpl(Class<CollectionDropbox> type) {
-		super(type);
+	public DropboxDAOImpl() {
+		super(CollectionDropbox.class);
 	}
 	
 	/**

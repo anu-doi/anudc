@@ -56,11 +56,9 @@ public class UserRequestPasswordDAOImpl extends GenericDAOImpl<UserRequestPasswo
 	 * Version	Date		Developer				Description
 	 * 0.1		27/08/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
-	 * 
-	 * @param type The class type to retrieve/set objects
 	 */
-	public UserRequestPasswordDAOImpl(Class<UserRequestPassword> type) {
-		super(type);
+	public UserRequestPasswordDAOImpl() {
+		super(UserRequestPassword.class);
 	}
 	
 	/**

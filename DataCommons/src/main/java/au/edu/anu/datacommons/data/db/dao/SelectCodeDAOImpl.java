@@ -59,11 +59,9 @@ public class SelectCodeDAOImpl extends GenericDAOImpl<SelectCode, SelectCodePK> 
 	 * Version	Date		Developer				Description
 	 * 0.1		22/06/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
-	 * 
-	 * @param type The class type to retrive/set objects
 	 */
-	public SelectCodeDAOImpl(Class<SelectCode> type) {
-		super(type);
+	public SelectCodeDAOImpl() {
+		super(SelectCode.class);
 	}
 	
 	/**

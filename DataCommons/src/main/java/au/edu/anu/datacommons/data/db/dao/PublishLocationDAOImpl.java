@@ -55,11 +55,9 @@ public class PublishLocationDAOImpl extends GenericDAOImpl<PublishLocation, Long
 	 * Version	Date		Developer				Description
 	 * 0.1		29/06/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
-	 * 
-	 * @param type The class type to retrieve/set objects
 	 */
-	public PublishLocationDAOImpl(Class<PublishLocation> type) {
-		super(type);
+	public PublishLocationDAOImpl() {
+		super(PublishLocation.class);
 	}
 
 	/**

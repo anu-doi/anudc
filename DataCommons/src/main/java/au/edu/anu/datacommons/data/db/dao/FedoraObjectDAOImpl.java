@@ -60,11 +60,9 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	 * Constructor
 	 * 
 	 * Constructor class that includes the type
-	 * 
-	 * @param type The class type to retrive/set objects
 	 */
-	public FedoraObjectDAOImpl(Class<FedoraObject> type) {
-		super(type);
+	public FedoraObjectDAOImpl() {
+		super(FedoraObject.class);
 	}
 	
 	/**

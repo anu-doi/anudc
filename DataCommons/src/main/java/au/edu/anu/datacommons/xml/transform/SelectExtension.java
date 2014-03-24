@@ -86,7 +86,7 @@ public class SelectExtension {
 			selectCodePK.setSelect_name(codeType);
 			selectCodePK.setCode(value);
 
-			SelectCodeDAO selectCodeDAO = new SelectCodeDAOImpl(SelectCode.class);
+			SelectCodeDAO selectCodeDAO = new SelectCodeDAOImpl();
 			SelectCode selectCode = selectCodeDAO.getSingleById(selectCodePK);
 			if (selectCode != null) {
 				optionValue = selectCode.getDescription();

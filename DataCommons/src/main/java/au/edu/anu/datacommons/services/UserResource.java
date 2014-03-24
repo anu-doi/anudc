@@ -142,7 +142,7 @@ public class UserResource {
 	public Response getUserInformation() {
 		Map<String, Object> model = new HashMap<String, Object>();
 		CustomUser customUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		UsersDAO userDAO = new UsersDAOImpl(Users.class);
+		UsersDAO userDAO = new UsersDAOImpl();
 		Users user = userDAO.getSingleById(customUser.getId());
 
 		List<Groups> groups = groupService.getAll();
@@ -374,7 +374,7 @@ public class UserResource {
 		Map<String, Object> model = new HashMap<String, Object>();
 		CustomUser customUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-		UsersDAO userDAO = new UsersDAOImpl(Users.class);
+		UsersDAO userDAO = new UsersDAOImpl();
 		Users user = userDAO.getSingleById(customUser.getId());
 
 		if (!user.getUser_type().equals(new Long(2))) {
@@ -414,7 +414,7 @@ public class UserResource {
 		Map<String, Object> model = new HashMap<String, Object>();
 		CustomUser customUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-		UsersDAO userDAO = new UsersDAOImpl(Users.class);
+		UsersDAO userDAO = new UsersDAOImpl();
 		Users user = userDAO.getSingleById(customUser.getId());
 
 		if (!user.getUser_type().equals(new Long(2))) {
@@ -553,7 +553,7 @@ public class UserResource {
 		user.setEnabled(Boolean.TRUE);
 		user.setUser_type(new Long(2));
 
-		UsersDAO userDAO = new UsersDAOImpl(Users.class);
+		UsersDAO userDAO = new UsersDAOImpl();
 		UserRegistered ur = createUserRegistered(request, user);
 		user.setUser_registered(ur);
 
@@ -623,7 +623,7 @@ public class UserResource {
 	@Path("forgotpassword")
 	public Response sendForgotPasswordEmail(@Context HttpServletRequest request, @Context UriInfo uriInfo) {
 		String username = request.getParameter("email");
-		UsersDAO userDAO = new UsersDAOImpl(Users.class);
+		UsersDAO userDAO = new UsersDAOImpl();
 		Users user = userDAO.getUserByName(username);
 		Map<String, Object> model = new HashMap<String, Object>();
 		if (user == null) {
@@ -637,7 +637,7 @@ public class UserResource {
 		userRequest.setRequest_date(new Date());
 		userRequest.setIp_address(request.getRemoteAddr());
 		userRequest.setLink_id(UUID.randomUUID().toString());
-		UserRequestPasswordDAO userRequestDAO = new UserRequestPasswordDAOImpl(UserRequestPassword.class);
+		UserRequestPasswordDAO userRequestDAO = new UserRequestPasswordDAOImpl();
 		userRequestDAO.create(userRequest);
 
 		UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path("user").path("resetpassword")
@@ -678,7 +678,7 @@ public class UserResource {
 	@GET
 	@Path("resetpassword")
 	public Response getResetPassword(@QueryParam("link") String link) {
-		UserRequestPasswordDAO userRequestDAO = new UserRequestPasswordDAOImpl(UserRequestPassword.class);
+		UserRequestPasswordDAO userRequestDAO = new UserRequestPasswordDAOImpl();
 		UserRequestPassword userRequest = userRequestDAO.getByLink(link);
 		isValidReset(userRequest);
 
@@ -705,14 +705,14 @@ public class UserResource {
 	@POST
 	@Path("resetpassword")
 	public Response resetPassword(@QueryParam("link") String link, @Context HttpServletRequest request) {
-		UserRequestPasswordDAO userRequestDAO = new UserRequestPasswordDAOImpl(UserRequestPassword.class);
+		UserRequestPasswordDAO userRequestDAO = new UserRequestPasswordDAOImpl();
 		UserRequestPassword userRequest = userRequestDAO.getByLink(link);
 
 		isValidReset(userRequest);
 
 		Users user = userRequest.getUser();
 		user.setPassword(getEncodedPassword(request.getParameter("password"), request.getParameter("password2"), user));
-		UsersDAO userDAO = new UsersDAOImpl(Users.class);
+		UsersDAO userDAO = new UsersDAOImpl();
 		userDAO.update(user);
 		userRequest.setUsed(Boolean.TRUE);
 		userRequestDAO.update(userRequest);

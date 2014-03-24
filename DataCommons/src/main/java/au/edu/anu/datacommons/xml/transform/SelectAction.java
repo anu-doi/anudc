@@ -133,7 +133,7 @@ public class SelectAction {
 	 * @param codeType
 	 */
 	private void getSelectCodes(String codeType) {
-		SelectCodeDAO selectCodeDAO = new SelectCodeDAOImpl(SelectCode.class);
+		SelectCodeDAO selectCodeDAO = new SelectCodeDAOImpl();
 		List<String> fieldNames = new ArrayList<String>();
 		fieldNames.add(codeType);
 		List<SelectCode> selectCodes = selectCodeDAO.getOptionsByNames(fieldNames);

@@ -370,7 +370,7 @@ public class WebServiceResource
 			return null;
 		}
 		LOGGER.debug("Decoded pid: {}", decodedpid);
-		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
+		FedoraObjectDAOImpl object = new FedoraObjectDAOImpl();
 		FedoraObject fo = (FedoraObject) object.getSingleByName(decodedpid);
 		return fo;
 	}

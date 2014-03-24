@@ -45,7 +45,7 @@
 		<!-- Questions assigned to a specific Pid -->
 		<anu:content layout="wide" title="Add Question to Item">
 			<form name="pidQuestions" method="post" action="<c:url value='/rest/collreq/question' />"
-				onsubmit="jQuery('#idPidQ > option').attr('selected', 'selected')">
+				onsubmit="jQuery('#idPidQ > option').attr('selected', 'selected'); jQuery('#idOptQ > option').attr('selected', 'selected')">
 				<p>
 					<label>Group</label>
 					<select name="group" id="group">

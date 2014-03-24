@@ -844,7 +844,7 @@ public class ViewTransform
 			fedoraObject.setPublished(Boolean.FALSE);
 			fedoraObject.setTmplt_id(tmplt);
 
-			FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
+			FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl();
 			fedoraObjectDAO.create(fedoraObject);
 			saveAuditModifyRow(fedoraObject, rid);
 		} else {
@@ -855,7 +855,7 @@ public class ViewTransform
 			if (form.containsKey("ownerGroup")) {
 				String group_id = form.get("ownerGroup").get(0);
 				fedoraObject.setGroup_id(new Long(group_id));
-				FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
+				FedoraObjectDAOImpl fedoraObjectDAO = new FedoraObjectDAOImpl();
 				fedoraObjectDAO.update(fedoraObject);
 			}
 			saveAuditModifyRow(fedoraObject, rid);

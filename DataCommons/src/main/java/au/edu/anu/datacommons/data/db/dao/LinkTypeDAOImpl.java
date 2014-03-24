@@ -55,11 +55,9 @@ public class LinkTypeDAOImpl extends GenericDAOImpl<LinkType, Long> implements
 	 * Version	Date		Developer				Description
 	 * 0.1		28/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
-	 * 
-	 * @param type
 	 */
-	public LinkTypeDAOImpl(Class<LinkType> type) {
-		super(type);
+	public LinkTypeDAOImpl() {
+		super(LinkType.class);
 	}
 	
 	/**

@@ -59,11 +59,9 @@ public class UsersDAOImpl extends GenericDAOImpl<Users, Long> implements UsersDA
 	 * Version	Date		Developer				Description
 	 * 0.1		16/05/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
-	 * 
-	 * @param type The class type to retrive/set objects
 	 */
-	public UsersDAOImpl(Class<Users> type) {
-		super(type);
+	public UsersDAOImpl() {
+		super(Users.class);
 	}
 	
 	/**

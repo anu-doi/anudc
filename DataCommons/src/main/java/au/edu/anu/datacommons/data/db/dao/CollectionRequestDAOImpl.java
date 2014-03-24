@@ -63,11 +63,9 @@ public class CollectionRequestDAOImpl extends GenericDAOImpl<CollectionRequest, 
 	 * Version	Date		Developer				Description
 	 * 0.1		29/06/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
-	 * 
-	 * @param type The class type to retrieve/set objects
 	 */
-	public CollectionRequestDAOImpl(Class<CollectionRequest> type) {
-		super(type);
+	public CollectionRequestDAOImpl() {
+		super(CollectionRequest.class);
 	}
 	
 	/**

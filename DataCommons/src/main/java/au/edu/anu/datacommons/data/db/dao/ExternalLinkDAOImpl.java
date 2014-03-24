@@ -56,11 +56,9 @@ public class ExternalLinkDAOImpl extends GenericDAOImpl<ExternalLinkPattern, Lon
 	 * Version	Date		Developer				Description
 	 * 0.1		20/11/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
-	 * 
-	 * @param type
 	 */
-	public ExternalLinkDAOImpl(Class<ExternalLinkPattern> type) {
-		super(type);
+	public ExternalLinkDAOImpl() {
+		super(ExternalLinkPattern.class);
 	}
 	
 	/**

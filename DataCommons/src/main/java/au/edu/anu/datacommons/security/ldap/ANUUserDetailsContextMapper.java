@@ -84,7 +84,7 @@ public class ANUUserDetailsContextMapper implements
 		List<GrantedAuthority> authoritiesList = new ArrayList<GrantedAuthority>(authorities);
 		addCustomAuthorities(username, authoritiesList);
 		
-		UsersDAO usersDAO = new UsersDAOImpl(Users.class);
+		UsersDAO usersDAO = new UsersDAOImpl();
 		Users users = usersDAO.getUserByName(username);
 		
 		CustomUser user = null;

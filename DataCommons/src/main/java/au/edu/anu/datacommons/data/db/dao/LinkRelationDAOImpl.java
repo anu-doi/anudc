@@ -58,11 +58,9 @@ public class LinkRelationDAOImpl extends GenericDAOImpl<LinkRelation, Long> impl
 	 * Version	Date		Developer				Description
 	 * 0.1		19/09/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
-	 * 
-	 * @param type The class type to retrieve/set objects
 	 */
-	public LinkRelationDAOImpl(Class<LinkRelation> type) {
-		super(type);
+	public LinkRelationDAOImpl() {
+		super(LinkRelation.class);
 	}
 
 	/**

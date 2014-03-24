@@ -55,16 +55,19 @@ public class QuestionMap
 	{
 		this.pid = pid;
 		this.question = question;
+		this.required = required;
 	}
 	
 	public QuestionMap(Groups group, Question question, Boolean required) {
 		this.group = group;
 		this.question = question;
+		this.required = required;
 	}
 	
 	public QuestionMap(Domains domain, Question question, Boolean required) {
 		this.domain = domain;
 		this.question = question;
+		this.required = required;
 	}
 
 	@Id

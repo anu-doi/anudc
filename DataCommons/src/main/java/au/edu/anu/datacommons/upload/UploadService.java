@@ -311,7 +311,7 @@ public class UploadService extends AbstractStorageResource {
 		LOGGER.trace("pid: {}, filename: {}", pid, filename);
 
 		// Get dropbox requesting file.
-		DropboxDAO dropboxDAO = new DropboxDAOImpl(CollectionDropbox.class);
+		DropboxDAO dropboxDAO = new DropboxDAOImpl();
 		CollectionDropbox dropbox = dropboxDAO.getSingleByAccessCode(dropboxAccessCode);
 		Users requestor = dropbox.getCollectionRequest().getRequestor();
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();

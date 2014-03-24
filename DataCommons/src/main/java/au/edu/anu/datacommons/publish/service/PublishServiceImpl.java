@@ -482,7 +482,7 @@ public class PublishServiceImpl implements PublishService {
 		finally {
 			if (locations.size() > 0) {
 				String message = Util.listToStringWithNewline(locations);
-				FedoraObjectDAOImpl object = new FedoraObjectDAOImpl(FedoraObject.class);
+				FedoraObjectDAOImpl object = new FedoraObjectDAOImpl();
 				object.update(fedoraObject);
 				
 				CustomUser customUser = (CustomUser)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -740,7 +740,7 @@ public class PublishServiceImpl implements PublishService {
 	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#getReadyForReview()
 	 */
 	public List<FedoraObject> getReadyForReview() {
-		FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
+		FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl();
 		List<FedoraObject> reviewReadyList = fedoraObjectDAO.getAllReadyForReview();
 		return reviewReadyList;
 	}
@@ -759,7 +759,7 @@ public class PublishServiceImpl implements PublishService {
 	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#getRejected()
 	 */
 	public List<FedoraObject> getRejected() {
-		FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
+		FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl();
 		List<FedoraObject> rejectedList = fedoraObjectDAO.getAllRejected();
 		return rejectedList;
 	}
@@ -778,7 +778,7 @@ public class PublishServiceImpl implements PublishService {
 	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#getReadyForPublish()
 	 */
 	public List<FedoraObject> getReadyForPublish() {
-		FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl(FedoraObject.class);
+		FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl();
 		List<FedoraObject> publishReadyList = fedoraObjectDAO.getAllReadyForPublish();
 		return publishReadyList;
 	}
