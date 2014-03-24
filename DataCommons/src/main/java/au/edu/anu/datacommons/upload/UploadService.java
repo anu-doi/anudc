@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,7 +41,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -53,7 +51,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -63,7 +60,6 @@ import au.edu.anu.datacommons.collectionrequest.PageMessages;
 import au.edu.anu.datacommons.collectionrequest.PageMessages.MessageType;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAO;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAOImpl;
-import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.properties.GlobalProps;
@@ -72,7 +68,6 @@ import au.edu.anu.datacommons.storage.AbstractStorageResource;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummaryMap;
-import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
@@ -119,7 +114,6 @@ public class UploadService extends AbstractStorageResource {
 		Map<String, Object> model = new HashMap<String, Object>();
 
 		FedoraObject fo = fedoraObjectService.getItemByPid(pid);
-		;
 		if (fo == null) {
 			throw new NotFoundException(format("Record {0} not found", pid));
 		}
@@ -156,103 +150,6 @@ public class UploadService extends AbstractStorageResource {
 		}
 
 		resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
-		return resp;
-	}
-
-	@GET
-	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	@Path("bag/{pid}/admin")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public Response doAdminTaskJsonXml(@PathParam("pid") String pid, @QueryParam("task") String task) {
-		Response resp = null;
-		if (!dcStorage.bagExists(pid)) {
-			throw new NotFoundException();
-		}
-
-		try {
-			if (task.equals("verify")) {
-				VerificationResults results = dcStorage.verifyBag(pid);
-				resp = Response.ok(results).build();
-			}
-		} catch (WebApplicationException e) {
-			throw e;
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.serverError().build();
-		}
-
-		return resp;
-	}
-
-	@GET
-	@Produces(MediaType.TEXT_HTML)
-	@Path("bag/{pid}/admin")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public Response doAdminTaskHtml(@PathParam("pid") String pid, @QueryParam("task") String task) {
-		Response resp = null;
-		UriBuilder redirUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class);
-		Map<String, Object> model = new HashMap<String, Object>();
-		if (!dcStorage.bagExists(pid)) {
-			throw new NotFoundException();
-		}
-
-		try {
-			if (task.equals("verify")) {
-				VerificationResults results = dcStorage.verifyBag(pid);
-				model.put("results", results);
-				resp = Response.ok(new Viewable("/verificationresults.jsp", model)).build();
-			} else if (task.equals("recomplete")) {
-				LOGGER.info("User {} requested bag completion of {}", getCurUsername(), pid);
-				dcStorage.recompleteBag(pid);
-				resp = Response.temporaryRedirect(
-						redirUri.path(UploadService.class, "doGetBagFileListingAsHtml")
-								.queryParam("smsg", "Files rescanning commenced and will run in the background.")
-								.build(pid)).build();
-			} else if (task.equals("reindex")) {
-				LOGGER.info("User {} requested reindex of files in record {}", getCurUsername(), pid);
-				dcStorage.indexFilesInBag(pid);
-				resp = Response.ok(format("Reindexing files in record {0}", pid)).build();
-			}
-		} catch (WebApplicationException e) {
-			throw e;
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.serverError().entity(e.getMessage()).build();
-		}
-
-		return resp;
-	}
-
-	@GET
-	@Path("bag/admin")
-	@Produces(MediaType.TEXT_PLAIN)
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public Response doBulkAdminTask(@QueryParam("task") String task) {
-		Response resp = null;
-		StringBuilder respStr = new StringBuilder();
-		try {
-			if (task.equals("reindexAll")) {
-				LOGGER.info("User {} requested reindexing all files of published and public records.", getCurUsername());
-				List<FedoraObject> recordsToReindex = fedoraObjectService.getAllPublishedAndPublic();
-				respStr.append("Reindexing files in:");
-				for (FedoraObject fo : recordsToReindex) {
-					respStr.append(" ");
-					try {
-						dcStorage.indexFilesInBag(fo.getObject_id());
-					} catch (IOException e) {
-						LOGGER.error("Unable to reindex files in {}", fo.getObject_id());
-					}
-					LOGGER.trace("Reindexing files in record {}", fo.getObject_id());
-					respStr.append(fo.getObject_id());
-				}
-			}
-		} catch (WebApplicationException e) {
-			throw e;
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.serverError().entity(e.getMessage()).build();
-		}
-		resp = Response.ok(respStr.toString()).build();
 		return resp;
 	}
 
@@ -584,25 +481,6 @@ public class UploadService extends AbstractStorageResource {
 		}
 
 		return resp;
-	}
-
-	private boolean hasRole(String[] roles) {
-		boolean hasRole = false;
-		for (GrantedAuthority authority : SecurityContextHolder.getContext().getAuthentication().getAuthorities()) {
-			String userRole = authority.getAuthority();
-			for (String role : roles) {
-				if (role.equals(userRole)) {
-					hasRole = true;
-					break;
-				}
-			}
-
-			if (hasRole) {
-				break;
-			}
-		}
-
-		return hasRole;
 	}
 
 	/**

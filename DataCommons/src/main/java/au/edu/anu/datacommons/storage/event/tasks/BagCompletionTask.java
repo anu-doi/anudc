@@ -111,6 +111,7 @@ public class BagCompletionTask extends AbstractTagFileTask {
 
 	private void updateTagManifest() throws IOException {
 		Map<String, String> messageDigests = tagFilesSvc.generateMessageDigests(pid, Algorithm.MD5);
+		tagFilesSvc.clearAllEntries(pid, TagManifestMd5TagFile.class);
 		for (Entry<String, String> tagFileMd : messageDigests.entrySet()) {
 			tagFilesSvc.addEntry(pid, TagManifestMd5TagFile.class, tagFileMd.getKey(), tagFileMd.getValue());
 		}

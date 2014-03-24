@@ -11,6 +11,9 @@
 	<link href="//styles.anu.edu.au/_anu/3/style/anu-forms.css"
 		rel="stylesheet" type="text/css" />
 	<script type="text/javascript" src="<c:url value='/js/verificationresults.js' />"></script>
+	<script type="text/javascript">
+		jQuery(document).ready(initHandlers);
+	</script>
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
@@ -23,7 +26,7 @@
 
 	<p>Timestamp: <c:out value="${it.results.timestamp}" /></p>
 	<p>Message Count: <c:out value="${fn:length(it.results.messages)}" /></p>
-	<p><input type="button" value="Rescan Files" onclick="recomplete()" /></p>
+	<p><input id="btnReverify" type="button" value="Reverify" /><input id="btnFixIssues" type="button" value="Fix Issues" /></p>
 	
 	<table class="small w-doublewide">
 		<tr>

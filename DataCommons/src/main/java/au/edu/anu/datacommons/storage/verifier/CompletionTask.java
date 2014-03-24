@@ -29,9 +29,7 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +40,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +49,6 @@ import au.edu.anu.datacommons.storage.event.StorageEventListener;
 import au.edu.anu.datacommons.storage.event.StorageEventListener.EventTime;
 import au.edu.anu.datacommons.storage.event.StorageEventListener.EventType;
 import au.edu.anu.datacommons.storage.event.tasks.AbstractTagFileTask;
-import au.edu.anu.datacommons.storage.event.tasks.BagCompletionTask;
 import au.edu.anu.datacommons.storage.event.tasks.MetadataTask;
 import au.edu.anu.datacommons.storage.event.tasks.PreservationTask;
 import au.edu.anu.datacommons.storage.event.tasks.PronomTask;
@@ -62,6 +60,7 @@ import au.edu.anu.datacommons.storage.tagfiles.ManifestMd5TagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
+import au.edu.anu.datacommons.storage.tagfiles.TagManifestMd5TagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
@@ -114,16 +113,32 @@ public class CompletionTask implements Callable<Void>{
 		StopWatch sw = new StopWatch();
 		sw.start();
 		LOGGER.info("Completing tag files for {}...", pid);
-		eventListener.notify(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, bagDir, null, null);
+		if (!dryRun) {
+			eventListener.notify(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, bagDir, null, null);
+		}
 		Set<Path> plFiles = listFilesInDir(getPayloadDir());
+		checkArtifacts(plFiles);
 		verifyMessageDigests(plFiles);
 		verifyTagFiles(plFiles);
-		eventListener.notify(EventTime.POST, EventType.TAGFILE_UPDATE, pid, bagDir, null, null);
+		if (!dryRun) {
+			eventListener.notify(EventTime.POST, EventType.TAGFILE_UPDATE, pid, bagDir, null, null);
+		}
 		sw.stop();
 		LOGGER.info("Tag files completed for {}. Time taken {}", pid, sw.getTimeElapsedFormatted());
 		return null;
 	}
 	
+	private void checkArtifacts(Set<Path> plFiles) throws IOException {
+		Path metadataDir = bagDir.resolve("metadata/");
+		if (Files.isDirectory(metadataDir)) {
+			try {
+				FileUtils.deleteDirectory(metadataDir.toFile());
+			} catch (IOException e) {
+				LOGGER.error("Unable to delete {}: {}", metadataDir.toString(), e.getMessage());
+			}
+		}
+	}
+
 	private void verifyMessageDigests(Set<Path> plFiles) throws IOException {
 		Map<Path, Future<String>> calcMd = calcMessageDigests(plFiles);
 		compareMessageDigests(calcMd);
