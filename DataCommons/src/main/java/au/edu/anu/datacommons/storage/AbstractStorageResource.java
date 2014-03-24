@@ -244,7 +244,7 @@ public class AbstractStorageResource {
 						} else {
 							addAccessLog(Operation.CREATE);
 						}
-						dcStorage.addFile(pid, ufi.getFilepath().toFile(), relPath);
+						dcStorage.addFile(pid, ufi, relPath);
 					}
 				}
 			}
@@ -292,7 +292,9 @@ public class AbstractStorageResource {
 			} else {
 				addAccessLog(Operation.CREATE);
 			}
-			dcStorage.addFile(pid, ufi.getFilepath().toFile(), path);
+			dcStorage.addFile(pid, ufi, path);
+			LOGGER.info("User {} ({}) added file {}/data/{}, Size: {}, MD5: {}", getCurUsername(), getRemoteIp(), pid,
+					path, Util.byteCountToDisplaySize(ufi.getSize()), ufi.getMd5());
 			resp = Response.ok(ufi.getMd5()).build();
 		} catch (NumberFormatException e) {
 			throw new WebApplicationException(e, Status.BAD_REQUEST);

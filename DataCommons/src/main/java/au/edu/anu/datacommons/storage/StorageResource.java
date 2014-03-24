@@ -23,10 +23,8 @@ package au.edu.anu.datacommons.storage;
 
 import static java.text.MessageFormat.format;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +41,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
@@ -51,14 +48,10 @@ import javax.ws.rs.core.Response.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
-import au.edu.anu.datacommons.security.acl.CustomACLPermission;
-import au.edu.anu.datacommons.storage.info.FileInfo;
-import au.edu.anu.datacommons.storage.info.FileInfo.Type;
 import au.edu.anu.datacommons.storage.info.RecordDataInfo;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 
@@ -82,14 +75,7 @@ public class StorageResource extends AbstractStorageResource {
 
 	@GET
 	@Path("data/{path:.*}")
-	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	public Response getFileOrDirAsJsonXml(@PathParam("pid") String pid, @PathParam("path") String path) {
-		return createFileOrDirResponse(pid, path, null);
-	}
-
-	@GET
-	@Path("data/{path:.*}")
-	@Produces({ MediaType.TEXT_HTML, MediaType.WILDCARD })
+	@Produces({ "text/html; qs=1.1", MediaType.WILDCARD })
 	public Response getFileOrDirAsHtml(@PathParam("pid") String pid, @PathParam("path") String path,
 			@QueryParam("action") String action, @QueryParam("f") Set<String> filepaths) {
 		if (action == null) {
@@ -101,6 +87,13 @@ public class StorageResource extends AbstractStorageResource {
 				return Response.status(Status.BAD_REQUEST).entity(format("Invalid action {0}", action)).build();
 			}
 		}
+	}
+
+	@GET
+	@Path("data/{path:.*}")
+	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+	public Response getFileOrDirAsJsonXml(@PathParam("pid") String pid, @PathParam("path") String path) {
+		return createFileOrDirResponse(pid, path, null);
 	}
 
 	@POST

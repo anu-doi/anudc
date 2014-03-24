@@ -72,15 +72,18 @@
 				<div id="div-action-icons" class="text-right">
 					<sec:authorize access="isAuthenticated()">
 						<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
-							<img id="action-create-folder" class="clickable-icon" src="<c:url value='/images/folder-new.png' />" onclick="createDir();"></img>
-							<img id="action-del-selected" class="clickable-icon disabled" src="<c:url value='/images/delete_red.png' />" onclick="deleteSelected();"></img>
+							<!-- Create Folder icon -->
+							<img id="action-create-folder" class="clickable-icon" src="<c:url value='/images/folder-new.png' />"></img>
+							<!-- Delete Selected Files icon -->
+							<img id="action-del-selected" class="clickable-icon" src="<c:url value='/images/delete_red.png' />"></img>
 						</sec:accesscontrollist>
 					</sec:authorize>
-					<img id="action-dl-zip" class="clickable-icon" src="<c:url value='/images/zip.png' />" onclick="document.frmFiles.submit()"></img>
+					<!-- Download selected files as Zip icon -->
+					<img id="action-dl-zip" class="clickable-icon" src="<c:url value='/images/zip.png' />"></img>
 					<sec:authorize access="hasRole('ROLE_ADMIN')">
 						<a href="<c:url value='${baseDataUrl}../admin?task=verify' />">
-							<img id="action-verify-files" class="clickable-icon" src="<c:url value='/images/screwdriver-spanner.png' />"
-									onclick="verifyFiles('')"></img>
+							<!-- Check bag files icon -->
+							<img id="action-verify-files" class="clickable-icon" src="<c:url value='/images/screwdriver-spanner.png' />"></img>
 						</a>
 					</sec:authorize>
 				</div>
@@ -88,7 +91,7 @@
 				<div>
 				<table id="tblFiles" class="w-doublewide tbl-row-bdr noborder anu-long-area tbl-files">
 					<tr class="anu-sticky-header">
-						<th class="col-checkbox"><input type="checkbox" onchange="toggleCheckboxes(this);" /></th>
+						<th class="col-checkbox"><input id="selectall" type="checkbox" /></th>
 						<th class="col-filename">Name</th>
 						<th class="col-filetype">Type</th>
 						<th class="col-filesize">Size</th>
@@ -107,18 +110,18 @@
 							</c:choose>
 							
 							<!-- Selection checkbox. -->
-							<td class="col-checkbox"><input type="checkbox" name="i" value="${relUrl}" onclick="condEnableSelTasks()" /></td>
+							<td class="col-checkbox"><input type="checkbox" name="i" value="${relUrl}" /></td>
 							
 							<!-- Icon and filename as hyperlink -->
 							<td class="col-filename"><a class="nounderline" href="<c:url value='${relUrl}'/>" title="${iFile.relFilepath}">
 								<c:choose>
 									<c:when test="${iFile.type == 'DIR'}">
-										<img src="//styles.anu.edu.au/_anu/images/icons/web/folder.png"
+										<img class="clickable-icon" src="//styles.anu.edu.au/_anu/images/icons/web/folder.png"
 												onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder-over.png'"
 												onmouseout="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder.png'" />
 									</c:when>
 									<c:when test="${iFile.type == 'FILE'}">
-										<img src="//styles.anu.edu.au/_anu/images/icons/web/paper.png"
+										<img class="clickable-icon" src="//styles.anu.edu.au/_anu/images/icons/web/paper.png"
 												onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper-over.png'"
 												onmouseout="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper.png'" />
 									</c:when>
@@ -178,7 +181,7 @@
 								</sec:authorize>
 								
 								<!-- Expand -->
-								<img class="clickable-icon" src="<c:url value='/images/arrow-right.png' />" onclick="jQuery('#filerow-extra-${stat.count}').slideToggle();" />
+								<img class="clickable-icon" id="expand-${stat.count}" src="<c:url value='/images/arrow-right.png' />" />
 							</td>
 						</tr>
 						
@@ -226,12 +229,12 @@
 	</c:choose>
 
 	<!-- Drag n Drop -->
-	<div id="dragandrophandler" class="w-doublewide">Drag &amp; Drop Files Here</div>
+	<div id="dragandrophandler" class="w-doublewide"></div>
 </div>
 
 <div class="doublewide nopadtop" id="extRefs" style="display: none;">
 	<div class="small w-doublewide">
-		<!-- External relations -->
+		<!-- External references -->
 		<sec:authorize access="isAuthenticated()">
 			<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
 				<button onclick="addExtRef()">Add External Reference</button>
@@ -240,7 +243,7 @@
 		<c:if test="${not empty it.rdi.extRefs}">
 			<ul>
 				<c:forEach var="iEntry" items="${it.rdi.extRefs}">
-					<li>
+					<li class="large">
 						<a href="${iEntry}"><c:out value='${iEntry}' /></a>&nbsp;&nbsp;
 						<img class="clickable-icon" src="<c:url value='/images/delete_red.png' />" onclick="deleteExtRef('${iEntry}');" />
 					</li>
@@ -296,7 +299,7 @@
 					<param name="sendMD5Sum" value="true" />
 					<param name="readCookieFromNavigator" value="true" />
 					<param name="type" value="application/x-java-applet;version=1.6">
-					<param name="afterUploadURL" value="<c:url value='${it.fileList.uri}' />" />
+					<param name="afterUploadURL" value="javascript:location.reload();" />
 					This Java Applet requires Java 1.6 or higher.
 				</applet>
 			</form>

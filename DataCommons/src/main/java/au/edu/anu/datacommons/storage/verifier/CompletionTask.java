@@ -114,11 +114,11 @@ public class CompletionTask implements Callable<Void>{
 		StopWatch sw = new StopWatch();
 		sw.start();
 		LOGGER.info("Completing tag files for {}...", pid);
-		eventListener.notify(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, bagDir, null);
+		eventListener.notify(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, bagDir, null, null);
 		Set<Path> plFiles = listFilesInDir(getPayloadDir());
 		verifyMessageDigests(plFiles);
 		verifyTagFiles(plFiles);
-		eventListener.notify(EventTime.POST, EventType.TAGFILE_UPDATE, pid, bagDir, null);
+		eventListener.notify(EventTime.POST, EventType.TAGFILE_UPDATE, pid, bagDir, null, null);
 		sw.stop();
 		LOGGER.info("Tag files completed for {}. Time taken {}", pid, sw.getTimeElapsedFormatted());
 		return null;
@@ -179,7 +179,6 @@ public class CompletionTask implements Callable<Void>{
 	}
 	
 	private void verifyTagFiles(Set<Path> plFiles) throws IOException {
-		List<Future<?>> waitlist = new ArrayList<>();
 		for (Path plFile : plFiles) {
 			String dataRelPath = getDataRelPath(plFile);
 
@@ -189,7 +188,13 @@ public class CompletionTask implements Callable<Void>{
 					LOGGER.info("{}/{} doesn't contain entry for {}.", pid, clazz.getSimpleName(), dataRelPath);
 					if (!dryRun) {
 						AbstractTagFileTask task = createTask(clazz, dataRelPath.replaceFirst("^data/", ""));
-						waitlist.add(threadPoolSvc.submit(task));
+						Future<Void> future = threadPoolSvc.submit(task);
+						// Running each task one at a time so as to not fill up the task queue.
+						try {
+							future.get();
+						} catch (InterruptedException | ExecutionException e) {
+							LOGGER.error(e.getMessage(), e);
+						}
 					}
 				}
 			}
@@ -197,13 +202,6 @@ public class CompletionTask implements Callable<Void>{
 
 		for (Class<? extends AbstractKeyValueFile> clazz : classes) {
 			removeExtraKeys(plFiles, clazz);
-		}
-		for (Future<?> f : waitlist) {
-			try {
-				f.get();
-			} catch (InterruptedException | ExecutionException e) {
-				LOGGER.error(e.getMessage(), e);
-			}
 		}
 	}
 

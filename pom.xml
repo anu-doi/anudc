@@ -38,6 +38,7 @@
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-log4j12</artifactId>
 				<version>1.7.5</version>
+				<scope>runtime</scope>
 			</dependency>
 			<dependency>
 				<groupId>junit</groupId>
@@ -105,6 +106,12 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>hamcrest-core</artifactId>
+					<groupId>org.hamcrest</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.hamcrest</groupId>

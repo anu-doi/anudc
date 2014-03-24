@@ -43,9 +43,7 @@ img.clickable-icon {
 	cursor: pointer;
 	width: 24px;
 	height: 24px;
-}
-img.clickable-icon.disabled {
-	opacity: 0.4;
+	vertical-align: baseline;
 }
 
 #dragandrophandler {
