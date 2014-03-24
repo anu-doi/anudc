@@ -50,8 +50,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.solr.SolrManager;
+import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.datacommons.search.SolrSearchResult;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.view.Viewable;

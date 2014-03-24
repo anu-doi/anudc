@@ -33,12 +33,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -48,12 +44,12 @@ import org.springframework.stereotype.Component;
 import au.edu.anu.datacommons.data.db.dao.LinkRelationDAO;
 import au.edu.anu.datacommons.data.db.dao.LinkRelationDAOImpl;
 import au.edu.anu.datacommons.data.db.model.LinkRelation;
-import au.edu.anu.datacommons.data.solr.SolrManager;
+import au.edu.anu.datacommons.data.solr.dao.SolrSearchDAO;
+import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.exception.DataCommonsException;
 import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
-import au.edu.anu.datacommons.search.SolrSearchResult;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.util.Util;
 
@@ -92,6 +88,9 @@ public class ListResource {
 	@Resource(name="riSearchJSONService")
 	ExternalPoster riSearchJSONService;
 	
+	@Resource(name="solrSearchDAOImpl")
+	SolrSearchDAO solrSearch;
+	
 	/**
 	 * getTemplates
 	 * 
@@ -111,31 +110,19 @@ public class ListResource {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Produces(MediaType.TEXT_HTML)
 	@Path("template")
-	public Response getTemplates() {
+	public Response getTemplates(@QueryParam("offset") int offset, @QueryParam("limit") int limit) {
 		Response response = null;
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
-		
-		SolrQuery solrQuery = new SolrQuery();
-		
-		solrQuery.setQuery("*:*");
-		solrQuery.addFilterQuery("template.type:template");
-		
-		solrQuery.addField("id");
-		
-		String returnFields = GlobalProps.getProperty(GlobalProps.PROP_SEARCH_SOLR_RETURNFIELDS);
-		String[] splitReturnFields = returnFields.split(",");
-		for (String field : splitReturnFields) {
-			solrQuery.addField("template." + field);
+		//Set the default number of records per page if it is not already set
+		if (limit == 0) {
+			String resultsPerPage = GlobalProps.getProperty("search.resultsPerPage");
+			limit = Integer.parseInt(resultsPerPage);
 		}
-		solrQuery.addSortField("id", ORDER.asc);
-
+		
 		Map<String, Object> model = new HashMap<String, Object>();
 
 		try {
-			QueryResponse queryResponse = solrServer.query(solrQuery);
-
-			SolrDocumentList resultList = queryResponse.getResults();
-			SolrSearchResult solrSearchResult = new SolrSearchResult(resultList);
+			SolrSearchResult solrSearchResult = solrSearch.executeSearch("*:*", offset, limit, "template", "id", ORDER.asc);
+			solrSearchResult.getDocumentList().size();
 			model.put("resultSet", solrSearchResult);
 			response = Response.ok(new Viewable("/listtemplate.jsp", model)).build();
 		}

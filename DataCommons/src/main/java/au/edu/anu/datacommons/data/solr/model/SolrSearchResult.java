@@ -19,33 +19,78 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.search;
+package au.edu.anu.datacommons.data.solr.model;
 
 import org.apache.solr.common.SolrDocumentList;
 
+/**
+ * SolrSearchResult
+ *
+ * Australian National University Data Commons
+ * 
+ * Wrapper class for SolrDocumentList's so that they can be used for things such as JSP files.
+ * This is needed as JSP converts it to a Collection object so for example the number of resutls found
+ * cannot be accessed
+ *
+ * JUnit coverage:
+ * None
+ * 
+ * @author Genevieve Turner
+ *
+ */
 public class SolrSearchResult {
 	SolrDocumentList resultDocuments = null;
 	
+	/**
+	 * Constructor
+	 * 
+	 * @param results The document list
+	 */
 	public SolrSearchResult(SolrDocumentList results) {
 		this.resultDocuments = results;
 	}
 	
+	/**
+	 * Get the number of results found for the search
+	 * 
+	 * @return The number of results
+	 */
 	public long getNumFound() {
 		return resultDocuments.getNumFound();
 	}
 	
+	/**
+	 * Get the record to start at
+	 * 
+	 * @return The start record
+	 */
 	public long getStart() {
 		return resultDocuments.getStart();
 	}
 	
+	/**
+	 * Get the maximum score
+	 * 
+	 * @return The maximum score
+	 */
 	public float getMaxScore() {
 		return resultDocuments.getMaxScore();
 	}
 	
+	/**
+	 * Get the document list
+	 * 
+	 * @return The document list
+	 */
 	public SolrDocumentList getDocumentList() {
 		return resultDocuments;
 	}
 	
+	/**
+	 * Set the document list
+	 * 
+	 * @param results The document list
+	 */
 	public void setDocumentList(SolrDocumentList results) {
 		this.resultDocuments = results;
 	}

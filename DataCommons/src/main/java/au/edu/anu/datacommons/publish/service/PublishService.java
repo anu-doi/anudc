@@ -31,8 +31,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.exception.ValidateException;
-import au.edu.anu.datacommons.search.SolrSearchResult;
 
 /**
  * PublishService

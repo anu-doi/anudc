@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
 <anu:header id="1998" title="Welcome" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
@@ -15,6 +16,24 @@
 	<p>Welcome to the ANU Data Commons.</p>
 	<p>This project will allow people to add information about their datasets, catalogues etc.</p>
 	<p><jsp:include page="searchbox.jsp"></jsp:include> </p>
+	<div id="divSearchResults">
+		<c:if test="${it.resultSet != null and it.resultSet.numFound > 0}">
+			<hr />
+			<h2>Recently Updated Records</h2>
+			<c:forEach items="${it.resultSet.documentList}" var="row">
+				<a href="<c:url value="/rest/display/${row['id']}?layout=def:display" />"><c:out value="${row['unpublished.name']}" /></a>&nbsp;&nbsp;<span class="text-grey50">[${row['id']}]</span><br />
+				<c:set var="briefDesc" value="${fn:substring(row['unpublished.briefDesc'][0],0,100) }" />
+				${briefDesc}
+				<c:if test="${empty row['unpublished.briefDesc'][0]}">
+					<c:set var="fullDesc" value="${fn:substring(row['unpublished.fullDesc'][0],0,100) }" />
+					${fullDesc}
+				</c:if>
+				<br/>
+				<br />
+			</c:forEach>
+			<br />
+		</c:if>
+	</div>
 </anu:content>
 
 <!-- Section for changelogs, updates, news and announcements etc. for users to see. -->

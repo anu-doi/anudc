@@ -22,7 +22,6 @@
 package au.edu.anu.datacommons.search;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -33,20 +32,14 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import au.edu.anu.datacommons.data.db.model.Groups;
-import au.edu.anu.datacommons.data.solr.SolrManager;
-import au.edu.anu.datacommons.data.solr.SolrUtils;
-import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.data.solr.dao.SolrSearchDAO;
+import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.util.Util;
 
@@ -81,6 +74,9 @@ public class SearchService
 	@Resource(name="groupServiceImpl")
 	GroupService groupService;
 	
+	@Resource(name="solrSearchDAOImpl")
+	SolrSearchDAO solrSearch;
+	
 	/**
 	 * doGetAsXml
 	 * 
@@ -105,8 +101,7 @@ public class SearchService
 		Response response = null;
 		
 		try {
-			QueryResponse queryResponse = executeQuery(q, offset, limit, filter);
-			SolrDocumentList resultList = queryResponse.getResults();
+			SolrSearchResult resultList = solrSearch.executeSearch(q, offset, limit, filter);
 			response = Response.ok(resultList).build();
 		}
 		catch (SolrServerException e) {
@@ -143,11 +138,7 @@ public class SearchService
 			Map<String, Object> model = new HashMap<String, Object>();
 			try {
 				LOGGER.info("User {} submitted search query [{}]", getCurUsername(), q);
-				QueryResponse queryResponse = executeQuery(q, offset, limit, filter);
-				
-				SolrDocumentList resultList = queryResponse.getResults();
-				LOGGER.trace("Number of results: {}",resultList.getNumFound());
-				SolrSearchResult solrSearchResult = new SolrSearchResult(resultList);
+				SolrSearchResult solrSearchResult = solrSearch.executeSearch(q, offset, limit, filter);
 				model.put("resultSet", solrSearchResult);
 			}
 			catch (SolrServerException e) {
@@ -191,8 +182,7 @@ public class SearchService
 		Response response = null;
 		
 		try {
-			QueryResponse queryResponse = executeQuery(q, offset, limit, filter);
-			SolrDocumentList resultList = queryResponse.getResults();
+			SolrSearchResult resultList = solrSearch.executeSearch(q, offset, limit, filter);
 			response = Response.ok(resultList).build();
 		}
 		catch (SolrServerException e) {
@@ -200,174 +190,6 @@ public class SearchService
 			response = Response.status(Status.BAD_REQUEST).build();
 		}
 		return response;
-	}
-	
-	
-	/**
-	 * executeQuery
-	 *
-	 * Executes a query on the solr search engine
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.4		13/06/2012	Genevieve Turner(GT)	Initial
-	 * 0.5		13/06/2012	Genevieve Turner (GT)	Updated for varying search filters
-	 * 0.7		23/07/2012	Genevieve Turner (GT)	Added Solr query character escaping
-	 * </pre>
-	 * 
-	 * @param q	Search terms
-	 * @param offset Offset amount (i.e. the value to start the search from)
-	 * @param limit How many rows to return
-	 * @param filter Extra filters
-	 * @return The response to the query
-	 * @throws SolrServerException
-	 */
-	private QueryResponse executeQuery (String q, int offset, int limit, String filter) throws SolrServerException {
-		// Remove some of Solr/Lucene's special characters
-		q = SolrUtils.escapeSpecialCharacters(q);
-		
-		Object[] list = {q, offset, limit};
-		LOGGER.trace("Query Term: {}, Offset: {}, Limit: {}", list);
-
-		SolrQuery solrQuery = new SolrQuery();
-		
-		if ("team".equals(filter)) {
-			setTeamQuery(solrQuery, q);
-		}
-		else if ("published".equals(filter)) {
-			setPublishedQuery(solrQuery, q);
-		}
-		else {
-			setAllQuery(solrQuery, q);
-		}
-		solrQuery.setStart(offset);
-		solrQuery.setRows(limit);
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
-		QueryResponse queryResponse = solrServer.query(solrQuery);
-		return queryResponse;
-	}
-
-	/**
-	 * setAllQuery
-	 *
-	 * Creates the query for where the all/no filter has been selected
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.5		13/06/2012	Genevieve Turner(GT)	Initial
-	 * 0.6		18/06/2012	Genevieve Turner (GT)	Fixed an issue where there is an exception if the filterGroups is null
-	 * </pre>
-	 * 
-	 * @param solrQuery The query that will be sent to the SolrServer
-	 * @param q The values to search for
-	 */
-	private void setAllQuery(SolrQuery solrQuery, String q) {
-		String filterGroups = getGroupsString();
-		solrQuery.setQuery("published.all:(" + q + ") unpublished.all:(" + q + ")");
-		
-		solrQuery.addField("id");
-		setReturnFields("published", solrQuery);
-		setReturnFields("unpublished", solrQuery);
-		if (Util.isNotEmpty(filterGroups)) {
-			solrQuery.addFilterQuery("(location.published:ANU or unpublished.ownerGroup:(" + filterGroups + "))");
-		}
-		else {
-			solrQuery.addFilterQuery("location.published:ANU");
-		}
-	}
-	
-	/**
-	 * setTeamQuery
-	 *
-	 * Creates the query where the team filter has been selected
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.5		13/06/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @param solrQuery The query that will be sent to the SolrServer
-	 * @param q The values to search for
-	 */
-	private void setTeamQuery(SolrQuery solrQuery, String q) {
-
-		if (groupService == null) {
-			LOGGER.error("Group service is null");
-		}
-		else {
-			String filterGroups = getGroupsString();
-			solrQuery.setQuery("unpublished.all:(" + q + ")");
-			
-			solrQuery.addField("id");
-			setReturnFields("unpublished", solrQuery);
-			solrQuery.addFilterQuery("unpublished.ownerGroup:(" + filterGroups + ")");
-		}
-	}
-	
-	/**
-	 * setPublishedQuery
-	 *
-	 * Creates the query where the published filter has been selected
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.5		13/06/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @param solrQuery The query that will be sent to the SolrServer
-	 * @param q The values to search for
-	 */
-	private void setPublishedQuery(SolrQuery solrQuery, String q) {
-		solrQuery.setQuery("published.all:(" + q + ")");
-		
-		solrQuery.addField("id");
-		setReturnFields("published", solrQuery);
-		
-		solrQuery.addFilterQuery("location.published:ANU");
-	}
-	
-	/**
-	 * getGroupsString
-	 *
-	 * Creates a string of combined groups to be used in filters
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.5		13/06/2012	Genevieve Turner (GT)	Initial
-	 * </pre>
-	 * 
-	 * @return Returns a string of combined groups
-	 */
-	private String getGroupsString() {
-		StringBuffer filterGroups = new StringBuffer();
-		List<Groups> groups = groupService.getAll();
-		for (Groups group : groups) {
-			filterGroups.append(group.getId());
-			filterGroups.append(" ");
-		}
-		LOGGER.trace("Filter Groups: {}", filterGroups.toString());
-		return filterGroups.toString();
-	}
-	
-	/**
-	 * setReturnFields
-	 *
-	 * Sets the return fields for the solr query based upon the property
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.5		14/06/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @param type The prefix of the field to search (e.g. 'published' or 'unpublished')
-	 * @param solrQuery The query that will be sent to the SolrServer
-	 */
-	private void setReturnFields(String type, SolrQuery solrQuery) {
-		String returnFields = GlobalProps.getProperty(GlobalProps.PROP_SEARCH_SOLR_RETURNFIELDS);
-		String[] splitReturnFields = returnFields.split(",");
-		for (String field : splitReturnFields) {
-			solrQuery.addField(type + "." + field);
-		}
 	}
 	
 	private String getCurUsername() {

@@ -39,8 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.data.solr.SolrManager;
+import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.exception.DataCommonsException;
-import au.edu.anu.datacommons.search.SolrSearchResult;
 
 import com.sun.jersey.api.view.Viewable;
 

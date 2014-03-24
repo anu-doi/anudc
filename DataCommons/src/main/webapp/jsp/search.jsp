@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <anu:header id="1998" title="Search" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
@@ -42,33 +43,9 @@
 			</c:forEach>
 			<br />
 			
-			<fmt:bundle basename='global'>
-				<fmt:message var="searchItemsPerPage" key='search.resultsPerPage' />
-			</fmt:bundle>
-			<c:set var="curPage" value="${(param.offset == null ? 0 : param.offset) / searchItemsPerPage + 1}" />
-			<p class="text-centre">
-				<c:if test="${it.resultSet.numFound > 0}">
-					Pages&nbsp;
-					
-					<c:forEach begin="0" end="${((it.resultSet.numFound - 1) / searchItemsPerPage) - (((it.resultSet.numFound - 1) / searchItemsPerPage) % 1)}" var="i">
-						<c:url var="searchURL" value='/rest/search'>
-							<c:param name='q' value='${param.q}' />
-							<c:param name='offset' value='${i * searchItemsPerPage}' />
-							<c:param name='limit' value='${searchItemsPerPage}' />
-						</c:url>
-						<a class="nounderline"
-							href="${searchURL}">
-							<c:if test="${i == curPage - 1}">
-								<strong>
-							</c:if>
-							<c:out value="[ ${i + 1} ]" />
-							<c:if test="${i == curPage - 1}">
-								</strong>
-							</c:if>
-						</a>
-					</c:forEach>
-				</c:if>
-			</p>
+			<jsp:include page="/jsp/search_pages.jsp">
+				<jsp:param value="/rest/search" name="searchURLPart"/>
+			</jsp:include>
 		</c:if>
 	</div>
 </anu:content>

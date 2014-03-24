@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.SolrUtils;
-import au.edu.anu.datacommons.search.SolrSearchResult;
+import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.view.Viewable;
