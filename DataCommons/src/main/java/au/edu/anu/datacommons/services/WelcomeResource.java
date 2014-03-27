@@ -73,7 +73,7 @@ public class WelcomeResource {
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public Response getWelcomePage() {
-		LOGGER.info("In Welcome Resource");
+		LOGGER.debug("Opening welcome page...");
 		Map<String, Object> model = new HashMap<String, Object>();
 		
 		if (solrSearch != null) {
@@ -81,18 +81,18 @@ public class WelcomeResource {
 				SecurityContextHolder.getContext().getAuthentication().isAuthenticated();
 				Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 				if (auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
-					LOGGER.debug("Authenticated Username: {}", auth.getName());
+					LOGGER.debug("User {} is authenticated.  Attempting to find recently updated records for the user", auth.getName());
 					SolrSearchResult searchResult = solrSearch.executeSearch("*", 0, 10, "team", "_docid_", ORDER.desc);
 					model.put("resultSet", searchResult);
 				}
 			}
 			catch (SolrServerException e) {
 				LOGGER.error("Error executing search", e);
-				throw new DataCommonsException(Status.INTERNAL_SERVER_ERROR, "A problem was encountered executing search");
+				throw new DataCommonsException(Status.INTERNAL_SERVER_ERROR, "A problem occured while trying to open the home page");
 			}
 		}
 		else {
-			LOGGER.error("SolrSearch is null");
+			LOGGER.error("SolrSearch is null.  Resource not injected");
 		}
 		
 		return Response.ok(new Viewable("/welcome.jsp", model)).build();

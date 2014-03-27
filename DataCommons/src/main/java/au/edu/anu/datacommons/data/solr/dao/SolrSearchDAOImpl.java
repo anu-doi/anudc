@@ -68,7 +68,7 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 		q = SolrUtils.escapeSpecialCharacters(q);
 		
 		Object[] list = {q, offset, limit};
-		LOGGER.trace("Query Term: {}, Offset: {}, Limit: {}", list);
+		LOGGER.debug("Values to use to generate query for Solr - Query Limiter: {} Query Term: {}, Offset: {}, Limit: {}", list);
 		
 		SolrQuery solrQuery = new SolrQuery();
 		setQueryTerms(solrQuery, q, filter);
@@ -84,8 +84,8 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 			String filter, String sortField, ORDER sortOrder) throws SolrServerException {
 		q = SolrUtils.escapeSpecialCharacters(q);
 		
-		Object[] list = {q, offset, limit};
-		LOGGER.trace("Query Term: {}, Offset: {}, Limit: {}", list);
+		Object[] list = {filter, q, offset, limit, sortField, sortOrder};
+		LOGGER.debug("Values to use to generate query for Solr - Query Limiter: {} Query Term: {}, Offset: {}, Limit: {}, Sort Field: {}, Sort Order: {}", list);
 		
 		SolrQuery solrQuery = new SolrQuery();
 		setQueryTerms(solrQuery, q, filter);
@@ -99,7 +99,7 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 	
 	@Override
 	public SolrSearchResult executeSearch(SolrQuery solrQuery) throws SolrServerException {
-		LOGGER.debug("Solr Query: {}", solrQuery.toString());
+		LOGGER.debug("Query to send to Solr: {}", solrQuery.toString());
 		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
 		QueryResponse queryResponse = solrServer.query(solrQuery);
 		SolrSearchResult result = new SolrSearchResult(queryResponse.getResults());
@@ -136,7 +136,7 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 	 * @param q The value to query for
 	 */
 	private void setAllQuery(SolrQuery solrQuery, String q) {
-		LOGGER.debug("Set all query");
+		LOGGER.trace("Query all published and those unpublished records the user has permission to view");
 		String filterGroups = getGroupsString();
 		solrQuery.setQuery("published.all:(" + q + ") unpublished.all:(" + q + ")");
 		
@@ -158,7 +158,7 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 	 * @param q The value to query for
 	 */
 	private void setTeamQuery(SolrQuery solrQuery, String q) {
-		LOGGER.debug("Set team query");
+		LOGGER.trace("Query the unpublished records the user has permission to view");
 
 		if (groupService == null) {
 			LOGGER.error("Group service is null");
@@ -183,7 +183,7 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 	 * @param q The value to query for
 	 */
 	private void setPublishedQuery(SolrQuery solrQuery, String q) {
-		LOGGER.debug("Set published query");
+		LOGGER.trace("Query only the published records");
 		
 		solrQuery.setQuery("published.all:(" + q + ")");
 		
@@ -200,7 +200,7 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 	 * @param q The value to query for. Please note that this is not currently used for template queries.
 	 */
 	private void setTemplateQuery(SolrQuery solrQuery, String q) {
-		LOGGER.debug("Set template query");
+		LOGGER.trace("Query the templates");
 		
 		solrQuery.setQuery("*:*");
 		
