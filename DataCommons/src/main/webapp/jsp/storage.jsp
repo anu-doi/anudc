@@ -84,7 +84,7 @@
 						<!-- Check bag files icon -->
 						<sec:authorize access="hasRole('ROLE_ADMIN')">
 							<a href="<c:url value='${baseDataUrl}../admin?task=verify' />">
-								<img id="action-verify-files" class="clickable-icon" src="<c:url value='/images/screwdriver-spanner.png' />"></img>
+								<img id="action-verify-files" class="clickable-icon" src="//styles.anu.edu.au/_anu/images/icons/web/check.png"></img>
 							</a>
 						</sec:authorize>
 					</div>
@@ -169,9 +169,17 @@
 								
 								<!-- Virus Scan Icon -->
 								<c:choose>
-									<c:when test="${fn:containsIgnoreCase(iFile.scanResult, 'found')}">
+									<c:when test="${fn:endsWith(iFile.scanResult, 'FOUND')}">
 										<img title="VIRUS FOUND!! ${iFile.scanResult}" class="clickable-icon" src="<c:url value='/images/circle_red.png' />"></img>
 									</c:when>
+									<c:when test="${fn:endsWith(iFile.scanResult, 'OK')}">
+										<!-- No virus found -->
+									</c:when>
+									<c:otherwise>
+										<c:if test="${iFile.type == 'FILE'}">
+											<!-- File could not be scanned -->
+										</c:if>
+									</c:otherwise>
 								</c:choose>
 								
 								<!-- Delete icon -->

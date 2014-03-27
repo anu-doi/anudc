@@ -203,16 +203,16 @@ public class AbstractStorageResource {
 			uploadedItems = parseUploadRequest(request);
 
 			// Retrieve pid and MD5 from request.
-			String md5 = null;
+			String clientCalculatedmd5 = null;
 
 			for (FileItem fi : uploadedItems) {
 				if (fi.isFormField()) {
 					if (fi.getFieldName().equals("md5sum0")) {
-						md5 = fi.getString();
+						clientCalculatedmd5 = fi.getString();
 					}
 				}
 			}
-			if (md5 == null || md5.length() == 0) {
+			if (clientCalculatedmd5 == null || clientCalculatedmd5.length() == 0) {
 				throw new NullPointerException("MD5 cannot be null.");
 			}
 			if (pid == null || pid.length() == 0) {
@@ -227,12 +227,12 @@ public class AbstractStorageResource {
 					Future<UploadedFileInfo> future;
 					if (filePart > 0) {
 						String partFilename = format("{0}-{1}-{2}.part", DcStorage.convertToDiskSafe(dirPath),
-								DcStorage.convertToDiskSafe(pid), md5);
+								DcStorage.convertToDiskSafe(pid), clientCalculatedmd5);
 						// Not specifying expected size of merged file because JUpload provides only part file's size.
 						future = tmpFileSvc.savePartStream(fi.getInputStream(), filePart, isLastPart, partFilename, -1,
-								md5);
+								clientCalculatedmd5);
 					} else {
-						future = tmpFileSvc.saveInputStream(fi.getInputStream(), fi.getSize(), md5);
+						future = tmpFileSvc.saveInputStream(fi.getInputStream(), fi.getSize(), clientCalculatedmd5);
 					}
 					ufi = future.get();
 

@@ -24,9 +24,7 @@ package au.edu.anu.datacommons.storage.event.tasks;
 import java.io.InputStream;
 import java.nio.file.Path;
 
-import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.storage.completer.virusscan.ClamScan;
-import au.edu.anu.datacommons.storage.info.ScanResult;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 
@@ -42,10 +40,11 @@ public class VirusScanTask extends AbstractTagFileTask {
 
 	@Override
 	protected void processTask() throws Exception {
-		ClamScan cs = new ClamScan(GlobalProps.getClamScanHost(), GlobalProps.getClamScanPort(), GlobalProps.getClamScanTimeout());
+		// ClamScan cs = new ClamScan(GlobalProps.getClamScanHost(), GlobalProps.getClamScanPort(), GlobalProps.getClamScanTimeout());
+		ClamScan cs = new ClamScan();
 		try (InputStream fileStream = createInputStream()) {
-			ScanResult sr = cs.scan(fileStream);
-			tagFilesSvc.addEntry(pid, VirusScanTagFile.class, dataPrependedRelPath, sr.getResult());
+			String result = cs.scan(absFilepath);
+			tagFilesSvc.addEntry(pid, VirusScanTagFile.class, dataPrependedRelPath, result);
 		}
 	}
 }

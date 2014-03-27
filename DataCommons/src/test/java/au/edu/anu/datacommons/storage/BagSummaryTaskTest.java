@@ -21,11 +21,11 @@
 
 package au.edu.anu.datacommons.storage;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import gov.loc.repository.bagit.Bag;
 import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.BagFactory.LoadOption;
-import gov.loc.repository.bagit.transformer.impl.ChainingCompleter;
 import gov.loc.repository.bagit.writer.impl.FileSystemWriter;
 
 import java.io.File;
@@ -39,27 +39,21 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
 import org.apache.commons.io.FileUtils;
-import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.DeserializationConfig.Feature;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.datacommons.storage.completer.DcStorageCompleter;
-import au.edu.anu.datacommons.storage.completer.preserve.PreservationCompleter;
 import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileSummary;
-import au.edu.anu.datacommons.test.util.TestUtil;
 
 /**
  * @author Rahul Khanna
@@ -110,7 +104,6 @@ public class BagSummaryTaskTest {
 		FileUtils.copyFile(resFile2, payloadFile2);
 
 		Bag bag = bf.createBag(bagDir.getRoot(), LoadOption.BY_FILES);
-		bag = bag.makeComplete(new ChainingCompleter(new PreservationCompleter(ff), new DcStorageCompleter(ff)));
 		bag = bag.makeComplete();
 		FileSystemWriter fsWriter = new FileSystemWriter(bf);
 		bag = fsWriter.write(bag, bagDir.getRoot());

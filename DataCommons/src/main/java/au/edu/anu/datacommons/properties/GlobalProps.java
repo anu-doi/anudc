@@ -26,6 +26,8 @@ import static java.text.MessageFormat.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -224,6 +226,10 @@ public final class GlobalProps {
 	
 	public static String getStorageSolrUrl() {
 		return getProperty("storage.search.url");
+	}
+	
+	public static Path getClamScanPath() {
+		return Paths.get(getProperty("clamscan.path"));
 	}
 
 	private static void createIfNotExists(File dir) {
