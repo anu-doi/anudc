@@ -35,11 +35,16 @@ import javax.persistence.UniqueConstraint;
 import au.edu.anu.datacommons.data.db.model.Domains;
 import au.edu.anu.datacommons.data.db.model.Groups;
 
+/**
+ * Entity class to map a question to a record, to a group or to a domain.
+ * 
+ * @author Rahul Khanna
+ *
+ */
 @Entity
-@Table(name = "question_map", uniqueConstraints = @UniqueConstraint(columnNames =
-{ "pid", "question_fk", "group_fk", "domain_fk" }))
-public class QuestionMap
-{
+@Table(name = "question_map", uniqueConstraints = @UniqueConstraint(columnNames = { "pid", "question_fk", "group_fk",
+		"domain_fk" }))
+public class QuestionMap {
 	private Long id;
 	private String pid;
 	private Question question;
@@ -47,23 +52,21 @@ public class QuestionMap
 	private Domains domain;
 	private Boolean required;
 
-	protected QuestionMap()
-	{
+	protected QuestionMap() {
 	}
 
-	public QuestionMap(String pid, Question question, Boolean required)
-	{
+	public QuestionMap(String pid, Question question, Boolean required) {
 		this.pid = pid;
 		this.question = question;
 		this.required = required;
 	}
-	
+
 	public QuestionMap(Groups group, Question question, Boolean required) {
 		this.group = group;
 		this.question = question;
 		this.required = required;
 	}
-	
+
 	public QuestionMap(Domains domain, Question question, Boolean required) {
 		this.domain = domain;
 		this.question = question;
@@ -73,44 +76,38 @@ public class QuestionMap
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	public Long getId()
-	{
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Long id)
-	{
+	public void setId(Long id) {
 		this.id = id;
 	}
 
 	@Column(name = "pid")
-	public String getPid()
-	{
+	public String getPid() {
 		return pid;
 	}
 
-	public void setPid(String pid)
-	{
+	public void setPid(String pid) {
 		this.pid = pid;
 	}
 
 	@OneToOne
 	@JoinColumn(name = "question_fk")
-	public Question getQuestion()
-	{
+	public Question getQuestion() {
 		return question;
 	}
 
-	public void setQuestion(Question question)
-	{
+	public void setQuestion(Question question) {
 		this.question = question;
 	}
 
 	/**
 	 * getGroup
-	 *
+	 * 
 	 * Get the group
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		03/04/2013	Genevieve Turner(GT)	Initial
@@ -119,22 +116,23 @@ public class QuestionMap
 	 * @return the group
 	 */
 	@ManyToOne
-	@JoinColumn(name = "group_fk", referencedColumnName="id")
+	@JoinColumn(name = "group_fk", referencedColumnName = "id")
 	public Groups getGroup() {
 		return group;
 	}
 
 	/**
 	 * setGroup
-	 *
+	 * 
 	 * Set the group
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		03/04/2013	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @param group the group to set
+	 * @param group
+	 *            the group to set
 	 */
 	public void setGroup(Groups group) {
 		this.group = group;
@@ -142,9 +140,9 @@ public class QuestionMap
 
 	/**
 	 * getDomain
-	 *
+	 * 
 	 * Get the domain
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		03/04/2013	Genevieve Turner(GT)	Initial
@@ -153,22 +151,23 @@ public class QuestionMap
 	 * @return the domain
 	 */
 	@ManyToOne
-	@JoinColumn(name = "domain_fk", referencedColumnName="id")
+	@JoinColumn(name = "domain_fk", referencedColumnName = "id")
 	public Domains getDomain() {
 		return domain;
 	}
 
 	/**
 	 * setDomain
-	 *
+	 * 
 	 * Set the domain
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		03/04/2013	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @param domain the domain to set
+	 * @param domain
+	 *            the domain to set
 	 */
 	public void setDomain(Domains domain) {
 		this.domain = domain;
@@ -176,9 +175,9 @@ public class QuestionMap
 
 	/**
 	 * getRequired
-	 *
+	 * 
 	 * Get whether it is a required question
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		05/04/2013	Genevieve Turner(GT)	Initial
@@ -192,15 +191,16 @@ public class QuestionMap
 
 	/**
 	 * setRequired
-	 *
+	 * 
 	 * Set whether it is a required question
-	 *
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.2		05/04/2013	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @param required the required to set
+	 * @param required
+	 *            the required to set
 	 */
 	public void setRequired(Boolean required) {
 		this.required = required;

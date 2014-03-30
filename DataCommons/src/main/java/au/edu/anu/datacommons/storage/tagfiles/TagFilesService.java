@@ -38,7 +38,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +48,10 @@ import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 
 /**
+ * Service class that provides methods for reading and writing to tag files within collection records. The changes are
+ * cached in memory until the next scheduled write. A changes are written to disk repeatedly at an interval set in the
+ * writeFreq field. A final write is performed when instance is destroyed.
+ * 
  * @author Rahul Khanna
  * 
  */
@@ -64,6 +67,9 @@ public class TagFilesService {
 	private long writeFreq;
 	private int cacheSize;
 	
+	/**
+	 * Runnable task class that writes changes to disk in another thread.
+	 */
 	private Runnable writeAllPidTagFilesTask = new Runnable() {
 
 			@Override
@@ -71,17 +77,26 @@ public class TagFilesService {
 				try {
 					writeAllPidTagFiles();
 				} catch (Exception e) {
-					// Not rethrowing this exception so the this task continues to get executed next time.
+					// Not rethrowing this exception so the this task continues to get scheduled. An uncaught exception
+					// will result in this task not running again.
 					LOGGER.error(e.getMessage(), e);
 				}
 			}
 
 	};
 
+	/**
+	 * @param bagsRoot
+	 *            Root directory where all bag folders are located.
+	 */
 	public TagFilesService(String bagsRoot) {
 		this(Paths.get(bagsRoot));
 	}
 
+	/**
+	 * @param bagsRoot
+	 *            Root directory where all bag folders are located.
+	 */
 	public TagFilesService(Path bagsRoot) {
 		super();
 		this.bagsRoot = bagsRoot;
@@ -103,14 +118,40 @@ public class TagFilesService {
 				});
 	}
 	
+	/**
+	 * Sets the frequency at which changes will be written to disk.
+	 * 
+	 * @param writeFreq
+	 * Frequency as 
+	 */
 	public void setWriteFreq(long writeFreq) {
 		this.writeFreq = writeFreq;
 	}
 	
+	/**
+	 * Sets the maximum number of records whose tag files will be held in memory.
+	 * 
+	 * @param cacheSize
+	 *            Max number of records in cache as int
+	 */
 	public void setMaxEntries(int cacheSize) {
 		this.cacheSize = cacheSize;
 	}
 
+	/**
+	 * Adds an entry into a specified tag file.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param clazz
+	 *            Class of the tag file (extends {@link AbstractKeyValueFile})
+	 * @param key
+	 *            Key to be stored
+	 * @param value
+	 *            Value to be stored against the Key
+	 * @throws IOException
+	 *             when unable to read values from file (if tag file not already loaded in memory)
+	 */
 	public void addEntry(String pid, Class<? extends AbstractKeyValueFile> clazz, String key, String value)
 			throws IOException {
 		loadPid(pid);
@@ -119,6 +160,17 @@ public class TagFilesService {
 		keyValueFile.put(key, value);
 	}
 
+	/**
+	 * Returns all key-value entries in a specified tag file.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param clazz
+	 *            Class of the tag file (extends {@link AbstractKeyValueFile})
+	 * @return Key-Value pairs as a Map<String, String>
+	 * @throws IOException
+	 *             when unable to read values from file (if tag file not already loaded in memory)
+	 */
 	public Map<String, String> getAllEntries(String pid, Class<? extends AbstractKeyValueFile> clazz)
 			throws IOException {
 		loadPid(pid);
@@ -127,6 +179,18 @@ public class TagFilesService {
 		return Collections.unmodifiableMap(keyValueFile);
 	}
 
+	/**
+	 * Removes the specified key from a tag file.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param clazz
+	 *            Class of the tag file (extends {@link AbstractKeyValueFile})
+	 * @param key
+	 *            Key to delete
+	 * @throws IOException
+	 *             when unable to read values from file (if tag file not already loaded in memory)
+	 */
 	public void removeEntry(String pid, Class<? extends AbstractKeyValueFile> clazz, String key) throws IOException {
 		loadPid(pid);
 		Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFilesMap = pidMap.get(pid);
@@ -134,6 +198,19 @@ public class TagFilesService {
 		keyValueFile.remove(key);
 	}
 
+	/**
+	 * Gets the value for a specified key in a tag file.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param clazz
+	 *            Class of the tag file (extends {@link AbstractKeyValueFile})
+	 * @param key
+	 *            Key whose value is requested
+	 * @return Value as String
+	 * @throws IOException
+	 *             when unable to read values from file (if tag file not already loaded in memory)
+	 */
 	public String getEntryValue(String pid, Class<? extends AbstractKeyValueFile> clazz, String key) throws IOException {
 		loadPid(pid);
 		Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFilesMap = pidMap.get(pid);
@@ -141,6 +218,19 @@ public class TagFilesService {
 		return keyValueFile.get(key);
 	}
 	
+	/**
+	 * Returns if a tag file contains the specified key.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param clazz
+	 *            Class of the tag file (extends {@link AbstractKeyValueFile})
+	 * @param key
+	 *            Key whose value is requested
+	 * @return true if Key exists in the tag file, false otherwise.
+	 * @throws IOException
+	 *             when unable to read values from file (if tag file not already loaded in memory)
+	 */
 	public boolean containsKey(String pid, Class<? extends AbstractKeyValueFile> clazz, String key) throws IOException {
 		loadPid(pid);
 		Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFilesMap = pidMap.get(pid);
@@ -148,6 +238,16 @@ public class TagFilesService {
 		return keyValueFile.containsKey(key);
 	}
 	
+	/**
+	 * Removes all entries from a specified tag file.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param clazz
+	 *            Class of the tag file (extends {@link AbstractKeyValueFile})
+	 * @throws IOException
+	 *             when unable to read values from file (if tag file not already loaded in memory)
+	 */
 	public void clearAllEntries(String pid, Class<? extends AbstractKeyValueFile> clazz) throws IOException {
 		loadPid(pid);
 		Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFilesMap = pidMap.get(pid);
@@ -155,12 +255,32 @@ public class TagFilesService {
 		keyValueFile.clear();
 	}
 	
+	/**
+	 * Returns a collection of classes for tagfiles that have been loaded for a specified record.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @return Classes of tagfiles as Collection<Class<? extends AbstractKeyValueFile>>
+	 * @throws IOException
+	 *             when unable to read values from file (if tag file not already loaded in memory)
+	 */
 	public Collection<Class<? extends AbstractKeyValueFile>> getTagFileClasses(String pid) throws IOException {
 		loadPid(pid);
 		Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFilesMap = pidMap.get(pid);
 		return Collections.unmodifiableSet(tagFilesMap.keySet());
 	}
 	
+	/**
+	 * Generates a message digest for each tag file loaded for a specified collection record.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param alg
+	 *            Algorithm of message digest to generate
+	 * @return Map of tag file names as keys and their computed message digest as values.
+	 * @throws IOException
+	 *             when unable to read values from file (if tag file not already loaded in memory)
+	 */
 	public Map<String, String> generateMessageDigests(String pid, Algorithm alg) throws IOException {
 		Map<String, String> tagFilesMd = new HashMap<String, String>();
 		loadPid(pid);
@@ -173,12 +293,23 @@ public class TagFilesService {
 		return tagFilesMd;
 	}
 
+	/**
+	 * Schdules the write to disk task in a thread pool at a fixed frequency so all changes to tag files get written to
+	 * disk 
+	 */
 	@PostConstruct
 	public void postConstruct() {
 		threadPoolSvc.scheduleWhenIdleWithFixedDelay(writeAllPidTagFilesTask, writeFreq, writeFreq, TimeUnit.SECONDS);
 		threadPoolSvc.addCleanupTask(writeAllPidTagFilesTask);
 	}
 
+	/**
+	 * Loads the tag files of a collection record and stores it in pidMap.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @throws IOException
+	 */
 	private void loadPid(String pid) throws IOException {
 		synchronized(pidMap) {
 			if (!pidMap.containsKey(pid)) {
@@ -187,6 +318,15 @@ public class TagFilesService {
 		}
 	}
 
+	/**
+	 * Reads all tag files for a specified record.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @return Map of Tag file Classes and an instance of the tag file as Map<Class<? extends AbstractKeyValueFile>,
+	 *         AbstractKeyValueFile>
+	 * @throws IOException
+	 */
 	private Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> readTagFiles(String pid)
 			throws IOException {
 		Path bagDir = bagsRoot.resolve(DcStorage.convertToDiskSafe(pid));
@@ -221,6 +361,9 @@ public class TagFilesService {
 		return tagFiles;
 	}
 
+	/**
+	 * Calls <code>writePidTagFiles</code> for each record in memory so changes in tag files are written to disk.
+	 */
 	private void writeAllPidTagFiles() {
 		Set<Entry<String,Map<Class<? extends AbstractKeyValueFile>,AbstractKeyValueFile>>> entrySet = pidMap.entrySet();
 		synchronized(pidMap) {
@@ -231,6 +374,12 @@ public class TagFilesService {
 		}
 	}
 
+	/**
+	 * Writes changes to all tag files for a specified record to disk.
+	 * 
+	 * @param entry
+	 *            PidMap entry
+	 */
 	private void writePidTagFiles(Entry<String, Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile>> entry) {
 		Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFiles = entry.getValue();
 		if (tagFiles != null) {

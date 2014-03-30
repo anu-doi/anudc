@@ -25,8 +25,24 @@ import java.util.Map;
 
 import org.apache.tika.metadata.Metadata;
 
+/**
+ * 
+ * @author Rahul Khanna
+ *
+ */
 public interface MetadataExtractor {
+	/**
+	 * Get a multivalued map containing the metadata extracted from a file.
+	 * 
+	 * @return
+	 * Metadata as Map<String, String[]>
+	 */
 	public Map<String, String[]> getMetadataMap();
 
+	/**
+	 * Get the metadata object containing the metadata extracted from a file.
+	 * 
+	 * @return Metadata
+	 */
 	public Metadata getMetadata();
 }

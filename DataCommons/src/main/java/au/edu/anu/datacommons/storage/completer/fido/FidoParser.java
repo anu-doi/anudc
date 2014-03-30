@@ -21,8 +21,6 @@
 
 package au.edu.anu.datacommons.storage.completer.fido;
 
-import static java.text.MessageFormat.format;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +34,11 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.storage.info.PronomFormat;
 
 /**
- * Represents a Fido Parser object that passes an InputStream or File object to Fido for parsing.
+ * Executes the FIDO script passing an InputStream for parsing. FIDO then parses the file identifying the file format
+ * (and version, if appropriate) and returns a string with the results of the analysis.
+ * 
+ * @author Rahul Khanna
+ * 
  */
 public class FidoParser {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FidoParser.class);
@@ -112,6 +114,13 @@ public class FidoParser {
 		return fidoStr;
 	}
 
+	/**
+	 * Extract the first line from the string.
+	 * 
+	 * @param str
+	 *            String with potentially multiple lines
+	 * @return First line as String
+	 */
 	private String filterFirstLine(String str) {
 		int splitIndex = str.indexOf('\r');
 		if (splitIndex == -1) {
@@ -124,6 +133,7 @@ public class FidoParser {
 		}
 	}
 
+	
 	private String getFidoPath() {
 		String fidoPath = GlobalProps.getFidoPath();
 		LOGGER.trace("Using Fido script at {}", fidoPath);

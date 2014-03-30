@@ -59,9 +59,11 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 /**
  * A Client that sends Digital Object Identifier (DOI) requests to a relevant service. Refer to <a
  * href="http://ands.org.au/resource/r9-cite-my-data-v1.1-tech-doco.pdf">Cite My Data M2M Service</a>
+ * 
+ * @author Rahul Khanna
+ * 
  */
-public class DoiClient
-{
+public class DoiClient {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DoiClient.class);
 	private static Client noProxyClient = null;
 	private static Client proxyClient = null;
@@ -76,15 +78,11 @@ public class DoiClient
 
 	private DoiConfig doiConfig;
 
-	static
-	{
-		try
-		{
+	static {
+		try {
 			resourceContext = JAXBContext.newInstance(Resource.class);
 			doiResponseContext = JAXBContext.newInstance(DoiResponse.class);
-		}
-		catch (JAXBException e)
-		{
+		} catch (JAXBException e) {
 			// Exception thrown only when class DoiResponse isn't properly coded. NPE expected in that case.
 			LOGGER.warn(e.getMessage(), e);
 		}
@@ -94,29 +92,24 @@ public class DoiClient
 	private DoiResponse doiResponse = null;
 	private String doiResponseAsString = null;
 
-	public enum ResponseFormat
-	{
+	public enum ResponseFormat {
 		XML, JSON, STRING;
 
 		@Override
-		public String toString()
-		{
+		public String toString() {
 			return super.toString().toLowerCase();
 		}
 	}
 
 	/**
-	 * Constructor for DoiClient. A DoiConfig object is created from the doi.properties file in the default conf location.
+	 * Constructor for DoiClient. A DoiConfig object is created from the doi.properties file in the default conf
+	 * location.
 	 */
-	public DoiClient()
-	{
+	public DoiClient() {
 		Properties doiProps;
-		try
-		{
+		try {
 			doiProps = new PropertiesFile(new File(Config.DIR, "datacommons/doi.properties"));
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			throw new RuntimeException("doi.properties not found or unreadable.");
 		}
 
@@ -131,37 +124,31 @@ public class DoiClient
 	 * @param doiConfig
 	 *            DoiConfig object
 	 */
-	public DoiClient(DoiConfig doiConfig)
-	{
+	public DoiClient(DoiConfig doiConfig) {
 		this.doiConfig = doiConfig;
 		setupClients(this.doiConfig);
 		setupMarshallers();
 	}
 
-	public ResponseFormat getRespFmt()
-	{
+	public ResponseFormat getRespFmt() {
 		return respFmt;
 	}
 
-	public void setRespFmt(ResponseFormat respFmt)
-	{
+	public void setRespFmt(ResponseFormat respFmt) {
 		this.respFmt = respFmt;
 	}
 
-	public DoiResponse getDoiResponse()
-	{
+	public DoiResponse getDoiResponse() {
 		return doiResponse;
 	}
 
-	public String getDoiResponseAsString()
-	{
+	public String getDoiResponseAsString() {
 		return doiResponseAsString;
 	}
 
-
 	/**
-	 * Sends a request to mint a DOI. Refer to section 3.9 of Cite My Data Technical Documentation. URL request is in format:
-	 * <code>https://services.ands.org.au/doi/1.1/mint.{response_type}/?app_id={app_id}&url={url}</code>
+	 * Sends a request to mint a DOI. Refer to section 3.9 of Cite My Data Technical Documentation. URL request is in
+	 * format: <code>https://services.ands.org.au/doi/1.1/mint.{response_type}/?app_id={app_id}&url={url}</code>
 	 * 
 	 * @param pid
 	 *            Pid of the record for which DOI is to be minted.
@@ -170,23 +157,22 @@ public class DoiClient
 	 * @throws DoiException
 	 *             If unable to mint a DOI.
 	 */
-	public void mint(String pid, Resource metadata) throws DoiException
-	{
+	public void mint(String pid, Resource metadata) throws DoiException {
 		if (pid == null || pid.trim().length() <= 0)
 			throw new DoiException("URL not specified.");
 		if (metadata == null)
 			throw new DoiException("Metadata for DOI not provided.");
 
 		ExtWebResourceLogDao logDao = null;
-		try
-		{
+		try {
 			String url = generateLandingUri(pid).toString();
 			String xml = getMetadataAsStr(metadata);
 
 			LOGGER.trace("Minting url={}, xml={}.", new Object[] { url, xml });
 
 			// Build URI.
-			UriBuilder doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path("mint." + this.respFmt.toString() + "/");
+			UriBuilder doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
+					"mint." + this.respFmt.toString() + "/");
 			doiUriBuilder = appendAppId(doiUriBuilder);
 			doiUriBuilder = appendDebug(doiUriBuilder);
 			doiUriBuilder = doiUriBuilder.queryParam("url", URLEncoder.encode(url, "UTF-8"));
@@ -199,51 +185,39 @@ public class DoiClient
 
 			logDao = new ExtWebResourceLogDao();
 			ExtWebResourceLog extResLog = null;
-			try
-			{
+			try {
 				extResLog = generateExtWebResourceLog(doiUri, pid, xml);
 				logDao.create(extResLog);
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				LOGGER.warn("Unable to create log record to external service.");
 			}
-			
-			ClientResponse resp = mintDoiResource.accept(getMediaTypeForResp()).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
-					.post(ClientResponse.class, formData);
+
+			ClientResponse resp = mintDoiResource.accept(getMediaTypeForResp())
+					.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(ClientResponse.class, formData);
 			processResponse(resp);
-			
-			try
-			{
+
+			try {
 				updateExtWebResourceLog(extResLog, this.doiResponseAsString);
 				logDao.update(extResLog);
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				LOGGER.warn("Unable to update log record to external service.");
 			}
-			
+
 			if (!doiResponse.getType().equalsIgnoreCase("success"))
 				throw new DoiException("DOI Service request failed. Server response: " + doiResponseAsString);
-		}
-		catch (DoiException e)
-		{
+		} catch (DoiException e) {
 			throw e;
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			throw new DoiException("Unable to mint DOI", e);
-		}
-		finally
-		{
+		} finally {
 			if (logDao != null)
 				logDao.close();
 		}
 	}
 
 	/**
-	 * Updates the metadata associated with a DOI. Refer to section 3.9 of Cite My Data Technical Documentation. URL is in format
-	 * <code>https://services.ands.org.au/doi/1.1/mint.{response_type}/?app_id={app_id}&url={url}</code>
+	 * Updates the metadata associated with a DOI. Refer to section 3.9 of Cite My Data Technical Documentation. URL is
+	 * in format <code>https://services.ands.org.au/doi/1.1/mint.{response_type}/?app_id={app_id}&url={url}</code>
 	 * 
 	 * @param doi
 	 *            DOI whose metadata to be updated
@@ -254,17 +228,16 @@ public class DoiClient
 	 * @throws DoiException
 	 *             If unable to update DOI
 	 */
-	public void update(String doi, String pid, Resource metadata) throws DoiException
-	{
+	public void update(String doi, String pid, Resource metadata) throws DoiException {
 		ExtWebResourceLogDao logDao = null;
-		try
-		{
+		try {
 			String url = generateLandingUri(pid).toString();
 			String xml = getMetadataAsStr(metadata);
 			LOGGER.trace("Updating doi={}, url={}, xml={}.", new Object[] { doi, url, xml });
 
 			// Build URI.
-			UriBuilder doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path("update." + this.respFmt.toString() + "/");
+			UriBuilder doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
+					"update." + this.respFmt.toString() + "/");
 			doiUriBuilder = appendAppId(doiUriBuilder);
 			doiUriBuilder = appendDoi(doiUriBuilder, doi);
 			doiUriBuilder = appendDebug(doiUriBuilder);
@@ -275,38 +248,29 @@ public class DoiClient
 			LOGGER.debug("Updating DOI using {}", doiUri.toString());
 			WebResource updateDoiResource = client.resource(doiUri);
 			ClientResponse resp;
-			
+
 			logDao = new ExtWebResourceLogDao();
 			ExtWebResourceLog extResLog = null;
-			try
-			{
+			try {
 				extResLog = generateExtWebResourceLog(doiUri, pid, xml);
 				logDao.create(extResLog);
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				LOGGER.warn("Unable to create log record to external service.");
 			}
 
-			
-			if (xml != null && xml.trim().length() > 0)
-			{
+			if (xml != null && xml.trim().length() > 0) {
 				MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
 				formData.add("xml", xml);
-				resp = updateDoiResource.accept(getMediaTypeForResp()).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE).post(ClientResponse.class, formData);
-			}
-			else
+				resp = updateDoiResource.accept(getMediaTypeForResp()).type(MediaType.APPLICATION_FORM_URLENCODED_TYPE)
+						.post(ClientResponse.class, formData);
+			} else
 				resp = updateDoiResource.accept(getMediaTypeForResp()).get(ClientResponse.class);
 			processResponse(resp);
 			if (!doiResponse.getType().equalsIgnoreCase("success"))
 				throw new DoiException("DOI Service request failed. Server response: " + doiResponseAsString);
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			throw new DoiException("Unable to update DOI", e);
-		}
-		finally
-		{
+		} finally {
 			if (logDao != null)
 				logDao.close();
 		}
@@ -322,15 +286,14 @@ public class DoiClient
 	 * @throws DoiException
 	 *             If unable to deactivate DOI
 	 */
-	public void deactivate(String doi) throws DoiException
-	{
+	public void deactivate(String doi) throws DoiException {
 		ExtWebResourceLogDao logDao = null;
-		try
-		{
+		try {
 			LOGGER.trace("Deactivating doi={}", doi);
 
 			// Build URI.
-			UriBuilder doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path("deactivate." + this.respFmt.toString() + "/");
+			UriBuilder doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
+					"deactivate." + this.respFmt.toString() + "/");
 			doiUriBuilder = appendAppId(doiUriBuilder);
 			doiUriBuilder = appendDoi(doiUriBuilder, doi);
 			doiUriBuilder = appendDebug(doiUriBuilder);
@@ -338,27 +301,20 @@ public class DoiClient
 
 			logDao = new ExtWebResourceLogDao();
 			ExtWebResourceLog extResLog = null;
-			try
-			{
+			try {
 				extResLog = generateExtWebResourceLog(doiUri);
 				logDao.create(extResLog);
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				LOGGER.warn("Unable to create log record to external service.");
 			}
-			
+
 			LOGGER.debug("Deactivating DOI using {}", doiUri.toString());
 			WebResource deactivateDoiResouce = client.resource(doiUri);
 			ClientResponse resp = deactivateDoiResouce.accept(getMediaTypeForResp()).get(ClientResponse.class);
 			processResponse(resp);
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			throw new DoiException("Unable to deactivate DOI", e);
-		}
-		finally
-		{
+		} finally {
 			if (logDao != null)
 				logDao.close();
 		}
@@ -369,19 +325,18 @@ public class DoiClient
 	 * <code>https://services.ands.org.au/doi/1.1/deactivate.{response_type}/?app_id={app_id}&doi={doi}</code>
 	 * 
 	 * @param doi
-	 * DOI to activate
+	 *            DOI to activate
 	 * @throws DoiException
-	 * If unable to activate a DOI 
+	 *             If unable to activate a DOI
 	 */
-	public void activate(String doi) throws DoiException
-	{
+	public void activate(String doi) throws DoiException {
 		ExtWebResourceLogDao logDao = null;
-		try
-		{
+		try {
 			LOGGER.trace("Activating doi={}", doi);
 
 			// Build URI.
-			UriBuilder doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path("activate." + this.respFmt.toString() + "/");
+			UriBuilder doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
+					"activate." + this.respFmt.toString() + "/");
 			doiUriBuilder = appendAppId(doiUriBuilder);
 			doiUriBuilder = appendDoi(doiUriBuilder, doi);
 			doiUriBuilder = appendDebug(doiUriBuilder);
@@ -389,13 +344,10 @@ public class DoiClient
 
 			ExtWebResourceLog extResLog = null;
 			logDao = new ExtWebResourceLogDao();
-			try
-			{
+			try {
 				extResLog = generateExtWebResourceLog(doiUri);
 				logDao.create(extResLog);
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				LOGGER.warn("Unable to create log record to external service.");
 			}
 
@@ -403,13 +355,9 @@ public class DoiClient
 			WebResource activateDoiResource = client.resource(doiUri);
 			ClientResponse resp = activateDoiResource.accept(getMediaTypeForResp()).get(ClientResponse.class);
 			processResponse(resp);
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			throw new DoiException("Unable to activate DOI", e);
-		}
-		finally
-		{
+		} finally {
 			if (logDao != null)
 				logDao.close();
 		}
@@ -424,31 +372,27 @@ public class DoiClient
 	 * @throws DoiException
 	 *             If unable to retrieve DOI metadata.
 	 */
-	public Resource getMetadata(String doi) throws DoiException
-	{
+	public Resource getMetadata(String doi) throws DoiException {
 		Resource res;
 		String respStr;
 
 		ExtWebResourceLogDao logDao = null;
-		try
-		{
+		try {
 			LOGGER.trace("Getting metadata for doi={}", doi);
 
 			// Build URI.
-			UriBuilder doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path("xml." + this.respFmt.toString() + "/");
+			UriBuilder doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
+					"xml." + this.respFmt.toString() + "/");
 			doiUriBuilder = appendDoi(doiUriBuilder, doi);
 			doiUriBuilder = appendDebug(doiUriBuilder);
 			URI doiUri = doiUriBuilder.build();
 
 			ExtWebResourceLog extResLog = null;
 			logDao = new ExtWebResourceLogDao();
-			try
-			{
+			try {
 				extResLog = generateExtWebResourceLog(doiUri);
 				logDao.create(extResLog);
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				LOGGER.warn("Unable to create log record to external service.");
 			}
 
@@ -458,13 +402,9 @@ public class DoiClient
 			respStr = resp.getEntity(String.class);
 			LOGGER.trace("Response from server: {}", respStr);
 			res = (Resource) resourceUnmarshaller.unmarshal(new StringReader(respStr));
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			throw new DoiException("Unable to retrieve DOI metadata.", e);
-		}
-		finally
-		{
+		} finally {
 			if (logDao != null)
 				logDao.close();
 		}
@@ -480,8 +420,7 @@ public class DoiClient
 	 * 
 	 * @return UriBuilder with app ID appended as a query parameter.
 	 */
-	private UriBuilder appendAppId(UriBuilder ub)
-	{
+	private UriBuilder appendAppId(UriBuilder ub) {
 		// App Id is alphanumeric so no need to URLEncode.
 		return ub.queryParam("app_id", (doiConfig.useTestPrefix() ? "TEST" : "") + doiConfig.getAppId());
 	}
@@ -493,19 +432,14 @@ public class DoiClient
 	 *            UriBuilder object to which DOI is to be appended.
 	 * @param doi
 	 *            DOI to be appended.
-	 * @return
-	 * UriBuilder 
+	 * @return UriBuilder
 	 */
-	private UriBuilder appendDoi(UriBuilder ub, String doi)
-	{
+	private UriBuilder appendDoi(UriBuilder ub, String doi) {
 		String encodedDoi;
-		try
-		{
+		try {
 			encodedDoi = URLEncoder.encode(doi, "UTF-8");
 			return ub.queryParam("doi", encodedDoi);
-		}
-		catch (UnsupportedEncodingException e)
-		{
+		} catch (UnsupportedEncodingException e) {
 			// This exception should never be thrown if the charset is a valid one.
 			LOGGER.error(e.getMessage(), e);
 			return null;
@@ -520,16 +454,14 @@ public class DoiClient
 	 * 
 	 * @return UriBuilder with appended query parameter.
 	 */
-	private UriBuilder appendDebug(UriBuilder ub)
-	{
+	private UriBuilder appendDebug(UriBuilder ub) {
 		if (doiConfig.isDebug())
 			return ub.queryParam("debug", true);
 		else
 			return ub;
 	}
 
-	private MediaType getMediaTypeForResp()
-	{
+	private MediaType getMediaTypeForResp() {
 		if (this.respFmt == ResponseFormat.XML)
 			return MediaType.APPLICATION_XML_TYPE;
 		else if (this.respFmt == ResponseFormat.JSON)
@@ -546,23 +478,16 @@ public class DoiClient
 	 * @param resp
 	 *            Response received from DOI service as ClientResponse.
 	 */
-	private void processResponse(ClientResponse resp)
-	{
+	private void processResponse(ClientResponse resp) {
 		this.doiResponseAsString = resp.getEntity(String.class);
 		LOGGER.trace("Server response: {}", doiResponseAsString);
-		if (this.getRespFmt() == ResponseFormat.XML)
-		{
-			try
-			{
-				this.doiResponse = (DoiResponse) doiResponseUnmarshaller.unmarshal(new StreamSource(new StringReader(this.doiResponseAsString
-						.substring(this.doiResponseAsString.indexOf("<?xml")))));
-			}
-			catch (StringIndexOutOfBoundsException e)
-			{
+		if (this.getRespFmt() == ResponseFormat.XML) {
+			try {
+				this.doiResponse = (DoiResponse) doiResponseUnmarshaller.unmarshal(new StreamSource(new StringReader(
+						this.doiResponseAsString.substring(this.doiResponseAsString.indexOf("<?xml")))));
+			} catch (StringIndexOutOfBoundsException e) {
 				this.doiResponse = null;
-			}
-			catch (JAXBException e)
-			{
+			} catch (JAXBException e) {
 				LOGGER.warn(e.getMessage(), e);
 				this.doiResponse = null;
 			}
@@ -580,8 +505,7 @@ public class DoiClient
 	 * @throws JAXBException
 	 *             If unable to marshall DataCite Resource into XML
 	 */
-	private String getMetadataAsStr(Resource metadata) throws JAXBException
-	{
+	private String getMetadataAsStr(Resource metadata) throws JAXBException {
 		StringWriter xmlSw = new StringWriter();
 		resourceMarshaller.marshal(metadata, xmlSw);
 		return xmlSw.toString();
@@ -594,63 +518,52 @@ public class DoiClient
 	 *            Pid of the record for which a URI is to be created.
 	 * @return URI of the record
 	 */
-	private URI generateLandingUri(String pid)
-	{
+	private URI generateLandingUri(String pid) {
 		return doiConfig.getLandingUri().build(pid);
 	}
-	
+
 	/**
-	 * Sets up the marshallers and unmarshallers required to marshal/unmarshall requests to and responses from the DOI service.
+	 * Sets up the marshallers and unmarshallers required to marshal/unmarshall requests to and responses from the DOI
+	 * service.
 	 */
-	private void setupMarshallers()
-	{
-		try
-		{
+	private void setupMarshallers() {
+		try {
 			resourceMarshaller = resourceContext.createMarshaller();
 			resourceMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 			resourceMarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
 					"http://datacite.org/schema/kernel-2.2 http://schema.datacite.org/meta/kernel-2.2/metadata.xsd");
-		}
-		catch (JAXBException e)
-		{
+		} catch (JAXBException e) {
 			LOGGER.error(e.getMessage(), e);
 			resourceMarshaller = null;
 		}
-		
-		try
-		{
+
+		try {
 			resourceUnmarshaller = resourceContext.createUnmarshaller();
-		}
-		catch (JAXBException e)
-		{
+		} catch (JAXBException e) {
 			LOGGER.error(e.getMessage(), e);
 			resourceUnmarshaller = null;
 		}
 
-		try
-		{
+		try {
 			doiResponseUnmarshaller = doiResponseContext.createUnmarshaller();
-		}
-		catch (JAXBException e)
-		{
+		} catch (JAXBException e) {
 			LOGGER.error(e.getMessage(), e);
 			doiResponseUnmarshaller = null;
 		}
 	}
 
 	/**
-	 * Adds the response object to the External Resource Log object. The log object would already contain the request when this method is called.
+	 * Adds the response object to the External Resource Log object. The log object would already contain the request
+	 * when this method is called.
 	 * 
 	 * @param extResLog
 	 * @param respAsStr
 	 */
-	private void updateExtWebResourceLog(ExtWebResourceLog extResLog, String respAsStr)
-	{
+	private void updateExtWebResourceLog(ExtWebResourceLog extResLog, String respAsStr) {
 		extResLog.addResponse(respAsStr);
 	}
 
-	private ExtWebResourceLog generateExtWebResourceLog(URI doiUri, String pid, String xml)
-	{
+	private ExtWebResourceLog generateExtWebResourceLog(URI doiUri, String pid, String xml) {
 		StringBuilder reqStr = new StringBuilder();
 		reqStr.append(doiUri.toString());
 		reqStr.append(Config.NEWLINE);
@@ -661,36 +574,32 @@ public class DoiClient
 		return extResLog;
 	}
 
-	private ExtWebResourceLog generateExtWebResourceLog(URI doiUri)
-	{
+	private ExtWebResourceLog generateExtWebResourceLog(URI doiUri) {
 		return generateExtWebResourceLog(doiUri, null, null);
 	}
 
 	/**
-	 * Sets up two client objects that will be used for HTTP requests - one without a proxy server specified, and another without. As DOI requests can be sent
-	 * from machines with specific IP addresses for testing purposes, the DOI requests will be routed through an authorised server if initiated from a test
-	 * machine.
+	 * Sets up two client objects that will be used for HTTP requests - one without a proxy server specified, and
+	 * another without. As DOI requests can be sent from machines with specific IP addresses for testing purposes, the
+	 * DOI requests will be routed through an authorised server if initiated from a test machine.
 	 * 
 	 * @param doiConfig
 	 *            Config object containing details of proxy server
 	 */
-	private static void setupClients(DoiConfig doiConfig)
-	{
-		if (noProxyClient == null)
-		{
+	private static void setupClients(DoiConfig doiConfig) {
+		if (noProxyClient == null) {
 			noProxyClient = Client.create();
 			noProxyClient.addFilter(new LoggingFilter());
 		}
 
-		if (proxyClient == null)
-		{
+		if (proxyClient == null) {
 			final String proxyHost = doiConfig.getProxyServer();
 			final String proxyPort = doiConfig.getProxyPort();
 
 			final DefaultApacheHttpClientConfig config = new DefaultApacheHttpClientConfig();
-			if (proxyHost != null && proxyHost.length() > 0 && proxyPort != null && proxyPort.length() > 0)
-			{
-				config.getProperties().put(DefaultApacheHttpClientConfig.PROPERTY_PROXY_URI, "http://" + proxyHost + ":" + proxyPort);
+			if (proxyHost != null && proxyHost.length() > 0 && proxyPort != null && proxyPort.length() > 0) {
+				config.getProperties().put(DefaultApacheHttpClientConfig.PROPERTY_PROXY_URI,
+						"http://" + proxyHost + ":" + proxyPort);
 			}
 
 			proxyClient = ApacheHttpClient.create(config);

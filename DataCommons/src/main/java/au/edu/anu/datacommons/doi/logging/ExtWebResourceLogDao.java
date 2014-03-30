@@ -32,73 +32,80 @@ import org.slf4j.LoggerFactory;
 import au.edu.anu.datacommons.data.db.PersistenceManager;
 import au.edu.anu.datacommons.data.db.dao.DaoException;
 
-public class ExtWebResourceLogDao implements Closeable
-{
+/**
+ * DAO object for responsible for persisting {@link ExtWebResourceLog} instances.
+ * 
+ * @author Rahul Khanna
+ *
+ */
+public class ExtWebResourceLogDao implements Closeable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExtWebResourceLogDao.class);
-	
+
 	protected EntityManager entityManager;
-	
-	public ExtWebResourceLogDao()
-	{
+
+	public ExtWebResourceLogDao() {
 		this.entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
 	}
-	
+
 	@Override
-	public void close()
-	{
+	public void close() {
 		if (this.entityManager != null)
 			this.entityManager.close();
 	}
-	
-	public void create(ExtWebResourceLog log) throws DaoException
-	{
+
+	/**
+	 * Persists an instance of {@link ExtWebResourceLog}
+	 * 
+	 * @param log
+	 *            Log instance to persist
+	 * @throws DaoException
+	 *             when unable to persist
+	 */
+	public void create(ExtWebResourceLog log) throws DaoException {
 		EntityTransaction et = null;
-		try
-		{
+		try {
 			et = this.entityManager.getTransaction();
 			et.begin();
 			this.entityManager.persist(log);
 			et.commit();
-		}
-		catch (Exception e)
-		{
-			try
-			{
+		} catch (Exception e) {
+			try {
 				if (et != null)
 					et.rollback();
-			}
-			catch (Exception e1)
-			{
+			} catch (Exception e1) {
 				LOGGER.warn(e1.getMessage(), e1);
 			}
 			throw new DaoException(e);
 		}
 	}
-	
-	public ExtWebResourceLog update(ExtWebResourceLog log) throws DaoException
-	{
+
+	/**
+	 * Updates a previously persisted instance of {@link ExtWebResourceLog}, with the response received from the
+	 * external web service.
+	 * 
+	 * @param log
+	 *            Log instance to persist
+	 * @return Updated log object
+	 * @throws DaoException
+	 *             when unable to persist
+	 */
+	public ExtWebResourceLog update(ExtWebResourceLog log) throws DaoException {
 		EntityTransaction et = null;
-		try
-		{
+		try {
 			et = this.entityManager.getTransaction();
 			et.begin();
 			log = this.entityManager.merge(log);
 			et.commit();
-		}
-		catch (Exception e)
-		{
-			try
-			{
+		} catch (Exception e) {
+			try {
 				if (et != null)
 					et.rollback();
-			}
-			catch (Exception e1)
-			{
+			} catch (Exception e1) {
 				LOGGER.warn(e1.getMessage(), e1);
 			}
 			throw new DaoException(e);
 		}
-		
+
 		return log;
 	}
 }

@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.doi;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,11 +50,13 @@ import au.edu.anu.datacommons.xml.data.Data;
 import au.edu.anu.datacommons.xml.data.DataItem;
 
 /**
- * This class accepts a Data item and creates a new {@link Resource} object with the details of the record. The Resource object can then be
- * marshalled into XML as per DataCite's schema used in DOI requests.
+ * This class accepts a Data item and creates a new {@link Resource} object with the details of the record. The Resource
+ * object can then be marshalled into XML as per DataCite's schema used in DOI requests.
+ * 
+ * @author Rahul Khanna
+ * 
  */
-public class DoiResourceAdapter
-{
+public class DoiResourceAdapter {
 	private Data sourceData;
 	private Resource doiResource = new Resource();
 
@@ -67,8 +69,7 @@ public class DoiResourceAdapter
 	 *             when unable to generate a Resource object.
 	 * 
 	 */
-	public DoiResourceAdapter(Data sourceData)
-	{
+	public DoiResourceAdapter(Data sourceData) {
 		this.sourceData = sourceData;
 	}
 
@@ -76,10 +77,9 @@ public class DoiResourceAdapter
 	 * Returns the generated Resource object containing values read from the Data object for use in DOI requests.
 	 * 
 	 * @return Resource object containing metadata values of a record
-	 * @throws DoiException 
+	 * @throws DoiException
 	 */
-	public Resource createDoiResource() throws DoiException
-	{
+	public Resource createDoiResource() throws DoiException {
 		generateResource();
 		return this.doiResource;
 	}
@@ -91,32 +91,36 @@ public class DoiResourceAdapter
 	 *            Data object to read metadata values of a record from.
 	 * 
 	 * @throws DoiException
-	 *             When at least one creator and one title, a publisher and publication year has not been specified in the record.
+	 *             When at least one creator and one title, a publisher and publication year has not been specified in
+	 *             the record.
 	 */
-	private void generateResource() throws DoiException
-	{
+	private void generateResource() throws DoiException {
 		// Mandatory fields.
 		Creators creators = getCreators();
 		if (creators == null) {
-			throw new DoiException("No creators provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
+			throw new DoiException(
+					"No creators provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
 		}
 		doiResource.setCreators(creators);
 
 		Titles titles = getTitles();
 		if (titles == null) {
-			throw new DoiException("No titles provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
+			throw new DoiException(
+					"No titles provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
 		}
 		doiResource.setTitles(titles);
 
 		String publisher = getPublisher();
 		if (publisher == null) {
-			throw new DoiException("No publisher provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
+			throw new DoiException(
+					"No publisher provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
 		}
 		doiResource.setPublisher(publisher);
 
 		String publicationYear = getPublicationYear();
 		if (publicationYear == null) {
-			throw new DoiException("No publication year provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
+			throw new DoiException(
+					"No publication year provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
 		}
 		doiResource.setPublicationYear(publicationYear);
 
@@ -213,26 +217,37 @@ public class DoiResourceAdapter
 	private String getPublicationYear() {
 		return getValueOfFirstElementByNameFromSource("citationYear");
 	}
-	
+
 	private Subjects getSubjects() {
 		// TODO Implement.
 		return null;
 	}
-	
+
 	private Contributors getContributors() {
 		// TODO Implement.
 		return null;
 	}
-	
+
 	private Dates getDates() {
 		// TODO Implement.
 		return null;
 	}
-	
+
+	/**
+	 * Gets the language of the metadata.
+	 * 
+	 * @return Language as String
+	 */
 	private String getLanguage() {
 		return getValueOfFirstElementByNameFromSource("metaLang");
 	}
-	
+
+	/**
+	 * Maps the resource to one allowed by DataCite schema. Since DataCommons only recognises collections or datasets,
+	 * only one of those two values will be returned.
+	 * 
+	 * @return ResourceType object
+	 */
 	private ResourceType getResourceType() {
 		ResourceType resType = null;
 		DataItem subTypeDI = this.sourceData.getFirstElementByName("subType");
@@ -241,14 +256,19 @@ public class DoiResourceAdapter
 			resType = new ResourceType();
 			resType.setResourceTypeGeneral(org.datacite.schema.kernel_2.ResourceType.DATASET);
 			resType.setContent("Dataset");
-		} else if(subType.equals("collection")) {
+		} else if (subType.equals("collection")) {
 			resType = new ResourceType();
 			resType.setResourceTypeGeneral(org.datacite.schema.kernel_2.ResourceType.COLLECTION);
 			resType.setContent("Collection");
 		}
 		return resType;
 	}
-	
+
+	/**
+	 * Gets the DOI identifier if one exists
+	 * 
+	 * @return Identifier Object
+	 */
 	private Identifier getIdentifier() {
 		Identifier identifier = null;
 		String doiStr = getValueOfFirstElementByNameFromSource("doi");
@@ -264,32 +284,37 @@ public class DoiResourceAdapter
 		// TODO Implement
 		return null;
 	}
-	
+
 	private RelatedIdentifiers getRelatedIdentifiers() {
 		// TODO Implement
 		return null;
 	}
-	
+
 	private Sizes getSizes() {
 		// TODO Implement
 		return null;
 	}
-	
+
 	private Formats getFormats() {
 		// TODO Implement
 		return null;
 	}
-	
+
 	private String getVersion() {
 		// TODO Implement
 		return null;
 	}
-	
+
 	private String getRights() {
 		// TODO Implement
 		return null;
 	}
-	
+
+	/**
+	 * Gets the brief and full descriptions, if exists.
+	 * 
+	 * @return Descriptions object
+	 */
 	private Descriptions getDescriptions() {
 		Descriptions descriptions = null;
 		List<Description> list = new ArrayList<Description>();
@@ -314,6 +339,13 @@ public class DoiResourceAdapter
 		return descriptions;
 	}
 
+	/**
+	 * Gets the value of the first element found with the specified name.
+	 * 
+	 * @param elementName
+	 *            Element whose value is requested
+	 * @return value as String
+	 */
 	private String getValueOfFirstElementByNameFromSource(String elementName) {
 		String value = null;
 		DataItem di = this.sourceData.getFirstElementByName(elementName);

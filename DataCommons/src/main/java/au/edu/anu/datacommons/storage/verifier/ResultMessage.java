@@ -25,10 +25,13 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
+ * POJO object for a single message generated while checking the completeness/integrity of a bag as specified in the
+ * BagIt specification.
+ * 
  * @author Rahul Khanna
  * 
  */
-@XmlType(propOrder = {"severity", "category", "filepath", "message"})
+@XmlType(propOrder = { "severity", "category", "filepath", "message" })
 public class ResultMessage {
 	public enum Severity {
 		INFO, WARN, ERROR
@@ -44,9 +47,20 @@ public class ResultMessage {
 	private String message;
 
 	ResultMessage() {
-		
+
 	}
-	
+
+	/**
+	 * Creates an instance representing a single occurrance of error/warning/info.
+	 * 
+	 * @param severity
+	 *            Severity of the message
+	 * @param category
+	 *            Category of the message
+	 * @param filepath
+	 *            Relative filepath to the payload file that the message is for
+	 * @param message
+	 */
 	public ResultMessage(Severity severity, Category category, String filepath, String message) {
 		super();
 		this.severity = severity;

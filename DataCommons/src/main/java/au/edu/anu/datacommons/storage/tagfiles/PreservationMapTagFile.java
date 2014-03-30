@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * Tag file class for preserve.txt . This file maps payload files to their preservation format file. 
+ * 
  * @author Rahul Khanna
  *
  */

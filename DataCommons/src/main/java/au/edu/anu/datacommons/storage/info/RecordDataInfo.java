@@ -15,6 +15,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import au.edu.anu.datacommons.util.Util;
 
+/**
+ * Data structure class to hold information about data files in a collection record. 
+ * 
+ * @author Rahul Khanna
+ *
+ */
 @XmlRootElement
 public class RecordDataInfo {
 	private String pid;

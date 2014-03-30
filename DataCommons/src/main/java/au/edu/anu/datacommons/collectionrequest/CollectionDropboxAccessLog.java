@@ -33,21 +33,24 @@ import javax.persistence.ManyToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
+/**
+ * Entity class representiting a single row of collection dropbox access log entry.
+ * 
+ * @author Rahul Khanna
+ * 
+ */
 @Entity
 @Table(name = "collection_dropbox_access_logs")
-public class CollectionDropboxAccessLog
-{
+public class CollectionDropboxAccessLog {
 	private Long id;
 	private CollectionDropbox dropbox;
 	private String ipAddress;
 	private Date timestamp;
 
-	protected CollectionDropboxAccessLog()
-	{
+	protected CollectionDropboxAccessLog() {
 	}
 
-	public CollectionDropboxAccessLog(CollectionDropbox dropbox, String ipAddress)
-	{
+	public CollectionDropboxAccessLog(CollectionDropbox dropbox, String ipAddress) {
 		this.dropbox = dropbox;
 		this.ipAddress = ipAddress;
 	}
@@ -55,54 +58,48 @@ public class CollectionDropboxAccessLog
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	public Long getId()
-	{
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Long id)
-	{
+	public void setId(Long id) {
 		this.id = id;
 	}
 
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "dropbox_fk")
-	public CollectionDropbox getDropbox()
-	{
+	public CollectionDropbox getDropbox() {
 		return dropbox;
 	}
 
-	public void setDropbox(CollectionDropbox dropbox)
-	{
+	public void setDropbox(CollectionDropbox dropbox) {
 		this.dropbox = dropbox;
 	}
 
 	// Nullable to accommodate for situations (if possible) where the client IP is unobtainable.
 	@Column(name = "ip_address", nullable = false)
-	public String getIpAddress()
-	{
+	public String getIpAddress() {
 		return ipAddress;
 	}
 
-	public void setIpAddress(String ipAddress)
-	{
+	public void setIpAddress(String ipAddress) {
 		this.ipAddress = ipAddress;
 	}
 
 	@Column(name = "timestamp", nullable = false)
-	public Date getTimestamp()
-	{
+	public Date getTimestamp() {
 		return timestamp;
 	}
 
-	protected void setTimestamp(Date timestamp)
-	{
+	protected void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
 	}
 
+	/**
+	 * Adds a timestamp of the current date and time before this instance is persisted.
+	 */
 	@PrePersist
-	protected void onCreate()
-	{
+	protected void onCreate() {
 		this.timestamp = new Date();
 	}
 }

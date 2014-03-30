@@ -25,8 +25,6 @@ import static java.text.MessageFormat.format;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.math.BigInteger;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
@@ -34,7 +32,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.DigestOutputStream;
-import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -49,6 +46,9 @@ import au.edu.anu.datacommons.util.StopWatch;
 import au.edu.anu.datacommons.util.Util;
 
 /**
+ * Task that saves a provided stream as a part-file. Once the last part is saved, all parts are merged in the correct
+ * order to create the complete file.
+ * 
  * @author Rahul Khanna
  *
  */
@@ -60,6 +60,25 @@ public class SavePartStreamTask extends SaveInputStreamTask {
 	private boolean isLastPart;
 	
 	
+	/**
+	 * Creates an instance of this task
+	 * 
+	 * @param uploadDir
+	 *            Directory to which the stream will be saved.
+	 * @param fileId
+	 *            An arbitrary string that identifies the file to which a part stream belongs
+	 * @param is
+	 *            Part stream as InputStream
+	 * @param part
+	 *            A positive integer describing the part number in a sequence of parts.
+	 * @param isLastPart
+	 *            true if the part is the last part in a sequence
+	 * @param expectedLength
+	 *            Expected length of the entire file (not the part stream)
+	 * @param expectedMd5
+	 *            Expected MD5 of the entire file (not the part stream)
+	 * @throws IOException
+	 */
 	public SavePartStreamTask(Path uploadDir, String fileId, InputStream is, int part, boolean isLastPart,
 			long expectedLength, String expectedMd5) throws IOException {
 		super(uploadDir, is, expectedLength, expectedMd5);
@@ -68,6 +87,7 @@ public class SavePartStreamTask extends SaveInputStreamTask {
 		this.isLastPart = isLastPart;
 	}
 
+	
 	@Override
 	public UploadedFileInfo call() throws Exception {
 		UploadedFileInfo ufi = null;
@@ -104,10 +124,30 @@ public class SavePartStreamTask extends SaveInputStreamTask {
 		return targetFile;
 	}
 	
+	/**
+	 * Generates a unique filename to which the part stream will be saved.
+	 * 
+	 * @param fileId
+	 *            Unique string identifying the full file.
+	 * @param part
+	 *            Part number of the stream.
+	 * @return Unique filename for part stream as String
+	 */
 	private String generatePartFilename(String fileId, int part) {
 		return fileId + "." + String.valueOf(part);
 	}
 	
+	
+	/**
+	 * Merges specified file parts.
+	 * 
+	 * @param partFiles
+	 *            List of part files in the correct sequence
+	 * @param mergedFile
+	 *            Path to the merged file
+	 * @throws IOException
+	 *             when unable to read from partFiles or write to mergedFile
+	 */
 	private void mergeParts(List<Path> partFiles, Path mergedFile) throws IOException {
 		// Check the number of part files.
 		if (partFiles.size() < part - 1) {
@@ -138,6 +178,12 @@ public class SavePartStreamTask extends SaveInputStreamTask {
 		this.actualMd5 = Hex.encodeHexString(mergedFileStream.getMessageDigest().digest());
 	}
 
+	/**
+	 * Deletes specified part files
+	 * 
+	 * @param partFiles
+	 *            List of part files
+	 */
 	private void deletePartFiles(List<Path> partFiles) {
 		for (Path partFile : partFiles) {
 			try {
@@ -148,6 +194,12 @@ public class SavePartStreamTask extends SaveInputStreamTask {
 		}
 	}
 	
+	/**
+	 * Gets a list of part files on disk for the fileId provided
+	 * 
+	 * @return List of part files as List<Path>
+	 * @throws IOException
+	 */
 	private List<Path> getPartFiles() throws IOException {
 		List<Path> partFiles = new ArrayList<>();
 		PartFilesFilter partFilesFilter = new PartFilesFilter(this.fileId);
@@ -160,6 +212,14 @@ public class SavePartStreamTask extends SaveInputStreamTask {
 		return partFiles;
 	}
 	
+	/**
+	 * Get the sum of part file sizes
+	 * 
+	 * @param partFiles
+	 *            List of part files whose size to add up
+	 * @return Total of file sizes as long, measured in bytes
+	 * @throws IOException
+	 */
 	private long addFilePartSizes(List<Path> partFiles) throws IOException {
 		long totalSize = 0L;
 		for (Path partFile : partFiles) {
@@ -168,6 +228,12 @@ public class SavePartStreamTask extends SaveInputStreamTask {
 		return totalSize;
 	}
 
+	/**
+	 * Comparator class for sorting part files into their correct sequence.
+	 * 
+	 * @author Rahul Khanna
+	 *
+	 */
 	private final class PartFileComparator implements Comparator<Path> {
 		@Override
 		public int compare(Path o1, Path o2) {
@@ -194,6 +260,12 @@ public class SavePartStreamTask extends SaveInputStreamTask {
 		}
 	}
 	
+	/**
+	 * Filter class that picks only part files for a specific file ID in any directory.
+	 * 
+	 * @author Rahul Khanna
+	 * 
+	 */
 	private final class PartFilesFilter implements DirectoryStream.Filter<Path> {
 		private String fileId;
 		

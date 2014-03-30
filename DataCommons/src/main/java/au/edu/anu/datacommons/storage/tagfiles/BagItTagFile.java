@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * Tag file class for bagit.txt
+ * 
  * @author Rahul Khanna
  *
  */

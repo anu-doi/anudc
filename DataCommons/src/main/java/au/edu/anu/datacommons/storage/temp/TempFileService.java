@@ -36,6 +36,9 @@ import org.springframework.stereotype.Component;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 
 /**
+ * Service class that calls on SaveInputStreamTask and SavePartStreamTask to save an inputstream (complete or part)
+ * to a file on disk.
+ * 
  * @author Rahul Khanna
  *
  */
@@ -49,6 +52,20 @@ public class TempFileService {
 	@Autowired(required = true)
 	Path uploadDir;
 
+	/**
+	 * Calls SaveInputStreamTask to save an InputStream to disk. Method returns immediately. File is saved in another
+	 * thread.
+	 * 
+	 * @param is
+	 *            InputStream to read data from
+	 * @param expectedLength
+	 *            Expected length of the stream. Size of the saved file will be checked against this value. Verification
+	 *            skipped if expected length <= 0
+	 * @param expectedMd5
+	 *            Expected MD5 of the stream
+	 * @return Future that returns UploadedFileInfo when file is saved.
+	 * @throws IOException
+	 */
 	public Future<UploadedFileInfo> saveInputStream(InputStream is, long expectedLength, String expectedMd5)
 			throws IOException {
 		SaveInputStreamTask saveStreamTask = new SaveInputStreamTask(uploadDir, is, expectedLength, expectedMd5);
@@ -56,6 +73,19 @@ public class TempFileService {
 		return taskFuture;
 	}
 	
+	/**
+	 * Calls SaveInputStreamTask to save a file hosted at a given URL to disk.
+	 * 
+	 * @param urlStr
+	 *            URL to download file from
+	 * @param expectedLength
+	 *            Expected length of the stream. Size of the saved file will be checked against this value. Verification
+	 *            skipped if expected length <= 0
+	 * @param expectedMd5
+	 *            Expected MD5 of the stream
+	 * @return Future that returns UploadedFileInfo when file is saved.
+	 * @throws IOException
+	 */
 	public Future<UploadedFileInfo> saveInputStream(String urlStr, long expectedLength, String expectedMd5)
 			throws MalformedURLException, IOException {
 		URL url = new URL(urlStr);
@@ -64,6 +94,25 @@ public class TempFileService {
 		return taskFuture;
 	}
 	
+	/**
+	 * Saves an inputstream that is a part of a file to disk.
+	 * 
+	 * @param is
+	 *            InputStream that is a part of a file.
+	 * @param part
+	 *            Part number as a positive integer
+	 * @param isLastPart
+	 *            true if this part is the last one in sequence
+	 * @param fileId
+	 *            File ID to associate the file the part stream is part of
+	 * @param expectedLength
+	 *            Expected length of the stream. Size of the saved file will be checked against this value. Verification
+	 *            skipped if expected length <= 0
+	 * @param expectedMd5
+	 *            Expected MD5 of the stream
+	 * @return Future that returns UploadedFileInfo when file is saved.
+	 * @throws IOException
+	 */
 	public Future<UploadedFileInfo> savePartStream(InputStream is, int part, boolean isLastPart, String fileId,
 			long expectedLength, String expectedMd5) throws IOException {
 		SavePartStreamTask partStreamTask = new SavePartStreamTask(uploadDir, fileId, is, part, isLastPart,

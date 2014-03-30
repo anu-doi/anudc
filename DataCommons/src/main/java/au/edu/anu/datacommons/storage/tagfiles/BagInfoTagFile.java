@@ -23,11 +23,12 @@ package au.edu.anu.datacommons.storage.tagfiles;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 
 /**
+ * Tag file class for bag-info.txt
+ * 
  * @author Rahul Khanna
- *
+ * 
  */
 public class BagInfoTagFile extends AbstractKeyValueFile {
 	private static final long serialVersionUID = 1L;

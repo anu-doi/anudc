@@ -23,17 +23,12 @@ package au.edu.anu.datacommons.webservice;
 
 import static java.text.MessageFormat.format;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import javax.annotation.Resource;
 import javax.ws.rs.Consumes;
@@ -88,7 +83,6 @@ import au.edu.anu.datacommons.data.solr.SolrUtils;
 import au.edu.anu.datacommons.security.service.FedoraObjectException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
-import au.edu.anu.datacommons.storage.DcStorageException;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
@@ -99,6 +93,12 @@ import au.edu.anu.datacommons.webservice.bindings.Link;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
+/**
+ * Provides a REST API endpoints for clients who use XML-based web service to create and update records.
+ * 
+ * @author Rahul Khanna
+ *
+ */
 @Component
 @Scope("request")
 @Path("/ws")
@@ -110,6 +110,7 @@ public class WebServiceResource
 	private static DocumentBuilder docBuilder;
 
 	private static JAXBContext context;
+	// TODO Having the unmarshaller as static is not thread-safe. Change to instance field.
 	private static Unmarshaller um;
 
 	@Autowired(required = true)
@@ -163,6 +164,14 @@ public class WebServiceResource
 		return resp;
 	}
 
+	/**
+	 * Accepts a POST request from clients with an XML document as the body. The XML document gets unmarshalled into a
+	 * DcRequest object.
+	 *  
+	 * @param xmlDoc
+	 * @param rid
+	 * @return
+	 */
 	@POST
 	@Consumes(MediaType.APPLICATION_XML)
 	@Produces(MediaType.APPLICATION_XML)
@@ -298,35 +307,14 @@ public class WebServiceResource
 		return el;
 	}
 
-	private Document xmlAsDoc(String xmlStr) throws ParserConfigurationException, SAXException, IOException
-	{
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		dbf.setNamespaceAware(true);
-		DocumentBuilder db;
-		Document doc = null;
-		try
-		{
-			db = dbf.newDocumentBuilder();
-			doc = db.parse(new ByteArrayInputStream(xmlStr.getBytes()));
-		}
-		catch (ParserConfigurationException e)
-		{
-			LOGGER.error(e.getMessage(), e);
-			throw e;
-		}
-		catch (SAXException e)
-		{
-			LOGGER.error(e.getMessage(), e);
-			throw e;
-		}
-		catch (IOException e)
-		{
-			LOGGER.error(e.getMessage(), e);
-			throw e;
-		}
-		return doc;
-	}
-
+	/**
+	 * Converts an XML document into a String
+	 * 
+	 * @param doc
+	 *            XML document to convert
+	 * 
+	 * @return Document's contents as String
+	 */
 	private String getStringFromDoc(Document doc)
 	{
 		StringWriter writer = new StringWriter();
@@ -466,6 +454,18 @@ public class WebServiceResource
 		return el;
 	}
 
+	/**
+	 * Returns the internal record identifier for a given external identifier of a record.
+	 * 
+	 * @param extId
+	 *            External identifier
+	 * @param type
+	 *            Type of record
+	 * @param ownerGroup
+	 *            Owner Group
+	 * @return Data Commons' record identifier as String
+	 * @throws FedoraObjectException
+	 */
 	private String getPidFromExtId(String extId, String type, String ownerGroup) throws FedoraObjectException
 	{
 		String pid = "";

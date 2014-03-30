@@ -25,17 +25,29 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Utility class useful for measuring the time difference between 2 units of code by calling the <code>start</code>
+ * before the unit of code to be measured and calling <code>stop</code> after it.
+ * 
  * @author Rahul Khanna
- *
+ * 
  */
 public class StopWatch {
 	Date start;
 	Date stop;
 	
+	/**
+	 * Starts the stopwatch.
+	 */
 	public void start() {
 		this.start = new Date();
 	}
 	
+	/**
+	 * Stops the stopwatch.
+	 * 
+	 * @throws IllegalStateException
+	 *             when this method is called before <code>start</code>
+	 */
 	public void stop() {
 		verifyStarted();
 		this.stop = new Date();
@@ -55,6 +67,17 @@ public class StopWatch {
 		}
 	}
 	
+	/**
+	 * Returns the time elapsed as a formatted string. For example:
+	 * <p>
+	 * <ul>
+	 * <li>1:02:03.456
+	 * <li>2:03.456
+	 * <li>3.456
+	 * </ul>
+	 * 
+	 * @return Time elapsed as String
+	 */
 	public String getTimeElapsedFormatted() {
 		String formatted;
 		long hr = TimeUnit.MILLISECONDS.toHours(getTimeElapsedMillis());
@@ -78,7 +101,7 @@ public class StopWatch {
 	 * 
 	 * @param bytes
 	 *            Number of bytes processed as long
-	 * @return Process rate as String e.g. 1.00 MB/sec
+	 * @return Process rate as String. For example, 1.00 MB/sec
 	 */
 	public String getRate(long bytes) {
 		long rate;

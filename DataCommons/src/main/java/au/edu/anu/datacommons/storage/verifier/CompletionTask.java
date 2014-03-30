@@ -60,15 +60,18 @@ import au.edu.anu.datacommons.storage.tagfiles.ManifestMd5TagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
-import au.edu.anu.datacommons.storage.tagfiles.TagManifestMd5TagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 import au.edu.anu.datacommons.util.StopWatch;
 
 /**
+ * Task class that completes a bag as per the BagIt specification. Occassionally after making changes to files in a
+ * collection record, some tag files may not be updated correctly, or at all, for example due to unable to write to
+ * disk.
+ * 
  * @author Rahul Khanna
- *
+ * 
  */
 public class CompletionTask implements Callable<Void>{
 	private static final Logger LOGGER = LoggerFactory.getLogger(CompletionTask.class);
@@ -84,6 +87,23 @@ public class CompletionTask implements Callable<Void>{
 	
 	private boolean dryRun = false;
 	
+	/**
+	 * Creates an instance of the completion task object that can be submitted to a thread pool for processing in
+	 * another thread.
+	 * 
+	 * @param pid
+	 *            Identifier of the collection record to complete
+	 * @param bagDir
+	 *            Bag directory of the record
+	 * @param tagFilesSvc
+	 *            Tag files service
+	 * @param eventListener
+	 *            Storage event listener to which changes to tag files will be notified
+	 * @param threadPoolSvc
+	 *            Thread Pool service to which sub-completion tasks will be submitted
+	 * @param dcStorage
+	 *            DcStorage class
+	 */
 	public CompletionTask(String pid, Path bagDir, TagFilesService tagFilesSvc, StorageEventListener eventListener,
 			ThreadPoolService threadPoolSvc, DcStorage dcStorage) {
 		this.pid = pid;
@@ -95,6 +115,9 @@ public class CompletionTask implements Callable<Void>{
 		initTagFileClasses();
 	}
 	
+	/**
+	 * Initialises a list of tag file classes that will be checked for completeness. 
+	 */
 	private void initTagFileClasses() {
 		classes = new ArrayList<>(5);
 		classes.add(FileMetadataTagFile.class);
@@ -104,6 +127,12 @@ public class CompletionTask implements Callable<Void>{
 		classes.add(PreservationMapTagFile.class);
 	}
 
+	/**
+	 * Sets if the completion task only performs a dry run of the completion process without actually making any
+	 * changes. 
+	 * 
+	 * @param dryRun
+	 */
 	public void setDryRun(boolean dryRun) {
 		this.dryRun = dryRun;
 	}
@@ -128,6 +157,16 @@ public class CompletionTask implements Callable<Void>{
 		return null;
 	}
 	
+	/**
+	 * Checks for presence of following artifacts from old storage formats: <li>
+	 * <ul>
+	 * Files in metadata/ directory which previously stored file metadata. Now it is serialised to JSON and stored in
+	 * file-metadata.txt</li>
+	 * 
+	 * @param plFiles
+	 *            Payload files within the bag
+	 * @throws IOException
+	 */
 	private void checkArtifacts(Set<Path> plFiles) throws IOException {
 		Path metadataDir = bagDir.resolve("metadata/");
 		if (Files.isDirectory(metadataDir)) {
@@ -139,11 +178,27 @@ public class CompletionTask implements Callable<Void>{
 		}
 	}
 
+	/**
+	 * Verifies the message digests stored in a manifest match file's contents.
+	 * 
+	 * @param plFiles
+	 *            Payload files within the bag
+	 * @throws IOException
+	 */
 	private void verifyMessageDigests(Set<Path> plFiles) throws IOException {
 		Map<Path, Future<String>> calcMd = calcMessageDigests(plFiles);
 		compareMessageDigests(calcMd);
 	}
 
+	/**
+	 * Calculates message digest for payload files provided.
+	 * 
+	 * @param plFiles
+	 *            Payload files
+	 * @return Message digests as <code>Map<Path, Future<String>></code> where Keys are the path to the payload files,
+	 *         and <code>Future<String></code>
+	 * 
+	 */
 	private Map<Path, Future<String>> calcMessageDigests(Set<Path> plFiles) {
 		Map<Path, Future<String>> calcMd = new HashMap<>();
 		for (Path plFile : plFiles) {
@@ -161,6 +216,13 @@ public class CompletionTask implements Callable<Void>{
 		return calcMd;
 	}
 	
+	/**
+	 * Compares provided (calculated) message digests with the MD5 values in the manifest tag file.
+	 * 
+	 * @param calcMd
+	 *            Calculated Message Digests
+	 * @throws IOException
+	 */
 	private void compareMessageDigests(Map<Path, Future<String>> calcMd) throws IOException {
 		// Check that each payload file's calculated MD5 exists in the manifest tag file. Add it if it doesn't.
 		for (Entry<Path, Future<String>> calcMdEntry : calcMd.entrySet()) {
@@ -193,6 +255,13 @@ public class CompletionTask implements Callable<Void>{
 		removeExtraKeys(calcMd.keySet(), ManifestMd5TagFile.class);
 	}
 	
+	/**
+	 * Verifies the contents of each of the tag files. Checks that an entry exists in a tag file for every payload file.
+	 * 
+	 * @param plFiles
+	 *            Payload files against which tag file entries will be verified.
+	 * @throws IOException
+	 */
 	private void verifyTagFiles(Set<Path> plFiles) throws IOException {
 		for (Path plFile : plFiles) {
 			String dataRelPath = getDataRelPath(plFile);
@@ -220,6 +289,15 @@ public class CompletionTask implements Callable<Void>{
 		}
 	}
 
+	/**
+	 * Creates a task object for generating a tag file entry for a payload file.
+	 * 
+	 * @param clazz
+	 *            Tag file class missing an entry for the payload file
+	 * @param relPath
+	 *            Relative path to the payload file
+	 * @return Instance of an appropriate task object that adds an entry into the specified tag file
+	 */
 	private AbstractTagFileTask createTask(Class<? extends AbstractKeyValueFile> clazz, String relPath) {
 		AbstractTagFileTask task = null;
 		if (clazz == FileMetadataTagFile.class) {
@@ -238,6 +316,15 @@ public class CompletionTask implements Callable<Void>{
 		return task;
 	}
 
+	/**
+	 * Removes keys for non existent files in the specified tag file.
+	 * 
+	 * @param plFiles
+	 *            Payload files. Entries in tag files for files other than these will be removed.
+	 * @param clazz
+	 *            Tag file to from extra keys from
+	 * @throws IOException
+	 */
 	private void removeExtraKeys(Set<Path> plFiles, Class<? extends AbstractKeyValueFile> clazz) throws IOException {
 		Set<String> keysForRemoval = new HashSet<>();
 		for (Entry<String, String> tagFileEntry : tagFilesSvc.getAllEntries(pid, clazz).entrySet()) {
@@ -253,10 +340,25 @@ public class CompletionTask implements Callable<Void>{
 		}
 	}
 
+	/**
+	 * Extracts a the portion of a path relative to the bag directory.
+	 * 
+	 * @param file
+	 *            Path to a file
+	 * @return Relative path as String
+	 */
 	private String getDataRelPath(Path file) {
 		return FilenameHelper.normalizePathSeparators(bagDir.relativize(file).toString());
 	}
 
+	/**
+	 * Enumerates files in a directory and its subdirectories.
+	 * 
+	 * @param dir
+	 *            Directory to walk
+	 * @return Set of files in that directory and its subdirectories.
+	 * @throws IOException
+	 */
 	private Set<Path> listFilesInDir(Path dir) throws IOException {
 		Set<Path> files = new HashSet<Path>();
 		

@@ -35,7 +35,6 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -239,32 +238,6 @@ public class UploadService extends AbstractStorageResource {
 		return resp;
 	}
 
-	@GET
-	@Produces(MediaType.TEXT_PLAIN)
-	@Path("bag/{pid}/ispublic")
-	public Response doGetIsFilesPublic(@PathParam("pid") String pid) {
-		Response resp = null;
-		boolean isFilesPublic = fedoraObjectService.isFilesPublic(pid);
-		resp = Response.ok(Boolean.toString(isFilesPublic)).build();
-		return resp;
-	}
-
-	@PUT
-	@Consumes(MediaType.TEXT_PLAIN)
-	@Produces(MediaType.TEXT_PLAIN)
-	@Path("bag/{pid}/ispublic")
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doPutSetFilesPublic(@PathParam("pid") String pid, String isFilesPublicStr) {
-		Response resp = null;
-		LOGGER.info("User {} requested change status of files {} to {}", getCurUsername(), pid, isFilesPublicStr);
-		if (isFilesPublicStr == null || isFilesPublicStr.length() == 0) {
-			resp = Response.status(Status.BAD_REQUEST).build();
-		} else {
-			resp = processSetFilesPublicFlag(pid, isFilesPublicStr);
-		}
-		return resp;
-	}
-
 	/**
 	 * Returns information about the current logged on user in the format username:displayName. E.g.
 	 * "u1234567:John Smith"
@@ -286,6 +259,11 @@ public class UploadService extends AbstractStorageResource {
 		return resp;
 	}
 
+	/**
+	 * Displays the Storage Search page from where users can search for data files.
+	 * 
+	 * @return HTTP response
+	 */
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	@Path("search")

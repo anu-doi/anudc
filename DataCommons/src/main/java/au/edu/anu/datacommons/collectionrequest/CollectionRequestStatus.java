@@ -36,12 +36,17 @@ import javax.persistence.Table;
 
 import au.edu.anu.datacommons.data.db.model.Users;
 
+/**
+ * Entity class representing a current or historic state of a collection request. Every status change of a collection
+ * request requires a new row to be persisted.
+ * 
+ * @author Rahul Khanna
+ * 
+ */
 @Entity
 @Table(name = "collection_request_status")
-public class CollectionRequestStatus
-{
-	public enum ReqStatus
-	{
+public class CollectionRequestStatus {
+	public enum ReqStatus {
 		SUBMITTED, ACCEPTED, REJECTED, PENDING
 	};
 
@@ -52,12 +57,10 @@ public class CollectionRequestStatus
 	private Users user;
 	private Date timestamp;
 
-	public CollectionRequestStatus()
-	{
+	public CollectionRequestStatus() {
 	}
 
-	public CollectionRequestStatus(CollectionRequest collReq, ReqStatus status, String reason, Users user)
-	{
+	public CollectionRequestStatus(CollectionRequest collReq, ReqStatus status, String reason, Users user) {
 		this.collectionRequest = collReq;
 		this.status = status;
 		this.reason = reason;
@@ -67,76 +70,63 @@ public class CollectionRequestStatus
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	public Long getId()
-	{
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Long id)
-	{
+	public void setId(Long id) {
 		this.id = id;
 	}
 
 	@ManyToOne(optional = false, cascade = CascadeType.ALL)
 	@JoinColumn(name = "request_fk")
-	public CollectionRequest getCollectionRequest()
-	{
+	public CollectionRequest getCollectionRequest() {
 		return collectionRequest;
 	}
 
-	public void setCollectionRequest(CollectionRequest collectionRequest)
-	{
+	public void setCollectionRequest(CollectionRequest collectionRequest) {
 		this.collectionRequest = collectionRequest;
 	}
 
 	@Column(name = "status", nullable = false)
-	public ReqStatus getStatus()
-	{
+	public ReqStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(ReqStatus status)
-	{
+	public void setStatus(ReqStatus status) {
 		this.status = status;
 	}
 
 	@Column(name = "timestamp", nullable = false)
-	public Date getTimestamp()
-	{
+	public Date getTimestamp() {
 		return timestamp;
 	}
 
-	public void setTimestamp(Date timestamp)
-	{
+	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
 	}
 
 	@Column(name = "reason", nullable = false)
-	public String getReason()
-	{
+	public String getReason() {
 		return reason;
 	}
 
-	public void setReason(String reason)
-	{
+	public void setReason(String reason) {
 		this.reason = reason;
 	}
 
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "user_fk")
-	public Users getUser()
-	{
+	public Users getUser() {
 		return user;
 	}
 
-	public void setUser(Users user)
-	{
+	public void setUser(Users user) {
 		this.user = user;
 	}
 
 	@PrePersist
-	protected void onCreate()
-	{
+	protected void onCreate() {
 		timestamp = new Date();
 	}
 }

@@ -31,6 +31,12 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+/**
+ * Entity class representing an answer for a collection request.
+ * 
+ * @author Rahul Khanna
+ *
+ */
 @Entity
 @Table(name = "collection_request_answers", uniqueConstraints = @UniqueConstraint(columnNames =
 { "request_fk", "question_fk" }))

@@ -33,10 +33,16 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+/**
+ * Entity class containing loggable information about a request sent to an external system and the response received
+ * from it for that request.
+ * 
+ * @author Rahul Khanna
+ * 
+ */
 @Entity
 @Table(name = "log_external_web_resource")
-public class ExtWebResourceLog
-{
+public class ExtWebResourceLog {
 	private Long id;
 	private String pid;
 	private String request;
@@ -44,89 +50,74 @@ public class ExtWebResourceLog
 	private String response;
 	private Date responseTimestamp;
 
-	protected ExtWebResourceLog()
-	{
+	protected ExtWebResourceLog() {
 	}
 
-	public ExtWebResourceLog(String pid, String doiSvcRequest)
-	{
+	public ExtWebResourceLog(String pid, String svcRequest) {
 		this.pid = pid;
-		this.request = doiSvcRequest;
+		this.request = svcRequest;
 		this.requestTimestamp = new Date();
 	}
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	public Long getId()
-	{
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Long id)
-	{
+	public void setId(Long id) {
 		this.id = id;
 	}
 
 	@Column(name = "pid")
-	public String getPid()
-	{
+	public String getPid() {
 		return pid;
 	}
 
-	public void setPid(String pid)
-	{
+	public void setPid(String pid) {
 		this.pid = pid;
 	}
 
 	@Column(name = "http_request", columnDefinition = "text", nullable = false)
-	public String getRequest()
-	{
+	public String getRequest() {
 		return request;
 	}
 
-	public void setRequest(String request)
-	{
+	public void setRequest(String request) {
 		this.request = request;
 	}
 
 	@Column(name = "request_timestamp", nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
-	public Date getRequestTimestamp()
-	{
+	public Date getRequestTimestamp() {
 		return requestTimestamp;
 	}
 
-	public void setRequestTimestamp(Date requestTimestamp)
-	{
+	public void setRequestTimestamp(Date requestTimestamp) {
 		this.requestTimestamp = requestTimestamp;
 	}
 
 	@Column(name = "http_response", columnDefinition = "text")
-	public String getResponse()
-	{
+	public String getResponse() {
 		return response;
 	}
 
-	public void setResponse(String response)
-	{
+	public void setResponse(String response) {
 		this.response = response;
 	}
 
 	@Column(name = "response_timestamp")
-	public Date getResponseTimestamp()
-	{
+	public Date getResponseTimestamp() {
 		return responseTimestamp;
 	}
 
-	public void setResponseTimestamp(Date responseTimestamp)
-	{
+	public void setResponseTimestamp(Date responseTimestamp) {
 		this.responseTimestamp = responseTimestamp;
 	}
 
 	@Transient
-	public void addResponse(String response)
-	{
+	public void addResponse(String response) {
 		this.setResponse(response);
 		this.setResponseTimestamp(new Date());
 	}

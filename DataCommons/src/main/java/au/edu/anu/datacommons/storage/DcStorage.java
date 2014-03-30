@@ -22,7 +22,6 @@
 package au.edu.anu.datacommons.storage;
 
 import static java.text.MessageFormat.format;
-import gov.loc.repository.bagit.BagFactory;
 import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.utilities.FilenameHelper;
 
@@ -79,10 +78,15 @@ import au.edu.anu.datacommons.storage.verifier.VerificationTask;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 import au.edu.anu.datacommons.util.Util;
 
+/**
+ * Provides data storage management methods for adding/updating/deleting files to be stored in a collection record.
+ * 
+ * @author Rahul Khanna
+ *
+ */
 @Component
 public final class DcStorage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DcStorage.class);
-	public static final BagFactory bagFactory = new BagFactory();
 
 	@Autowired(required = true)
 	private RecordDataInfoService rdiSvc;
@@ -101,7 +105,6 @@ public final class DcStorage {
 
 	private Set<Manifest.Algorithm> algorithms;
 	private File bagsRootDir = null;
-	File stagingDir;
 
 	public DcStorage(String bagsDirpath) throws IOException {
 		this(new File(bagsDirpath));
@@ -122,10 +125,6 @@ public final class DcStorage {
 		}
 	}
 
-	public void setStagingDir(File stagingDir) {
-		this.stagingDir = stagingDir;
-	}
-
 	/**
 	 * Downloads a file from a specified URL and adds it to the bag of a specified collection.
 	 * 
@@ -135,7 +134,6 @@ public final class DcStorage {
 	 *            URL from where to download the file
 	 * @param filepath
 	 *            Filename to save as
-	 * @throws DcStorageException
 	 * @throws IOException
 	 */
 	public void addFile(String pid, URL fileUrl, String filepath) throws IOException {
@@ -163,16 +161,18 @@ public final class DcStorage {
 	}
 
 	/**
-	 * Adds a local file to a collection's bag.
+	 * Adds a file to a collection record.
 	 * 
 	 * @param pid
-	 *            Pid of the collection record
-	 * @param sourceFile
-	 *            File object
+	 *            Identifier of collection record
+	 * @param sourceFileInfo
+	 *            Object containing location and other information about the file to store in bag
+	 * @param filepath
+	 *            Path relative to the payload directory in which the file will be saved.
 	 * @throws IOException
+	 *             when unable to read the source file
 	 * @throws FileNotFoundException
-	 *             TODO
-	 * @throws DcStorageException
+	 *             when source file doesn't exist
 	 */
 	public void addFile(String pid, UploadedFileInfo sourceFileInfo, String filepath) throws IOException,
 			FileNotFoundException {
@@ -180,7 +180,25 @@ public final class DcStorage {
 		processAddFile(pid, sourceFileInfo, filepath);
 	}
 
-	public void addHiddenFile(String pid, UploadedFileInfo sourceFileInfo, String filepath) throws IOException {
+	/**
+	 * Adds a local file to a collection's bag without verifying if the filepath contains any hidden elements. This
+	 * method allows files to be saved as 'dot files' and into 'dot directories'. This method is not called as a result
+	 * of a user request, but primarily to store alternate versions of user uploaded files, such as storing preservation
+	 * format files in '.preserve' directory.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param sourceFileInfo
+	 *            Object containing location and other information about the file to store in bag
+	 * @param filepath
+	 *            Path relative to the payload directory in which the file will be saved.
+	 * @throws IOException
+	 *             when unable to read the source file
+	 * @throws FileNotFoundException
+	 *             when source file doesn't exist
+	 */
+	public void addHiddenFile(String pid, UploadedFileInfo sourceFileInfo, String filepath) throws IOException,
+			FileNotFoundException {
 		processAddFile(pid, sourceFileInfo, filepath);
 	}
 	
@@ -212,15 +230,15 @@ public final class DcStorage {
 	}
 
 	/**
-	 * Deletes a file from the bag of a specified record. The bag itself is then completed in a separate request.
+	 * Deletes a file or directory from the bag of a specified record. The bag itself is then completed in a separate
+	 * request.
 	 * 
 	 * @param pid
 	 *            Pid of the record whose bag contains the file to be deleted
 	 * @param filepath
-	 *            Path of the file in the bag. For example, "data/somefile.txt"
-	 * @throws DcStorageException
-	 *             when unable to delete the file
+	 *            Path of the file or directory in the bag. For example, "data/somefile.txt"
 	 * @throws IOException
+	 *             when unable to delete file.
 	 */
 	public void deleteItem(String pid, String filepath) throws FileNotFoundException, IOException {
 		validatePid(pid);
@@ -236,11 +254,22 @@ public final class DcStorage {
 		}
 	}
 	
+	/**
+	 * Deletes a directory within a collection record. Deletes individual files within the specified directory.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record.
+	 * @param filepath
+	 *            Path of the directory to delete.
+	 * @throws IOException
+	 *             when unable to delete
+	 */
 	private void deleteDir(String pid, String filepath) throws IOException {
 		File dirToDel = ff.getFile(getPayloadDir(pid), filepath);
 		List<File> fileList = recurseAllFilesInDir(dirToDel);
 		for (File f : fileList) {
-			processDeleteFile(pid, FilenameHelper.removeBasePath(getPayloadDir(pid).getAbsolutePath(), f.getAbsolutePath()));
+			processDeleteFile(pid,
+					FilenameHelper.removeBasePath(getPayloadDir(pid).getAbsolutePath(), f.getAbsolutePath()));
 		}
 		deleteTree(dirToDel.toPath());
 		if (dirToDel.isDirectory()) {
@@ -248,17 +277,31 @@ public final class DcStorage {
 		}
 	}
 
+	/**
+	 * Processes the deletion of a single file. Calls the storage event listener before and after the event to perform
+	 * bag completion tasks.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param filepath
+	 *            Path of the file relative to payload directory to delete
+	 * @throws IOException
+	 *             when unable to delete the file
+	 */
 	public void processDeleteFile(String pid, String filepath) throws IOException {
 		File fileToDel = ff.getFile(getPayloadDir(pid), filepath);
-		synchronized (fileToDel) {
-			eventListener.notify(EventTime.PRE, EventType.DELETE_FILE, pid, getBagDir(pid).toPath(), filepath, null);
-			// File should have been moved from its original location as part of pre-event tasks so no need to delete.
-			if (fileToDel.isFile()) {
+		if (fileToDel.isFile()) {
+			synchronized (fileToDel) {
+				eventListener
+						.notify(EventTime.PRE, EventType.DELETE_FILE, pid, getBagDir(pid).toPath(), filepath, null);
+				// File should have been moved from its original location as part of pre-event tasks so no need to
+				// delete.
 				if (!fileToDel.delete()) {
 					throw new IOException(format("Unable to delete file {0}/data/{1}", pid, filepath));
 				}
+				eventListener.notify(EventTime.POST, EventType.DELETE_FILE, pid, getBagDir(pid).toPath(), filepath,
+						null);
 			}
-			eventListener.notify(EventTime.POST, EventType.DELETE_FILE, pid, getBagDir(pid).toPath(), filepath, null);
 		}
 	}
 
@@ -380,7 +423,6 @@ public final class DcStorage {
 	 * @param filePath
 	 *            Path of file within the bag. E.g. data/file.txt
 	 * @return Inputstream of file within bag
-	 * @throws DcStorageException
 	 */
 	public InputStream getFileStream(String pid, String filepath) throws FileNotFoundException, IOException {
 		BufferedInputStream is = null;

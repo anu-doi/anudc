@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -42,6 +41,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
+ * A service class that manages task scheduling. Tasks can be submitted to one of the following pools:
+ * <p>
+ * <ul>
+ * <li>Fixed-size thread pool for most tasks (priority 4)
+ * <li>Unbounded thread pool (priority 3) for tasks that wait for other tasks to complete.
+ * <li>Fixed-size thread pool for idle tasks (priority 1)
+ * </ul>
+ * 
  * @author Rahul Khanna
  * 
  */
@@ -57,8 +64,14 @@ public class ThreadPoolService implements AutoCloseable {
 
 	private List<Runnable> cleanupTasks = new ArrayList<Runnable>();
 
+	/**
+	 * Creates an instance of the the Thread Pool Service.
+	 * 
+	 * @param nThreads
+	 */
 	public ThreadPoolService(int nThreads) {
-		scheduledThreadPool = new ScheduledThreadPoolExecutor(nThreads, new ThreadPoolFactory("fixed", Thread.NORM_PRIORITY - 1));
+		scheduledThreadPool = new ScheduledThreadPoolExecutor(nThreads, new ThreadPoolFactory("fixed",
+				Thread.NORM_PRIORITY - 1));
 		execs.add(scheduledThreadPool);
 
 		cachedThreadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS,
@@ -69,50 +82,62 @@ public class ThreadPoolService implements AutoCloseable {
 		execs.add(idleThreadPool);
 	}
 
+	/**
+	 * @see ScheduledThreadPoolExecutor#submit(Callable)
+	 */
 	public <T> Future<T> submit(Callable<T> task) {
 		return scheduledThreadPool.submit(task);
 	}
 
+	/**
+	 * @see ScheduledThreadPoolExecutor#submit(Runnable)
+	 */
 	public Future<?> submit(Runnable task) {
 		return scheduledThreadPool.submit(task);
 	}
 
+	/**
+	 * @see ScheduledThreadPoolExecutor#scheduleWithFixedDelay(Runnable, long, long, TimeUnit)
+	 */
 	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
 		return scheduledThreadPool.scheduleWithFixedDelay(command, initialDelay, delay, unit);
 	}
 
+	/**
+	 * @see ScheduledThreadPoolExecutor#submit(Callable)
+	 */
 	public <T> Future<T> submitCachedPool(Callable<T> task) {
 		return cachedThreadPool.submit(task);
 	}
 
+	/**
+	 * @see ThreadPoolExecutor#submit(Callable)
+	 */
 	public <T> Future<T> submitIdlePool(Callable<T> task) {
 		return idleThreadPool.submit(task);
 	}
 
+	/**
+	 * @see ScheduledThreadPoolExecutor#scheduleWithFixedDelay(Runnable, long, long, TimeUnit)
+	 */
 	public ScheduledFuture<?> scheduleWhenIdleWithFixedDelay(Runnable command, long initialDelay, long delay,
 			TimeUnit unit) {
 		return idleThreadPool.scheduleWithFixedDelay(command, initialDelay, delay, unit);
 	}
 
+	/**
+	 * Adds a cleaup task to the list of tasks that will be performed on the shutdown of this instance.
+	 * 
+	 * @param task
+	 *            Cleanup task as Runnable
+	 */
 	public synchronized void addCleanupTask(Runnable task) {
 		this.cleanupTasks.add(task);
 	}
 
-	public Runnable convert(final Callable<?> callable) {
-		return new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					callable.call();
-				} catch (Exception e) {
-					// Can't rethrow exception as run()'s method signature doesn't allow it.
-					LOGGER.error(e.getMessage(), e);
-				}
-			}
-		};
-	}
-
+	/**
+	 * Waits until all tasks in the thread pool finish. Then performs clean up tasks.
+	 */
 	@Override
 	@PreDestroy
 	public void close() throws Exception {

@@ -30,56 +30,54 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+/**
+ * Entity class representing a requested item in a collection request. A requested item is a relative path to a file or
+ * folder within a collection record.
+ * 
+ * @author Rahul Khanna
+ * 
+ */
 @Entity
 @Table(name = "collection_request_items")
-public class CollectionRequestItem
-{
+public class CollectionRequestItem {
 	private Long id;
 	private String item;
 	private CollectionRequest collectionRequest;
 
-	protected CollectionRequestItem()
-	{
+	protected CollectionRequestItem() {
 	}
 
-	public CollectionRequestItem(String item)
-	{
+	public CollectionRequestItem(String item) {
 		this.item = item;
 	}
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	public Long getId()
-	{
+	public Long getId() {
 		return id;
 	}
 
-	protected void setId(Long id)
-	{
+	protected void setId(Long id) {
 		this.id = id;
 	}
 
 	@Column(name = "item", nullable = false)
-	public String getItem()
-	{
+	public String getItem() {
 		return item;
 	}
 
-	public void setItem(String item)
-	{
+	public void setItem(String item) {
 		this.item = item;
 	}
 
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "request_fk")
-	public CollectionRequest getCollectionRequest()
-	{
+	public CollectionRequest getCollectionRequest() {
 		return collectionRequest;
 	}
 
-	public void setCollectionRequest(CollectionRequest parentRequest)
-	{
+	public void setCollectionRequest(CollectionRequest parentRequest) {
 		this.collectionRequest = parentRequest;
 	}
 }

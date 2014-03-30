@@ -34,6 +34,8 @@ import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.gov.naa.digipres.xena.kernel.normalise.NormaliserResults;
 
 /**
+ * A storage event task that creates a preservation file and adds a tag file entry in the preserve tagfile. 
+ * 
  * @author Rahul Khanna
  * 
  */

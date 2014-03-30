@@ -63,6 +63,9 @@ import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 import au.edu.anu.datacommons.util.StopWatch;
 
 /**
+ * A service class that generates a {@link RecordDataInfo} object containing details about the files in a collection
+ * record.
+ * 
  * @author Rahul Khanna
  * 
  */
@@ -73,6 +76,17 @@ public class RecordDataInfoService {
 	@Autowired(required = true)
 	private TagFilesService tagFilesSvc;
 
+	/**
+	 * Creates a RecordDataInfo object for all files in a collection record. For collections with a large number of
+	 * files this process may take a long time to complete.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param plDir
+	 *            Payload directory
+	 * @return Generated RecordDataInfo object
+	 * @throws IOException
+	 */
 	public RecordDataInfo createRecordDataInfo(String pid, Path plDir) throws IOException {
 		RecordDataInfo rdi = new RecordDataInfo();
 		rdi.setPid(pid);
@@ -86,6 +100,19 @@ public class RecordDataInfoService {
 		return rdi;
 	}
 	
+	/**
+	 * Creates a RecordDataInfo object containing information about files in a specified directory of a collection
+	 * record.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param plDir
+	 *            Payload directory
+	 * @param relPath
+	 *            Relative path to the directory whose files are to be included in the RDI object.
+	 * @return Generated RecordDataInfo object
+	 * @throws IOException
+	 */
 	public RecordDataInfo createDirLimitedRecordDataInfo(String pid, Path plDir, String relPath) throws IOException {
 		RecordDataInfo rdi = new RecordDataInfo();
 		rdi.setPid(pid);
@@ -99,6 +126,19 @@ public class RecordDataInfoService {
 		return rdi;
 	}
 
+	/**
+	 * Creates a single FileInfo object for a specified file within a collection record.
+	 * 
+	 * @param pid
+	 *            Identifier of the collection record
+	 * @param payloadDir
+	 *            Payload directory
+	 * @param relPath
+	 *            Relative path to the file
+	 * @return
+	 * @throws NoSuchFileException
+	 * @throws IOException
+	 */
 	public FileInfo createFileInfo(String pid, Path payloadDir, Path relPath) throws NoSuchFileException, IOException {
 		FileInfo fi = new FileInfo();
 		Path filepath = payloadDir.resolve(relPath);
@@ -126,7 +166,7 @@ public class RecordDataInfoService {
 		}
 
 		fi.setLastModified(new Date(Files.getLastModifiedTime(filepath).toMillis()));
-		
+
 		return fi;
 	}
 
@@ -134,6 +174,18 @@ public class RecordDataInfoService {
 		populateFileInfos(rdi, pid, payloadDir, null);
 	}
 
+	/**
+	 * Populates a {@link RecordDataInfo} object with FileInfo objects.
+	 * 
+	 * @param rdi
+	 *            The RDI object to populate
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param payloadDir
+	 *            Payload directory of the collection record
+	 * @param relPath
+	 * @throws IOException
+	 */
 	private void populateFileInfos(RecordDataInfo rdi, String pid, Path payloadDir, String relPath) throws IOException {
 		long nFiles = 0L;
 		long sizeBytes = 0L;
@@ -177,6 +229,16 @@ public class RecordDataInfoService {
 		rdi.setDirNumFiles(nFiles);
 	}
 	
+	/**
+	 * Returns a list of Path objects, each representing a file in the directory.
+	 * 
+	 * @param root
+	 *            Root directory from where to start the tree walk
+	 * @param recurse
+	 *            true if the list should include files within subdirectories of the specified directory
+	 * @return List of Path objects for each file
+	 * @throws IOException
+	 */
 	private List<Path> listFilesInDirFullPath(Path root, boolean recurse) throws IOException {
 		List<Path> fileList = new ArrayList<>();
 		try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(root)) {
@@ -198,6 +260,16 @@ public class RecordDataInfoService {
 		return fileList;
 	}
 	
+	/**
+	 * Retrieves the message digests for a specified payload file.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param relPath
+	 *            Relative path to the file whose message digests are required.
+	 * @return Map<String, String> with algorithms as Keys and message digests as values.
+	 * @throws IOException
+	 */
 	private Map<String, String> retrieveMessageDigests(String pid, String relPath) throws IOException {
 		Map<String, String> mdMap = new HashMap<String, String>(1);
 		// MD5
@@ -206,19 +278,59 @@ public class RecordDataInfoService {
 		return mdMap;
 	}
 
+	/**
+	 * Retrieves the pronom format for a specified file in a collection record.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record.
+	 * @param relPath
+	 *            Relative path of the file whose pronom format is to be retrieved.
+	 * @return Fido string as PronomFormat object
+	 * @throws IOException
+	 */
 	private PronomFormat retrievePronomFormat(String pid, String relPath) throws IOException {
 		return new PronomFormat(tagFilesSvc.getEntryValue(pid, PronomFormatsTagFile.class, prependData(relPath)));
 	}
 	
+	/**
+	 * Retrieves the virus scan result for a specified file in a collection record.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param relPath
+	 *            Relative path to the file whose virus scan result is to be retrieved.
+	 * @return Virus Scan result as String
+	 * @throws IOException
+	 */
 	private String retrieveScanResult(String pid, String relPath) throws IOException {
 		return tagFilesSvc.getEntryValue(pid, VirusScanTagFile.class, prependData(relPath));
 	}
 	
+	/**
+	 * Retrieve the metadata for a specified file in a collection record.
+	 * 
+	 * @param pid
+	 *            Identifier of a collection record
+	 * @param relPath
+	 *            Relative path to the file whose metadata is to be retrieved
+	 * @return Metadata as Map<String, String[]>
+	 * @throws IOException
+	 */
 	private Map<String, String[]> retrieveMetadata(String pid, String relPath) throws IOException {
 		String metadataJson = tagFilesSvc.getEntryValue(pid, FileMetadataTagFile.class, prependData(relPath));
 		return deserializeFromJson(metadataJson);
 	}
 	
+	/**
+	 * Retrieve the path to the preserved file of payload file, if it exists, for a payload file.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param relFilepath
+	 *            Relative path to the file whose preserved file is to be retrieved.
+	 * @return Path to the preserved format of the file. null if a preserved file doesn't exist.
+	 * @throws IOException
+	 */
 	private String retrievePresvFilepath(String pid, String relFilepath) throws IOException {
 		String presv = tagFilesSvc.getEntryValue(pid, PreservationMapTagFile.class, prependData(relFilepath));
 		if (presv != null) {
@@ -231,6 +343,15 @@ public class RecordDataInfoService {
 		return presv;
 	}
 
+	/**
+	 * Sets aggregated information in a RecordDataInfo object about files in a collection record.
+	 * 
+	 * @param rdi
+	 *            RecordDataInfo object to which aggregated information will be added.
+	 * @param pid
+	 *            Identifier of collection record.
+	 * @throws IOException
+	 */
 	private void setRecordInfo(RecordDataInfo rdi, String pid) throws IOException {
 		String payloadOxum = tagFilesSvc.getEntryValue(pid, BagInfoTagFile.class, BagInfoTxtImpl.FIELD_PAYLOAD_OXUM);
 		if (payloadOxum != null) {

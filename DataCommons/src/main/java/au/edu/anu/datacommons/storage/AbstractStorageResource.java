@@ -70,19 +70,21 @@ import au.edu.anu.datacommons.util.Util;
 import com.sun.jersey.api.NotFoundException;
 
 /**
+ * Provides common methods for parsing HTTP requests and structuring HTTP responses for Storage-related requests.
+ * 
  * @author Rahul Khanna
- *
+ * 
  */
 public class AbstractStorageResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStorageResource.class);
-	
+
 	@Context
 	protected UriInfo uriInfo;
 	@Context
 	protected HttpServletRequest request;
 	@Context
 	protected HttpHeaders httpHeaders;
-	
+
 	@Resource(name = "fedoraObjectServiceImpl")
 	protected FedoraObjectService fedoraObjectService;
 
@@ -91,10 +93,10 @@ public class AbstractStorageResource {
 
 	@Resource(name = "dcStorage")
 	protected DcStorage dcStorage;
-	
+
 	@Autowired
 	protected TempFileService tmpFileSvc;
-	
+
 	protected AccessLogRecordDAOImpl accessLogDao = new AccessLogRecordDAOImpl();
 
 	/**
@@ -106,7 +108,7 @@ public class AbstractStorageResource {
 	 * @param fileInBag
 	 *            Name of file in bag whose contents are to be returned as InputStream.
 	 * @return Response object including HTTP headers and InputStream containing file contents.
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	protected Response getBagFileOctetStreamResp(String pid, String fileInBag) throws IOException {
 		Response resp = null;
@@ -132,18 +134,6 @@ public class AbstractStorageResource {
 		return resp;
 	}
 
-	protected String extractFilenameFromPath(String fullFilename) {
-		// Extract the type of slash being used in the filename.
-		char clientSlashType = (fullFilename.lastIndexOf("\\") > 0) ? '\\' : '/';
-
-		// Get the index where the filename starts. -1 if the path isn't specified.
-		int clientFilenameStartIndex = fullFilename.lastIndexOf(clientSlashType);
-
-		// Get the part of the string after the last instance of the path separator.
-		String filename = fullFilename.substring(clientFilenameStartIndex + 1, fullFilename.length());
-		return filename;
-	}
-
 	/**
 	 * Gets a Users object containing information about the currently logged in user.
 	 * 
@@ -152,15 +142,31 @@ public class AbstractStorageResource {
 	protected Users getCurUser() {
 		return new UsersDAOImpl().getUserByName(getCurUsername());
 	}
-	
+
+	/**
+	 * Gets the username of the currently logged-in user.
+	 * 
+	 * @return Username as String
+	 */
 	protected String getCurUsername() {
 		return SecurityContextHolder.getContext().getAuthentication().getName();
 	}
-	
+
+	/**
+	 * Gets the IP address of the logged-in user.
+	 * @return
+	 */
 	protected String getRemoteIp() {
 		return request.getRemoteAddr();
 	}
 
+	/**
+	 * Appends a '/' character to a String.
+	 * 
+	 * @param path
+	 *            Path to which separator will be appended.
+	 * @return Path with separator appended as String.
+	 */
 	protected String appendSeparator(String path) {
 		if (path.length() > 0 && path.charAt(path.length() - 1) != '/') {
 			path += "/";
@@ -168,6 +174,13 @@ public class AbstractStorageResource {
 		return path;
 	}
 
+	/**
+	 * Returns true if a collection record is published and its files are public.
+	 * 
+	 * @param fo
+	 *            Record to check.
+	 * @return true if both published and files public, false otherwise.
+	 */
 	protected boolean isPublishedAndPublic(FedoraObject fo) {
 		return fo.getPublished() && fo.isFilesPublic();
 	}
@@ -176,17 +189,48 @@ public class AbstractStorageResource {
 		addAccessLog(uriInfo.getPath(), op);
 	}
 
-	protected void addAccessLog(String uri, AccessLogRecord.Operation op) throws IOException {
-		AccessLogRecord alr = new AccessLogRecord(uri, getCurUser(), request.getRemoteAddr(),
+	/**
+	 * Adds an access log entry in the database representing the request by the user for a CRUD action on any of the
+	 * files in a collection.
+	 * 
+	 * @param url
+	 *            URL accessed by the user that resulted in a CRUD operation on a record's data file.
+	 * @param op
+	 *            Operation that was performed on file.
+	 * @throws IOException
+	 *             when unable write log entry into the database.
+	 */
+	protected void addAccessLog(String url, AccessLogRecord.Operation op) throws IOException {
+		AccessLogRecord alr = new AccessLogRecord(url, getCurUser(), request.getRemoteAddr(),
 				request.getHeader("User-Agent"), op);
 		accessLogDao.create(alr);
 	}
 
+	/**
+	 * Returns the URI representing a single file in a collection record.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param filepath
+	 *            Path of the file within the collection record
+	 * @return URI of file belonging to a collection.
+	 */
 	protected URI getUri(String pid, String filepath) {
 		return uriInfo.getBaseUriBuilder().path(StorageResource.class)
 				.path(StorageResource.class, "getFileOrDirAsHtml").build(pid, filepath);
 	}
 
+	/**
+	 * Processes an upload request submitted using the JUpload applet on the Data Files web page. If a complete file's
+	 * received then it is added to the collection. If a part file is received it is held until the last part is
+	 * received. The parts are then merged together and added to the specified collection.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param dirPath
+	 *            Path of directory within which uploaded file will be stored.
+	 * @return Success or failure response as required by JUpload applet.
+	 */
 	protected Response processJUpload(String pid, String dirPath) {
 		Response resp = null;
 		List<FileItem> uploadedItems = null;
@@ -266,6 +310,26 @@ public class AbstractStorageResource {
 		return resp;
 	}
 
+	/**
+	 * Processes a REST-ful upload request. The request has the following components:
+	 * <ol>
+	 * <li>URL: comprising the collection record, directory path and the filename for the uploaded file.</li>
+	 * <li>Content-Length: Length of the data stream. E.g. 1024 (representing 1KB). This HTTP header is highly
+	 * recommended as without this data integrity cannot be guaranteed.</li>
+	 * <li>Content-MD5: Hex-encoded presentation of the data's MD5. The client is expected to calculate the value of the
+	 * data stream and include it in the HTTP Header. This header is highly recommended as without this data integrity
+	 * cannot be guaranteed.</li>
+	 * <li>Body: Data to be stored in the file as an octet-stream (stream of bytes).</li>
+	 * </ol>
+	 * 
+	 * @param pid
+	 *            Identifier of collection record to which file will be uploaded
+	 * @param path
+	 *            Path within the collection where data will be stored.
+	 * @param is
+	 *            InputStream containing the data stream of the file.
+	 * @return HTTP Response
+	 */
 	protected Response processRestUpload(String pid, String path, InputStream is) {
 		Response resp;
 		FedoraObject fo = fedoraObjectService.getItemByPidWriteAccess(pid);
@@ -274,7 +338,7 @@ public class AbstractStorageResource {
 		try {
 			long expectedLength = -1;
 			if (httpHeaders.getRequestHeader("Content-Length") != null) {
-				expectedLength = Long.parseLong(httpHeaders.getRequestHeader("content-length").get(0), 10);
+				expectedLength = Long.parseLong(httpHeaders.getRequestHeader("Content-Length").get(0), 10);
 			}
 
 			String expectedMd5 = null;
@@ -313,11 +377,21 @@ public class AbstractStorageResource {
 		return resp;
 	}
 
+	/**
+	 * Processes a delete request by deleting the specified file or directory represented by the provided path.
+	 * 
+	 * @param pid
+	 * Identifier of collection record.
+	 * @param fileInBag
+	 * Path of file in collection to be deleted.
+	 * @return
+	 * HTTP response representing the status of the operation.
+	 */
 	protected Response processDeleteFile(String pid, String fileInBag) {
 		Response resp = null;
 		LOGGER.info("User {} ({}) requested deletion of {}/data/{}", getCurUsername(), getRemoteIp(), pid, fileInBag);
 		fedoraObjectService.getItemByPidWriteAccess(pid);
-		
+
 		try {
 			if (dcStorage.fileExists(pid, fileInBag)) {
 				addAccessLog(Operation.DELETE);
@@ -339,6 +413,7 @@ public class AbstractStorageResource {
 	 *            HttpServletRequest object to parse.
 	 * @return FileItem objects as List&lt;FileItem&gt;
 	 * @throws FileUploadException
+	 *             when unable to parse the request object
 	 */
 	@SuppressWarnings("unchecked")
 	private List<FileItem> parseUploadRequest(HttpServletRequest request) throws FileUploadException {
@@ -348,6 +423,14 @@ public class AbstractStorageResource {
 		return (List<FileItem>) upload.parseRequest(request);
 	}
 
+	/**
+	 * Sets the files-public flag for a specified collection record. This flag alone doesn't make the collection's files
+	 * public; it must be published as well.
+	 * 
+	 * @param pid
+	 * @param isFilesPublicStr
+	 * @return HTTP OK response when flag was successfully set.
+	 */
 	protected Response processSetFilesPublicFlag(String pid, String isFilesPublicStr) {
 		Response resp;
 		FedoraObject fo = fedoraObjectService.getItemByPid(pid);
@@ -356,7 +439,7 @@ public class AbstractStorageResource {
 		}
 		boolean isFilesPublic = Boolean.parseBoolean(isFilesPublicStr);
 		fedoraObjectService.setFilesPublic(pid, isFilesPublic);
-	
+
 		try {
 			if (!isFilesPublic) {
 				dcStorage.deindexFilesInBag(pid);

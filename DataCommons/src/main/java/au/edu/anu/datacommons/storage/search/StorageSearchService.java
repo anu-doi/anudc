@@ -38,6 +38,8 @@ import org.slf4j.LoggerFactory;
 import au.edu.anu.datacommons.storage.search.FileIndexDocumentGeneratorTask.StorageSolrDoc;
 
 /**
+ * Service class that interacts with a Solr instance for data search.
+ * 
  * @author Rahul Khanna
  *
  */
@@ -54,6 +56,12 @@ public class StorageSearchService {
 		this.solrServer = solrServer;
 	}
 	
+	/**
+	 * Creates an instance of HttpSolrServer from a provided URL of a Solr instance.
+	 * 
+	 * @param svcUrl
+	 *            URL at which the Solr instance is hosted.
+	 */
 	private void initSolrServer(String svcUrl) {
 		solrServer = new HttpSolrServer(svcUrl);
 		solrServer.setMaxRetries(1);
@@ -61,13 +69,36 @@ public class StorageSearchService {
 		solrServer.setRequestWriter(new BinaryRequestWriter());
 	}
 	
-
+	/**
+	 * Indexes the contents of a specified file in the Solr instance. If the specified file doesn't exist on disk (as a
+	 * result of a delete event) then its corresponding solr document is deleted.
+	 * 
+	 * @param bagDir
+	 *            Bag directory
+	 * @param file
+	 *            File object of the file on disk to index
+	 * @throws SolrServerException
+	 *             when the Solr instance is unable to index the file.
+	 * @throws IOException
+	 *             when unable to read the file on disk
+	 */
 	public void indexFile(File bagDir, File file) throws SolrServerException, IOException {
 		StorageSolrDoc doc = createSolrDoc(bagDir, file);
 		submitDoc(doc);
 		solrServer.commit();
 	}
 
+	/**
+	 * Indexes all files in a collection record. Ideally called when the files-public flag of a record is changed to
+	 * true.
+	 * 
+	 * @param bagDir
+	 *            Bag directory
+	 * @param subDir
+	 *            Payload directory
+	 * @throws IOException
+	 * @throws SolrServerException
+	 */
 	public void indexAllFiles(File bagDir, File subDir) throws IOException, SolrServerException {
 		List<StorageSolrDoc> docs = new ArrayList<StorageSolrDoc>();
 		createSolrDocForEachFile(docs, bagDir, subDir);
@@ -81,6 +112,17 @@ public class StorageSearchService {
 		solrServer.commit();
 	}
 	
+	/**
+	 * Removes indexes of all files in a collection record. Called when the files-public flag of a record is changed to
+	 * false.
+	 * 
+	 * @param bagDir
+	 *            Bag directory
+	 * @param subDir
+	 *            Payload directory
+	 * @throws SolrServerException
+	 * @throws IOException
+	 */
 	public void deindexAllFiles(File bagDir, File subDir) throws SolrServerException, IOException {
 		List<StorageSolrDoc> docs = new ArrayList<StorageSolrDoc>();
 		createSolrDocForEachFile(docs, bagDir, subDir);
@@ -112,6 +154,15 @@ public class StorageSearchService {
 		}
 	}
 
+	/**
+	 * Submits the specified Solr document to the Solr instance. If document is blank (for a file that doesn't exist),
+	 * then any previous document for the same file is deleted. If normal document then then the document replaces any
+	 * previous document in the solr instance for that file.
+	 * 
+	 * @param doc
+	 * @throws IOException
+	 * @throws SolrServerException
+	 */
 	private void submitDoc(StorageSolrDoc doc) throws IOException, SolrServerException {
 		if (doc.name != null) {
 			solrServer.addBean(doc);
@@ -122,6 +173,9 @@ public class StorageSearchService {
 		}
 	}
 
+	/**
+	 * Calls the shutdown method of the Solr Server instance for a clean shutdown.
+	 */
 	@PreDestroy
 	public void close() {
 		solrServer.shutdown();

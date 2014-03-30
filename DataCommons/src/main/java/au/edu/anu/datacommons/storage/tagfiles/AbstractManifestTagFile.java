@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.util.Map.Entry;
 
 /**
+ * Abstract class that overrides separator string in AbstractKeyValueFile to one used in Manifest tagfiles. 
+ * 
  * @author Rahul Khanna
  *
  */
