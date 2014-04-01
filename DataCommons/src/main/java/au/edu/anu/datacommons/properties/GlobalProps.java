@@ -232,6 +232,14 @@ public final class GlobalProps {
 		return Paths.get(getProperty("clamscan.path"));
 	}
 
+	public static Path getNicePath() {
+		return Paths.get(getProperty("processes.nice.path"));
+	}
+	
+	public static String getNiceness() {
+		return getProperty("processes.niceness");
+	}
+
 	private static void createIfNotExists(File dir) {
 		if (!dir.exists()) {
 			if (!dir.mkdirs()) {

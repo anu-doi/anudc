@@ -88,11 +88,20 @@ public class ClamScan {
 	}
 
 	private ProcessBuilder createClamScanProcessBuilder(Path filepath) {
-		ProcessBuilder pb = new ProcessBuilder(getClamScanPath().toString(), filepath.toString(), "--no-summary");
+		ProcessBuilder pb = new ProcessBuilder(getNicePath().toString(), getNiceness(), getClamScanPath().toString(),
+				filepath.toString(), "--no-summary");
 		if (Files.isDirectory(getClamScanPath().getParent())) {
 			pb.directory(getClamScanPath().getParent().toFile());
 		}
 		return pb;
+	}
+	
+	private Path getNicePath() {
+		return GlobalProps.getNicePath();
+	}
+	
+	private String getNiceness() {
+		return GlobalProps.getNiceness();
 	}
 	
 	private Path getClamScanPath() {
