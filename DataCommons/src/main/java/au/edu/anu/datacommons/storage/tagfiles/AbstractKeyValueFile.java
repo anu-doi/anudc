@@ -61,6 +61,7 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 	}
 
 	public void read() throws IOException {
+		boolean hasErrors = false;
 		if (Files.isRegularFile(this.path)) {
 			synchronized (this) {
 				try (BufferedReader reader = Files.newBufferedReader(this.path, StandardCharsets.UTF_8)) {
@@ -76,6 +77,8 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 							String parts[] = unserializeKeyValue(line);
 							if (parts != null) {
 								this.put(parts[0], parts[1]);
+							} else {
+								hasErrors = true;
 							}
 						}
 						line = nextLine;
@@ -83,7 +86,7 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 				}
 			}
 		}
-		hasUnsavedChanges = false;
+		hasUnsavedChanges = hasErrors ? true : false;
 	}
 	
 	public void write() throws IOException {
@@ -171,7 +174,6 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 			parts[0] = unescapeKey(parts[0]).trim();
 			parts[1] = parts[1].trim();
 		} else {
-			LOGGER.warn("Unparsable line: {} in file {}", line, this.path.toString());
 			parts = null;
 		}
 		return parts;
