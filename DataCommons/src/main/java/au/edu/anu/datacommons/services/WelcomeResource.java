@@ -29,7 +29,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -41,7 +40,6 @@ import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.solr.dao.SolrSearchDAO;
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
-import au.edu.anu.datacommons.exception.DataCommonsException;
 
 import com.sun.jersey.api.view.Viewable;
 
@@ -73,28 +71,22 @@ public class WelcomeResource {
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public Response getWelcomePage() {
-		LOGGER.debug("Opening welcome page...");
-		Map<String, Object> model = new HashMap<String, Object>();
+		Map<String, Object> model = new HashMap<String, Object>(1);
 		
 		if (solrSearch != null) {
-			try {
-				SecurityContextHolder.getContext().getAuthentication().isAuthenticated();
-				Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-				if (auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
-					LOGGER.debug("User {} is authenticated.  Attempting to find recently updated records for the user", auth.getName());
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			if (auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+				LOGGER.debug("User {} opened welcome page", auth.getName());
+				try {
 					SolrSearchResult searchResult = solrSearch.executeSearch("*", 0, 10, "team", "_docid_", ORDER.desc);
 					model.put("resultSet", searchResult);
+				} catch (SolrServerException e) {
+					LOGGER.error("Error retrieving list of recently modified collections for {}", auth.getName());
 				}
 			}
-			catch (SolrServerException e) {
-				LOGGER.error("Error executing search", e);
-				throw new DataCommonsException(Status.INTERNAL_SERVER_ERROR, "A problem occured while trying to open the home page");
-			}
+		} else {
+			LOGGER.error("SolrSearch is null. Resource not injected");
 		}
-		else {
-			LOGGER.error("SolrSearch is null.  Resource not injected");
-		}
-		
 		return Response.ok(new Viewable("/welcome.jsp", model)).build();
 	}
 }
