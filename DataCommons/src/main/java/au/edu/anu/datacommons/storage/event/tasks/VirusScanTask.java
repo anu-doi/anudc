@@ -45,7 +45,7 @@ public class VirusScanTask extends AbstractTagFileTask {
 		ClamScan cs = new ClamScan();
 		try (InputStream fileStream = createInputStream()) {
 			permit.acquire();
-			String result = cs.scan(absFilepath);
+			String result = cs.scan(fileStream);
 			tagFilesSvc.addEntry(pid, VirusScanTagFile.class, dataPrependedRelPath, result);
 		} finally {
 			permit.release();

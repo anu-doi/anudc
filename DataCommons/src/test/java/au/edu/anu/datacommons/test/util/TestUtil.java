@@ -1,5 +1,6 @@
 package au.edu.anu.datacommons.test.util;
 
+import static java.text.MessageFormat.format;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import gov.loc.repository.bagit.Manifest.Algorithm;
@@ -140,7 +141,8 @@ public class TestUtil {
 			IOUtils.closeQuietly(os);
 		}
 		String md5 = new String(Hex.encodeHex(digester.digest(), true));
-		LOGGER.info("Created {} ({}) ({} bytes) MD5: {}", file.getAbsolutePath(), Util.byteCountToDisplaySize(sizeInBytes), sizeInBytes, md5);
+		LOGGER.info("Created {} ({}) ({} bytes) MD5: {}", file.getAbsolutePath(),
+				Util.byteCountToDisplaySize(sizeInBytes), format("{0}", sizeInBytes), md5);
 		return md5;
 	}
 	
