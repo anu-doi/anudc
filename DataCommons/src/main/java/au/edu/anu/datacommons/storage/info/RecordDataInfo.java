@@ -5,25 +5,24 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.util.Util;
 
 @XmlRootElement
 public class RecordDataInfo {
 	private String pid;
 	private Collection<FileInfo> files = new ArrayList<FileInfo>();
-	private long size;
-	private long numFiles;
+	private long recordSize;
+	private long recordNumFiles;
+	private long dirSize;
+	private long dirNumFiles;
 	
 	private Collection<String> extRefs;
 
@@ -46,21 +45,39 @@ public class RecordDataInfo {
 	}
 	
 	@XmlElement
-	public long getSize() {
-		return size;
+	public long getRecordSize() {
+		return recordSize;
 	}
 
-	public void setSize(long size) {
-		this.size = size;
+	public void setRecordSize(long recordSize) {
+		this.recordSize = recordSize;
 	}
 	
 	@XmlElement
-	public long getNumFiles() {
-		return numFiles;
+	public long getRecordNumFiles() {
+		return recordNumFiles;
 	}
 
-	public void setNumFiles(long numFiles) {
-		this.numFiles = numFiles;
+	public void setRecordNumFiles(long recordNumFiles) {
+		this.recordNumFiles = recordNumFiles;
+	}
+
+	@XmlElement
+	public long getDirSize() {
+		return dirSize;
+	}
+
+	public void setDirSize(long dirSize) {
+		this.dirSize = dirSize;
+	}
+
+	@XmlElement
+	public long getDirNumFiles() {
+		return dirNumFiles;
+	}
+
+	public void setDirNumFiles(long dirNumFiles) {
+		this.dirNumFiles = dirNumFiles;
 	}
 
 	@XmlElementWrapper
@@ -114,7 +131,11 @@ public class RecordDataInfo {
 		return parents;
 	}
 	
-	public String getFriendlySize() {
-		return Util.byteCountToDisplaySize(this.size);
+	public String getRecordFriendlySize() {
+		return Util.byteCountToDisplaySize(this.recordSize);
+	}
+	
+	public String getDirFriendlySize() {
+		return Util.byteCountToDisplaySize(this.dirSize);
 	}
 }

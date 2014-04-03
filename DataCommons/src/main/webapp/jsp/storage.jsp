@@ -44,7 +44,7 @@
 <div class="doublewide nopadtop" id="files" class="list_view">
 	<c:choose>
 		<c:when test="${not empty it.rdi}">
-			<p class="msg-info">Record contains ${it.rdi.numFiles} file(s) totalling ${it.rdi.friendlySize}.</p>
+			<p class="msg-info">Record contains approximately ${it.rdi.recordNumFiles} file(s) totalling ${it.rdi.recordFriendlySize}.</p>
 			
 			<form name="frmFiles" action="?action=zip" method="post" class="anuform">
 				<!-- Navigation Breadcrumbs -->

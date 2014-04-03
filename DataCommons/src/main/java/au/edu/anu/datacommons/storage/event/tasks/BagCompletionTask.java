@@ -26,7 +26,11 @@ import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.v0_95.impl.BagInfoTxtImpl;
 
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -34,20 +38,21 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.datacommons.storage.info.RecordDataInfo;
-import au.edu.anu.datacommons.storage.info.RecordDataInfoService;
 import au.edu.anu.datacommons.storage.tagfiles.BagInfoTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.TagManifestMd5TagFile;
+import au.edu.anu.datacommons.util.StopWatch;
+import au.edu.anu.datacommons.util.Util;
 
 /**
  * <p>
- * Note: This class may wait on other tasks to finish and therefore <strong>must</strong> be scheduled in an unbounded thread
- * pool to prevent deadlock.
+ * Note: This class may wait on other tasks to finish and therefore <strong>must</strong> be scheduled in an unbounded
+ * thread pool to prevent deadlock.
  * </p>
  * 
  * @author Rahul Khanna
@@ -55,15 +60,14 @@ import au.edu.anu.datacommons.storage.tagfiles.TagManifestMd5TagFile;
  */
 public class BagCompletionTask extends AbstractTagFileTask {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BagCompletionTask.class);
+	private static final String BAGGING_DATE_FORMAT = "yyyy-MM-dd";
 
-	private RecordDataInfoService rdiSvc;
 	private Collection<Future<?>> waitTasks;
 
 	public BagCompletionTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc,
-			RecordDataInfoService rdiSvc, Collection<Future<?>> waitTasks) {
+			Collection<Future<?>> waitTasks) {
 		super(pid, bagDir, relPath, tagFilesSvc);
 		this.waitTasks = waitTasks;
-		this.rdiSvc = rdiSvc;
 	}
 
 	@Override
@@ -79,9 +83,9 @@ public class BagCompletionTask extends AbstractTagFileTask {
 				try {
 					f.get();
 				} catch (InterruptedException | ExecutionException e) {
-					// Not rethrowing the exception as outcome of the tasks is irrelevant. If another thread depends on a
-					// task's successful completion then it can call the future's .get() and handle exception.
-					LOGGER.warn("Task {} threw exception: {}", e);
+					// Not rethrowing the exception as outcome of the tasks is irrelevant. If another thread depends on
+					// a task's successful completion then it can call the future's .get() and handle exception.
+					LOGGER.warn("A waitlisted task threw exception: {}", e.getMessage());
 				}
 			}
 		}
@@ -97,16 +101,16 @@ public class BagCompletionTask extends AbstractTagFileTask {
 		}
 
 		// Bagging-Date
-		String baggingDate = (new SimpleDateFormat("yyyy-MM-dd")).format(new Date());
+		String baggingDate = (new SimpleDateFormat(BAGGING_DATE_FORMAT)).format(new Date());
 		tagFilesSvc.addEntry(pid, BagInfoTagFile.class, BagInfoTxtImpl.FIELD_BAGGING_DATE, baggingDate);
 
 		// Payload-Oxum
-		RecordDataInfo rdi = rdiSvc.createRecordDataInfo(pid, bagDir);
-		String payloadOxum = format("{0}.{1}", Long.toString(rdi.getSize(), 10), Long.toString(rdi.getNumFiles(), 10));
-		tagFilesSvc.addEntry(pid, BagInfoTagFile.class, BagInfoTxtImpl.FIELD_PAYLOAD_OXUM, payloadOxum);
+		PayloadOxum payloadOxum = calcPayloadOxum(bagDir.resolve("data/"));
+		tagFilesSvc.addEntry(pid, BagInfoTagFile.class, BagInfoTxtImpl.FIELD_PAYLOAD_OXUM, payloadOxum.toString());
 
 		// Bag-Size
-		tagFilesSvc.addEntry(pid, BagInfoTagFile.class, BagInfoTxtImpl.FIELD_BAG_SIZE, rdi.getFriendlySize());
+		tagFilesSvc.addEntry(pid, BagInfoTagFile.class, BagInfoTxtImpl.FIELD_BAG_SIZE,
+				Util.byteCountToDisplaySize(payloadOxum.getOctetCount()));
 	}
 
 	private void updateTagManifest() throws IOException {
@@ -114,6 +118,84 @@ public class BagCompletionTask extends AbstractTagFileTask {
 		tagFilesSvc.clearAllEntries(pid, TagManifestMd5TagFile.class);
 		for (Entry<String, String> tagFileMd : messageDigests.entrySet()) {
 			tagFilesSvc.addEntry(pid, TagManifestMd5TagFile.class, tagFileMd.getKey(), tagFileMd.getValue());
+		}
+	}
+	
+	private PayloadOxum calcPayloadOxum(Path plDir) throws IOException {
+		PayloadOxumFileVisitor poVisitor = new PayloadOxumFileVisitor();
+		StopWatch sw = new StopWatch();
+		sw.start();
+		Files.walkFileTree(plDir, poVisitor);
+		sw.stop();
+
+		PayloadOxum po = poVisitor.getPo();
+		Object[] logObjs = { plDir.toString(), po.getStreamCount(), Util.byteCountToDisplaySize(po.getOctetCount()),
+				sw.getTimeElapsedFormatted() };
+		if (TimeUnit.MILLISECONDS.toMinutes(sw.getTimeElapsedMillis()) >= 2L) {
+			LOGGER.warn("Tree Walk {} ({} files, {}) : {}", logObjs);
+		} else {
+			LOGGER.debug("Tree Walk {} ({} files, {}) : {}", logObjs);
+		}
+		return po;
+	}
+	
+	private static class PayloadOxum {
+		// Sum of all payload files in bytes
+		private long octetCount;
+		// Count of all payload files
+		private long streamCount;
+
+		private void updateCounts(long octets) {
+			this.octetCount += octets;
+			streamCount++;
+		}
+		
+		private long getOctetCount() {
+			return octetCount;
+		}
+
+		private long getStreamCount() {
+			return streamCount;
+		}
+
+		@Override
+		public String toString() {
+			return format("{0}.{1}", Long.toString(octetCount, 10), Long.toString(streamCount, 10));
+		}
+	}
+	
+	private static class PayloadOxumFileVisitor extends SimpleFileVisitor<Path> {
+		private PayloadOxum po = new PayloadOxum();
+		
+		@Override
+		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+			if (!isExcludedItem(dir)) {
+				return FileVisitResult.CONTINUE;
+			} else {
+				return FileVisitResult.SKIP_SUBTREE;
+			}
+		}
+		
+		@Override
+		public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+			if (!isExcludedItem(file)){
+				po.updateCounts(Files.size(file));
+			}
+			return FileVisitResult.CONTINUE;
+		}
+		
+		@Override
+		public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+			LOGGER.warn("Unable to visit file {}. Payload Oxum may not be accurate.", file.toString());
+			return FileVisitResult.CONTINUE;
+		}
+
+		private PayloadOxum getPo() {
+			return po;
+		}
+		
+		private boolean isExcludedItem(Path item) {
+			return item.getFileName().toString().startsWith(".");
 		}
 	}
 }

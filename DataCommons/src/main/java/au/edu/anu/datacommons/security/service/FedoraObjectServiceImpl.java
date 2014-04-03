@@ -592,7 +592,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 				// Add bag summary to model.
 				if (dcStorage.bagExists(fedoraObject.getObject_id())) {
 					try {
-						RecordDataInfo rdi = dcStorage.getRecordDataInfo(fedoraObject.getObject_id());
+						RecordDataInfo rdi = dcStorage.getDirLimitedRecordDataInfo(fedoraObject.getObject_id(), "");
 						values.put("rdi", rdi);
 					} catch (IOException e) {
 						LOGGER.error(e.getMessage(), e);

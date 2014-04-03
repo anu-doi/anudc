@@ -228,7 +228,7 @@ public class StorageResource extends AbstractStorageResource {
 		try {
 			if (path == null || path.length() == 0 || dcStorage.dirExists(pid, path)) {
 				LOGGER.info("User {} ({}) requested list of files in {}/data/{}", getCurUsername(), getRemoteIp(), pid, path);
-				RecordDataInfo rdi = dcStorage.getRecordDataInfo(pid);
+				RecordDataInfo rdi = dcStorage.getDirLimitedRecordDataInfo(pid, path);
 				if (template != null) {
 					model.put("fo", fo);
 					model.put("rdi", rdi);
