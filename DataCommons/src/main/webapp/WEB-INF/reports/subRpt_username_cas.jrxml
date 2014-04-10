@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_username_cas" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="5a644df0-9e8d-4707-a28c-1bf6b7d19742">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="param1" class="java.lang.String">
+		<defaultValueExpression><![CDATA["u5125986"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LDAP_LOCATION" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
+	</parameter>
+	<queryString language="ldap">
+		<![CDATA[SELECT uid, displayName, mail FILTER (uid=$P{param1})]]>
+	</queryString>
+	<field name="uid" class="java.lang.String"/>
+	<field name="displayName" class="java.lang.String"/>
+	<field name="mail" class="java.lang.String"/>
+	<variable name="displayName" class="java.lang.String">
+		<variableExpression><![CDATA[$F{displayName} + " ( " + $F{mail} + " )"]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="13" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="352" height="13" uuid="25dfdc21-490b-458f-b6c0-e4ac4e35b42b"/>
+				<textFieldExpression><![CDATA[$V{displayName}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

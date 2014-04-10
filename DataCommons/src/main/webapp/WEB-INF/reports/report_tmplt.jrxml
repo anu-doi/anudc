@@ -17,6 +17,9 @@
 	</parameter>
 	<parameter name="name" class="java.lang.String"/>
 	<parameter name="SOLR_LOCATION" class="java.lang.String"/>
+	<parameter name="LDAP_LOCATION" class="java.lang.String">
+		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[select 1 as test;]]>
 	</queryString>
@@ -27,7 +30,7 @@
 	<title>
 		<band height="44" splitType="Stretch">
 			<staticText>
-				<reportElement uuid="5813785e-c7d2-4601-9db2-bb6bfd2f317b" x="0" y="0" width="555" height="44"/>
+				<reportElement x="0" y="0" width="555" height="44" uuid="5813785e-c7d2-4601-9db2-bb6bfd2f317b"/>
 				<textElement textAlignment="Center">
 					<font size="30"/>
 				</textElement>
@@ -44,7 +47,10 @@
 	<detail>
 		<band height="10" splitType="Stretch">
 			<subreport>
-				<reportElement uuid="0f3fa8c0-40c8-49a4-b811-08798d5e01d3" x="1" y="0" width="554" height="10" isPrintWhenDetailOverflows="true"/>
+				<reportElement x="1" y="0" width="554" height="10" isPrintWhenDetailOverflows="true" uuid="0f3fa8c0-40c8-49a4-b811-08798d5e01d3"/>
+				<subreportParameter name="LDAP_LOCATION">
+					<subreportParameterExpression><![CDATA[$P{LDAP_LOCATION}]]></subreportParameterExpression>
+				</subreportParameter>
 				<subreportParameter name="param1">
 					<subreportParameterExpression><![CDATA[$P{param1}]]></subreportParameterExpression>
 				</subreportParameter>
@@ -74,12 +80,12 @@
 	<summary>
 		<band height="24" splitType="Stretch">
 			<staticText>
-				<reportElement uuid="81d9e3ae-167d-4a28-9210-9f7435c6e0ad" x="0" y="4" width="555" height="20"/>
+				<reportElement x="0" y="4" width="555" height="20" uuid="81d9e3ae-167d-4a28-9210-9f7435c6e0ad"/>
 				<textElement textAlignment="Center"/>
 				<text><![CDATA[End of Document]]></text>
 			</staticText>
 			<line>
-				<reportElement uuid="0cfd9849-3491-4401-8a4c-099e2b9a4133" x="1" y="0" width="554" height="1"/>
+				<reportElement x="1" y="0" width="554" height="1" uuid="0cfd9849-3491-4401-8a4c-099e2b9a4133"/>
 			</line>
 		</band>
 	</summary>

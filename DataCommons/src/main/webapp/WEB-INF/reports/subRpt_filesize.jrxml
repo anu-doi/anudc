@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_filesize" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="a67293f1-f028-4215-9044-948b9a625212">
+	<property name="ireport.zoom" value="3.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="COLUMN_0" class="java.lang.String"/>
+	<field name="COLUMN_1" class="java.lang.String"/>
+	<field name="COLUMN_2" class="java.lang.String"/>
+	<variable name="fileSize" class="java.lang.Long">
+		<variableExpression><![CDATA["Payload-Oxum".equals($F{COLUMN_0}) ? $V{fileSize} + Long.parseLong($F{COLUMN_1}.substring(0,$F{COLUMN_1}.indexOf("."))) : $V{fileSize}]]></variableExpression>
+		<initialValueExpression><![CDATA[new Long(0)]]></initialValueExpression>
+	</variable>
+	<variable name="numberOfFiles" class="java.lang.Long">
+		<variableExpression><![CDATA["Payload-Oxum".equals($F{COLUMN_0}) ? $V{numberOfFiles} + Long.parseLong($F{COLUMN_1}.substring($F{COLUMN_1}.indexOf(".") + 1)) : $V{numberOfFiles}]]></variableExpression>
+		<initialValueExpression><![CDATA[new Long(0)]]></initialValueExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="13" splitType="Stretch">
+			<printWhenExpression><![CDATA["Payload-Oxum".equals($F{COLUMN_0})]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="0" width="82" height="13" uuid="9e5ed17a-10c8-4d29-8506-02b6f920b199"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Number of Files:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="82" y="0" width="90" height="13" uuid="c6af1c6a-a1d3-4685-8b0c-e938d376d81c"/>
+				<textFieldExpression><![CDATA[$F{COLUMN_1}.substring($F{COLUMN_1}.indexOf('.') + 1)]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="13">
+			<printWhenExpression><![CDATA["Bag-Size".equals($F{COLUMN_0})]]></printWhenExpression>
+			<textField>
+				<reportElement x="82" y="0" width="90" height="13" uuid="92772573-ec79-4262-8eb1-5c26ef1f53dc"/>
+				<textFieldExpression><![CDATA[$F{COLUMN_1}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="82" height="13" uuid="2e1d929e-0e64-4f27-9224-d1b35bafa71b"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Size of Files:]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

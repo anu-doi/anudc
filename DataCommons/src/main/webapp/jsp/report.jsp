@@ -14,6 +14,7 @@
 <anu:content layout="doublenarrow" title="Reports">
 	<a href="<c:url value="/rest/report/single" />">Single Item Reports</a><br/>
 	<a href="<c:url value="/rest/report/multiple" />">Multiple Item Reports</a><br/>
+	<a href="<c:url value="/rest/report/group" />">Group Reports</a><br/>
 	<a href="<c:url value="/rest/report/published" />">Published To Location Report</a><br/>
 	<a href="<c:url value="/rest/report/webservice" />">Web Service Reports</a><br/>
 </anu:content>

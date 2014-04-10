@@ -62,6 +62,8 @@ import au.edu.anu.datacommons.data.db.PersistenceManager;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.Report;
+import au.edu.anu.datacommons.data.db.model.ReportAuto;
+import au.edu.anu.datacommons.data.db.model.ReportAutoParam;
 import au.edu.anu.datacommons.data.db.model.ReportParam;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.SolrUtils;
@@ -116,17 +118,11 @@ public class ReportGenerator {
 	public ReportGenerator(HttpServletRequest request, String serverPath) {
 		String reportParam = request.getParameter("report");
 		Long reportId = Long.valueOf(reportParam);
-		filePath_ = serverPath + REPORT_PATH + "report_tmplt.jasper";
+		Report report = getReport(reportId);
+		filePath_ = getFilePath(serverPath, report.getReportTemplate());
 		
-		GenericDAO<Report, Long> reportDAO = new GenericDAOImpl<Report, Long>(Report.class);
-		Report report = reportDAO.getSingleById(reportId);
+		setBaseParams(report, serverPath);
 		
-		params_ = new HashMap<String, Object>();
-		params_.put("baseURL", serverPath + REPORT_PATH);
-		params_.put("SOLR_LOCATION", GlobalProps.getProperty(GlobalProps.PROP_SEARCH_SOLR));
-		if (Util.isNotEmpty(report.getSubReport())) {
-			params_.put("sub_rpt", report.getSubReport());
-		}
 		for (ReportParam rptParam : report.getReportParams()) {
 			if ("name".equals(rptParam.getParamName())) {
 				String pid = request.getParameter("pid");
@@ -139,12 +135,80 @@ public class ReportGenerator {
 			}
 			else if (Util.isNotEmpty(rptParam.getRequestParam()) && Util.isNotEmpty(request.getParameter(rptParam.getRequestParam()))) {
 				String value = request.getParameter(rptParam.getRequestParam());
+				LOGGER.debug("adding parameter '{}' with value '{}'", rptParam.getRequestParam(), value);
 				params_.put(rptParam.getParamName(), value);
 			}
 			else {
+				LOGGER.debug("adding parameter '{}' with value '{}'", rptParam.getRequestParam(), rptParam.getDefaultValue());
 				params_.put(rptParam.getParamName(), rptParam.getDefaultValue());
 			}
 		}
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param reportAuto The automated report object
+	 * @param serverPath The server path
+	 */
+	public ReportGenerator(ReportAuto reportAuto, String serverPath) {
+		Report report = getReport(reportAuto.getReportId());
+		filePath_ = getFilePath(serverPath, report.getReportTemplate());
+		setBaseParams(report, serverPath);
+		
+		for (ReportParam reportParam : report.getReportParams()) {
+			boolean found = false;
+			for (ReportAutoParam autoParam : reportAuto.getReportAutoParam()) {
+				if (Util.isNotEmpty(reportParam.getParamName()) && reportParam.getParamName().equals(autoParam.getParam())) {
+					params_.put(reportParam.getParamName(), autoParam.getParamVal());
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				params_.put(reportParam.getParamName(), reportParam.getDefaultValue());
+			}
+		}
+	}
+	
+	/**
+	 * Get the file path
+	 * 
+	 * @param serverPath The server path
+	 * @param reportTemplate The name of the report template
+	 * @return The server path for the report file
+	 */
+	private String getFilePath(String serverPath, String reportTemplate) {
+		return serverPath + REPORT_PATH + reportTemplate;
+	}
+	
+	/**
+	 * Set the parameters that are sent for all reports
+	 * 
+	 * @param report The report to generate
+	 * @param serverPath The server path
+	 */
+	private void setBaseParams(Report report, String serverPath) {
+		params_ = new HashMap<String, Object>();
+		params_.put("baseURL", serverPath + REPORT_PATH);
+		params_.put("SOLR_LOCATION", GlobalProps.getProperty(GlobalProps.PROP_SEARCH_SOLR));
+		params_.put("LDAP_LOCATION", GlobalProps.getProperty(GlobalProps.PROP_LDAP_URI));
+		if (Util.isNotEmpty(report.getSubReport())) {
+			LOGGER.debug("For report {} the subreport is: {}", report.getReportName(), report.getSubReport());
+			params_.put("sub_rpt", report.getSubReport());
+		}
+	}
+	
+	/**
+	 * Get the report row from the database
+	 * 
+	 * @param reportId The id of the report to retrieve
+	 * @return
+	 */
+	private Report getReport(Long reportId) {
+		GenericDAO<Report, Long> reportDAO = new GenericDAOImpl<Report, Long>(Report.class);
+		Report report = reportDAO.getSingleById(reportId);
+		return report;
 	}
 	
 	/**
@@ -173,8 +237,23 @@ public class ReportGenerator {
 		else if ("html".equals(format)) {
 			response = generateHTML();
 		}
-		
 		return response;
+	}
+	
+	/**
+	 * Geenrate a report pdf
+	 * 
+	 * @return The bytes of the generated report
+	 * @throws JRException
+	 * @throws SQLException
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	public byte[] generateReportPDF() throws JRException, SQLException, IOException, ClassNotFoundException {
+		InputStream inputStream = new FileInputStream(new File(filePath_));
+		
+		byte[] bytes = JasperRunManager.runReportToPdf(inputStream, params_, getConnection());
+		return bytes;
 	}
 	
 	/**
@@ -277,7 +356,16 @@ public class ReportGenerator {
 	 * @param context The servlet context information
 	 */
 	public static void reloadReports(ServletContext context) {
-		String reportPath = context.getRealPath(REPORT_PATH);
+		reloadReports(context.getRealPath(REPORT_PATH));
+	}
+
+	/**
+	 * Recompile the reports
+	 * 
+	 * @param reportPath The path the reports are located on
+	 */
+	public static void reloadReports(String reportPath) {
+
 		File file = new File(reportPath);
 		if (!file.exists()) {
 			LOGGER.error("Report path does not exist: {}", file.getAbsolutePath());
@@ -337,8 +425,8 @@ public class ReportGenerator {
 	 * 0.3		03/10/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @param pid
-	 * @return
+	 * @param pid The pid of the object the report is about
+	 * @return The name of the object
 	 */
 	private String getReportName(String pid) {
 		SolrServer solrServer = SolrManager.getInstance().getSolrServer();

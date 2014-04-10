@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_created" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="9a51ec9c-ff4b-4da7-afaa-34fe2bffd5d1">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="108"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="subRpt_filesize" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["subRpt_filesize.jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="baseURL" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["C:/WorkSpace/software/jasperreports/report/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="bagLocation" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["C:/WorkSpace/Testing/upload/bags/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="param1" class="java.lang.String">
+		<defaultValueExpression><![CDATA["0"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SOLR_LOCATION" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["http://localhost:8080/solr"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subRpt_name" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["subRpt_name.jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subRpt_username_registered" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["subRpt_username_registered.jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="subRpt_username_cas" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["subRpt_username_cas.jasper"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LDAP_LOCATION" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select fedora_object.*, ao2.log_date, ao2.user_id, users.username, users.user_type, groups.group_name
+from acl_object_identity aoi1
+	left join acl_object_identity aoi2 on (aoi1.parent_object = aoi2.id)
+	left join fedora_object on (aoi1.object_id_identity = fedora_object.id)
+	, (select object_id, min(log_date) as log_date
+		from audit_object
+		where log_type = 'MODIFIED'
+		group by object_id) as ao1
+	left join audit_object ao2 on (ao2.object_id = ao1.object_id and ao2.log_date = ao1.log_date)
+	left join users on (users.id = ao2.user_id)
+	, groups
+where aoi2.object_id_identity = CAST(coalesce($P{param1}, '0') AS integer)
+and aoi2.object_id_class = 2
+and aoi1.object_id_identity = ao1.object_id
+and groups.id = CAST(coalesce($P{param1}, '0') AS integer)
+order by ao1.log_date]]>
+	</queryString>
+	<field name="id" class="java.lang.Long"/>
+	<field name="pid" class="java.lang.String"/>
+	<field name="group_id" class="java.lang.Long"/>
+	<field name="published" class="java.lang.Boolean"/>
+	<field name="tmplt_id" class="java.lang.String"/>
+	<field name="is_files_public" class="java.lang.Boolean"/>
+	<field name="log_date" class="java.sql.Timestamp"/>
+	<field name="user_id" class="java.lang.Long"/>
+	<field name="username" class="java.lang.String"/>
+	<field name="user_type" class="java.lang.Long"/>
+	<field name="group_name" class="java.lang.String"/>
+	<variable name="csvfilename" class="java.lang.String">
+		<variableExpression><![CDATA[$P{bagLocation} + $F{pid}.replace(":","_") + "/bag-info.txt"]]></variableExpression>
+	</variable>
+	<variable name="csvdatasource" class="java.lang.String"/>
+	<variable name="subRptFileSize" class="java.lang.Long" calculation="System">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="totalNumberOfFiles" class="java.lang.Long" calculation="System"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="20" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement x="0" y="0" width="554" height="20" uuid="0b9eeb50-94bd-4fc7-87ba-6a6f2f123849"/>
+				<textElement>
+					<font size="20" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Records for " + $F{group_name}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<textField>
+				<reportElement x="64" y="1" width="90" height="13" uuid="fb3dc0d3-1bf1-44a9-af54-4e21f79fda30"/>
+				<textFieldExpression><![CDATA[$F{pid}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="184" y="1" width="89" height="13" uuid="cc615599-7a7c-4551-ae27-cd5d6ce07c15"/>
+				<textFieldExpression><![CDATA["tmplt:1".equals($F{tmplt_id})? "Collection" :
+    "tmplt:2".equals($F{tmplt_id}) ? "Activity" :
+        "tmplt:3".equals($F{tmplt_id}) ? "Service" :
+            "tmplt:4".equals($F{tmplt_id}) ? "Organization" :
+                "tmplt:5".equals($F{tmplt_id}) ? "Person" : "Unknown"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="1" width="50" height="13" uuid="ab0feae9-737c-4c1e-a2a2-0016285e8769"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Identifier:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="154" y="1" width="30" height="13" uuid="ea80d4c5-3d26-46fb-af0c-b6818faadbdc"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Type:]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="0" width="554" height="1" uuid="c9652e9f-16aa-4d70-9129-759415e73ec9"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+		</band>
+		<band height="10">
+			<subreport>
+				<reportElement x="0" y="0" width="554" height="10" isPrintWhenDetailOverflows="true" uuid="2f069bae-a12a-4a26-865e-38f03aa0ba6d"/>
+				<subreportParameter name="pid">
+					<subreportParameterExpression><![CDATA[$F{pid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{baseURL} + $P{subRpt_name}]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="13">
+			<printWhenExpression><![CDATA[$F{user_type} == 1]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="0" width="64" height="13" uuid="92a54f93-a65a-4382-a328-faa6e15e1e6e"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Created On:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="154" y="0" width="30" height="13" uuid="39bf0a25-2e9c-481b-9646-9e854d502072"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[By:]]></text>
+			</staticText>
+			<textField pattern="dd MMMMM yyyy">
+				<reportElement x="64" y="0" width="90" height="13" uuid="1151fc4a-86ef-4f32-941f-465980699baa"/>
+				<textFieldExpression><![CDATA[$F{log_date}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="184" y="0" width="370" height="13" isPrintWhenDetailOverflows="true" uuid="8e20c137-d1a2-4df0-be5b-0b4b8aab44d9"/>
+				<subreportParameter name="LDAP_LOCATION">
+					<subreportParameterExpression><![CDATA[$P{LDAP_LOCATION}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="param1">
+					<subreportParameterExpression><![CDATA[$F{username}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{baseURL} + $P{subRpt_username_cas}]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="13">
+			<printWhenExpression><![CDATA[$F{user_type} == 2]]></printWhenExpression>
+			<staticText>
+				<reportElement x="0" y="0" width="64" height="13" uuid="0574ac98-f339-43a9-9443-02dd65a86c1a"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Created On:]]></text>
+			</staticText>
+			<textField pattern="dd MMMMM yyyy">
+				<reportElement x="64" y="0" width="90" height="13" uuid="3721e87d-00ed-481d-95b3-2fc318ca63be"/>
+				<textFieldExpression><![CDATA[$F{log_date}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="154" y="0" width="30" height="13" uuid="63ffb1a2-e458-47bb-ac1e-67d78058a128"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[By:]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="184" y="0" width="370" height="13" isPrintWhenDetailOverflows="true" uuid="1a3537b1-0295-4afe-8253-8fc99f8fa413"/>
+				<subreportParameter name="param1">
+					<subreportParameterExpression><![CDATA[$F{username}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{baseURL} + $P{subRpt_username_registered}]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="10">
+			<printWhenExpression><![CDATA[new File($V{csvfilename}).isFile()]]></printWhenExpression>
+			<subreport>
+				<reportElement x="0" y="0" width="554" height="10" isPrintWhenDetailOverflows="true" uuid="393a2c68-80fd-4a3e-94b5-2b3592cd6c24"/>
+				<subreportParameter name="pid">
+					<subreportParameterExpression><![CDATA[$F{pid}]]></subreportParameterExpression>
+				</subreportParameter>
+				<dataSourceExpression><![CDATA[new au.edu.anu.datacommons.report.datasource.CsvDataSource($V{csvfilename},':')]]></dataSourceExpression>
+				<returnValue subreportVariable="fileSize" toVariable="subRptFileSize" calculation="Sum"/>
+				<returnValue subreportVariable="numberOfFiles" toVariable="totalNumberOfFiles" calculation="Sum"/>
+				<subreportExpression><![CDATA[$P{baseURL} + $P{subRpt_filesize}]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="2" width="554" height="13" uuid="9d6cc16a-0525-43cc-a9bb-e792298ce980"/>
+				<textElement>
+					<font size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Note: The size and number of files is an approximation. The information may be innaccurate when the number of files in a collection is greater than 10,000.]]></text>
+			</staticText>
+			<line>
+				<reportElement x="0" y="1" width="554" height="1" uuid="e81048b2-081f-4fc1-9613-b261abe1e17a"/>
+			</line>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="44" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="5" width="110" height="13" uuid="2e8580db-0f08-4dec-84ae-b0e60fc8c5d5"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Number of Records:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="112" y="5" width="100" height="13" uuid="5d379787-90ee-4083-956f-3d7a8b8355a5"/>
+				<textFieldExpression><![CDATA[$V{COLUMN_COUNT}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="1" width="554" height="1" uuid="4350a7fb-cc00-4a8b-bed9-25476ec73700"/>
+			</line>
+			<textField>
+				<reportElement x="112" y="18" width="314" height="13" uuid="3a082b22-5ce8-43d9-b99c-b62c67646477"/>
+				<textFieldExpression><![CDATA[($V{subRptFileSize} > java.lang.Math.pow(2,60) ? new DecimalFormat("#.###").format(($V{subRptFileSize} / java.lang.Math.pow(2,60))) + " EB" :
+    ($V{subRptFileSize} > java.lang.Math.pow(2,50) ? new DecimalFormat("#.###").format(($V{subRptFileSize} / java.lang.Math.pow(2,50))) + " PB"  :
+        ($V{subRptFileSize} > java.lang.Math.pow(2,40) ? new DecimalFormat("#.###").format(($V{subRptFileSize} / java.lang.Math.pow(2,40))) + " TB"  :
+            ($V{subRptFileSize} > java.lang.Math.pow(2,30) ? new DecimalFormat("#.###").format(($V{subRptFileSize} / java.lang.Math.pow(2,30))) + " GB"  :
+                ($V{subRptFileSize} > java.lang.Math.pow(2,20) ? new DecimalFormat("#.###").format(($V{subRptFileSize} / java.lang.Math.pow(2,20))) + " MB"  :
+                    ($V{subRptFileSize} > java.lang.Math.pow(2,10) ? new DecimalFormat("#.###").format(($V{subRptFileSize} / java.lang.Math.pow(2,10))) + " KB"  :
+                        ($V{subRptFileSize}) + " B"))))))]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="18" width="110" height="13" uuid="089ddc27-6b73-4dde-8b72-f0f503dcd494"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total File Size:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="31" width="110" height="13" uuid="80289649-9320-488c-80d6-eace64c63973"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Number of Files:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="112" y="31" width="314" height="13" uuid="d0fd576a-b37c-441d-a0f3-e4fafa835268"/>
+				<textFieldExpression><![CDATA[$V{totalNumberOfFiles}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

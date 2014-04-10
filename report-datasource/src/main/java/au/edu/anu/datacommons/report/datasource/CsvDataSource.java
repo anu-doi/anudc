@@ -18,40 +18,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
+package au.edu.anu.datacommons.report.datasource;
 
-package au.edu.anu.datacommons.report;
-
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-
-import au.edu.anu.datacommons.report.schedule.ReportScheduler;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.data.JRCsvDataSource;
 
 /**
- * ReportAppListener
- * 
+ * CsvDataSource
+ *
  * Australian National University Data Commons
  * 
- * Initiates the recompilation of reports on server start up.
+ * Data source for CSV files.  This has been created so that the field delimiter can be
+ * specified in the constructor.
  *
- * JUnit Coverage:
+ * JUnit coverage:
  * None
  * 
- * <pre>
- * Version	Date		Developer				Description
- * 0.1		02/10/2012	Genevieve Turner (GT)	Initial
- * </pre>
+ * @author Genevieve Turner
  *
  */
-public class ReportAppListener implements ServletContextListener {
-
-	@Override
-	public void contextDestroyed(ServletContextEvent event) {
-		new ReportScheduler(event.getServletContext()).cancelAll();
-	}
-
-	@Override
-	public void contextInitialized(ServletContextEvent event) {
-		ReportGenerator.reloadReports(event.getServletContext());
-		new ReportScheduler(event.getServletContext()).scheduleAll();
+public class CsvDataSource extends JRCsvDataSource {
+	/**
+	 * Constructor
+	 * 
+	 * @param location The location of the CSV file
+	 * @param fieldDelimiter The field delimiter for the CSV file
+	 * @throws JRException
+	 */
+	public CsvDataSource(String location, char fieldDelimiter) throws JRException {
+		super(location);
+		setFieldDelimiter(fieldDelimiter);
 	}
 }

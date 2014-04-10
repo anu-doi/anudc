@@ -48,8 +48,10 @@ import org.springframework.stereotype.Component;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
+import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.view.Viewable;
@@ -82,6 +84,9 @@ public class ReportResource {
 
 	@Resource(name = "fedoraObjectServiceImpl")
 	private FedoraObjectService fedoraObjectService;
+	
+	@Resource(name = "groupServiceImpl")
+	private GroupService groupService;
 	
 	/**
 	 * getReportPage
@@ -152,6 +157,24 @@ public class ReportResource {
 		model.put("publishLocations", publishLocations);
 		
 		return Response.ok(new Viewable("/report_published.jsp", model)).build();
+	}
+	
+	/**
+	 * Get a report by group
+	 * 
+	 * @return The report
+	 */
+	@GET
+	@Path("group")
+	@Produces(MediaType.TEXT_HTML)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response getGroupsReportPage() {
+		Map<String, Object> model = new HashMap<String, Object>();
+		
+		List<Groups> groups = groupService.getAll();
+		model.put("groups", groups);
+		
+		return Response.ok(new Viewable("/report_group.jsp", model)).build();
 	}
 	
 	/**

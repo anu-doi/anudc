@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_username_registered" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="c0e6716a-6b86-4f73-a04d-64521df6f289">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="param1" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select user_registered.given_name, user_registered.last_name
+from users, user_registered
+where users.username = $P{param1}
+and users.id = user_registered.id]]>
+	</queryString>
+	<field name="given_name" class="java.lang.String"/>
+	<field name="last_name" class="java.lang.String"/>
+	<variable name="displayName" class="java.lang.String">
+		<variableExpression><![CDATA[$F{given_name} + " " + $F{last_name} + " ( " + $P{param1} + " )"]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="13" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="354" height="13" uuid="368f9b46-dd9c-4d93-987b-31b50a675def"/>
+				<textFieldExpression><![CDATA[$V{displayName}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>
