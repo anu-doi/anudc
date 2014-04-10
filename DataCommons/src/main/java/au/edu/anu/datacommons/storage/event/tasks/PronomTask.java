@@ -23,6 +23,7 @@ package au.edu.anu.datacommons.storage.event.tasks;
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.concurrent.Semaphore;
 
 import au.edu.anu.datacommons.storage.completer.fido.FidoParser;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
@@ -33,7 +34,8 @@ import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
  *
  */
 public class PronomTask extends AbstractTagFileTask {
-
+	private static Semaphore permit = new Semaphore(1);
+	
 	public PronomTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
 		super(pid, bagDir, relPath, tagFilesSvc);
 	}
@@ -41,9 +43,12 @@ public class PronomTask extends AbstractTagFileTask {
 	@Override
 	protected void processTask() throws Exception {
 		try (InputStream fileStream = createInputStream()) {
+			permit.acquire();
 			FidoParser fido = new FidoParser(fileStream, absFilepath.getFileName().toString());
 			String fidoStr = fido.getFidoStr();
 			tagFilesSvc.addEntry(pid, PronomFormatsTagFile.class, dataPrependedRelPath, fidoStr);
+		} finally {
+			permit.release();
 		}
 	}
 }

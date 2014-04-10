@@ -86,31 +86,31 @@ public class StorageEventListener {
 
 	@Autowired(required = true)
 	ThreadPoolService threadPoolSvc;
-	
+
 	@Autowired(required = true)
 	private RecordDataInfoService rdiSvc;
-	
+
 	@Autowired(required = true)
 	TagFilesService tagFilesSvc;
-	
+
 	@Resource(name = "fedoraObjectServiceImpl")
 	FedoraObjectService fedoraObjectService;
-	
+
 	@Autowired
 	StorageSearchService searchSvc;
-	
+
 	@Autowired
 	DcStorage dcStorage;
 
 	private Path archiveRootDir;
-	
+
 	public enum EventTime {
 		PRE, POST
 	};
 
 	public enum EventType {
 		ADD_FILE, READ_FILE, UPDATE_FILE, DELETE_FILE, TAGFILE_UPDATE;
-		
+
 		public boolean isOneOf(EventType... types) {
 			for (EventType iType : types) {
 				if (this.equals(iType)) {
@@ -125,7 +125,8 @@ public class StorageEventListener {
 		this.archiveRootDir = archiveRootDir;
 	}
 
-	public void notify(EventTime time, EventType type, String pid, Path bagDir, String relPath, UploadedFileInfo ufi) throws IOException {
+	public void notify(EventTime time, EventType type, String pid, Path bagDir, String relPath, UploadedFileInfo ufi)
+			throws IOException {
 		relPath = normalizeRelPath(relPath);
 		if (time == EventTime.PRE) {
 			processPreEventTasks(type, pid, bagDir, relPath, ufi);
@@ -134,10 +135,11 @@ public class StorageEventListener {
 		} else {
 			throw new RuntimeException(format("Unexpected event time - {0}", time));
 		}
-			
+
 	}
 
-	private void processPreEventTasks(EventType type, String pid, Path bagDir, String relPath, UploadedFileInfo ufi) throws IOException {
+	private void processPreEventTasks(EventType type, String pid, Path bagDir, String relPath, UploadedFileInfo ufi)
+			throws IOException {
 		if (type.isOneOf(EventType.TAGFILE_UPDATE)) {
 			initBagDir(pid, bagDir);
 		}
@@ -155,13 +157,14 @@ public class StorageEventListener {
 			}
 		}
 	}
-	
-	private void processPostEventTasks(EventType type, final String pid, Path bagDir, String relPath, UploadedFileInfo ufi) throws IOException {
+
+	private void processPostEventTasks(EventType type, final String pid, Path bagDir, String relPath,
+			UploadedFileInfo ufi) throws IOException {
 		List<Future<?>> waitList = new ArrayList<>();
 		String dataPrependedRelPath = "data/" + relPath;
 		if (type.isOneOf(EventType.ADD_FILE, EventType.UPDATE_FILE)) {
 			waitList.add(threadPoolSvc.submit(new PreservationTask(pid, bagDir, relPath, tagFilesSvc, dcStorage)));
-			
+
 			if (ufi.getMd5() != null) {
 				tagFilesSvc.addEntry(pid, ManifestMd5TagFile.class, dataPrependedRelPath, ufi.getMd5());
 			} else {
@@ -171,12 +174,12 @@ public class StorageEventListener {
 			waitList.add(threadPoolSvc.submit(new PronomTask(pid, bagDir, relPath, tagFilesSvc)));
 			waitList.add(threadPoolSvc.submit(new TimestampTask(pid, bagDir, relPath, tagFilesSvc)));
 			waitList.add(threadPoolSvc.submit(new VirusScanTask(pid, bagDir, relPath, tagFilesSvc)));
-			
+
 			if (searchSvc != null && isPublishedAndPublic(fedoraObjectService.getItemByPid(pid))) {
 				threadPoolSvc.submit(new StorageSearchIndexTask(pid, bagDir, relPath, searchSvc));
 			}
 
-			threadPoolSvc.submitCachedPool(new BagCompletionTask(pid, bagDir, relPath, tagFilesSvc, rdiSvc, waitList));
+			threadPoolSvc.submitCachedPool(new BagCompletionTask(pid, bagDir, relPath, tagFilesSvc, waitList));
 			touchBagDir(bagDir);
 		}
 		if (type.isOneOf(EventType.DELETE_FILE)) {
@@ -186,26 +189,26 @@ public class StorageEventListener {
 				dcStorage.processDeleteFile(pid, presvRelpath.replaceFirst("^data/", ""));
 			}
 			tagFilesSvc.removeEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath);
-			
+
 			tagFilesSvc.removeEntry(pid, ManifestMd5TagFile.class, dataPrependedRelPath);
 			tagFilesSvc.removeEntry(pid, FileMetadataTagFile.class, dataPrependedRelPath);
 			tagFilesSvc.removeEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath);
 			tagFilesSvc.removeEntry(pid, PronomFormatsTagFile.class, dataPrependedRelPath);
 			tagFilesSvc.removeEntry(pid, TimestampsTagFile.class, dataPrependedRelPath);
 			tagFilesSvc.removeEntry(pid, VirusScanTagFile.class, dataPrependedRelPath);
-			
+
 			// If a file's deleted, its search index entry must be deleted irrespective of
 			// published status.
 			if (searchSvc != null) {
 				threadPoolSvc.submit(new StorageSearchIndexTask(pid, bagDir, relPath, searchSvc));
 			}
-			
-			threadPoolSvc.submitCachedPool(new BagCompletionTask(pid, bagDir, relPath, tagFilesSvc, rdiSvc, waitList));			
+
+			threadPoolSvc.submitCachedPool(new BagCompletionTask(pid, bagDir, relPath, tagFilesSvc, waitList));
 			touchBagDir(bagDir);
 		}
-		
+
 		if (type.isOneOf(EventType.TAGFILE_UPDATE)) {
-			threadPoolSvc.submitCachedPool(new BagCompletionTask(pid, bagDir, relPath, tagFilesSvc, rdiSvc, waitList));
+			threadPoolSvc.submitCachedPool(new BagCompletionTask(pid, bagDir, relPath, tagFilesSvc, waitList));
 			touchBagDir(bagDir);
 		}
 	}
@@ -227,7 +230,8 @@ public class StorageEventListener {
 			// Must clear all entries to ensure insertion order.
 			tagFilesSvc.clearAllEntries(pid, BagItTagFile.class);
 			tagFilesSvc.addEntry(pid, BagItTagFile.class, BagItTxtImpl.VERSION_KEY, Version.V0_97.versionString);
-			tagFilesSvc.addEntry(pid, BagItTagFile.class, BagItTxtImpl.CHARACTER_ENCODING_KEY, AbstractBagConstants.BAG_ENCODING);
+			tagFilesSvc.addEntry(pid, BagItTagFile.class, BagItTxtImpl.CHARACTER_ENCODING_KEY,
+					AbstractBagConstants.BAG_ENCODING);
 		}
 	}
 
@@ -237,11 +241,11 @@ public class StorageEventListener {
 			while (processed.charAt(0) == '/') {
 				processed.deleteCharAt(0);
 			}
-			
+
 			while (processed.charAt(processed.length() - 1) == '/') {
 				processed.deleteCharAt(processed.length() - 1);
 			}
-			
+
 			if (LOGGER.isTraceEnabled() && !processed.toString().equals(relPath)) {
 				LOGGER.trace("Normalized relative path {} to {}", relPath, processed.toString());
 			}
@@ -250,14 +254,14 @@ public class StorageEventListener {
 			return null;
 		}
 	}
-	
+
 	private void verifyFileExists(String pid, Path bagDir, String relPath) throws FileNotFoundException {
 		Path targetFile = getPayloadDir(bagDir).resolve(relPath);
 		if (!Files.isRegularFile(targetFile)) {
 			throw new FileNotFoundException(format("File {0}/data/{1} does not exist.", pid, relPath));
 		}
 	}
-	
+
 	private boolean hasHiddenParts(String relPath) {
 		Path relPathAsPath = Paths.get(relPath);
 		for (int i = 0; i < relPathAsPath.getNameCount(); i++) {
@@ -277,12 +281,14 @@ public class StorageEventListener {
 	private void archive(EventType type, String pid, Path bagDir, String relPath) throws IOException {
 		Path fileToArchive = getPayloadDir(bagDir).resolve(relPath);
 		if (this.archiveRootDir != null) {
-			LOGGER.info("Archiving {}/data/{} ({}) for event {}", pid, relPath, Util.byteCountToDisplaySize(Files.size(fileToArchive)), type.toString());
+			LOGGER.info("Archiving {}/data/{} ({}) for event {}", pid, relPath,
+					Util.byteCountToDisplaySize(Files.size(fileToArchive)), type.toString());
 			Operation op = type == EventType.UPDATE_FILE ? ArchiveTask.Operation.REPLACE : ArchiveTask.Operation.DELETE;
-			ArchiveTask archiveTask = new ArchiveTask(this.archiveRootDir.toFile(), pid, fileToArchive.toFile(), Algorithm.MD5, op);
+			ArchiveTask archiveTask = new ArchiveTask(this.archiveRootDir.toFile(), pid, fileToArchive.toFile(),
+					Algorithm.MD5, op);
 			threadPoolSvc.submit(archiveTask);
 		} else {
-			for (int i = 0; ; i++) {
+			for (int i = 0;; i++) {
 				try {
 					Files.delete(fileToArchive);
 					LOGGER.warn("Archive directory not specified. {}/data/{} deleted.", pid, relPath);
@@ -298,13 +304,13 @@ public class StorageEventListener {
 					}
 				}
 			}
-		}		
+		}
 	}
 
 	private Path getPayloadDir(Path bagDir) {
 		return bagDir.resolve("data/");
 	}
-	
+
 	private boolean isPublishedAndPublic(FedoraObject fo) {
 		return fo.getPublished() && fo.isFilesPublic();
 	}

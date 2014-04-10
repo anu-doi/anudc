@@ -21,19 +21,20 @@
 
 package au.edu.anu.datacommons.storage.completer.virusscan;
 
-import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
+import java.io.InputStreamReader;
 import java.net.Socket;
-import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.datacommons.storage.info.ScanResult;
+import au.edu.anu.datacommons.properties.GlobalProps;
 
 /**
  * This class provides methods to can a file for viruses.
@@ -47,6 +48,7 @@ public class ClamScan {
     private static final byte[] INSTREAM = "zINSTREAM\0".getBytes();
     private static final byte[] PING = "zPING\0".getBytes();
     private static final byte[] STATS = "nSTATS\n".getBytes();
+    private static final byte[] SCAN = "zSCAN\n".getBytes();
     
     // TODO: IDSESSION, END
 
@@ -70,187 +72,99 @@ public class ClamScan {
     //    If  clamd detects that a client has deadlocked,  it will close the connection. Note that clamd
     //    may close an IDSESSION connection too if you don't follow the protocol's requirements.
 
-    private int timeoutMillisec;
-    private final String host;
-    private final int port;
-
-    /**
-	 * Instantiates a new clam scan object.
-	 * 
-	 * @param host
-	 *            the hostname of the server running ClamAV scanning service
-	 * @param port
-	 *            the port of the the server running ClamAV scanning service
-	 */
-    public ClamScan(String host, int port, int timeoutMillisec) {
-        this.host = host;
-        this.port = port;
-        this.timeoutMillisec = timeoutMillisec;
-    }
-
 	/**
 	 * Sends a STATS request to the ClamAV service.
 	 * 
 	 * @return Response from service as String
+	 * @throws IOException 
 	 */
-    public String stats() {
-        return cmd(STATS);
+    public String stats() throws IOException {
+    	String stats = null;
+    	try (Socket socket = createSocket()) {
+    		sendCommand(socket, STATS);
+    		stats = readResponse(socket);
+		}
+        return stats;
     }
     
 	/**
 	 * Sends a Ping request to the ClamAV service to ensure it's up and running.
 	 * 
 	 * @return true, if successful, false otherwise
+	 * @throws IOException 
 	 */
-    public boolean ping() {
-        return "PONG\0".equals(cmd(PING));
+    public boolean ping() throws IOException {
+    	boolean pingResponse = false;
+    	try (Socket socket = createSocket()) {
+    		sendCommand(socket, PING);
+    		if (readResponse(socket).equals("PONG")) {
+    			pingResponse = true;
+    		}
+		}
+        return pingResponse;
     }
 
-	/**
-	 * Sends a command to the ClamAV service.
-	 * 
-	 * @param cmd
-	 *            Command to send
-	 * @return Response as String
-	 */
-    public String cmd(byte[] cmd) {
-
-        Socket socket = new Socket();
-
-        try {
-            socket.connect(new InetSocketAddress(getHost(), getPort()), getTimeoutMillisec());
-        } catch (IOException e) {
-            LOGGER.error("could not connect to clamd server");
-            try
-			{
-				socket.close();
+    public String scan(Path filepath) throws IOException {
+    	String scanResult = null;
+    	
+    	try (Socket socket = createSocket()) {
+			sendCommand(socket, SCAN);
+			sendCommand(socket, filepath.toString().getBytes(StandardCharsets.UTF_8));
+			sendCommand(socket, "\0".getBytes());
+			
+			scanResult = readResponse(socket);
+			LOGGER.debug("ClamAV Daemon response for {}: [{}]", filepath.toString(), scanResult);
+		}
+    	
+    	return scanResult;
+    }
+    
+    public String scan(InputStream scanStream) throws IOException {
+    	String scanResult = null;
+    	
+    	try (Socket socket = createSocket()) {
+			sendCommand(socket, INSTREAM);
+			sendStream(socket, scanStream);
+			
+			scanResult = readResponse(socket);
+			LOGGER.debug("ClamAV response for stream: [{}]", scanResult);
+		} finally {
+			IOUtils.closeQuietly(scanStream);
+		}
+    	
+    	return scanResult;
+    }
+    
+    private Socket createSocket() throws UnknownHostException, IOException {
+    	return new Socket(getHost(), getPort());
+    }
+    
+    private void sendCommand(Socket socket, byte[] cmd) throws IOException {
+    	socket.getOutputStream().write(cmd);
+    	socket.getOutputStream().flush();
+    }
+    
+    private void sendStream(Socket socket, InputStream is) throws IOException {
+    	DataOutputStream socketOs = new DataOutputStream(socket.getOutputStream());
+    	byte[] sendBuffer = new byte[CHUNK_SIZE];
+		for (int nBytesRead = is.read(sendBuffer); nBytesRead != -1; nBytesRead = is.read(sendBuffer)) {
+			if (nBytesRead > 0) {
+				socketOs.writeInt(nBytesRead);
+				socketOs.write(sendBuffer, 0, nBytesRead);
 			}
-			catch (IOException e1) { }
-            return null;
-        }
-
-        try {
-            socket.setSoTimeout(getTimeoutMillisec());
-        } catch (SocketException e) {
-            LOGGER.error("Could not set socket timeout to " + getTimeoutMillisec() + "ms", e);
-        }
-
-        DataOutputStream dos = null;
-        StringBuilder response = new StringBuilder();
-        try {  // finally to close resources
-
-            try {
-                dos = new DataOutputStream(socket.getOutputStream());
-            } catch (IOException e) {
-                LOGGER.error("could not open socket OutputStream", e);
-                return null;
-            }
-
-            try {
-                dos.write(cmd);
-                dos.flush();
-            } catch (IOException e) {
-                LOGGER.debug("error writing " + new String(cmd) + " command", e);
-                return null;
-            }
-
-            InputStream is;
-            try {
-                is = socket.getInputStream();
-            } catch (IOException e) {
-                LOGGER.error("error getting InputStream from socket", e);
-                return null;
-            }
-
-            int read = CHUNK_SIZE;
-            byte[] buffer = new byte[CHUNK_SIZE];
-
-            while (read == CHUNK_SIZE) {
-                try {
-                    read = is.read(buffer);
-                } catch (IOException e) {
-                    LOGGER.error("error reading result from socket", e);
-                    break;
-                }
-                response.append(new String(buffer, 0, read));
-            }
-
-        } finally {
-            if (dos != null) try {
-                dos.close();
-            } catch (IOException e) {
-                LOGGER.debug("exception closing DOS", e);
-            }
-            try {
-                socket.close();
-            } catch (IOException e) {
-                LOGGER.debug("exception closing socket", e);
-            }
-        }
-
-        LOGGER.debug("Ping response from ClamAV: " + response.toString());
-
-        return response.toString();
+		}
+		socketOs.writeInt(0);
+		socketOs.flush();
     }
-
-	/**
-	 * The method to call if you already have the content to scan in-memory as a byte array.
-	 * 
-	 * @param in
-	 *            the byte array to scan
-	 * @return the result of the scan
-	 * @throws IOException
-	 */
-    public ScanResult scan(byte[] in) throws IOException {
-        return scan(new ByteArrayInputStream(in));
-    }
-
-	/**
-	 * The preferred method to call. This streams the contents of the InputStream to clamd, so the entire content is not loaded into memory at the same time.
-	 * 
-	 * @param in
-	 *            the InputStream to read. The stream is NOT closed by this method.
-	 * @return a ScanResult representing the server response
-	 */
-    public ScanResult scan(InputStream in) {
-        Socket socket = new Socket();
-        DataOutputStream dos = null;
-        String response = null;
-        ScanResult sr = null;
-
-        try {
-        	LOGGER.trace("Scanning stream from ClamAV on {}:{} ...", getHost(), getPort());
-            socket.connect(new InetSocketAddress(getHost(), getPort()), getTimeoutMillisec());
-            dos = new DataOutputStream(socket.getOutputStream());
-            dos.write(INSTREAM);
-            
-            int read = CHUNK_SIZE;
-            byte[] buffer = new byte[CHUNK_SIZE];
-            while (read == CHUNK_SIZE) {
-            	read = in.read(buffer);
-            	if (read > 0) {
-            		dos.writeInt(read);
-            		dos.write(buffer, 0, read);
-            	}
-            }
-            dos.writeInt(0);
-            dos.flush();
-            read = socket.getInputStream().read(buffer);
-            if (read > 0) {
-            	response = new String(buffer, 0, read);
-            }
-            LOGGER.trace("ClamAV Response: {}", response.trim());
-            sr = new ScanResult(response.trim());
-        } catch (IOException e) {
-            LOGGER.error(e.getMessage(), e);
-        	sr = new ScanResult(e);
-        } finally {
-        	IOUtils.closeQuietly(dos);
-        	IOUtils.closeQuietly(socket);
-        	IOUtils.closeQuietly(in);
-        }
-
-        return sr;
+    
+    private String readResponse(Socket socket) throws IOException {
+    	InputStreamReader socketIs = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
+    	StringBuilder resultBuilder = new StringBuilder();
+		char[] rcvBuffer = new char[CHUNK_SIZE];
+		for (int nCharsRead = socketIs.read(rcvBuffer); nCharsRead != -1; nCharsRead = socketIs.read(rcvBuffer)) {
+			resultBuilder.append(rcvBuffer, 0, nCharsRead);
+		}
+		return resultBuilder.toString().trim();
     }
 
     /**
@@ -259,7 +173,7 @@ public class ClamScan {
 	 * @return the host
 	 */
     public String getHost() {
-        return host;
+        return GlobalProps.getClamScanHost();
     }
 
     /**
@@ -268,7 +182,7 @@ public class ClamScan {
 	 * @return the port
 	 */
     public int getPort() {
-        return port;
+        return GlobalProps.getClamScanPort();
     }
 
     /**
@@ -276,16 +190,7 @@ public class ClamScan {
 	 * 
 	 * @return the timeout
 	 */
-    public int getTimeoutMillisec() {
-        return timeoutMillisec;
-    }
-
-    /**
-     * Socket timeout in milliseconds
-     *
-     * @param timeoutMillisec socket timeout in milliseconds
-     */
-    public void setTimeout(int timeoutMillisec) {
-        this.timeoutMillisec = timeoutMillisec;
+    public int getTimeoutMillis() {
+        return GlobalProps.getClamScanTimeout();
     }
 }

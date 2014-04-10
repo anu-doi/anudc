@@ -23,9 +23,9 @@ package au.edu.anu.datacommons.storage.info;
 
 import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.Manifest;
+import gov.loc.repository.bagit.impl.BagInfoTxtImpl;
 import gov.loc.repository.bagit.utilities.FilenameHelper;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
@@ -34,7 +34,6 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -53,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.storage.info.FileInfo.Type;
+import au.edu.anu.datacommons.storage.tagfiles.BagInfoTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.ExtRefsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.ManifestMd5TagFile;
@@ -60,6 +60,7 @@ import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
+import au.edu.anu.datacommons.util.StopWatch;
 
 /**
  * @author Rahul Khanna
@@ -72,21 +73,34 @@ public class RecordDataInfoService {
 	@Autowired(required = true)
 	private TagFilesService tagFilesSvc;
 
-	public RecordDataInfo createRecordDataInfo(String pid, Path bagDir) throws IOException {
+	public RecordDataInfo createRecordDataInfo(String pid, Path plDir) throws IOException {
 		RecordDataInfo rdi = new RecordDataInfo();
 		rdi.setPid(pid);
+		setRecordInfo(rdi, pid);
 
-		if (Files.isDirectory(getPayloadDir(bagDir))) {
-			populateFileInfos(rdi, pid, bagDir);
+		if (Files.isDirectory(plDir)) {
+			populateFileInfos(rdi, pid, plDir);
+		}
+
+		rdi.setExtRefs(tagFilesSvc.getAllEntries(pid, ExtRefsTagFile.class).values());
+		return rdi;
+	}
+	
+	public RecordDataInfo createDirLimitedRecordDataInfo(String pid, Path plDir, String relPath) throws IOException {
+		RecordDataInfo rdi = new RecordDataInfo();
+		rdi.setPid(pid);
+		setRecordInfo(rdi, pid);
+
+		if (Files.isDirectory(plDir.resolve(relPath))) {
+			populateFileInfos(rdi, pid, plDir, relPath);
 		}
 
 		rdi.setExtRefs(tagFilesSvc.getAllEntries(pid, ExtRefsTagFile.class).values());
 		return rdi;
 	}
 
-	public FileInfo createFileInfo(String pid, Path bagDir, Path relPath) throws NoSuchFileException, IOException {
+	public FileInfo createFileInfo(String pid, Path payloadDir, Path relPath) throws NoSuchFileException, IOException {
 		FileInfo fi = new FileInfo();
-		Path payloadDir = getPayloadDir(bagDir);
 		Path filepath = payloadDir.resolve(relPath);
 		fi.setFilename(filepath.getFileName().toString());
 		Path parent = payloadDir.relativize(filepath).getParent();
@@ -116,39 +130,53 @@ public class RecordDataInfoService {
 		return fi;
 	}
 
-	private void populateFileInfos(RecordDataInfo rdi, String pid, Path bagDir) throws IOException {
+	private void populateFileInfos(RecordDataInfo rdi, String pid, Path payloadDir) throws IOException {
+		populateFileInfos(rdi, pid, payloadDir, null);
+	}
+
+	private void populateFileInfos(RecordDataInfo rdi, String pid, Path payloadDir, String relPath) throws IOException {
 		long nFiles = 0L;
 		long sizeBytes = 0L;
 
-		Path payloadDir = getPayloadDir(bagDir);
-		List<Path> fileList = listFilesInDirFullPath(payloadDir, true);
+		StopWatch sw = new StopWatch();
+		sw.start();
+		List<Path> fileList;
+		if (relPath == null) {
+			fileList = listFilesInDirFullPath(payloadDir, true);
+		} else {
+			fileList = listFilesInDirFullPath(payloadDir.resolve(relPath), false);
+			for (Path parentDir = payloadDir.resolve(relPath); !parentDir.equals(payloadDir); parentDir = parentDir
+					.getParent()) {
+				fileList.add(parentDir);
+			}
+		}
+		sw.stop();
+		LOGGER.trace("{} files/dirs enumerated in {}: {}", format("{0}", fileList.size()), pid,
+				sw.getTimeElapsedFormatted());
+
 		SortedSet<FileInfo> fileInfos = new TreeSet<FileInfo>();
+		sw.start();
 		for (Path p : fileList) {
 			try {
-				FileInfo fi = createFileInfo(pid, bagDir, payloadDir.relativize(p));
+				FileInfo fi = createFileInfo(pid, payloadDir, payloadDir.relativize(p));
 				if (fi.getType() == Type.FILE) {
 					nFiles++;
 					sizeBytes += fi.getSize();
 				}
 				fileInfos.add(fi);
-			} catch (NoSuchFileException | AccessDeniedException e ) {
-				// Not rethrowing as the file may have been deleted during enumeration. 
-			} 
+			} catch (NoSuchFileException | AccessDeniedException e) {
+				// Not rethrowing as the file may have been deleted during enumeration.
+			}
 		}
+		sw.stop();
+		LOGGER.trace("{} FileInfo objects created for {}: {}", format("{0}", fileInfos.size()), pid,
+				sw.getTimeElapsedFormatted());
 
 		rdi.setFiles(fileInfos);
-		rdi.setSize(sizeBytes);
-		rdi.setNumFiles(nFiles);
+		rdi.setDirSize(sizeBytes);
+		rdi.setDirNumFiles(nFiles);
 	}
-
-	private List<Path> listFilesInDirRelPath(Path root, boolean recurse) throws IOException {
-		List<Path> fileList = new ArrayList<>();
-		for (Path p : listFilesInDirFullPath(root, recurse)) {
-			fileList.add(root.relativize(p));
-		}
-		return fileList;
-	}
-
+	
 	private List<Path> listFilesInDirFullPath(Path root, boolean recurse) throws IOException {
 		List<Path> fileList = new ArrayList<>();
 		try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(root)) {
@@ -203,13 +231,34 @@ public class RecordDataInfoService {
 		return presv;
 	}
 
-	private Map<String, String[]>deserializeFromJson(String jsonStr) throws JsonParseException, JsonMappingException, IOException {
+	private void setRecordInfo(RecordDataInfo rdi, String pid) throws IOException {
+		String payloadOxum = tagFilesSvc.getEntryValue(pid, BagInfoTagFile.class, BagInfoTxtImpl.FIELD_PAYLOAD_OXUM);
+		if (payloadOxum != null) {
+			String[] payloadOxumParts = payloadOxum.split("\\.");
+			try {
+				rdi.setRecordSize(Long.parseLong(payloadOxumParts[0], 10));
+			} catch (NumberFormatException | IndexOutOfBoundsException e) {
+				LOGGER.warn("{}/{} contains invalid value {} for key {}", pid, BagInfoTagFile.FILEPATH, payloadOxum,
+						BagInfoTxtImpl.FIELD_PAYLOAD_OXUM);
+			}
+			try {
+				rdi.setRecordNumFiles(Long.parseLong(payloadOxumParts[1], 10));
+			} catch (NumberFormatException | IndexOutOfBoundsException e) {
+				LOGGER.warn("{}/{} contains invalid value {} for key {}", pid, BagInfoTagFile.FILEPATH, payloadOxum,
+						BagInfoTxtImpl.FIELD_PAYLOAD_OXUM);
+			}
+		}
+	}
+
+	private Map<String, String[]> deserializeFromJson(String jsonStr) throws JsonParseException, JsonMappingException,
+			IOException {
 		Map<String, String[]> metadataMap;
 		if (jsonStr != null && jsonStr.length() > 0) {
 			ObjectMapper mapper = new ObjectMapper();
-			metadataMap = mapper.readValue(jsonStr, new TypeReference<Map<String, String[]>>() {});
+			metadataMap = mapper.readValue(jsonStr, new TypeReference<Map<String, String[]>>() {
+			});
 		} else {
-			metadataMap = Collections.unmodifiableMap(Collections.<String, String[]>emptyMap());
+			metadataMap = Collections.unmodifiableMap(Collections.<String, String[]> emptyMap());
 		}
 		return metadataMap;
 	}
@@ -221,10 +270,6 @@ public class RecordDataInfoService {
 			isExcluded = true;
 		}
 		return isExcluded;
-	}
-
-	private Path getPayloadDir(Path bagDir) {
-		return bagDir.resolve("data/");
 	}
 
 	private String prependData(String relFilepath) {

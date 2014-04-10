@@ -60,7 +60,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import au.edu.anu.datacommons.storage.completer.CompleterTask;
 import au.edu.anu.datacommons.storage.event.StorageEventListener;
 import au.edu.anu.datacommons.storage.event.StorageEventListener.EventTime;
 import au.edu.anu.datacommons.storage.event.StorageEventListener.EventType;
@@ -383,11 +382,15 @@ public final class DcStorage {
 	}
 	
 	public RecordDataInfo getRecordDataInfo(String pid) throws IOException {
-		return rdiSvc.createRecordDataInfo(pid, getBagDir(pid).toPath());
+		return rdiSvc.createRecordDataInfo(pid, getPayloadDir(pid).toPath());
+	}
+	
+	public RecordDataInfo getDirLimitedRecordDataInfo(String pid, String filepath) throws IOException {
+		return rdiSvc.createDirLimitedRecordDataInfo(pid, getPayloadDir(pid).toPath(), filepath);
 	}
 	
 	public FileInfo getFileInfo(String pid, String filepath) throws IOException {
-		return rdiSvc.createFileInfo(pid, getBagDir(pid).toPath(), Paths.get(filepath));
+		return rdiSvc.createFileInfo(pid, getPayloadDir(pid).toPath(), Paths.get(filepath));
 	}
 
 	/**

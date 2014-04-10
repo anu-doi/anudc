@@ -360,6 +360,28 @@ public class AbstractKeyValueFileTest {
 		
 	}
 	
+	@Test
+	public void testUnparsableLine() throws Exception {
+		File file = tempDir.newFile();
+		try (FileWriter writer = new FileWriter(file)) {
+			writer.write("K1: V1\r\n");
+			writer.write(":\r\n");
+			writer.write("K2: V2\r\n");
+		}
+		kvFile = new KeyValueFileImpl(file);
+		assertThat(kvFile.size(), is(2));
+		assertThat(kvFile.hasUnsavedChanges, is(true));
+		kvFile.write();
+		
+		long nLines = 0;
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+				nLines++;
+				assertThat(line, isOneOf("K1: V1", "K2: V2"));
+			}
+		}
+	}
+	
 	private void logFileContents(File file) throws IOException {
 		BufferedReader reader = null;
 		StringBuilder sb = new StringBuilder();

@@ -88,17 +88,16 @@
 		<anu:boxheader text="Files" />
 		<anu:box style="solid">
 			<c:if test="${not empty it.rdi}">
-				<p>
-					<c:out value="${it.rdi.numFiles}" />
-					file(s) in collection. Size
-					<c:out value="${it.rdi.friendlySize}" />
-				</p>
+				<p>Estimates:</p>
+				<ul class="nobullet noindent">
+					<li>Files: <c:out value="${it.rdi.recordNumFiles}" /></li>
+					<li>Size: <c:out value="${it.rdi.recordFriendlySize}" /></li>
+				</ul>
 			</c:if>
 			<c:if test="${empty it.rdi}">
 				<p>No files in collection.</p>
 			</c:if>
 			<p><a href="<c:url value='/rest/records/${it.fedoraObject.object_id}/data/' />">Data Files</a>
-			<p><a href="<c:url value='/rest/upload/bag/${it.fedoraObject.object_id}' />">Data Files (Legacy)</a></p>
 		</anu:box>
 	</c:if>
 	<!-- Bag Summary End -->
