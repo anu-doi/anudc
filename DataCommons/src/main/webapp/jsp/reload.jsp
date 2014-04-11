@@ -15,7 +15,8 @@
 <jsp:include page="/jsp/header.jsp" />
 
 <anu:content layout="doublenarrow" title="Reports">
-	<a href='<c:url value="/rest/report/reload" />'>Reload Reports</a>
+	<a href='<c:url value="/rest/report/reload" />'>Reload Reports</a><br/>
+	<a href='<c:url value="/rest/report/auto/reload" />'>Reschedule All Automated Reports</a>
 </anu:content>
 
 <jsp:include page="/jsp/footer.jsp" />

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_created" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="9a51ec9c-ff4b-4da7-afaa-34fe2bffd5d1">
 	<property name="ireport.zoom" value="2.0"/>
-	<property name="ireport.x" value="108"/>
+	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="subRpt_filesize" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["subRpt_filesize.jasper"]]></defaultValueExpression>
@@ -9,8 +9,8 @@
 	<parameter name="baseURL" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["C:/WorkSpace/software/jasperreports/report/"]]></defaultValueExpression>
 	</parameter>
-	<parameter name="bagLocation" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["C:/WorkSpace/Testing/upload/bags/"]]></defaultValueExpression>
+	<parameter name="BAG_LOCATION" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="param1" class="java.lang.String">
 		<defaultValueExpression><![CDATA["0"]]></defaultValueExpression>
@@ -28,7 +28,7 @@
 		<defaultValueExpression><![CDATA["subRpt_username_cas.jasper"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="LDAP_LOCATION" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA["ldaps://ldap.anu.edu.au:636"]]></defaultValueExpression>
 	</parameter>
 	<queryString>
 		<![CDATA[select fedora_object.*, ao2.log_date, ao2.user_id, users.username, users.user_type, groups.group_name
@@ -60,7 +60,9 @@ order by ao1.log_date]]>
 	<field name="user_type" class="java.lang.Long"/>
 	<field name="group_name" class="java.lang.String"/>
 	<variable name="csvfilename" class="java.lang.String">
-		<variableExpression><![CDATA[$P{bagLocation} + $F{pid}.replace(":","_") + "/bag-info.txt"]]></variableExpression>
+		<variableExpression><![CDATA[$P{BAG_LOCATION}.endsWith("/") ? $P{BAG_LOCATION} + $F{pid}.replace(":","_") + "/bag-info.txt" :
+    $P{BAG_LOCATION} + "/" + $F{pid}.replace(":","_") + "/bag-info.txt"
+]]></variableExpression>
 	</variable>
 	<variable name="csvdatasource" class="java.lang.String"/>
 	<variable name="subRptFileSize" class="java.lang.Long" calculation="System">

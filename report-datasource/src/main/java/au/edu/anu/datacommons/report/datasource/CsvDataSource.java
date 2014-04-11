@@ -23,6 +23,9 @@ package au.edu.anu.datacommons.report.datasource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.data.JRCsvDataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * CsvDataSource
  *
@@ -38,6 +41,8 @@ import net.sf.jasperreports.engine.data.JRCsvDataSource;
  *
  */
 public class CsvDataSource extends JRCsvDataSource {
+	static final Logger LOGGER = LoggerFactory.getLogger(CsvDataSource.class);
+	
 	/**
 	 * Constructor
 	 * 
@@ -47,6 +52,7 @@ public class CsvDataSource extends JRCsvDataSource {
 	 */
 	public CsvDataSource(String location, char fieldDelimiter) throws JRException {
 		super(location);
+		LOGGER.trace("Instantiating CsvDataSource with file location '{}' and delimiter '{}'", location, fieldDelimiter);
 		setFieldDelimiter(fieldDelimiter);
 	}
 }

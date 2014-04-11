@@ -50,6 +50,7 @@ import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import au.edu.anu.datacommons.report.schedule.ReportScheduler;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.util.Util;
@@ -268,7 +269,7 @@ public class ReportResource {
 	 * </pre>
 	 * 
 	 * @param context The servlet context information
-	 * @return The reponse
+	 * @return The response
 	 */
 	@GET
 	@Produces(MediaType.TEXT_HTML)
@@ -276,6 +277,23 @@ public class ReportResource {
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public Response reloadReports(@Context ServletContext context) {
 		ReportGenerator.reloadReports(context);
+		
+		UriBuilder uriBuilder = UriBuilder.fromPath("/reload");
+		return Response.seeOther(uriBuilder.build()).build();
+	}
+	
+	/**
+	 * Reschedule all the automated reports
+	 * 
+	 * @param context The servlet context
+	 * @return The response
+	 */
+	@GET
+	@Produces(MediaType.TEXT_HTML)
+	@Path("/auto/reload")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public Response reloadAutoReports(@Context ServletContext context) {
+		new ReportScheduler(context).scheduleAll();
 		
 		UriBuilder uriBuilder = UriBuilder.fromPath("/reload");
 		return Response.seeOther(uriBuilder.build()).build();

@@ -193,6 +193,7 @@ public class ReportGenerator {
 		params_.put("baseURL", serverPath + REPORT_PATH);
 		params_.put("SOLR_LOCATION", GlobalProps.getProperty(GlobalProps.PROP_SEARCH_SOLR));
 		params_.put("LDAP_LOCATION", GlobalProps.getProperty(GlobalProps.PROP_LDAP_URI));
+		params_.put("BAG_LOCATION", GlobalProps.getProperty(GlobalProps.PROP_UPLOAD_BAGSDIR));
 		if (Util.isNotEmpty(report.getSubReport())) {
 			LOGGER.debug("For report {} the subreport is: {}", report.getReportName(), report.getSubReport());
 			params_.put("sub_rpt", report.getSubReport());
@@ -203,7 +204,7 @@ public class ReportGenerator {
 	 * Get the report row from the database
 	 * 
 	 * @param reportId The id of the report to retrieve
-	 * @return
+	 * @return The report database object
 	 */
 	private Report getReport(Long reportId) {
 		GenericDAO<Report, Long> reportDAO = new GenericDAOImpl<Report, Long>(Report.class);

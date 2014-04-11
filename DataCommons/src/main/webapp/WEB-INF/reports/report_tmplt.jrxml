@@ -20,6 +20,9 @@
 	<parameter name="LDAP_LOCATION" class="java.lang.String">
 		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
 	</parameter>
+	<parameter name="BAG_LOCATION" class="java.lang.String">
+		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[select 1 as test;]]>
 	</queryString>
@@ -56,6 +59,9 @@
 				</subreportParameter>
 				<subreportParameter name="SOLR_LOCATION">
 					<subreportParameterExpression><![CDATA[$P{SOLR_LOCATION}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BAG_LOCATION">
+					<subreportParameterExpression><![CDATA[$P{BAG_LOCATION}]]></subreportParameterExpression>
 				</subreportParameter>
 				<subreportParameter name="name">
 					<subreportParameterExpression><![CDATA[$P{name}]]></subreportParameterExpression>
