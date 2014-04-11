@@ -33,25 +33,25 @@
 		<band height="13" splitType="Stretch">
 			<printWhenExpression><![CDATA["Payload-Oxum".equals($F{COLUMN_0})]]></printWhenExpression>
 			<staticText>
-				<reportElement x="0" y="0" width="82" height="13" uuid="9e5ed17a-10c8-4d29-8506-02b6f920b199"/>
+				<reportElement x="0" y="0" width="88" height="13" uuid="9e5ed17a-10c8-4d29-8506-02b6f920b199"/>
 				<textElement>
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Number of Files:]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="82" y="0" width="90" height="13" uuid="c6af1c6a-a1d3-4685-8b0c-e938d376d81c"/>
+				<reportElement x="88" y="0" width="90" height="13" uuid="c6af1c6a-a1d3-4685-8b0c-e938d376d81c"/>
 				<textFieldExpression><![CDATA[$F{COLUMN_1}.substring($F{COLUMN_1}.indexOf('.') + 1)]]></textFieldExpression>
 			</textField>
 		</band>
 		<band height="13">
 			<printWhenExpression><![CDATA["Bag-Size".equals($F{COLUMN_0})]]></printWhenExpression>
 			<textField>
-				<reportElement x="82" y="0" width="90" height="13" uuid="92772573-ec79-4262-8eb1-5c26ef1f53dc"/>
+				<reportElement x="88" y="0" width="90" height="13" uuid="92772573-ec79-4262-8eb1-5c26ef1f53dc"/>
 				<textFieldExpression><![CDATA[$F{COLUMN_1}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="0" y="0" width="82" height="13" uuid="2e1d929e-0e64-4f27-9224-d1b35bafa71b"/>
+				<reportElement x="0" y="0" width="88" height="13" uuid="2e1d929e-0e64-4f27-9224-d1b35bafa71b"/>
 				<textElement>
 					<font isBold="true"/>
 				</textElement>
