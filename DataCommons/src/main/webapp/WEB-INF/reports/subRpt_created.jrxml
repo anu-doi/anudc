@@ -39,12 +39,15 @@ from acl_object_identity aoi1
 		from audit_object
 		where log_type = 'MODIFIED'
 		group by object_id) as ao1
-	left join audit_object ao2 on (ao2.object_id = ao1.object_id and ao2.log_date = ao1.log_date)
-	left join users on (users.id = ao2.user_id)
+	, audit_object ao2
+	, users
 	, groups
 where aoi2.object_id_identity = CAST(coalesce($P{param1}, '0') AS integer)
 and aoi2.object_id_class = 2
 and aoi1.object_id_identity = ao1.object_id
+and ao2.object_id = ao1.object_id
+and ao2.log_date = ao1.log_date
+and users.id = ao2.user_id
 and groups.id = CAST(coalesce($P{param1}, '0') AS integer)
 order by ao1.log_date]]>
 	</queryString>
@@ -61,14 +64,16 @@ order by ao1.log_date]]>
 	<field name="group_name" class="java.lang.String"/>
 	<variable name="csvfilename" class="java.lang.String">
 		<variableExpression><![CDATA[$P{BAG_LOCATION}.endsWith("/") ? $P{BAG_LOCATION} + $F{pid}.replace(":","_") + "/bag-info.txt" :
-    $P{BAG_LOCATION} + "/" + $F{pid}.replace(":","_") + "/bag-info.txt"
-]]></variableExpression>
+    $P{BAG_LOCATION} + "/" + $F{pid}.replace(":","_") + "/bag-info.txt"]]></variableExpression>
 	</variable>
 	<variable name="csvdatasource" class="java.lang.String"/>
 	<variable name="subRptFileSize" class="java.lang.Long" calculation="System">
 		<variableExpression><![CDATA[]]></variableExpression>
+		<initialValueExpression><![CDATA[new Long(0)]]></initialValueExpression>
 	</variable>
-	<variable name="totalNumberOfFiles" class="java.lang.Long" calculation="System"/>
+	<variable name="totalNumberOfFiles" class="java.lang.Long" calculation="System">
+		<initialValueExpression><![CDATA[new Long(0)]]></initialValueExpression>
+	</variable>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
