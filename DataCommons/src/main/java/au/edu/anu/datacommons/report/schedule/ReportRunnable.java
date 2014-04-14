@@ -70,7 +70,7 @@ public class ReportRunnable implements Runnable {
 	
 	JavaMailSender mailSender;
 	
-	private static final String EMAIL_SUBJECT = "Report";
+	private static final String EMAIL_SUBJECT = GlobalProps.getProperty(GlobalProps.PROP_REPORT_EMAIL_SUBJECT);
 	
 	ServletContext context;
 	

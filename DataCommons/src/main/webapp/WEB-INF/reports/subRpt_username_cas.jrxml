@@ -10,13 +10,15 @@
 		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
 	</parameter>
 	<queryString language="ldap">
-		<![CDATA[SELECT uid, displayName, mail FILTER (uid=$P{param1})]]>
+		<![CDATA[SELECT uid, displayName, mail, givenName FILTER (uid=$P{param1})]]>
 	</queryString>
 	<field name="uid" class="java.lang.String"/>
 	<field name="displayName" class="java.lang.String"/>
 	<field name="mail" class="java.lang.String"/>
+	<field name="givenName" class="java.lang.String"/>
 	<variable name="displayName" class="java.lang.String">
-		<variableExpression><![CDATA[$F{displayName} + " ( " + $F{mail} + " )"]]></variableExpression>
+		<variableExpression><![CDATA[($F{displayName} != null && $F{mail} != null ? $F{displayName} + " ( " + $F{mail} + " )" :
+    ($F{displayName} != null ? $F{displayName} : $F{mail} ))]]></variableExpression>
 	</variable>
 	<background>
 		<band splitType="Stretch"/>
@@ -32,6 +34,7 @@
 	</columnHeader>
 	<detail>
 		<band height="13" splitType="Stretch">
+			<printWhenExpression><![CDATA[!($F{mail} == null && $F{displayName} == null)]]></printWhenExpression>
 			<textField>
 				<reportElement x="0" y="0" width="352" height="13" uuid="25dfdc21-490b-458f-b6c0-e4ac4e35b42b"/>
 				<textFieldExpression><![CDATA[$V{displayName}]]></textFieldExpression>

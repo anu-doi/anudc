@@ -28,7 +28,7 @@
 		<defaultValueExpression><![CDATA["subRpt_username_cas.jasper"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="LDAP_LOCATION" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["ldaps://ldap.anu.edu.au:636"]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
 	</parameter>
 	<queryString>
 		<![CDATA[select fedora_object.*, ao2.log_date, ao2.user_id, users.username, users.user_type, groups.group_name
@@ -74,13 +74,16 @@ order by ao1.log_date]]>
 	<variable name="totalNumberOfFiles" class="java.lang.Long" calculation="System">
 		<initialValueExpression><![CDATA[new Long(0)]]></initialValueExpression>
 	</variable>
+	<variable name="pageHeaderVariable" class="java.lang.String">
+		<variableExpression><![CDATA["Records for " + $F{group_name}]]></variableExpression>
+	</variable>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
 	<title>
-		<band height="20" splitType="Stretch">
+		<band height="30" splitType="Stretch">
 			<textField isStretchWithOverflow="true">
-				<reportElement x="0" y="0" width="554" height="20" uuid="0b9eeb50-94bd-4fc7-87ba-6a6f2f123849"/>
+				<reportElement x="0" y="0" width="554" height="30" uuid="0b9eeb50-94bd-4fc7-87ba-6a6f2f123849"/>
 				<textElement>
 					<font size="20" isBold="true"/>
 				</textElement>
@@ -89,7 +92,19 @@ order by ao1.log_date]]>
 		</band>
 	</title>
 	<pageHeader>
-		<band splitType="Stretch"/>
+		<band height="31" splitType="Stretch">
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER} > 1]]></printWhenExpression>
+			<textField isStretchWithOverflow="true">
+				<reportElement x="0" y="0" width="554" height="30" uuid="b5794f6c-60af-414e-9564-0735556085fe"/>
+				<textElement>
+					<font size="20"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{pageHeaderVariable}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="30" width="554" height="1" uuid="4302b799-d31a-452b-bc72-0d29acb691d3"/>
+			</line>
+		</band>
 	</pageHeader>
 	<columnHeader>
 		<band splitType="Stretch"/>
@@ -123,13 +138,13 @@ order by ao1.log_date]]>
 				<text><![CDATA[Type:]]></text>
 			</staticText>
 			<line>
-				<reportElement x="0" y="0" width="554" height="1" uuid="c9652e9f-16aa-4d70-9129-759415e73ec9"/>
+				<reportElement x="0" y="1" width="554" height="1" uuid="c9652e9f-16aa-4d70-9129-759415e73ec9"/>
 				<graphicElement>
 					<pen lineWidth="0.5"/>
 				</graphicElement>
 			</line>
 		</band>
-		<band height="10">
+		<band height="10" splitType="Stretch">
 			<subreport>
 				<reportElement x="0" y="0" width="554" height="10" isPrintWhenDetailOverflows="true" uuid="2f069bae-a12a-4a26-865e-38f03aa0ba6d"/>
 				<subreportParameter name="pid">
@@ -139,7 +154,7 @@ order by ao1.log_date]]>
 				<subreportExpression><![CDATA[$P{baseURL} + $P{subRpt_name}]]></subreportExpression>
 			</subreport>
 		</band>
-		<band height="13">
+		<band height="13" splitType="Stretch">
 			<printWhenExpression><![CDATA[$F{user_type} == 1]]></printWhenExpression>
 			<staticText>
 				<reportElement x="0" y="0" width="64" height="13" uuid="92a54f93-a65a-4382-a328-faa6e15e1e6e"/>
@@ -171,7 +186,7 @@ order by ao1.log_date]]>
 				<subreportExpression><![CDATA[$P{baseURL} + $P{subRpt_username_cas}]]></subreportExpression>
 			</subreport>
 		</band>
-		<band height="13">
+		<band height="13" splitType="Stretch">
 			<printWhenExpression><![CDATA[$F{user_type} == 2]]></printWhenExpression>
 			<staticText>
 				<reportElement x="0" y="0" width="64" height="13" uuid="0574ac98-f339-43a9-9443-02dd65a86c1a"/>
@@ -200,7 +215,7 @@ order by ao1.log_date]]>
 				<subreportExpression><![CDATA[$P{baseURL} + $P{subRpt_username_registered}]]></subreportExpression>
 			</subreport>
 		</band>
-		<band height="10">
+		<band height="10" splitType="Stretch">
 			<printWhenExpression><![CDATA[new File($V{csvfilename}).isFile()]]></printWhenExpression>
 			<subreport>
 				<reportElement x="0" y="0" width="554" height="10" isPrintWhenDetailOverflows="true" uuid="393a2c68-80fd-4a3e-94b5-2b3592cd6c24"/>
@@ -222,7 +237,7 @@ order by ao1.log_date]]>
 			<staticText>
 				<reportElement x="0" y="2" width="554" height="13" uuid="9d6cc16a-0525-43cc-a9bb-e792298ce980"/>
 				<textElement>
-					<font size="8" isItalic="true"/>
+					<font size="7" isItalic="true"/>
 				</textElement>
 				<text><![CDATA[Note: The size and number of files is an approximation. The information may be innaccurate when the number of files in a collection is greater than 10,000.]]></text>
 			</staticText>
@@ -234,21 +249,17 @@ order by ao1.log_date]]>
 	<summary>
 		<band height="44" splitType="Stretch">
 			<staticText>
-				<reportElement x="0" y="5" width="110" height="13" uuid="2e8580db-0f08-4dec-84ae-b0e60fc8c5d5"/>
+				<reportElement x="0" y="5" width="117" height="13" uuid="2e8580db-0f08-4dec-84ae-b0e60fc8c5d5"/>
 				<textElement>
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Number of Records:]]></text>
 			</staticText>
-			<textField>
-				<reportElement x="112" y="5" width="100" height="13" uuid="5d379787-90ee-4083-956f-3d7a8b8355a5"/>
-				<textFieldExpression><![CDATA[$V{COLUMN_COUNT}]]></textFieldExpression>
-			</textField>
 			<line>
 				<reportElement x="0" y="1" width="554" height="1" uuid="4350a7fb-cc00-4a8b-bed9-25476ec73700"/>
 			</line>
 			<textField>
-				<reportElement x="112" y="18" width="314" height="13" uuid="3a082b22-5ce8-43d9-b99c-b62c67646477"/>
+				<reportElement x="117" y="18" width="314" height="13" uuid="3a082b22-5ce8-43d9-b99c-b62c67646477"/>
 				<textFieldExpression><![CDATA[($V{subRptFileSize} > java.lang.Math.pow(2,60) ? new DecimalFormat("#.###").format(($V{subRptFileSize} / java.lang.Math.pow(2,60))) + " EB" :
     ($V{subRptFileSize} > java.lang.Math.pow(2,50) ? new DecimalFormat("#.###").format(($V{subRptFileSize} / java.lang.Math.pow(2,50))) + " PB"  :
         ($V{subRptFileSize} > java.lang.Math.pow(2,40) ? new DecimalFormat("#.###").format(($V{subRptFileSize} / java.lang.Math.pow(2,40))) + " TB"  :
@@ -258,22 +269,26 @@ order by ao1.log_date]]>
                         ($V{subRptFileSize}) + " B"))))))]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="0" y="18" width="110" height="13" uuid="089ddc27-6b73-4dde-8b72-f0f503dcd494"/>
+				<reportElement x="0" y="18" width="117" height="13" uuid="089ddc27-6b73-4dde-8b72-f0f503dcd494"/>
 				<textElement>
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Total File Size:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="0" y="31" width="110" height="13" uuid="80289649-9320-488c-80d6-eace64c63973"/>
+				<reportElement x="0" y="31" width="117" height="13" uuid="80289649-9320-488c-80d6-eace64c63973"/>
 				<textElement>
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Total Number of Files:]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="112" y="31" width="314" height="13" uuid="d0fd576a-b37c-441d-a0f3-e4fafa835268"/>
+				<reportElement x="117" y="31" width="314" height="13" uuid="d0fd576a-b37c-441d-a0f3-e4fafa835268"/>
 				<textFieldExpression><![CDATA[$V{totalNumberOfFiles}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="117" y="5" width="100" height="13" uuid="e0434288-6c7c-4e95-8fab-46c8225963cb"/>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
 			</textField>
 		</band>
 	</summary>

@@ -109,6 +109,7 @@ public final class GlobalProps {
 	public static final String PROP_ORCA_XSL = "orca.transform.xsl";
 	public static final String PROP_PYTHON_PATH = "python.path";
 	public static final String PROP_FIDO_PATH = "fido.path";
+	public static final String PROP_REPORT_EMAIL_SUBJECT = "report.email.subject";
 
 	static {
 		try {
