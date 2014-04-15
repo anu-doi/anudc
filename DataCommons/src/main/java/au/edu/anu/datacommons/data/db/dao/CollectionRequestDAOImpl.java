@@ -26,6 +26,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,11 +72,10 @@ public class CollectionRequestDAOImpl extends GenericDAOImpl<CollectionRequest, 
 	/**
 	 * getPermittedRequests
 	 * 
-	 * Retrieves a list of requests that the user has permission to view.
-	 * i.e. it retrieves the users own requests, and if they are a reviewere for any
-	 * of the groups they are able to view those requests.
-	 *
-	 *
+	 * Retrieves a list of requests that the user has permission to view. i.e. it retrieves the users own requests, and
+	 * if they are a reviewere for any of the groups they are able to view those requests.
+	 * 
+	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
 	 * 0.1		29/06/2012	Genevieve Turner(GT)	Initial
@@ -89,27 +89,32 @@ public class CollectionRequestDAOImpl extends GenericDAOImpl<CollectionRequest, 
 	 */
 	public List<CollectionRequest> getPermittedRequests(Long userId, List<Groups> groups) {
 		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
-		Query query = null;
-		
+		TypedQuery<CollectionRequest> query = null;
+
 		if (groups != null && groups.size() > 0) {
 			List<Long> groupIds = new ArrayList<Long>();
 			for (Groups group : groups) {
 				groupIds.add(group.getId());
 			}
 
-			query = entityManager.createQuery("SELECT DISTINCT cr FROM CollectionRequest cr join cr.fedoraObject fo left join fetch cr.status WHERE (cr.requestor.id = :user_id) OR (fo.group_id IN (:groups)) ORDER BY cr.timestamp DESC",CollectionRequest.class);
+			query = entityManager
+					.createQuery(
+							"SELECT DISTINCT cr FROM CollectionRequest cr join cr.fedoraObject fo left join fetch cr.status WHERE (cr.requestor.id = :user_id) OR (fo.group_id IN (:groups)) ORDER BY cr.timestamp DESC",
+							CollectionRequest.class);
 			query.setParameter("user_id", userId);
 			query.setParameter("groups", groupIds);
-		}
-		else {
-			query = entityManager.createQuery("SELECT DISTINCT cr FROM CollectionRequest cr left join fetch cr.status WHERE cr.requestor.id = :user_id ORDER BY cr.timestamp DESC",CollectionRequest.class);
+		} else {
+			query = entityManager
+					.createQuery(
+							"SELECT DISTINCT cr FROM CollectionRequest cr left join fetch cr.status WHERE cr.requestor.id = :user_id ORDER BY cr.timestamp DESC",
+							CollectionRequest.class);
 			query.setParameter("user_id", userId);
 		}
-		
+
 		List<CollectionRequest> collectionRequests = query.getResultList();
-		
+
 		entityManager.close();
-		
+
 		return collectionRequests;
 	}
 	
