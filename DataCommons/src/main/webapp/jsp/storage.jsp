@@ -240,7 +240,11 @@
 	</c:choose>
 
 	<!-- Drag n Drop -->
-	<div id="dragandrophandler" class="w-doublewide"></div>
+	<sec:authorize access="isAuthenticated()">
+		<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+			<div id="dragandrophandler" class="w-doublewide"></div>
+		</sec:accesscontrollist>
+	</sec:authorize>
 </div>
 
 <div class="doublewide nopadtop" id="extRefs" style="display: none;">
