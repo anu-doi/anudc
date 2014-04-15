@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -88,10 +87,12 @@ import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.SolrUtils;
 import au.edu.anu.datacommons.security.CustomUser;
+import au.edu.anu.datacommons.security.acl.CustomACLPermission;
+import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.storage.DcStorage;
-import au.edu.anu.datacommons.storage.info.FileSummary;
+import au.edu.anu.datacommons.storage.info.RecordDataInfo;
 import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Util;
 
@@ -145,6 +146,9 @@ public class CollectionRequestService
 
 	@Resource(name = "fedoraObjectServiceImpl")
 	FedoraObjectService fedoraObjectService;
+	
+	@Resource(name="permissionService")
+	private PermissionService permissionService;
 
 	/**
 	 * doGetAsHtml
@@ -205,8 +209,7 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_REGISTERED')")
 	@Path("{collReqId}")
-	public Response doGetReqItemAsHtml(@PathParam("collReqId") Long collReqId)
-	{
+	public Response doGetReqItemAsHtml(@PathParam("collReqId") Long collReqId) {
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
@@ -214,8 +217,7 @@ public class CollectionRequestService
 		LOGGER.trace("In method doGetReqItemAsHtml. Param collReqId={}.", collReqId);
 		LOGGER.debug("Retrieving Collection Request with ID: {}...", collReqId);
 
-		try
-		{
+		try {
 			LOGGER.debug("Retrieving Collection Request with ID: {}...", collReqId);
 
 			// Find the Collection Request with the specified ID.
@@ -230,20 +232,19 @@ public class CollectionRequestService
 			model.put("collReq", collReq);
 
 			// Add files in payload to model.
-			if (dcStorage.bagExists(collReq.getPid()))
-			{
-				Map<String, FileSummary> downloadables = dcStorage.getBagSummary(collReq.getPid()).getFileSummaryMap();
-				model.put("downloadables", downloadables);
+			if (dcStorage.bagExists(collReq.getPid())) {
+				FedoraObject fo = fedoraObjectService.getItemByPid(collReq.getPid());
+				if (permissionService.checkPermission(fo, CustomACLPermission.PUBLISH)
+						|| permissionService.checkPermission(fo, CustomACLPermission.REVIEW)) {
+					RecordDataInfo rdi = dcStorage.getRecordDataInfo(collReq.getPid());
+					model.put("downloadables", rdi);
+				}
 			}
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			LOGGER.error("Unable to find or retrieve Collection Request " + collReqId, e);
 			messages.clear();
 			messages.add(MessageType.ERROR, e.getMessage(), model);
-		}
-		finally
-		{
+		} finally {
 			resp = Response.ok(new Viewable(COLL_REQ_JSP, model)).build();
 		}
 
@@ -751,7 +752,7 @@ public class CollectionRequestService
 
 			// External references list.
 
-			Collection<String> extRefs = dcStorage.getBagSummary(dropbox.getCollectionRequest().getPid()).getExtRefs();
+			Collection<String> extRefs = dcStorage.getRecordDataInfo(dropbox.getCollectionRequest().getPid()).getExtRefs();
 			if (extRefs != null && extRefs.size() > 0) {
 				model.put("fetchables", extRefs);
 			}

@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,7 +44,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,18 +54,13 @@ import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.collectionrequest.CollectionDropbox;
 import au.edu.anu.datacommons.collectionrequest.CollectionRequestItem;
-import au.edu.anu.datacommons.collectionrequest.PageMessages;
-import au.edu.anu.datacommons.collectionrequest.PageMessages.MessageType;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAO;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAOImpl;
-import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.AccessLogRecord.Operation;
 import au.edu.anu.datacommons.storage.AbstractStorageResource;
 import au.edu.anu.datacommons.storage.DcStorage;
-import au.edu.anu.datacommons.storage.info.BagSummary;
-import au.edu.anu.datacommons.storage.info.FileSummaryMap;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
@@ -97,90 +90,6 @@ public class UploadService extends AbstractStorageResource {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostJUploadFilePart(@PathParam("pid") String pid) {
 		return processJUpload(pid, "/");
-	}
-
-	/**
-	 * Returns the details of contents of a bag.
-	 * 
-	 * @param pid
-	 *            Pid of the collection whose bag details are returned
-	 * @return Response as HTML including BagSummary object
-	 */
-	@GET
-	@Produces(MediaType.TEXT_HTML)
-	@Path("bag/{pid}")
-	public Response doGetBagFileListingAsHtml(@PathParam("pid") String pid) {
-		Response resp = null;
-		Map<String, Object> model = new HashMap<String, Object>();
-
-		FedoraObject fo = fedoraObjectService.getItemByPid(pid);
-		if (fo == null) {
-			throw new NotFoundException(format("Record {0} not found", pid));
-		}
-		LOGGER.info("User {} ({}) requested bag files page of {}", getCurUsername(), getRemoteIp(), pid);
-
-		// Check if record is published AND files are public. If not, check permissions.
-		if (!(isPublishedAndPublic(fo))) {
-			fo = null;
-			fo = fedoraObjectService.getItemByPidReadAccess(pid);
-		}
-
-		model.put("fo", fo);
-
-		if (dcStorage.bagExists(pid)) {
-			BagSummary bagSummary;
-			try {
-				addAccessLog(Operation.READ);
-				bagSummary = dcStorage.getBagSummary(pid);
-				model.put("bagSummary", bagSummary);
-				model.put("bagInfoTxt", bagSummary.getBagInfoTxt().entrySet());
-				if (bagSummary.getExtRefs() != null) {
-					model.put("extRefs", bagSummary.getExtRefs());
-				}
-				UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getBaseUri()).path(UploadService.class)
-						.path(UploadService.class, "doGetFileInBagAsOctetStream2");
-				model.put("dlBaseUri", uriBuilder.build(pid, "").toString());
-				model.put("downloadAsZipUrl", uriBuilder.build(pid, "zip").toString());
-				model.put("isFilesPublic", fo.isFilesPublic().booleanValue());
-			} catch (IOException e) {
-				LOGGER.error(e.getMessage(), e);
-				PageMessages messages = new PageMessages();
-				messages.add(MessageType.ERROR, e.getMessage(), model);
-			}
-		}
-
-		resp = Response.ok(new Viewable(BAGFILES_JSP, model), MediaType.TEXT_HTML_TYPE).build();
-		return resp;
-	}
-
-	/**
-	 * Returns a BagSummary in JSON or XML format.
-	 * 
-	 * @param pid
-	 *            Identifier of record whose bag summary is requested
-	 * @return Response containing BagSummary in JSON or XML format.
-	 */
-	@GET
-	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
-	@Path("bag/{pid}")
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doGetBagSummary(@PathParam("pid") String pid) {
-		Response resp = null;
-
-		fedoraObjectService.getItemByPidReadAccess(pid);
-		if (!dcStorage.bagExists(pid)) {
-			throw new NotFoundException(format("Bag not found for {0}", pid));
-		}
-
-		try {
-			addAccessLog(Operation.READ);
-			BagSummary bagSummary = dcStorage.getBagSummary(pid);
-			resp = Response.ok(bagSummary).build();
-		} catch (IOException e) {
-			resp = Response.serverError().build();
-		}
-
-		return resp;
 	}
 
 	/**
@@ -250,71 +159,6 @@ public class UploadService extends AbstractStorageResource {
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.serverError().entity(e.getMessage()).build();
-		}
-		return resp;
-	}
-
-	/**
-	 * Returns a file in a collection's bag as InputStream in Response.
-	 * 
-	 * @param pid
-	 *            Pid of the collection containing the file
-	 * @param fileRequested
-	 *            File being requested. E.g. "data/File.txt"
-	 * @return File contents as InputStream in Response
-	 */
-	@GET
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	@Path("bag/{pid}/{fileInBag:.*}")
-	public Response doGetFileInBagAsOctetStream2(@PathParam("pid") String pid,
-			@PathParam("fileInBag") String fileRequested, @QueryParam("file") Set<String> filepaths) {
-		LOGGER.trace("pid: {}, filename: {}", pid, fileRequested);
-		Response resp = null;
-
-		FedoraObject fo = fedoraObjectService.getItemByPid(pid);
-		if (fo == null) {
-			throw new NotFoundException(format("Record {0} not found", pid));
-		}
-
-		// Check if record is published AND files are public. If not, check permissions.
-		if (!(isPublishedAndPublic(fo))) {
-			fo = null;
-			fo = fedoraObjectService.getItemByPidReadAccess(pid);
-		}
-
-		try {
-			if (fileRequested.equals("zip")) {
-				FileSummaryMap fsMap = dcStorage.getBagSummary(pid).getFileSummaryMap();
-
-				if (filepaths == null || filepaths.size() == 0) {
-					filepaths.addAll(fsMap.keySet());
-				} else {
-					for (Iterator<String> it = filepaths.iterator(); it.hasNext();) {
-						if (!fsMap.containsKey(it.next())) {
-							it.remove();
-						}
-					}
-				}
-
-				LOGGER.info("User {} ({}) requested {} bag files {} in {} as zip", getCurUsername(), getRemoteIp(),
-						filepaths.size(), filepaths, pid);
-				Users curUser = getCurUser();
-				if (curUser != null) {
-					addAccessLog(Operation.READ);
-				}
-				resp = getBagFilesAsZip(pid, filepaths, format("{0}.{1}", DcStorage.convertToDiskSafe(pid), "zip"));
-			} else {
-				LOGGER.info("User {} ({}) requested bag file {} in {}", getCurUsername(), getRemoteIp(), fileRequested,
-						pid);
-				fileRequested = removeDataPrefix(fileRequested);
-				if (!dcStorage.fileExists(pid, fileRequested)) {
-					throw new NotFoundException(format("File {0} not found in {1}", fileRequested, pid));
-				}
-				resp = getBagFileOctetStreamResp(pid, fileRequested);
-			}
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
 		return resp;
 	}

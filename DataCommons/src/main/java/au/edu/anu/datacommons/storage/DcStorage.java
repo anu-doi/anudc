@@ -64,7 +64,6 @@ import au.edu.anu.datacommons.storage.event.StorageEventListener;
 import au.edu.anu.datacommons.storage.event.StorageEventListener.EventTime;
 import au.edu.anu.datacommons.storage.event.StorageEventListener.EventType;
 import au.edu.anu.datacommons.storage.filesystem.FileFactory;
-import au.edu.anu.datacommons.storage.info.BagSummary;
 import au.edu.anu.datacommons.storage.info.FileInfo;
 import au.edu.anu.datacommons.storage.info.FileInfo.Type;
 import au.edu.anu.datacommons.storage.info.RecordDataInfo;
@@ -361,26 +360,6 @@ public final class DcStorage {
 		return bagDirExists(pid);
 	}
 
-	/**
-	 * Gets the bag summary of a bag.
-	 * 
-	 * @param pid
-	 *            Pid of the collection record whose bag summary to retrieve
-	 * 
-	 * @return Summary as Bag Summary
-	 * 
-	 * @throws DcStorageException
-	 */
-	public BagSummary getBagSummary(String pid) throws IOException {
-		validatePid(pid);
-		if (!bagDirExists(pid)) {
-			throw new FileNotFoundException(format("Record {0} doesn't contain any files", pid));
-		}
-		BagSummaryTask bsTask = new BagSummaryTask(ff, getBagDir(pid));
-		BagSummary bs = bsTask.generateBagSummary();
-		return bs;
-	}
-	
 	public RecordDataInfo getRecordDataInfo(String pid) throws IOException {
 		return rdiSvc.createRecordDataInfo(pid, getPayloadDir(pid).toPath());
 	}

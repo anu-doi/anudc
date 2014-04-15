@@ -45,8 +45,8 @@
 				</p>
 				<!-- Answers -->
 				<c:if test="${not empty it.collReq.answers}">
-					<p>
 					<hr />
+					<p>
 					<c:forEach var="answer" items="${it.collReq.answers}">
 						<div onclick="jQuery(this).next('div').slideToggle()" class="box-header" style="cursor: pointer">
 							<c:out value="${answer.question.questionText}" />
@@ -63,14 +63,16 @@
 						<p>
 							<!-- Files for approval -->
 						<ul>
-							<c:forEach var="iFile" items="${it.downloadables}">
-								<li><input type="checkbox" name="file" value="${iFile.key}"
-										<c:forEach items="${it.collReq.items}" var="iCurItem">
-								<c:if test="${iCurItem.item == iFile.key}">
-									checked="checked"
+							<c:forEach var="iFile" items="${it.downloadables.files}">
+								<c:if test="${iFile.type == 'FILE'}">
+									<li><input type="checkbox" name="file" value="${iFile.relFilepath}"
+											<c:forEach items="${it.collReq.items}" var="iCurItem">
+									<c:if test="${iCurItem.item == iFile.relFilepath}">
+										checked="checked"
+									</c:if>
+									</c:forEach> />
+									<c:out value="${iFile.relFilepath} (${iFile.friendlySize})" /></li>
 								</c:if>
-							</c:forEach> />
-									<c:out value="${iFile.key} (${iFile.value.friendlySize})" /></li>
 							</c:forEach>
 						</ul>
 						</p>
@@ -124,36 +126,20 @@
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
 			<c:if test="${empty param.pid}">
-				<p>
-					To request access to a collection please perform the following steps:<br/>
-					<ol>
-						<li>
-							Enter the Identifier of the item you wish to request access to
-						</li>
-						<li>
-							Select to retrieve the request questions
-						</li>
-						<li>
-							Answer the questions that appear on the screen (if any)
-						</li>
-						<li>
-							Click the 'Request Access' button
-						</li>
-					</ol>
-				</p>
+				<p>To request access to a collection please perform the following steps:</p>
+				<ol>
+					<li>Enter the Identifier of the item you wish to request access to</li>
+					<li>Select to retrieve the request questions</li>
+					<li>Answer the questions that appear on the screen (if any)</li>
+					<li>Click the 'Request Access' button</li>
+				</ol>
 			</c:if>
 			<c:if test="${not empty param.pid}">
-				<p>
-					To request access to a collection please perform the following steps:<br/>
-					<ol>
-						<li>
-							Answer the questions that appear on the screen (if any)
-						</li>
-						<li>
-							Click the 'Request Access' button
-						</li>
-					</ol>
-				</p>
+				<p>To request access to a collection please perform the following steps:</p>
+				<ol>
+					<li>Answer the questions that appear on the screen (if any)</li>
+					<li>Click the 'Request Access' button</li>
+				</ol>
 			</c:if>
 			<form name="collReqSubmitForm" class="anuform" method="post" action="<c:url value='/rest/collreq/' />">
 				<p>
