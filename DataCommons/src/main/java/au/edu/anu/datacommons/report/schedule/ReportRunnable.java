@@ -127,7 +127,6 @@ public class ReportRunnable implements Runnable {
 				}
 			}
 			else {
-				LOGGER.info("Subject: {}", emailSubject);
 				LOGGER.debug("Report has been generated, not sending due to emails being set to false");
 			}
 		}
