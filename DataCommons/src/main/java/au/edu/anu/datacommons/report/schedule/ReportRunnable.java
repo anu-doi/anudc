@@ -70,7 +70,7 @@ public class ReportRunnable implements Runnable {
 	
 	JavaMailSender mailSender;
 	
-	private static final String EMAIL_SUBJECT = GlobalProps.getProperty(GlobalProps.PROP_REPORT_EMAIL_SUBJECT);
+	private String emailSubject = GlobalProps.getProperty(GlobalProps.PROP_REPORT_EMAIL_SUBJECT);
 	
 	ServletContext context;
 	
@@ -110,7 +110,7 @@ public class ReportRunnable implements Runnable {
 					MimeMessageHelper helper = new MimeMessageHelper(message, true);
 					helper.setFrom("no-reply@anu.edu.au", "ANU Data Commons");
 					helper.setTo(reportAuto.getEmail());
-					helper.setSubject(EMAIL_SUBJECT);
+					helper.setSubject(emailSubject);
 					String body = getBody();
 					helper.setText(getBody());
 					
@@ -119,7 +119,7 @@ public class ReportRunnable implements Runnable {
 					helper.addAttachment(filename, byteArrayResource);
 
 					LOGGER.info("Sending email...\r\nTO: {}\r\nSUBJECT: {}\r\nBODY: {}\r\nATTACHMENT: {}", new Object[] { reportAuto.getEmail(),
-							EMAIL_SUBJECT, body, filename });
+							emailSubject, body, filename });
 					mailSender.send(message);
 				}
 				catch (MessagingException | IOException e) {
@@ -127,6 +127,7 @@ public class ReportRunnable implements Runnable {
 				}
 			}
 			else {
+				LOGGER.info("Subject: {}", emailSubject);
 				LOGGER.debug("Report has been generated, not sending due to emails being set to false");
 			}
 		}
