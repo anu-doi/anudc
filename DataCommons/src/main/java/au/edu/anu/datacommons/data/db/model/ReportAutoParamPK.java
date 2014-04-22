@@ -42,7 +42,7 @@ import javax.persistence.Embeddable;
 public class ReportAutoParamPK implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
-	private Long id;
+	private Long reportAutoId;
 	private Integer seqNum;
 	
 	/**
@@ -51,17 +51,17 @@ public class ReportAutoParamPK implements Serializable {
 	 * @return The id
 	 */
 	@Column(name="id")
-	public Long getId() {
-		return id;
+	public Long getReportAutoId() {
+		return reportAutoId;
 	}
-	
+
 	/**
 	 * Set the report auto id
 	 * 
 	 * @param id The id
 	 */
-	public void setId(Long id) {
-		this.id = id;
+	public void setReportAutoId(Long reportAutoId) {
+		this.reportAutoId = reportAutoId;
 	}
 
 	/**
@@ -87,8 +87,8 @@ public class ReportAutoParamPK implements Serializable {
 	public int hashCode() {
 		int hashCode = 0;
 		
-		if (id != null) {
-			hashCode = 17 * hashCode + id.hashCode();
+		if (reportAutoId != null) {
+			hashCode = 17 * hashCode + reportAutoId.hashCode();
 		}
 		if (seqNum != null) {
 			hashCode = 17 * hashCode + seqNum.hashCode();
@@ -108,7 +108,7 @@ public class ReportAutoParamPK implements Serializable {
 		ReportParamPK other = (ReportParamPK) obj;
 		
 		return (
-				((this.getId() == other.getId()) || (this.getId() != null && this.getId().equals(other.getId()))) &&
+				((this.getReportAutoId() == other.getId()) || (this.getReportAutoId() != null && this.getReportAutoId().equals(other.getId()))) &&
 				((this.getSeqNum() == other.getSeqNum()) || (this.getSeqNum() != null && this.getSeqNum().equals(other.getSeqNum())))
 				);
 	}

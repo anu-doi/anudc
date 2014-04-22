@@ -94,8 +94,8 @@ public class ReportRunnable implements Runnable {
 		SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
 		
 		LOGGER.info("Report {} sends to {} with parameters:", reportAuto.getReportId(), reportAuto.getEmail());
-		if (reportAuto.getReportAutoParam() != null) {
-			for (ReportAutoParam param : reportAuto.getReportAutoParam()) {
+		if (reportAuto.getReportAutoParams() != null) {
+			for (ReportAutoParam param : reportAuto.getReportAutoParams()) {
 				LOGGER.info("Parameter {} with value {}", param.getParam(), param.getParamVal());
 			}
 		}

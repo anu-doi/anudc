@@ -21,8 +21,8 @@
 package au.edu.anu.datacommons.data.db.model;
 
 import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Table;
 
 /**
@@ -50,7 +50,8 @@ public class ReportAutoParam {
 	 * 
 	 * @return The id
 	 */
-	@Id
+	//@Id
+	@EmbeddedId
 	public ReportAutoParamPK getId() {
 		return id;
 	}

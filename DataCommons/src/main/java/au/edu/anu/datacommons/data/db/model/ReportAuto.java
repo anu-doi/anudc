@@ -53,7 +53,7 @@ public class ReportAuto {
 	Long reportId;
 	String email;
 	String cron;
-	List<ReportAutoParam> reportAutoParam = new ArrayList<ReportAutoParam>();
+	List<ReportAutoParam> reportAutoParams = new ArrayList<ReportAutoParam>();
 
 	/**
 	 * Get the id
@@ -139,8 +139,8 @@ public class ReportAuto {
 	 */
 	@OneToMany(fetch=FetchType.EAGER)
 	@JoinColumn(name="id")
-	public List<ReportAutoParam> getReportAutoParam() {
-		return reportAutoParam;
+	public List<ReportAutoParam> getReportAutoParams() {
+		return reportAutoParams;
 	}
 
 	/**
@@ -148,7 +148,7 @@ public class ReportAuto {
 	 * 
 	 * @param reportAutoParam The parameters
 	 */
-	public void setReportAutoParam(List<ReportAutoParam> reportAutoParam) {
-		this.reportAutoParam = reportAutoParam;
+	public void setReportAutoParams(List<ReportAutoParam> reportAutoParams) {
+		this.reportAutoParams = reportAutoParams;
 	}
 }

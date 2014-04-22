@@ -28,9 +28,12 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
@@ -50,7 +53,10 @@ import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import au.edu.anu.datacommons.data.db.model.Report;
+import au.edu.anu.datacommons.data.db.model.ReportParam;
 import au.edu.anu.datacommons.report.schedule.ReportScheduler;
+import au.edu.anu.datacommons.report.schedule.ScheduledReport;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.util.Util;
@@ -88,6 +94,9 @@ public class ReportResource {
 	
 	@Resource(name = "groupServiceImpl")
 	private GroupService groupService;
+	
+	@Resource(name = "reportServiceImpl")
+	private ReportService reportService;
 	
 	/**
 	 * getReportPage
@@ -297,5 +306,109 @@ public class ReportResource {
 		
 		UriBuilder uriBuilder = UriBuilder.fromPath("/reload");
 		return Response.seeOther(uriBuilder.build()).build();
+	}
+	
+	/**
+	 * Get the report scheduler page
+	 * 
+	 * @param context
+	 * @return
+	 */
+	@GET
+	@Produces(MediaType.TEXT_HTML)
+	@Path("/schedule")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public Response getScheduleReportsPage() {
+		Map<String, Object> model = new HashMap<String, Object>();
+		
+		List<Report> reports = reportService.getAllReports();
+		model.put("reports", reports);
+		
+		return Response.ok(new Viewable("/report_scheduler.jsp", model)).build();
+	}
+	
+	/**
+	 * Schedule a report to run
+	 * 
+	 * @param request The HttpServletRequest
+	 * @param reportId The report id
+	 * @param dayOfWeek The day of the week for the report to run
+	 * @param hour The hour at which to run the report
+	 * @param minute The minute at which to run the report
+	 * @param email The email address to send the report to
+	 * @return The response object
+	 */
+	@POST
+	@Produces(MediaType.TEXT_HTML)
+	@Path("/schedule")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public Response createScheduledReport(@Context HttpServletRequest request,
+			@FormParam("report") Long reportId, @FormParam("dayOfWeek") String dayOfWeek, @FormParam("hour") String hour,
+			@FormParam("minute") String minute, @FormParam("email") String email) {
+		LOGGER.info("Scheduling report {} to run every {} at {}:{} and send it to {}", reportId, dayOfWeek, hour, minute, email);
+		String cron = reportService.generateCronString(dayOfWeek, hour, minute);
+		Map<String, String[]> parameterMap = request.getParameterMap();
+		reportService.schedule(reportId, email, cron, parameterMap);
+		UriBuilder uriBuilder = UriBuilder.fromResource(this.getClass()).path("scheduled");
+		return Response.seeOther(uriBuilder.build()).build();
+	}
+	
+	/**
+	 * Get the list of scheduled reports
+	 * 
+	 * @return The response object
+	 */
+	@GET
+	@Produces(MediaType.TEXT_HTML)
+	@Path("/scheduled")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public Response getScheduledReports() {
+		Map<String, Object> model = new HashMap<String, Object>();
+		List<ScheduledReport> scheduledReports = reportService.getScheduledReports();
+		model.put("scheduled", scheduledReports);
+		return Response.ok(new Viewable("/report_scheduled.jsp", model)).build();
+	}
+	
+	/**
+	 * Delete the scheduled report with the provided id
+	 * 
+	 * @param reportAutoId The report auto id
+	 * @return  The response object
+	 */
+	@DELETE
+	@Path("scheduled/{reportAutoId}")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public Response deleteScheduledReport(@PathParam("reportAutoId") Long reportAutoId) {
+		LOGGER.info("Deleting scheduled report with the id {}", reportAutoId);
+		reportService.deleteScheduledReport(reportAutoId);
+		
+		return Response.ok().build();
+	}
+	
+	/**
+	 * Get the parameters associated with a report
+	 * 
+	 * @param reportId The report id
+	 * @return The response object
+	 */
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("/schedule/report-param/{reportId}")
+	public Response getReportParameters(@PathParam("reportId") Long reportId) {
+		List<ReportParam> reportParams = reportService.getReportParameters(reportId);
+		return Response.ok(reportParams).build();
+	}
+	
+	/**
+	 * Get the possible groups to associate the report with
+	 * 
+	 * @return The response object
+	 */
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("/schedule/groups")
+	public Response getReportGroups() {
+		List<Groups> groups = reportService.getGroups();
+		return Response.ok(groups).build();
 	}
 }

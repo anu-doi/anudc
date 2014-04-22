@@ -1,0 +1,10 @@
+img.clickable-icon {
+    cursor: pointer;
+    height: 24px;
+    vertical-align: baseline;
+    width: 24px;
+}
+
+input.small-input {
+	width: 20px;
+}

@@ -158,7 +158,7 @@ public class ReportGenerator {
 		
 		for (ReportParam reportParam : report.getReportParams()) {
 			boolean found = false;
-			for (ReportAutoParam autoParam : reportAuto.getReportAutoParam()) {
+			for (ReportAutoParam autoParam : reportAuto.getReportAutoParams()) {
 				if (Util.isNotEmpty(reportParam.getParamName()) && reportParam.getParamName().equals(autoParam.getParam())) {
 					params_.put(reportParam.getParamName(), autoParam.getParamVal());
 					found = true;
