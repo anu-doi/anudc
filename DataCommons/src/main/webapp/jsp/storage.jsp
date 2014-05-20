@@ -72,19 +72,21 @@
 						<sec:authorize access="isAuthenticated()">
 							<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
 								<!-- Create Folder icon -->
-								<img id="action-create-folder" class="clickable-icon" src="<c:url value='/images/folder-new.png' />"></img>
+								<img id="action-create-folder" class="clickable-icon" src="<c:url value='/images/folder-new.png' />" title="Create Folder"></img>
 								<!-- Delete Selected Files icon -->
-								<img id="action-del-selected" class="clickable-icon" src="<c:url value='/images/delete_red.png' />"></img>
+								<img id="action-del-selected" class="clickable-icon" src="<c:url value='/images/delete_red.png' />" title="Delete Selected Files"></img>
+								<!-- Upload Files -->
+								<img id="action-scroll-upload" class="clickable-icon" src="<c:url value='/images/file-upload.png' />" title="Scroll to upload pane"></img>
 							</sec:accesscontrollist>
 						</sec:authorize>
 						
 						<!-- Download selected files as Zip icon -->
-						<img id="action-dl-zip" class="clickable-icon" src="<c:url value='/images/zip.png' />"></img>
+						<img id="action-dl-zip" class="clickable-icon" src="<c:url value='/images/zip.png' />" title="Download selected as Zip"></img>
 						
 						<!-- Check bag files icon -->
 						<sec:authorize access="hasRole('ROLE_ADMIN')">
 							<a href="<c:url value='${baseDataUrl}../admin?task=verify' />">
-								<img id="action-verify-files" class="clickable-icon" src="//styles.anu.edu.au/_anu/images/icons/web/check.png"></img>
+								<img id="action-verify-files" class="clickable-icon" src="//styles.anu.edu.au/_anu/images/icons/web/check.png" title="Verify"></img>
 							</a>
 						</sec:authorize>
 					</div>

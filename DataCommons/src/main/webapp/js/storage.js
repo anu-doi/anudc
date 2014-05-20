@@ -82,6 +82,7 @@ function initHandlers() {
 	jQuery("#action-dl-zip").on("click", function() {
 		document.frmFiles.submit();
 	});
+	jQuery("#action-scroll-upload").on("click", scrollToUploadPane);
 	jQuery("#selectall").on("change", function() {
 		toggleCheckboxes(this);
 	});
@@ -451,4 +452,8 @@ function toggleIsFilesPublic(pid, curFlag) {
 	}).fail(function(msg, status) {
 		alert("Unable to change Files Public status");
 	});
+}
+
+function scrollToUploadPane() {
+	jQuery("html, body").animate({scrollTop: jQuery("#dragandrophandler").offset().top}, 100);
 }
