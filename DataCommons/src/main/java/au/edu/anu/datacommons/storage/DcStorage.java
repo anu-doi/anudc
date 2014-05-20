@@ -296,7 +296,7 @@ public final class DcStorage {
 						.notify(EventTime.PRE, EventType.DELETE_FILE, pid, getBagDir(pid).toPath(), filepath, null);
 				// File should have been moved from its original location as part of pre-event tasks so no need to
 				// delete.
-				if (!fileToDel.delete()) {
+				if (fileToDel.isFile() && (!fileToDel.delete())) {
 					throw new IOException(format("Unable to delete file {0}/data/{1}", pid, filepath));
 				}
 				eventListener.notify(EventTime.POST, EventType.DELETE_FILE, pid, getBagDir(pid).toPath(), filepath,
