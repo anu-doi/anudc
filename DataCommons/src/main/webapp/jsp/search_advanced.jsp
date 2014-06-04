@@ -4,18 +4,19 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
-<anu:header id="1998" title="Search" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
+<anu:header id="1998" title="Advanced Search" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
 	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
 	<link href="//styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="<c:url value='/js/global.js' />"></script>
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" title="Search">
+<anu:content layout="doublewide" title="Advanced Search">
 	<c:set var="maxCharacters" value="200" />
-	<div id="divBasicSearch">
-		<jsp:include page="/jsp/searchbox.jsp" />
+	<div id="divAdvancedSearch">
+		<jsp:include page="/jsp/searchbox_advanced.jsp" />
 	</div>
 	<div id="divSearchResults">
 		<c:if test="${it.resultSet != null}">
@@ -50,7 +51,7 @@
 			<br />
 			
 			<jsp:include page="/jsp/search_pages.jsp">
-				<jsp:param value="/rest/search" name="searchURLPart"/>
+				<jsp:param value="/rest/search/advanced" name="searchURLPart"/>
 			</jsp:include>
 		</c:if>
 	</div>

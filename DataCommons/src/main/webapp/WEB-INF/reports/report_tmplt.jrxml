@@ -3,25 +3,28 @@
 	<property name="ireport.zoom" value="1.0"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
+	<property name="net.sf.jasperreports.export.xls.white.page.background" value="false"/>
 	<parameter name="sub_rpt" class="java.lang.String">
-		<defaultValueExpression><![CDATA["testreport.jasper"]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA["test.jasper"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="param1" class="java.lang.String">
 		<defaultValueExpression><![CDATA["MODIFIED"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="baseURL" class="java.lang.String">
-		<defaultValueExpression><![CDATA["C:/WorkSpace/Software/ireport/reports/"]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA["C:/WorkSpace/software/jasperreports/report/"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="pid" class="java.lang.String">
 		<defaultValueExpression><![CDATA["test:96"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="name" class="java.lang.String"/>
-	<parameter name="SOLR_LOCATION" class="java.lang.String"/>
+	<parameter name="SOLR_LOCATION" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
 	<parameter name="LDAP_LOCATION" class="java.lang.String">
-		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
 	</parameter>
 	<parameter name="BAG_LOCATION" class="java.lang.String">
-		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
 	</parameter>
 	<queryString>
 		<![CDATA[select 1 as test;]]>

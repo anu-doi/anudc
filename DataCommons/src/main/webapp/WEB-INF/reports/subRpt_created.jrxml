@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_created" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="9a51ec9c-ff4b-4da7-afaa-34fe2bffd5d1">
 	<property name="ireport.zoom" value="2.0"/>
-	<property name="ireport.x" value="0"/>
+	<property name="ireport.x" value="115"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="subRpt_filesize" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["subRpt_filesize.jasper"]]></defaultValueExpression>
@@ -10,7 +10,7 @@
 		<defaultValueExpression><![CDATA["C:/WorkSpace/software/jasperreports/report/"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="BAG_LOCATION" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA["C:/WorkSpace/Testing/upload/bags"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="param1" class="java.lang.String">
 		<defaultValueExpression><![CDATA["0"]]></defaultValueExpression>
@@ -28,7 +28,7 @@
 		<defaultValueExpression><![CDATA["subRpt_username_cas.jasper"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="LDAP_LOCATION" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["none"]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA["ldaps://ldap.anu.edu.au:636"]]></defaultValueExpression>
 	</parameter>
 	<queryString>
 		<![CDATA[select fedora_object.*, ao2.log_date, ao2.user_id, users.username, users.user_type, groups.group_name
@@ -77,6 +77,9 @@ order by ao1.log_date]]>
 	<variable name="pageHeaderVariable" class="java.lang.String">
 		<variableExpression><![CDATA["Records for " + $F{group_name}]]></variableExpression>
 	</variable>
+	<variable name="variable1" class="java.lang.String">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -110,13 +113,13 @@ order by ao1.log_date]]>
 		<band splitType="Stretch"/>
 	</columnHeader>
 	<detail>
-		<band height="14" splitType="Stretch">
+		<band height="15" splitType="Stretch">
 			<textField>
-				<reportElement x="64" y="1" width="90" height="13" uuid="fb3dc0d3-1bf1-44a9-af54-4e21f79fda30"/>
+				<reportElement x="64" y="2" width="90" height="13" uuid="fb3dc0d3-1bf1-44a9-af54-4e21f79fda30"/>
 				<textFieldExpression><![CDATA[$F{pid}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="184" y="1" width="89" height="13" uuid="cc615599-7a7c-4551-ae27-cd5d6ce07c15"/>
+				<reportElement x="184" y="2" width="370" height="13" uuid="cc615599-7a7c-4551-ae27-cd5d6ce07c15"/>
 				<textFieldExpression><![CDATA["tmplt:1".equals($F{tmplt_id})? "Collection" :
     "tmplt:2".equals($F{tmplt_id}) ? "Activity" :
         "tmplt:3".equals($F{tmplt_id}) ? "Service" :
@@ -124,14 +127,14 @@ order by ao1.log_date]]>
                 "tmplt:5".equals($F{tmplt_id}) ? "Person" : "Unknown"]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="0" y="1" width="50" height="13" uuid="ab0feae9-737c-4c1e-a2a2-0016285e8769"/>
+				<reportElement x="0" y="2" width="64" height="13" uuid="ab0feae9-737c-4c1e-a2a2-0016285e8769"/>
 				<textElement>
 					<font isBold="true"/>
 				</textElement>
 				<text><![CDATA[Identifier:]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="154" y="1" width="30" height="13" uuid="ea80d4c5-3d26-46fb-af0c-b6818faadbdc"/>
+				<reportElement x="154" y="2" width="30" height="13" uuid="ea80d4c5-3d26-46fb-af0c-b6818faadbdc"/>
 				<textElement>
 					<font isBold="true"/>
 				</textElement>
@@ -259,7 +262,7 @@ order by ao1.log_date]]>
 				<reportElement x="0" y="1" width="554" height="1" uuid="4350a7fb-cc00-4a8b-bed9-25476ec73700"/>
 			</line>
 			<textField>
-				<reportElement x="117" y="18" width="314" height="13" uuid="3a082b22-5ce8-43d9-b99c-b62c67646477"/>
+				<reportElement x="117" y="18" width="437" height="13" uuid="3a082b22-5ce8-43d9-b99c-b62c67646477"/>
 				<textFieldExpression><![CDATA[($V{subRptFileSize} > java.lang.Math.pow(2,60) ? new DecimalFormat("#.###").format(($V{subRptFileSize} / java.lang.Math.pow(2,60))) + " EB" :
     ($V{subRptFileSize} > java.lang.Math.pow(2,50) ? new DecimalFormat("#.###").format(($V{subRptFileSize} / java.lang.Math.pow(2,50))) + " PB"  :
         ($V{subRptFileSize} > java.lang.Math.pow(2,40) ? new DecimalFormat("#.###").format(($V{subRptFileSize} / java.lang.Math.pow(2,40))) + " TB"  :
@@ -283,11 +286,11 @@ order by ao1.log_date]]>
 				<text><![CDATA[Total Number of Files:]]></text>
 			</staticText>
 			<textField>
-				<reportElement x="117" y="31" width="314" height="13" uuid="d0fd576a-b37c-441d-a0f3-e4fafa835268"/>
+				<reportElement x="117" y="31" width="437" height="13" uuid="d0fd576a-b37c-441d-a0f3-e4fafa835268"/>
 				<textFieldExpression><![CDATA[$V{totalNumberOfFiles}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement x="117" y="5" width="100" height="13" uuid="e0434288-6c7c-4e95-8fab-46c8225963cb"/>
+				<reportElement x="117" y="5" width="437" height="13" uuid="e0434288-6c7c-4e95-8fab-46c8225963cb"/>
 				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
 			</textField>
 		</band>

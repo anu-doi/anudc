@@ -16,6 +16,21 @@
 			<c:param name="limit">${searchItemsPerPage}</c:param>
 			<c:param name="offset">0</c:param>
 			<c:param name="q">${param.q}</c:param>
+			<c:if test="${not empty param.field}">
+				<c:param name="field">${param.field}</c:param>
+			</c:if>
+			<c:if test="${not empty param['field-select']}">
+				<c:param name="field-select">${param['field-select']}</c:param>
+			</c:if>
+			<c:if test="${not empty param.filter}">
+				<c:param name="filter">${param.filter}</c:param>
+			</c:if>
+			<c:forEach items="${paramValues['search-val']}" var="sValue">
+				<c:param name="search-val">${sValue}</c:param>
+			</c:forEach>
+			<c:forEach items="${paramValues['value-type']}" var="valueType">
+				<c:param name="value-type">${valueType}</c:param>
+			</c:forEach>
 		</c:url>
 		<a class="nounderline" href="${startURL}">&lt;&lt;</a>
 		<c:forEach begin="0" end="${numPages}" var="pageVal">
@@ -23,6 +38,21 @@
 				<c:param name="limit">${searchItemsPerPage}</c:param>
 				<c:param name="offset">${pageVal * searchItemsPerPage}</c:param>
 				<c:param name="q">${param.q}</c:param>
+				<c:if test="${not empty param.field}">
+					<c:param name="field">${param.field}</c:param>
+				</c:if>
+				<c:if test="${not empty param['field-select']}">
+					<c:param name="field-select">${param['field-select']}</c:param>
+				</c:if>
+				<c:if test="${not empty param.filter}">
+					<c:param name="filter">${param.filter}</c:param>
+				</c:if>
+				<c:forEach items="${paramValues['search-val']}" var="sValue">
+					<c:param name="search-val">${sValue}</c:param>
+				</c:forEach>
+				<c:forEach items="${paramValues['value-type']}" var="valueType">
+					<c:param name="value-type">${valueType}</c:param>
+				</c:forEach>
 			</c:url>
 			<c:choose>
 				<c:when test="${pageVal == curPage}">
@@ -38,6 +68,21 @@
 			<c:param name="limit">${searchItemsPerPage}</c:param>
 			<c:param name="offset">${numPages * searchItemsPerPage}</c:param>
 			<c:param name="q">${param.q}</c:param>
+			<c:if test="${not empty param.field}">
+				<c:param name="field">${param.field}</c:param>
+			</c:if>
+			<c:if test="${not empty param['field-select']}">
+				<c:param name="field-select">${param['field-select']}</c:param>
+			</c:if>
+			<c:if test="${not empty param.filter}">
+				<c:param name="filter">${param.filter}</c:param>
+			</c:if>
+			<c:forEach items="${paramValues['search-val']}" var="sValue">
+				<c:param name="search-val">${sValue}</c:param>
+			</c:forEach>
+			<c:forEach items="${paramValues['value-type']}" var="valueType">
+				<c:param name="value-type">${valueType}</c:param>
+			</c:forEach>
 		</c:url>
 		<a class="nounderline" href="${endURL}">&gt;&gt;</a>
 	</p>

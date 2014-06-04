@@ -85,7 +85,9 @@ public class ReportRunnable implements Runnable {
 		this.context = context;
 		
 		ApplicationContext appContext = AppContext.getApplicationContext();
-		this.mailSender = (JavaMailSender) appContext.getBean("mailSender");
+		if (Boolean.parseBoolean(GlobalProps.getProperty(GlobalProps.PROP_EMAIL_DEBUG_SEND, "true"))) {
+			this.mailSender = (JavaMailSender) appContext.getBean("mailSender");
+		}
 	}
 
 	@Override
@@ -102,10 +104,11 @@ public class ReportRunnable implements Runnable {
 		String path = context.getRealPath("/");
 		ReportGenerator reportGenerator = new ReportGenerator(reportAuto, path);
 		try {
-			byte[] bytes = reportGenerator.generateReportPDF();
+			byte[] bytes = reportGenerator.generateReportForEmail(reportAuto.getFormat());
+			//byte[] bytes = reportGenerator.generateReportPDF();
 			ByteArrayResource byteArrayResource = new ByteArrayResource(bytes);
-			MimeMessage message = mailSender.createMimeMessage();
 			if (Boolean.parseBoolean(GlobalProps.getProperty(GlobalProps.PROP_EMAIL_DEBUG_SEND, "false"))) {
+				MimeMessage message = mailSender.createMimeMessage();
 				try {
 					MimeMessageHelper helper = new MimeMessageHelper(message, true);
 					helper.setFrom("no-reply@anu.edu.au", "ANU Data Commons");
@@ -114,7 +117,7 @@ public class ReportRunnable implements Runnable {
 					String body = getBody();
 					helper.setText(getBody());
 					
-					String filename = "report-" + sdf2.format(date) + ".pdf";
+					String filename = "report-" + sdf2.format(date) + getExtension(reportAuto.getFormat());
 					
 					helper.addAttachment(filename, byteArrayResource);
 
@@ -133,6 +136,20 @@ public class ReportRunnable implements Runnable {
 		catch (JRException | SQLException | IOException | ClassNotFoundException e) {
 			LOGGER.error("Error generating pdf", e);
 		}
+	}
+	
+	/**
+	 * Get the file extension
+	 * 
+	 * @param format The formate of the file
+	 * @return The extension
+	 */
+	private String getExtension(String format) {
+		//Defaults to a pdf file
+		if (format == null || "".equals(format.trim())) {
+			return ".pdf";
+		}
+		return "." + format;
 	}
 
 	/**

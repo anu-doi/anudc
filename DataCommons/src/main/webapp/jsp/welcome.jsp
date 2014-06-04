@@ -17,16 +17,17 @@
 	<p>This project will allow people to add information about their datasets, catalogues etc.</p>
 	<p><jsp:include page="searchbox.jsp"></jsp:include> </p>
 	<div id="divSearchResults">
+		<c:set var="maxCharacters" value="100" />
 		<c:if test="${it.resultSet != null and it.resultSet.numFound > 0}">
 			<hr />
 			<h2>Recently Updated Records</h2>
 			<c:forEach items="${it.resultSet.documentList}" var="row">
 				<a href="<c:url value="/rest/display/${row['id']}?layout=def:display" />"><c:out value="${row['unpublished.name']}" /></a>&nbsp;&nbsp;<span class="text-grey50">[${row['id']}]</span><br />
-				<c:set var="briefDesc" value="${fn:substring(row['unpublished.briefDesc'][0],0,100) }" />
-				${briefDesc}
+				<c:set var="desc" value="${fn:substring(row['unpublished.briefDesc'][0],0,maxCharacters) }" />
+				${desc}<c:if test="${fn:length(row['unpublished.briefDesc'][0]) > maxCharacters}"><b>...</b></c:if>
 				<c:if test="${empty row['unpublished.briefDesc'][0]}">
-					<c:set var="fullDesc" value="${fn:substring(row['unpublished.fullDesc'][0],0,100) }" />
-					${fullDesc}
+					<c:set var="desc" value="${fn:substring(row['unpublished.fullDesc'][0],0,maxCharacters) }" />
+					${desc}<c:if test="${fn:length(row['unpublished.fullDesc'][0]) > maxCharacters}"><b>...</b></c:if>
 				</c:if>
 				<br/>
 				<br />

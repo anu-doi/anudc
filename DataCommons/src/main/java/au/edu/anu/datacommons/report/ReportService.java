@@ -92,7 +92,7 @@ public interface ReportService {
 	 * @param parameterMap The map of parameters to provide associated report parameters
 	 * @return The ReportAuto object
 	 */
-	public ReportAuto schedule(Long reportId, String email, String cron, Map<String, String[]> parameterMap);
+	public ReportAuto schedule(Long reportId, String email, String cron, String format, Map<String, String[]> parameterMap);
 	
 	/**
 	 * Get the list of scheduled reports

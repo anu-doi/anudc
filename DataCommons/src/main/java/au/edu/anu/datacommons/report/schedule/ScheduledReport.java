@@ -39,6 +39,7 @@ public class ScheduledReport {
 	private Long reportAutoId;
 	private String reportName;
 	private String email;
+	private String format;
 	private String daysOfYear;
 	private String daysOfWeek;
 	private String daysOfMonth;
@@ -55,10 +56,11 @@ public class ScheduledReport {
 	 * @param email The email address to send to
 	 * @param cronMap The deconstructed cron string
 	 */
-	public ScheduledReport(Long reportAutoId, String reportName, String email, Map<String, String> cronMap) {
+	public ScheduledReport(Long reportAutoId, String reportName, String email, String format, Map<String, String> cronMap) {
 		this.reportAutoId = reportAutoId;
 		this.reportName = reportName;
 		this.email = email;
+		this.format = format;
 		this.seconds = cronMap.get("second");
 		this.minutes = cronMap.get("minute");
 		this.hours = cronMap.get("hour");
@@ -119,6 +121,24 @@ public class ScheduledReport {
 	 */
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	/**
+	 * Get the format
+	 * 
+	 * @return The format
+	 */
+	public String getFormat() {
+		return format;
+	}
+
+	/**
+	 * Set the format
+	 * 
+	 * @param format The format
+	 */
+	public void setFormat(String format) {
+		this.format = format;
 	}
 
 	/**

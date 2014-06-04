@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_username_cas" pageWidth="554" pageHeight="842" columnWidth="554" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="5a644df0-9e8d-4707-a28c-1bf6b7d19742">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subRpt_username_cas" pageWidth="370" pageHeight="842" columnWidth="370" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="5a644df0-9e8d-4707-a28c-1bf6b7d19742">
 	<property name="ireport.zoom" value="1.0"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
@@ -36,7 +36,7 @@
 		<band height="13" splitType="Stretch">
 			<printWhenExpression><![CDATA[!($F{mail} == null && $F{displayName} == null)]]></printWhenExpression>
 			<textField>
-				<reportElement x="0" y="0" width="352" height="13" uuid="25dfdc21-490b-458f-b6c0-e4ac4e35b42b"/>
+				<reportElement x="0" y="0" width="370" height="13" uuid="25dfdc21-490b-458f-b6c0-e4ac4e35b42b"/>
 				<textFieldExpression><![CDATA[$V{displayName}]]></textFieldExpression>
 			</textField>
 		</band>

@@ -344,11 +344,11 @@ public class ReportResource {
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public Response createScheduledReport(@Context HttpServletRequest request,
 			@FormParam("report") Long reportId, @FormParam("dayOfWeek") String dayOfWeek, @FormParam("hour") String hour,
-			@FormParam("minute") String minute, @FormParam("email") String email) {
+			@FormParam("minute") String minute, @FormParam("email") String email, @FormParam("format") String format) {
 		LOGGER.info("Scheduling report {} to run every {} at {}:{} and send it to {}", reportId, dayOfWeek, hour, minute, email);
 		String cron = reportService.generateCronString(dayOfWeek, hour, minute);
 		Map<String, String[]> parameterMap = request.getParameterMap();
-		reportService.schedule(reportId, email, cron, parameterMap);
+		reportService.schedule(reportId, email, cron, format, parameterMap);
 		UriBuilder uriBuilder = UriBuilder.fromResource(this.getClass()).path("scheduled");
 		return Response.seeOther(uriBuilder.build()).build();
 	}

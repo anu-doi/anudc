@@ -20,6 +20,7 @@
 		<th>Email</th>
 		<th>Day of Week</th>
 		<th>Time</th>
+		<th>Format</th>
 		<th></th>
 		<c:forEach items="${it.scheduled}" var="scheduledReport">
 			<tr>
@@ -27,6 +28,7 @@
 				<td>${scheduledReport.email}</td>
 				<td>${scheduledReport.daysOfWeek}</td>
 				<td>${scheduledReport.hours}:${scheduledReport.minutes}</td>
+				<td>${scheduledReport.format}</td>
 				<td>
 					<c:url var="deleteUrl" value="/rest/report/scheduled/${scheduledReport.reportAutoId}" />
 					<a href="javascript:void(0);" id="delete-${scheduledReport.reportAutoId}" onclick="deleteReportAuto('${deleteUrl}')">

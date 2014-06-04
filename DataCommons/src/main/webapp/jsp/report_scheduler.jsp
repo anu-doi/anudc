@@ -37,6 +37,14 @@
 	</p>
 	<p>At <input id="hour" class="small-input" name="hour" maxlength="2" value="3"/> <strong>:</strong> <input id="minute" class="small-input" name="minute" maxlength="2" value="47"/></p>
 	<p>
+		In the format 
+		<select id="format" name="format">
+			<option value="html">Html</option>
+			<option value="xlsx">Excel</option>
+			<option value="pdf" selected="true">PDF</option>
+		</select>
+	</p>
+	<p>
 		And send it to the email address
 		<input id="email" name="email" maxlength="255" />
 	</p>

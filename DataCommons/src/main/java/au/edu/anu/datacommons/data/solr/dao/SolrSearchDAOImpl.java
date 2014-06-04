@@ -33,14 +33,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
-import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.SolrUtils;
+import au.edu.anu.datacommons.data.solr.dao.query.AbstractSolrQuery;
+import au.edu.anu.datacommons.data.solr.dao.query.AllSolrQuery;
+import au.edu.anu.datacommons.data.solr.dao.query.PublishedSolrQuery;
+import au.edu.anu.datacommons.data.solr.dao.query.TeamSolrQuery;
+import au.edu.anu.datacommons.data.solr.dao.query.TemplateSolrQuery;
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
-import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.search.SearchTerm;
 import au.edu.anu.datacommons.security.service.GroupService;
-import au.edu.anu.datacommons.services.UserResource;
-import au.edu.anu.datacommons.util.Util;
 
 /**
  * SolrSearchImpl
@@ -50,14 +52,14 @@ import au.edu.anu.datacommons.util.Util;
  * Implementation class for searches
  *
  * JUnit coverage:
- * None
+ * SolrSearchDAOTest
  * 
  * @author Genevieve Turner
  *
  */
 @Repository("solrSearchDAOImpl")
 public class SolrSearchDAOImpl implements SolrSearchDAO {
-	static final Logger LOGGER = LoggerFactory.getLogger(UserResource.class);
+	static final Logger LOGGER = LoggerFactory.getLogger(SolrSearchDAOImpl.class);
 	
 	@Resource(name="groupServiceImpl")
 	GroupService groupService;
@@ -65,18 +67,16 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 	@Override
 	public SolrSearchResult executeSearch(String q, int offset, int limit,
 			String filter) throws SolrServerException {
+		LOGGER.info("Do basic search");
 		q = SolrUtils.escapeSpecialCharacters(q);
 		
 		Object[] list = {q, offset, limit};
 		LOGGER.debug("Values to use to generate query for Solr - Query Limiter: {} Query Term: {}, Offset: {}, Limit: {}", list);
+		AbstractSolrQuery query = getQueryTerms(q, filter);
+		query.setStart(offset);
+		query.setRows(limit);
 		
-		SolrQuery solrQuery = new SolrQuery();
-		setQueryTerms(solrQuery, q, filter);
-		
-		solrQuery.setStart(offset);
-		solrQuery.setRows(limit);
-		
-		return executeSearch(solrQuery);
+		return executeSearch(query.getSolrQuery());
 	}
 
 	@Override
@@ -87,157 +87,115 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 		Object[] list = {filter, q, offset, limit, sortField, sortOrder};
 		LOGGER.debug("Values to use to generate query for Solr - Query Limiter: {} Query Term: {}, Offset: {}, Limit: {}, Sort Field: {}, Sort Order: {}", list);
 		
-		SolrQuery solrQuery = new SolrQuery();
-		setQueryTerms(solrQuery, q, filter);
+		AbstractSolrQuery query = getQueryTerms(q, filter);
 		
-		solrQuery.setStart(offset);
-		solrQuery.setRows(limit);
-		solrQuery.setSortField(sortField, sortOrder);
+		query.setStart(offset);
+		query.setRows(limit);
+		query.setSortField(sortField, sortOrder);
 		
-		return executeSearch(solrQuery);
+		return executeSearch(query.getSolrQuery());
+	}
+	
+	@Override
+	public SolrSearchResult executeSearch(String q, String facetField, String facetSelected, int offset, int limit, String filter) 
+			throws SolrServerException {
+		if (q != null && !"".equals(q)) {
+			q = SolrUtils.escapeSpecialCharacters(q);
+		}
+		else {
+			q = "*";
+		}
+		
+		AbstractSolrQuery query = getQueryTerms(q, filter);
+		query.setStart(offset);
+		query.setRows(limit);
+		query.addFacet(facetField, facetSelected);
+		return executeSearch(query.getSolrQuery(), true);
+	}
+
+	@Override
+	public SolrSearchResult executeSearch(List<SearchTerm> terms, int offset,
+			int limit, String filter) throws SolrServerException {
+		AbstractSolrQuery query = getQueryTerms(terms, filter);
+		query.setStart(offset);
+		query.setRows(limit);
+		
+		return executeSearch(query.getSolrQuery());
 	}
 	
 	@Override
 	public SolrSearchResult executeSearch(SolrQuery solrQuery) throws SolrServerException {
+		return executeSearch(solrQuery, false);
+	}
+	
+	/**
+	 * Execute a search query
+	 * 
+	 * @param solrQuery The solr query to perform
+	 * @param hasFacet Indicates whether the solr query has facets
+	 * @return The search result
+	 * @throws SolrServerException
+	 */
+	private SolrSearchResult executeSearch(SolrQuery solrQuery, boolean hasFacet) throws SolrServerException {
 		LOGGER.debug("Query to send to Solr: {}", solrQuery.toString());
 		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
 		QueryResponse queryResponse = solrServer.query(solrQuery);
-		SolrSearchResult result = new SolrSearchResult(queryResponse.getResults());
-		
-		return result;
+		if (hasFacet) {
+			return new SolrSearchResult(queryResponse.getResults(), queryResponse.getFacetFields());
+		}
+		else {
+			return new SolrSearchResult(queryResponse.getResults());
+		}
 	}
 	
 	/**
-	 * Set the query 
+	 * Get the query terms
 	 * 
-	 * @param solrQuery The query to set the query terms for
-	 * @param q The value to query for
-	 * @param filter Indicator for which type of search to do (e.g. 'team','published','template','all')
+	 * @param q The query string
+	 * @param filter The filter that defines which records to retrieve
+	 * @return The class that generates the solr query
 	 */
-	private void setQueryTerms(SolrQuery solrQuery, String q, String filter) {
+	private AbstractSolrQuery getQueryTerms(String q, String filter) {
+		LOGGER.info("Get the query terms with the search value '{}', and filter '{}'", q, filter);
+		AbstractSolrQuery absSolrQuery = null;
+		
 		if ("team".equals(filter)) {
-			setTeamQuery(solrQuery, q);
+			absSolrQuery = new TeamSolrQuery(groupService, q);
 		}
 		else if ("published".equals(filter)) {
-			setPublishedQuery(solrQuery, q);
+			absSolrQuery = new PublishedSolrQuery(groupService, q);
 		}
 		else if ("template".equals(filter)) {
-			setTemplateQuery(solrQuery, q);
+			absSolrQuery = new TemplateSolrQuery(groupService, q);
 		}
 		else {
-			setAllQuery(solrQuery, q);
+			absSolrQuery = new AllSolrQuery(groupService, q);
 		}
+		return absSolrQuery;
 	}
 	
 	/**
-	 * Query both published records and those unpublished records the user has permission to access.
+	 * Get the query terms
 	 * 
-	 * @param solrQuery The query to set the query terms for
-	 * @param q The value to query for
+	 * @param searchTerms The search terms
+	 * @param filter The filter that defines which  records to retrieve
+	 * @return THe class that generates the solr query
 	 */
-	private void setAllQuery(SolrQuery solrQuery, String q) {
-		LOGGER.trace("Query all published and those unpublished records the user has permission to view");
-		String filterGroups = getGroupsString();
-		solrQuery.setQuery("published.all:(" + q + ") unpublished.all:(" + q + ")");
+	private AbstractSolrQuery getQueryTerms(List<SearchTerm> searchTerms, String filter) {
+		AbstractSolrQuery absSolrQuery = null;
 		
-		solrQuery.addField("id");
-		setReturnFields("published", solrQuery);
-		setReturnFields("unpublished", solrQuery);
-		if (Util.isNotEmpty(filterGroups)) {
-			solrQuery.addFilterQuery("(location.published:ANU or unpublished.ownerGroup:(" + filterGroups + "))");
+		if ("team".equals(filter)) {
+			absSolrQuery = new TeamSolrQuery(groupService, searchTerms);
+		}
+		else if ("published".equals(filter)) {
+			absSolrQuery = new PublishedSolrQuery(groupService, searchTerms);
+		}
+		else if ("template".equals(filter)) {
+			absSolrQuery = new TemplateSolrQuery(groupService, searchTerms);
 		}
 		else {
-			solrQuery.addFilterQuery("location.published:ANU");
+			absSolrQuery = new AllSolrQuery(groupService, searchTerms);
 		}
+		return absSolrQuery;
 	}
-	
-	/**
-	 * Query the unpublished records that the user has access to
-	 * 
-	 * @param solrQuery The query to set the query terms for
-	 * @param q The value to query for
-	 */
-	private void setTeamQuery(SolrQuery solrQuery, String q) {
-		LOGGER.trace("Query the unpublished records the user has permission to view");
-
-		if (groupService == null) {
-			LOGGER.error("Group service is null");
-		}
-		else {
-			String filterGroups = getGroupsString();
-			solrQuery.setQuery("unpublished.all:(" + q + ")");
-			
-			solrQuery.addField("id");
-			setReturnFields("unpublished", solrQuery);
-			if (filterGroups == null || "".equals(filterGroups)) {
-				filterGroups = "0";
-			}
-			solrQuery.addFilterQuery("unpublished.ownerGroup:(" + filterGroups + ")");
-		}
-	}
-	
-	/**
-	 * Query the published records
-	 * 
-	 * @param solrQuery The query to set the query terms for
-	 * @param q The value to query for
-	 */
-	private void setPublishedQuery(SolrQuery solrQuery, String q) {
-		LOGGER.trace("Query only the published records");
-		
-		solrQuery.setQuery("published.all:(" + q + ")");
-		
-		solrQuery.addField("id");
-		setReturnFields("published", solrQuery);
-		
-		solrQuery.addFilterQuery("location.published:ANU");
-	}
-	
-	/**
-	 * Query the template records
-	 * 
-	 * @param solrQuery The solr query to add fields/filter queries to
-	 * @param q The value to query for. Please note that this is not currently used for template queries.
-	 */
-	private void setTemplateQuery(SolrQuery solrQuery, String q) {
-		LOGGER.trace("Query the templates");
-		
-		solrQuery.setQuery("*:*");
-		
-		solrQuery.addField("id");
-		setReturnFields("template", solrQuery);
-		
-		solrQuery.addFilterQuery("template.type:template");
-	}
-	
-	/**
-	 * Get a string of groups that the user has access to
-	 * 
-	 * @return A string of the groups
-	 */
-	private String getGroupsString() {
-		StringBuffer filterGroups = new StringBuffer();
-		List<Groups> groups = groupService.getAll();
-		for (Groups group : groups) {
-			filterGroups.append(group.getId());
-			filterGroups.append(" ");
-		}
-		LOGGER.trace("Filter Groups: {}", filterGroups.toString());
-		return filterGroups.toString();
-	}
-
-	/**
-	 * Set the fields to return
-	 * 
-	 * @param type Add the prefix for the returned field type (e.g. 'unpublished','published','template')
-	 * @param solrQuery The query to set the return fields for
-	 */
-	private void setReturnFields(String type, SolrQuery solrQuery) {
-		String returnFields = GlobalProps.getProperty(GlobalProps.PROP_SEARCH_SOLR_RETURNFIELDS);
-		String[] splitReturnFields = returnFields.split(",");
-		for (String field : splitReturnFields) {
-			solrQuery.addField(type + "." + field);
-		}
-	}
-	
 }

@@ -21,7 +21,12 @@
 
 package au.edu.anu.datacommons.data.solr.model;
 
+import java.util.List;
+
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.common.SolrDocumentList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * SolrSearchResult
@@ -33,13 +38,16 @@ import org.apache.solr.common.SolrDocumentList;
  * cannot be accessed
  *
  * JUnit coverage:
- * None
+ * SolrSearchDAOTest
  * 
  * @author Genevieve Turner
  *
  */
 public class SolrSearchResult {
-	SolrDocumentList resultDocuments = null;
+	static final Logger LOGGER = LoggerFactory.getLogger(SolrSearchResult.class);
+	
+	private SolrDocumentList resultDocuments = null;
+	private List<FacetField> facetFields = null;
 	
 	/**
 	 * Constructor
@@ -48,6 +56,17 @@ public class SolrSearchResult {
 	 */
 	public SolrSearchResult(SolrDocumentList results) {
 		this.resultDocuments = results;
+	}
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param results The document list
+	 * @param facetFields The facet fields
+	 */
+	public SolrSearchResult(SolrDocumentList results, List<FacetField> facetFields) {
+		this.resultDocuments = results;
+		this.facetFields = facetFields;
 	}
 	
 	/**
@@ -93,5 +112,23 @@ public class SolrSearchResult {
 	 */
 	public void setDocumentList(SolrDocumentList results) {
 		this.resultDocuments = results;
+	}
+
+	/**
+	 * Get the facet fields
+	 * 
+	 * @return The list of facet fields
+	 */
+	public List<FacetField> getFacetFields() {
+		return facetFields;
+	}
+
+	/**
+	 * Set the list of facet fields
+	 * 
+	 * @param facetFields The list of facet fields
+	 */
+	public void setFacetFields(List<FacetField> facetFields) {
+		this.facetFields = facetFields;
 	}
 }

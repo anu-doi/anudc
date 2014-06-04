@@ -615,6 +615,8 @@
    <field name="template.briefDesc" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="template.subType" type="text_general" indexed="true" stored="true" multiValued="false" />
    
+   <field name="keyword" type="string" index="true" stored="false" multiValued="true" />
+   
    <dynamicField name="fgs.*" type="string" indexed="true" stored="true" multiValued="true" />
    <!--
    <dynamicField name="item.*" type="text_general" index="true" stored="true" multiValued="true" />
@@ -655,6 +657,10 @@
    <copyField source="features" dest="text"/>
    <copyField source="includes" dest="text"/>
    <copyField source="manu" dest="manu_exact"/>
+   
+   <!-- Gen Custom Copy -->
+   <copyField source="unpublished.locSubject" dest="keyword" />
+   <!-- End Gen Custom Copy -->
 	
    <!-- Above, multiple source fields are copied to the [text] field. 
 	  Another way to map multiple source fields to the same 

@@ -21,14 +21,13 @@
 
 package au.edu.anu.datacommons.report;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -42,12 +41,14 @@ import javax.ws.rs.core.Response;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExporterParameter;
+import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperRunManager;
 import net.sf.jasperreports.engine.export.JRHtmlExporter;
 import net.sf.jasperreports.engine.export.JRHtmlExporterParameter;
+import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -232,17 +233,55 @@ public class ReportGenerator {
 	public Response generateReport(String format)
 			throws ClassNotFoundException, SQLException, JRException, IOException {
 		Response response = null;
+		byte[] reportBytes;
 		if ("pdf".equals(format)) {
-			response = generatePDF();
+			reportBytes = generatePDF();
+			return generateResponse(reportBytes, "application/pdf");
 		}
 		else if ("html".equals(format)) {
-			response = generateHTML();
+			reportBytes = generateHTML();
+			return generateResponse(reportBytes, "text/html");
+		}
+		else if ("xlsx".equals(format)) {
+			reportBytes = generateXLSX();
+			return generateResponse(reportBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 		}
 		return response;
 	}
 	
 	/**
-	 * Geenrate a report pdf
+	 * Generate a response for the web service
+	 * 
+	 * @param bytes The bytes of the response
+	 * @param contentType The content type
+	 * @return The response
+	 */
+	private Response generateResponse(byte[] bytes, String contentType) {
+		return Response.ok(bytes).type(contentType).build();
+	}
+	
+	/**
+	 * Generate the report for email purposes
+	 * 
+	 * @param format The format of the report
+	 * @return The report in bytes
+	 * @throws JRException
+	 * @throws SQLException
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	public byte[] generateReportForEmail(String format) throws JRException, SQLException, IOException, ClassNotFoundException {
+		if ("xlsx".equals(format)) {
+			return generateXLSX();
+		}
+		else if ("html".equals(format)) {
+			return generateHTML();
+		}
+		return generatePDF();
+	}
+	
+	/**
+	 * Generate a pdf report
 	 * 
 	 * @return The bytes of the generated report
 	 * @throws JRException
@@ -250,7 +289,7 @@ public class ReportGenerator {
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	public byte[] generateReportPDF() throws JRException, SQLException, IOException, ClassNotFoundException {
+	private byte[] generatePDF() throws JRException, SQLException, IOException, ClassNotFoundException {
 		InputStream inputStream = new FileInputStream(new File(filePath_));
 		
 		byte[] bytes = JasperRunManager.runReportToPdf(inputStream, params_, getConnection());
@@ -258,59 +297,63 @@ public class ReportGenerator {
 	}
 	
 	/**
-	 * generatePDF
-	 *
-	 * Generates a pdf report
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		27/09/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
+	 * Generate a html report
 	 * 
-	 * @return a response that contains a pdf report
+	 * @return The bytes of the generated report
 	 * @throws JRException
 	 * @throws SQLException
 	 * @throws IOException
 	 * @throws ClassNotFoundException
 	 */
-	private Response generatePDF() throws JRException, SQLException, IOException, ClassNotFoundException {
+	private byte[] generateHTML() throws JRException, SQLException, IOException, ClassNotFoundException {
 		InputStream inputStream = new FileInputStream(new File(filePath_));
-		
-		byte[] bytes = JasperRunManager.runReportToPdf(inputStream, params_, getConnection());
-		return Response.ok(bytes).type("application/pdf").build();
-	}
-	
-	/**
-	 * generateHTML
-	 *
-	 * Generates a html report
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		27/09/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @return a response that contains a html report
-	 * @throws JRException
-	 * @throws SQLException
-	 * @throws IOException
-	 * @throws ClassNotFoundException
-	 */
-	private Response generateHTML() throws JRException, SQLException, IOException, ClassNotFoundException {
-		InputStream inputStream = new FileInputStream(new File(filePath_));
-		Writer writer = new StringWriter();
+		params_.put(JRParameter.IS_IGNORE_PAGINATION, Boolean.TRUE);
 		JasperPrint jasperPrint = JasperFillManager.fillReport(inputStream, params_, getConnection());
 		
 		JRHtmlExporter htmlExporter = new JRHtmlExporter();
 		
+		@SuppressWarnings("rawtypes")
 		Map imagesMap = new HashMap();
+
+		ByteArrayOutputStream htmlReport = new ByteArrayOutputStream();
 		
 		htmlExporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
-		htmlExporter.setParameter(JRExporterParameter.OUTPUT_WRITER, writer);
+		htmlExporter.setParameter(JRExporterParameter.OUTPUT_STREAM, htmlReport);
 		htmlExporter.setParameter(JRHtmlExporterParameter.IMAGES_MAP, imagesMap);
 		htmlExporter.setParameter(JRHtmlExporterParameter.IMAGES_URI, "../servlets/image?image=");
 		htmlExporter.exportReport();
-		return Response.ok(writer.toString()).type("text/html").build();
+		byte[] bytes = htmlReport.toByteArray();
+		htmlReport.close();
+		params_.remove(JRParameter.IS_IGNORE_PAGINATION);
+		return bytes;
+	}
+	
+	/**
+	 * Generate an Excel spreadsheet report
+	 * 
+	 * @return The generated report in bytes
+	 * @throws JRException
+	 * @throws SQLException
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
+	private byte[] generateXLSX() throws JRException, SQLException, IOException, ClassNotFoundException {
+		InputStream inputStream = new FileInputStream(new File(filePath_));
+		params_.put(JRParameter.IS_IGNORE_PAGINATION, Boolean.TRUE);
+		JasperPrint jasperPrint = JasperFillManager.fillReport(inputStream, params_, getConnection());
+		
+		JRXlsxExporter xlsxExporter = new JRXlsxExporter();
+		
+		ByteArrayOutputStream xlsReport = new ByteArrayOutputStream();
+
+		xlsxExporter.setParameter(JRExporterParameter.JASPER_PRINT, jasperPrint);
+		xlsxExporter.setParameter(JRExporterParameter.OUTPUT_STREAM, xlsReport);
+		
+		xlsxExporter.exportReport();
+		byte[] bytes = xlsReport.toByteArray();
+		xlsReport.close();
+		params_.remove(JRParameter.IS_IGNORE_PAGINATION);
+		return bytes;
 	}
 	
 	/**

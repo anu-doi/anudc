@@ -23,7 +23,6 @@ package au.edu.anu.datacommons.report.schedule;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 
 import javax.servlet.ServletContext;
@@ -53,6 +52,7 @@ import au.edu.anu.datacommons.data.db.model.ReportAuto;
 public class ReportScheduler {
 	static final Logger LOGGER = LoggerFactory.getLogger(ReportScheduler.class);
 	
+	@SuppressWarnings("rawtypes")
 	private static List<ScheduledFuture> scheduledFutures = new ArrayList<ScheduledFuture>();
 	ServletContext context;
 	
@@ -69,6 +69,7 @@ public class ReportScheduler {
 	/**
 	 * Schedule all the reports
 	 */
+	@SuppressWarnings("rawtypes")
 	public void scheduleAll() {
 		LOGGER.info("Scheduling all reports to run");
 		for (ScheduledFuture scheduledFuture : scheduledFutures) {
@@ -88,6 +89,7 @@ public class ReportScheduler {
 	/**
 	 * Cancel all the scheduled reports
 	 */
+	@SuppressWarnings("rawtypes")
 	public void cancelAll() {
 		LOGGER.info("Cancelling all the scheduled reports");
 		for (ScheduledFuture scheduledFuture : scheduledFutures) {

@@ -20,11 +20,14 @@
  ******************************************************************************/
 package au.edu.anu.datacommons.data.solr.dao;
 
-import org.apache.solr.client.solrj.SolrQuery.ORDER;
+import java.util.List;
+
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServerException;
 
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
+import au.edu.anu.datacommons.search.SearchTerm;
 
 /**
  * SolrSearch
@@ -34,7 +37,7 @@ import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
  * Interface for searching against the solr search system
  *
  * JUnit coverage:
- * None
+ * SolrSearchDAOTest
  * 
  * @author Genevieve Turner
  *
@@ -65,7 +68,33 @@ public interface SolrSearchDAO {
 	 * @throws SolrServerException
 	 */
 	public SolrSearchResult executeSearch(String q, int offset, int limit, String filter, String sortField, ORDER sortOrder) throws SolrServerException;
+	
+	/**
+	 * Execute a search against Solr with facets
+	 * 
+	 * @param q The search term
+	 * @param facetField The field to build facets off
+	 * @param facetSelected The selected facet
+	 * @param offset offset amount (i.e. the value to start the search from)
+	 * @param limit How many rows to return
+	 * @param filter Indicator for which type of search to do
+	 * @return The search results
+	 * @throws SolrServerException
+	 */
+	public SolrSearchResult executeSearch(String q, String facetField, String facetSelected, int offset, int limit, String filter) throws SolrServerException;
 
+	/**
+	 * Execute a search against solr with the given search terms
+	 * 
+	 * @param terms THe search terms
+	 * @param offset The offset
+	 * @param limit THe number of records to return
+	 * @param filter Indicator for which type of search to do
+	 * @return THe search results
+	 * @throws SolrServerException
+	 */
+	public SolrSearchResult executeSearch(List<SearchTerm> terms, int offset, int limit, String filter) throws SolrServerException;
+	
 	/**
 	 * Execute a search against solr with the provided query
 	 * 

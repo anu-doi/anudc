@@ -22,4 +22,7 @@
 		<input type="hidden" name="limit" value="<c:out value='${searchItemsPerPage}' />" />
 		<input type="submit" value="Search" />
 	</p>
+	<p class="text-right">
+		<a href='<c:url value="/rest/search/advanced" />'>Advanced Search</a>
+	</p>
 </form>

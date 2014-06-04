@@ -121,7 +121,7 @@ public class ListResource {
 		Map<String, Object> model = new HashMap<String, Object>();
 
 		try {
-			SolrSearchResult solrSearchResult = solrSearch.executeSearch("*:*", offset, limit, "template", "id", ORDER.asc);
+			SolrSearchResult solrSearchResult = solrSearch.executeSearch("", offset, limit, "template", "id", ORDER.asc);
 			solrSearchResult.getDocumentList().size();
 			model.put("resultSet", solrSearchResult);
 			response = Response.ok(new Viewable("/listtemplate.jsp", model)).build();

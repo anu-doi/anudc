@@ -133,13 +133,14 @@ public class ReportServiceImpl implements ReportService {
 	}
 
 	@Override
-	public ReportAuto schedule(Long reportId, String email, String cron,
+	public ReportAuto schedule(Long reportId, String email, String cron, String format,
 			Map<String, String[]> parameterMap) {
 		List<ReportParam> reportParameters = getReportParameters(reportId);
 		ReportAuto reportAuto = new ReportAuto();
 		reportAuto.setReportId(reportId);
 		reportAuto.setEmail(email);
 		reportAuto.setCron(cron);
+		reportAuto.setFormat(format);
 
 		GenericDAO<ReportAuto, Long> reportAutoDAO = new GenericDAOImpl<ReportAuto, Long>(ReportAuto.class);
 		reportAuto = reportAutoDAO.create(reportAuto);
@@ -168,6 +169,9 @@ public class ReportServiceImpl implements ReportService {
 		return reportAuto;
 	}
 	
+	/**
+	 * Scheduled all the reports to run
+	 */
 	public void scheduleAll() {
 		ReportSchedulerManager.getInstance().getReportScheduler().scheduleAll();
 	}
@@ -182,7 +186,7 @@ public class ReportServiceImpl implements ReportService {
 		for (ReportAuto reportAuto : autoReports) {
 			Map<String, String> cronMap = mapCronString(reportAuto.getCron());
 			Report report = reportDAO.getSingleById(reportAuto.getReportId());
-			ScheduledReport scheduledReport = new ScheduledReport(reportAuto.getId(), report.getReportName(), reportAuto.getEmail(), cronMap);
+			ScheduledReport scheduledReport = new ScheduledReport(reportAuto.getId(), report.getReportName(), reportAuto.getEmail(), reportAuto.getFormat(), cronMap);
 			scheduledReports.add(scheduledReport);
 		}
 		return scheduledReports;

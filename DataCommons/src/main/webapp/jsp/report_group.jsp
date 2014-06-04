@@ -26,6 +26,7 @@
 		<select id="format" name="format">
 			<option value="pdf">PDF</option>
 			<option value="html">HTML</option>
+			<option value="xlsx">Excel</option>
 		</select>
 		<br/>
 		<label for="report">Report</label>

@@ -23,6 +23,8 @@ package au.edu.anu.datacommons.report;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +35,13 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.data.db.model.ReportAuto;
+import au.edu.anu.datacommons.data.db.model.ReportAutoParam;
+import au.edu.anu.datacommons.data.db.model.ReportAutoParamPK;
+import au.edu.anu.datacommons.report.schedule.ReportRunnable;
 import au.edu.anu.datacommons.security.service.GroupService;
 
 /**
@@ -52,6 +60,8 @@ import au.edu.anu.datacommons.security.service.GroupService;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ReportServiceTest {
+	static final Logger LOGGER = LoggerFactory.getLogger(ReportRunnable.class);
+
 	@InjectMocks
 	ReportService reportService = new ReportServiceImpl();
 	
@@ -62,7 +72,7 @@ public class ReportServiceTest {
 	public void setUp() {
 	}
 
-	@Ignore
+	//@Ignore
 	@Test
 	public void generateCronStringTest() {
 		String dayOfWeek = "FRI";
@@ -73,7 +83,7 @@ public class ReportServiceTest {
 		assertEquals("0 47 3 * * FRI", cron);
 	}
 	
-	@Ignore
+	//@Ignore
 	@Test
 	public void testScheduling() {
 		Long reportId = new Long(9);
@@ -82,9 +92,10 @@ public class ReportServiceTest {
 		Map<String, String[]> parameterMap = new HashMap<String, String[]>();
 		String[] values = {"1"};
 		parameterMap.put("param1", values);
-		reportService.schedule(reportId, email, cron, parameterMap);
+		reportService.schedule(reportId, email, cron, "pdf", parameterMap);
 	}
-	
+
+	//@Ignore
 	@Test
 	public void processCronStringTest() {
 		String cron = "0 47 3 * * FRI";
@@ -95,5 +106,40 @@ public class ReportServiceTest {
 		assertEquals("47", cronMap.get("minute"));
 		assertEquals("3", cronMap.get("hour"));
 		assertEquals("Friday", cronMap.get("dayOfWeek"));
+	}
+	
+	//@Ignore
+	@Test
+	public void generateReportTest() {
+		//Seems to not populate the contents of the report, just the report template
+		String reportLocation = "C:/WorkSpace/software/jasperreports/test";
+		ReportGenerator.reloadReports(reportLocation + "/WEB-INF/reports");
+		ReportAuto reportAuto = new ReportAuto();
+		reportAuto.setId(new Long(1));
+		reportAuto.setEmail("genevieve.turner@anu.edu.au");
+		reportAuto.setReportId(new Long(9));
+		reportAuto.setCron("0 28 13 * * TUE");
+		
+		ReportAutoParam param = new ReportAutoParam();
+		ReportAutoParamPK pk = new ReportAutoParamPK();
+		pk.setReportAutoId(new Long(1));
+		pk.setSeqNum(0);
+		param.setId(pk);
+		param.setParam("param1");
+		param.setParam("1");
+		ReportGenerator generator = new ReportGenerator(reportAuto, reportLocation);
+		try {
+			//byte[] bytes = generator.generateReportXLSX();
+			byte[] bytes = generator.generateReportForEmail("xlsx");
+			
+			OutputStream os = new FileOutputStream("C:/WorkSpace/Testing/output.xlsx");
+			//OutputStream os = new FileOutputStream("C:/WorkSpace/Testing/output.pdf");
+			os.write(bytes);
+			os.close();
+		}
+		catch (Exception e) {
+			LOGGER.error("Excpetion error", e);
+		}
+		LOGGER.info("Report Location: {}", reportLocation);
 	}
 }

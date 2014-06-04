@@ -49,11 +49,12 @@ import javax.persistence.Table;
 @Entity
 @Table(name="report_auto")
 public class ReportAuto {
-	Long id;
-	Long reportId;
-	String email;
-	String cron;
-	List<ReportAutoParam> reportAutoParams = new ArrayList<ReportAutoParam>();
+	private Long id;
+	private Long reportId;
+	private String email;
+	private String cron;
+	private String format;
+	private List<ReportAutoParam> reportAutoParams = new ArrayList<ReportAutoParam>();
 
 	/**
 	 * Get the id
@@ -130,6 +131,25 @@ public class ReportAuto {
 	 */
 	public void setCron(String cron) {
 		this.cron = cron;
+	}
+	
+	/**
+	 * Get the automated report format (i.e. pdf, xlsx, html)
+	 * 
+	 * @return The format
+	 */
+	@Column(name="format")
+	public String getFormat() {
+		return format;
+	}
+
+	/**
+	 * Set the automated report format (i.e. pdf, xlsx, html)
+	 * 
+	 * @param format The format
+	 */
+	public void setFormat(String format) {
+		this.format = format;
 	}
 
 	/**

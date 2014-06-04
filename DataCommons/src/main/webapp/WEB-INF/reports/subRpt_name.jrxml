@@ -33,7 +33,7 @@
 				<textFieldExpression><![CDATA[$F{unpublished.name}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="0" y="0" width="42" height="13" uuid="50eae927-ab81-4dfe-a7a3-59dbaccee56c"/>
+				<reportElement x="0" y="0" width="64" height="13" uuid="50eae927-ab81-4dfe-a7a3-59dbaccee56c"/>
 				<textElement>
 					<font isBold="true"/>
 				</textElement>

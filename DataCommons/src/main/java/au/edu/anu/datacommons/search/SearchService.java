@@ -21,7 +21,9 @@
 
 package au.edu.anu.datacommons.search;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
@@ -70,6 +72,9 @@ public class SearchService
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchService.class);
 	private static final String SEARCH_JSP = "/search.jsp";
+	private static final String SEARCH_ADVANCED_JSP = "/search_advanced.jsp";
+	private static final String BROWSE_JSP = "/browse.jsp";
+	private static final String BROWSE_RESULTS_JSP = "/browse_results.jsp";
 	
 	@Resource(name="groupServiceImpl")
 	GroupService groupService;
@@ -190,6 +195,112 @@ public class SearchService
 			response = Response.status(Status.BAD_REQUEST).build();
 		}
 		return response;
+	}
+	
+	/**
+	 * Browse the provided facet
+	 * 
+	 * @param q The value to query
+	 * @param facetField The field to use as a facet
+	 * @param facetSelected The selected value within the field
+	 * @param offset The offset
+	 * @param limit The number of items to find
+	 * @param filter The filter (i.e. all, team, or published)
+	 * @return The response
+	 */
+	@GET
+	@Path("/browse")
+	@Produces(MediaType.TEXT_HTML)
+	public Response doGetbrowseAsHtml(@QueryParam("q") String q, @QueryParam("field") String facetField
+			, @QueryParam("field-select") String facetSelected, @QueryParam("offset") int offset
+			, @QueryParam("limit") int limit, @QueryParam("filter") String filter) {
+		if (Util.isNotEmpty(facetField)) {
+			try {
+				SolrSearchResult solrSearchResult = solrSearch.executeSearch(q, facetField, facetSelected, offset, limit, filter);
+				Map<String, Object> model = new HashMap<String, Object>();
+				model.put("resultSet", solrSearchResult);
+				return Response.ok(new Viewable(BROWSE_JSP, model)).build();
+			}
+			catch(SolrServerException e) {
+				LOGGER.error("Exception querying solr", e);
+			}
+		}
+		else {
+			return Response.ok(new Viewable(BROWSE_JSP)).build();
+		}
+		
+		return Response.status(Status.BAD_REQUEST).build();
+	}
+	
+	/**
+	 * Get the results from a further refined browse search
+	 * 
+	 * @param q The value to query
+	 * @param facetField The field to use as a facet
+	 * @param facetSelected The selected value within the field
+	 * @param offset The offset
+	 * @param limit The number of items to find
+	 * @param filter The filter (i.e. all, team, or published)
+	 * @return The response
+	 */
+	@GET
+	@Path("/browse/results")
+	@Produces(MediaType.TEXT_HTML)
+	public Response doGetBrowseResultsAsHtml(@QueryParam("q") String q, @QueryParam("field") String facetField
+			, @QueryParam("field-select") String facetSelected, @QueryParam("offset") int offset
+			, @QueryParam("limit") int limit, @QueryParam("filter") String filter) {
+		if (Util.isNotEmpty(facetField)) {
+			try {
+				SolrSearchResult solrSearchResult = solrSearch.executeSearch(q, facetField, facetSelected, offset, limit, filter);
+				Map<String, Object> model = new HashMap<String, Object>();
+				model.put("resultSet", solrSearchResult);
+				return Response.ok(new Viewable(BROWSE_RESULTS_JSP, model)).build();
+			}
+			catch(SolrServerException e) {
+				LOGGER.error("Exception querying solr", e);
+			}
+		}
+		else {
+			return Response.ok(new Viewable(BROWSE_RESULTS_JSP)).build();
+		}
+		
+		return Response.status(Status.BAD_REQUEST).build();
+	}
+	
+	@GET
+	@Path("/advanced")
+	@Produces(MediaType.TEXT_HTML)
+	public Response doGetAdvancedSearchAsHtml(@QueryParam("value-type") List<String> valueTypes
+			, @QueryParam("search-val") List<String> searchValues, @QueryParam("offset") int offset
+			, @QueryParam("limit") int limit, @QueryParam("filter") String filter) {
+		List<SearchTerm> searchTerms = new ArrayList<SearchTerm>();
+		if (searchValues != null && searchValues.size() > 0) {
+			for (int i = 0; i < searchValues.size(); i++) {
+				String value = searchValues.get(i);
+				String key = valueTypes.get(i);
+				if (value != null && !"".equals(value)) {
+					SearchTerm term = new SearchTerm(key, value);
+					searchTerms.add(term);
+				}
+			}
+			if (searchTerms.size() > 0) {
+				try {
+					SolrSearchResult solrSearchResult =  solrSearch.executeSearch(searchTerms, offset, limit, filter);
+					Map<String, Object> model = new HashMap<String, Object>();
+					model.put("resultSet", solrSearchResult);
+					return Response.ok(new Viewable(SEARCH_ADVANCED_JSP, model)).build();
+				}
+				catch(SolrServerException e) {
+					LOGGER.error("Exception querying solr", e);
+				}
+			}
+		}
+		else {
+			return Response.ok(new Viewable(SEARCH_ADVANCED_JSP)).build();
+		}
+		
+	//	return Response.ok(new Viewable(SEARCH_ADVANCED_JSP)).build();
+		return Response.status(Status.INTERNAL_SERVER_ERROR).build();
 	}
 	
 	private String getCurUsername() {
