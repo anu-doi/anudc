@@ -39,7 +39,8 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 /**
  * This class provides methods to can a file for viruses.
  * 
- * @see <a href="https://github.com/philvarner/clamavj/">https://github.com/philvarner/clamavj/</a>
+ * @author Rahul Khanna
+ * 
  */
 public class ClamScan {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClamScan.class);
@@ -50,28 +51,6 @@ public class ClamScan {
     private static final byte[] STATS = "nSTATS\n".getBytes();
     private static final byte[] SCAN = "zSCAN\n".getBytes();
     
-    // TODO: IDSESSION, END
-
-    //    It is mandatory to prefix this command with n or z, and all commands inside IDSESSION must  be
-    //    prefixed.
-    //
-    //    Start/end  a  clamd  session. Within a session multiple SCAN, INSTREAM, FILDES, VERSION, STATS
-    //    commands can be sent on the same socket without opening new connections.  Replies  from  clamd
-    //    will  be  in  the form '<id>: <response>' where <id> is the request number (in ascii, starting
-    //    from 1) and <response> is the usual clamd reply.  The reply lines have same delimiter  as  the
-    //    corresponding  command had.  Clamd will process the commands asynchronously, and reply as soon
-    //    as it has finished processing.
-    //
-    //    Clamd requires clients to read all the replies it sent, before sending more commands  to  pre-vent prevent
-    //    vent  send()  deadlocks. The recommended way to implement a client that uses IDSESSION is with
-    //    non-blocking sockets, and  a  select()/poll()  loop:  whenever  send  would  block,  sleep  in
-    //    select/poll  until either you can write more data, or read more replies.  Note that using non-blocking nonblocking
-    //    blocking sockets without the select/poll loop and  alternating  recv()/send()  doesn't  comply
-    //    with clamd's requirements.
-    //
-    //    If  clamd detects that a client has deadlocked,  it will close the connection. Note that clamd
-    //    may close an IDSESSION connection too if you don't follow the protocol's requirements.
-
 	/**
 	 * Sends a STATS request to the ClamAV service.
 	 * 
@@ -91,7 +70,7 @@ public class ClamScan {
 	 * Sends a Ping request to the ClamAV service to ensure it's up and running.
 	 * 
 	 * @return true, if successful, false otherwise
-	 * @throws IOException 
+	 * @throws IOException
 	 */
     public boolean ping() throws IOException {
     	boolean pingResponse = false;
@@ -104,6 +83,14 @@ public class ClamScan {
         return pingResponse;
     }
 
+	/**
+	 * Scans a specified file for viruses
+	 * 
+	 * @param filepath
+	 *            File to scan
+	 * @return Scan result as String
+	 * @throws IOException
+	 */
     public String scan(Path filepath) throws IOException {
     	String scanResult = null;
     	
@@ -119,6 +106,14 @@ public class ClamScan {
     	return scanResult;
     }
     
+	/**
+	 * Scans a specified stream for viruses
+	 * 
+	 * @param scanStream
+	 *            Stream to scan
+	 * @return Scan result as String
+	 * @throws IOException
+	 */
     public String scan(InputStream scanStream) throws IOException {
     	String scanResult = null;
     	
@@ -135,15 +130,40 @@ public class ClamScan {
     	return scanResult;
     }
     
+	/**
+	 * Creates a socket to the ClamAV server.
+	 * 
+	 * @return Open socket as Socket
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
     private Socket createSocket() throws UnknownHostException, IOException {
     	return new Socket(getHost(), getPort());
     }
     
+	/**
+	 * Sends a command to the ClamAV daemon.
+	 * 
+	 * @param socket
+	 *            Socket to the ClamAV daemon
+	 * @param cmd
+	 *            Command to send
+	 * @throws IOException
+	 */
     private void sendCommand(Socket socket, byte[] cmd) throws IOException {
     	socket.getOutputStream().write(cmd);
     	socket.getOutputStream().flush();
     }
     
+	/**
+	 * Sends the contents of the specified InputStream to the ClamAV daemon.
+	 * 
+	 * @param socket
+	 *            Socket to the ClamAV daemon
+	 * @param is
+	 *            InputStream to send
+	 * @throws IOException
+	 */
     private void sendStream(Socket socket, InputStream is) throws IOException {
     	DataOutputStream socketOs = new DataOutputStream(socket.getOutputStream());
     	byte[] sendBuffer = new byte[CHUNK_SIZE];
@@ -157,6 +177,15 @@ public class ClamScan {
 		socketOs.flush();
     }
     
+	/**
+	 * Reads a response from the socket.
+	 * 
+	 * @param socket
+	 *            Socket to the ClamAV daemon
+	 * 
+	 * @return Response from ClamAV daemon as String
+	 * @throws IOException
+	 */
     private String readResponse(Socket socket) throws IOException {
     	InputStreamReader socketIs = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
     	StringBuilder resultBuilder = new StringBuilder();

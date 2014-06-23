@@ -33,6 +33,10 @@ import org.slf4j.LoggerFactory;
 import au.edu.anu.datacommons.util.StopWatch;
 
 /**
+ * Abstract class that is extended by concrete storage event task classes. Storage Event Task classes are scheduled
+ * to run in a background thread. Subclasses must override process method and include actual processing relevant
+ * to that task in that method.
+ * 
  * @author Rahul Khanna
  *
  */
@@ -70,11 +74,25 @@ public abstract class AbstractStorageEventTask implements Callable<Void> {
 		endTask();
 		return null;
 	}
-
+	
+	/**
+	 * Preprends "data/" to the relPath so the returned path is relative to the bag directory instead of the payload
+	 * directory.
+	 * 
+	 * @param relPath
+	 *            Path relative to the payload directory
+	 * @return Path relative to the bag directory as String
+	 */
 	protected String prependDataDir(String relPath) {
 		return "data/" + relPath;
 	}
 
+	/**
+	 * Opens a BufferedInputStream to the file for which the storage event was triggered.
+	 * 
+	 * @return BufferedInputStream
+	 * @throws IOException
+	 */
 	protected BufferedInputStream createInputStream() throws IOException {
 		return new BufferedInputStream(Files.newInputStream(absFilepath));
 	}
@@ -89,5 +107,10 @@ public abstract class AbstractStorageEventTask implements Callable<Void> {
 				stopwatch.getTimeElapsedFormatted());
 	}
 	
+	/**
+	 * Performs the processing required for a storage event task.
+	 * 
+	 * @throws Exception
+	 */
 	protected abstract void processTask() throws Exception;
 }

@@ -107,11 +107,13 @@ import com.sun.jersey.api.view.Viewable;
  * This method serves REST requests related to Collection Requests. The following broad workflows are supported:
  * 
  * <ol>
- * <li>Submitting a Collection Request that includes the specific items (datastreams) requested and the answers to questions assigned to a collection (pid).</li>
+ * <li>Submitting a Collection Request that includes the specific items (datastreams) requested and the answers to
+ * questions assigned to a collection (pid).</li>
  * <li>Changing the status of a Collection Request providing a reason for the change.</li>
  * <li>When a Collection Request is approved, providing access to the created dropbox.</li>
  * <li>Allow for questions to be added to the Question Bank.</li>
- * <li>Allow questions to be assigned to Fedora Objects so when a request is submitted, those questions must be answered.
+ * <li>Allow questions to be assigned to Fedora Objects so when a request is submitted, those questions must be
+ * answered.
  * </ol>
  * 
  * <pre>
@@ -126,8 +128,7 @@ import com.sun.jersey.api.view.Viewable;
 @Component
 @Scope("request")
 @Path("/collreq")
-public class CollectionRequestService
-{
+public class CollectionRequestService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CollectionRequestService.class);
 
 	private static final String COLL_REQ_JSP = "/collreq.jsp";
@@ -146,8 +147,8 @@ public class CollectionRequestService
 
 	@Resource(name = "fedoraObjectServiceImpl")
 	FedoraObjectService fedoraObjectService;
-	
-	@Resource(name="permissionService")
+
+	@Resource(name = "permissionService")
 	private PermissionService permissionService;
 
 	/**
@@ -169,8 +170,7 @@ public class CollectionRequestService
 	@GET
 	@PreAuthorize("hasRole('ROLE_REGISTERED')")
 	@Produces(MediaType.TEXT_HTML)
-	public Response doGetAsHtml()
-	{
+	public Response doGetAsHtml() {
 		Response resp = null;
 		Map<String, Object> model = new HashMap<String, Object>();
 
@@ -256,7 +256,8 @@ public class CollectionRequestService
 	 * 
 	 * Australian National University Data Commons
 	 * 
-	 * Receives a POST request with the details of a new Collection Request to be created and creates a new Collection Request.
+	 * Receives a POST request with the details of a new Collection Request to be created and creates a new Collection
+	 * Request.
 	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
@@ -278,20 +279,21 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@PreAuthorize("hasRole('ROLE_REGISTERED')")
-	public Response doPostCollReqAsHtml(@Context HttpServletRequest request, @Context UriInfo uriInfo, @FormParam("pid") String pid,
-			@FormParam("file") Set<String> requestedFileSet, MultivaluedMap<String, String> allFormParams)
-	{
+	public Response doPostCollReqAsHtml(@Context HttpServletRequest request, @Context UriInfo uriInfo,
+			@FormParam("pid") String pid, @FormParam("file") Set<String> requestedFileSet,
+			MultivaluedMap<String, String> allFormParams) {
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
 		UriBuilder uriBuilder = null;
 
-		LOGGER.trace("In method doPostCollReqAsHtml. Param pid={}, dsIdSet={}, allFormParams={}.", new Object[] { pid, requestedFileSet, allFormParams });
+		LOGGER.trace("In method doPostCollReqAsHtml. Param pid={}, dsIdSet={}, allFormParams={}.", new Object[] { pid,
+				requestedFileSet, allFormParams });
 
 		// Save the Collection Request for further processing.
-		try
-		{
-			Users user = new UsersDAOImpl().getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
+		try {
+			Users user = new UsersDAOImpl().getUserByName(SecurityContextHolder.getContext().getAuthentication()
+					.getName());
 			FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 			CollectionRequest newCollReq = new CollectionRequest(pid, user, request.getRemoteAddr(), fedoraObject);
 
@@ -299,33 +301,35 @@ public class CollectionRequestService
 			QuestionDAO questionDAO = new QuestionDAOImpl();
 			List<Question> reqQuestionList = questionDAO.getQuestionsByPid(pid, true);
 
-			// Iterate through the questions that need to be answered for the pid, get the answers for those questions and add to CR.
+			// Iterate through the questions that need to be answered for the pid, get the answers for those questions
+			// and add to CR.
 			// If an answer for a question doesn't exist throw exception.
-			for (Question iQuestion : reqQuestionList)
-			{
-				// Check if the answer to the current question is provided. If yes, save the answer, else throw exception.
-				if (allFormParams.containsKey("q" + iQuestion.getId()) && Util.isNotEmpty(allFormParams.getFirst("q" + iQuestion.getId())))
-				{
-					CollectionRequestAnswer ans = new CollectionRequestAnswer(iQuestion, allFormParams.getFirst("q" + iQuestion.getId()));
+			for (Question iQuestion : reqQuestionList) {
+				// Check if the answer to the current question is provided. If yes, save the answer, else throw
+				// exception.
+				if (allFormParams.containsKey("q" + iQuestion.getId())
+						&& Util.isNotEmpty(allFormParams.getFirst("q" + iQuestion.getId()))) {
+					CollectionRequestAnswer ans = new CollectionRequestAnswer(iQuestion, allFormParams.getFirst("q"
+							+ iQuestion.getId()));
 					newCollReq.addAnswer(ans);
-				}
-				else
-				{
-					throw new Exception("All questions must be answered. The question '" + iQuestion.getQuestionText() + "' has been left blank.");
+				} else {
+					throw new Exception("All questions must be answered. The question '" + iQuestion.getQuestionText()
+							+ "' has been left blank.");
 				}
 			}
-			
-			// Iterate through the optional questions for the pid, and add the answers for those questions to the Collection Request
+
+			// Iterate through the optional questions for the pid, and add the answers for those questions to the
+			// Collection Request
 			List<Question> optQuestionList = questionDAO.getQuestionsByPid(pid, false);
-			for (Question iQuestion : optQuestionList)
-			{
-				if (allFormParams.containsKey("q" + iQuestion.getId()) && Util.isNotEmpty(allFormParams.getFirst("q" + iQuestion.getId())))
-				{
-					CollectionRequestAnswer ans = new CollectionRequestAnswer(iQuestion, allFormParams.getFirst("q" + iQuestion.getId()));
+			for (Question iQuestion : optQuestionList) {
+				if (allFormParams.containsKey("q" + iQuestion.getId())
+						&& Util.isNotEmpty(allFormParams.getFirst("q" + iQuestion.getId()))) {
+					CollectionRequestAnswer ans = new CollectionRequestAnswer(iQuestion, allFormParams.getFirst("q"
+							+ iQuestion.getId()));
 					newCollReq.addAnswer(ans);
 				}
 			}
-			
+
 			LOGGER.debug("All mandatory questions answered for this Pid.");
 
 			// Save the newly created CR and add success message to message set.
@@ -337,8 +341,9 @@ public class CollectionRequestService
 			// Send email to contacts of the collection.
 			Map<String, String> varMap = new HashMap<String, String>();
 			varMap.put("pid", pid);
-			varMap.put("collReqUrl", uriInfo.getBaseUriBuilder().path(this.getClass()).path(this.getClass(), "doGetReqItemAsHtml").build(newCollReq.getId())
-					.toString());
+			varMap.put("collReqUrl",
+					uriInfo.getBaseUriBuilder().path(this.getClass()).path(this.getClass(), "doGetReqItemAsHtml")
+							.build(newCollReq.getId()).toString());
 
 			List<String> contactEmailList = getEmails(pid);
 			Email email = new Email(mailSender);
@@ -350,15 +355,12 @@ public class CollectionRequestService
 
 			messages.add(MessageType.SUCCESS, "Collection Request successfully saved. ID# " + newCollReq.getId(), model);
 			model.put("collReq", newCollReq);
-			uriBuilder = uriBuilder.queryParam("smsg", "Collection Request saved. ID# " + newCollReq.getId().toString());
-		}
-		catch (Exception e)
-		{
+			uriBuilder = uriBuilder
+					.queryParam("smsg", "Collection Request saved. ID# " + newCollReq.getId().toString());
+		} catch (Exception e) {
 			LOGGER.error("Unable to create new Collection Request.", e);
 			uriBuilder = UriBuilder.fromPath("/collreq/").queryParam("pid", pid).queryParam("emsg", e.getMessage());
-		}
-		finally
-		{
+		} finally {
 			resp = Response.seeOther(uriBuilder.build()).build();
 		}
 
@@ -390,17 +392,17 @@ public class CollectionRequestService
 	@Path("{collReqId}")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doPostUpdateCollReqAsHtml(@PathParam("collReqId") Long collReqId, @Context UriInfo uriInfo, @FormParam("status") ReqStatus status,
-			@FormParam("reason") String reason, @FormParam("file") Set<String> fileSet)
-	{
+	public Response doPostUpdateCollReqAsHtml(@PathParam("collReqId") Long collReqId, @Context UriInfo uriInfo,
+			@FormParam("status") ReqStatus status, @FormParam("reason") String reason,
+			@FormParam("file") Set<String> fileSet) {
 		Response resp = null;
 		CollectionRequest collReq = null;
 		UriBuilder redirUri = UriBuilder.fromPath("/collreq/").path(collReqId.toString());
 
-		LOGGER.trace("In doPostUpdateCollReqAsHtml. Params collReqId={}, status={}, reason={}", new Object[] { collReqId, status, reason });
+		LOGGER.trace("In doPostUpdateCollReqAsHtml. Params collReqId={}, status={}, reason={}", new Object[] {
+				collReqId, status, reason });
 
-		try
-		{
+		try {
 			LOGGER.debug("Saving Collection Request ID {} with updated details...", collReqId);
 
 			// Get the CR with the provided ID.
@@ -422,7 +424,8 @@ public class CollectionRequestService
 						"Cannot change status of a CR with an Approved or Rejected status. A new CR must be submitted by the requestor for processing.");
 
 			// Add a status row to the status history for that CR.
-			Users user = new UsersDAOImpl().getUserByName(SecurityContextHolder.getContext().getAuthentication().getName());
+			Users user = new UsersDAOImpl().getUserByName(SecurityContextHolder.getContext().getAuthentication()
+					.getName());
 			CollectionRequestStatus newStatus = new CollectionRequestStatus(collReq, status, reason, user);
 			collReq.addStatus(newStatus);
 			collReq = collectionRequestDAO.update(collReq);
@@ -433,32 +436,27 @@ public class CollectionRequestService
 			Set<CollectionRequestItem> curItems = collReq.getItems();
 
 			// Sync the list of items in the POST with the ones already stored.
-			for (String iFile : fileSet)
-			{
+			for (String iFile : fileSet) {
 				boolean isPresent = false;
-				for (CollectionRequestItem iCurItem : curItems)
-				{
-					if (iCurItem.getItem().equals(iFile))
-					{
+				for (CollectionRequestItem iCurItem : curItems) {
+					if (iCurItem.getItem().equals(iFile)) {
 						isPresent = true;
 						break;
 					}
 				}
 
-				if (!isPresent)
-				{
+				if (!isPresent) {
 					CollectionRequestItem newItem = new CollectionRequestItem(iFile);
 					collReq.addItem(newItem);
 				}
 			}
 
-			GenericDAO<CollectionRequestItem, Long> collReqDao = new GenericDAOImpl<CollectionRequestItem, Long>(CollectionRequestItem.class);
+			GenericDAO<CollectionRequestItem, Long> collReqDao = new GenericDAOImpl<CollectionRequestItem, Long>(
+					CollectionRequestItem.class);
 			Iterator<CollectionRequestItem> iter = curItems.iterator();
-			while (iter.hasNext())
-			{
+			while (iter.hasNext()) {
 				CollectionRequestItem iItem = iter.next();
-				if (!fileSet.contains(iItem.getItem()))
-				{
+				if (!fileSet.contains(iItem.getItem())) {
 					iter.remove();
 					collReqDao.delete(iItem.getId());
 				}
@@ -472,26 +470,28 @@ public class CollectionRequestService
 
 			// Generate the dropbox access URI.
 			URI dropboxUri = null;
-			if (status == ReqStatus.ACCEPTED && collReq.getItems().size() > 0)
-			{
+			if (status == ReqStatus.ACCEPTED && collReq.getItems().size() > 0) {
 				CollectionDropbox dBox = new CollectionDropbox(collReq, user, true);
 				collReq.setDropbox(dBox);
 				collReq = collectionRequestDAO.update(collReq);
 
 				dropboxUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(CollectionRequestService.class)
-						.path(CollectionRequestService.class, "doGetDropboxAccessAsHtml").queryParam("p", collReq.getDropbox().getAccessPassword())
+						.path(CollectionRequestService.class, "doGetDropboxAccessAsHtml")
+						.queryParam("p", collReq.getDropbox().getAccessPassword())
 						.build(collReq.getDropbox().getAccessCode());
 
 				redirUri.queryParam(
 						"imsg",
-						format("Dropbox created<br /><strong>Code: </strong>{0}<br /><strong>Password: </strong>{1}", collReq.getDropbox().getAccessCode()
-								.toString(), collReq.getDropbox().getAccessPassword()));
-				redirUri.queryParam("imsg", format("Dropbox Access Link: <a href=''{0}''>Dropbox Access</a>", dropboxUri.toString()));
+						format("Dropbox created<br /><strong>Code: </strong>{0}<br /><strong>Password: </strong>{1}",
+								collReq.getDropbox().getAccessCode().toString(), collReq.getDropbox()
+										.getAccessPassword()));
+				redirUri.queryParam("imsg",
+						format("Dropbox Access Link: <a href=''{0}''>Dropbox Access</a>", dropboxUri.toString()));
 			}
 
-			// Send out an email to the requestor. If failed, add status message advising that the requestor should be contacted directly.
-			try
-			{
+			// Send out an email to the requestor. If failed, add status message advising that the requestor should be
+			// contacted directly.
+			try {
 				HashMap<String, String> varMap = new HashMap<String, String>();
 				varMap.put("requestorGivenName", collReq.getRequestor().getGivenName());
 				varMap.put("collReqId", collReq.getId().toString());
@@ -505,24 +505,18 @@ public class CollectionRequestService
 				email.setSubject("Collection Request# " + collReq.getId() + " Status Changed");
 
 				// Add a message about the dropbox being created if the status is now Accepted.
-				if (status == ReqStatus.ACCEPTED && collReq.getItems().size() > 0)
-				{
+				if (status == ReqStatus.ACCEPTED && collReq.getItems().size() > 0) {
 					varMap.put("dropboxLink", dropboxUri.toString());
 					email.setBody("mailtmpl/collreqaccepted.txt", varMap);
-				}
-				else
-				{
+				} else {
 					email.setBody("mailtmpl/collreqchanged.txt", varMap);
 				}
 				email.send();
+			} catch (Exception e) {
+				redirUri.queryParam("emsg",
+						"Could not email the requestor. Please contact him/her with the dropbox access link.");
 			}
-			catch (Exception e)
-			{
-				redirUri.queryParam("emsg", "Could not email the requestor. Please contact him/her with the dropbox access link.");
-			}
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			LOGGER.error("Unable to add request row.", e);
 			redirUri.queryParam("emsg", e.getMessage());
 		}
@@ -536,8 +530,8 @@ public class CollectionRequestService
 	 * 
 	 * Australian National University Data Commons
 	 * 
-	 * This method returns a list of dropboxes and their details. This method enables administration of dropboxes only. Access to the files within the dropbox
-	 * is from doGetDropboxAccessAsHtml method.
+	 * This method returns a list of dropboxes and their details. This method enables administration of dropboxes only.
+	 * Access to the files within the dropbox is from doGetDropboxAccessAsHtml method.
 	 * 
 	 * <pre>
 	 * Version	Date		Developer			Description
@@ -551,16 +545,14 @@ public class CollectionRequestService
 	@Path("dropbox")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doGetDropboxesAsHtml()
-	{
+	public Response doGetDropboxesAsHtml() {
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
 
 		LOGGER.trace("In doGetDropboxesAsHtml.");
 
-		try
-		{
+		try {
 			List<CollectionDropbox> dropboxes = null;
 			String username = SecurityContextHolder.getContext().getAuthentication().getName();
 			UsersDAO userDAO = new UsersDAOImpl();
@@ -573,15 +565,11 @@ public class CollectionRequestService
 			if (dropboxes.size() == 0)
 				messages.add(MessageType.WARNING, "No dropboxes found.", model);
 			model.put("dropboxes", dropboxes);
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			LOGGER.error("Unable to get list of Collection Dropboxes.", e);
 			messages.clear();
 			messages.add(MessageType.ERROR, e.getMessage(), model);
-		}
-		finally
-		{
+		} finally {
 			resp = Response.ok(new Viewable(DROPBOX_JSP, model)).build();
 		}
 
@@ -593,7 +581,8 @@ public class CollectionRequestService
 	 * 
 	 * Australian National University Data Commons
 	 * 
-	 * This method Displays the details of a dropbox. It does not allow access to the files that have been requested in the dropbox.
+	 * This method Displays the details of a dropbox. It does not allow access to the files that have been requested in
+	 * the dropbox.
 	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
@@ -610,16 +599,14 @@ public class CollectionRequestService
 	@Path("dropbox/{dropboxId}")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doGetDropboxAsHtml(@PathParam("dropboxId") long dropboxId)
-	{
+	public Response doGetDropboxAsHtml(@PathParam("dropboxId") long dropboxId) {
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
 
 		LOGGER.trace("In doGetDropboxAsHtml. Params dropboxId: {}", dropboxId);
 
-		try
-		{
+		try {
 			// Find the dropbox with the specified ID.
 			DropboxDAO dropboxDAO = new DropboxDAOImpl();
 			CollectionDropbox dropbox = dropboxDAO.getSingleById(dropboxId);
@@ -629,15 +616,11 @@ public class CollectionRequestService
 				throw new Exception("Invalid Dropbox ID or a dropbox with ID " + dropboxId + "doesn't exist.");
 
 			model.put("dropbox", dropbox);
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			LOGGER.error("Unable to get list of Collection Dropboxes.", e);
 			messages.clear();
 			messages.add(MessageType.ERROR, e.getMessage(), model);
-		}
-		finally
-		{
+		} finally {
 			resp = Response.ok(new Viewable(DROPBOX_JSP, model)).build();
 		}
 
@@ -665,8 +648,7 @@ public class CollectionRequestService
 	@Path("dropbox/{dropboxId}")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doPostUpdateDropboxAsHtml(@PathParam("dropboxId") long dropboxId)
-	{
+	public Response doPostUpdateDropboxAsHtml(@PathParam("dropboxId") long dropboxId) {
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
@@ -700,22 +682,22 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_REGISTERED')")
 	public Response doGetDropboxAccessAsHtml(@Context HttpServletRequest request, @Context UriInfo uriInfo,
-			@PathParam("dropboxAccessCode") Long dropboxAccessCode, @QueryParam("p") String password)
-	{
+			@PathParam("dropboxAccessCode") Long dropboxAccessCode, @QueryParam("p") String password) {
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
 
-		LOGGER.trace("In doGetDropboxAccessAsHtml. Params dropboxAccessCode={}, password={}.", dropboxAccessCode, password);
+		LOGGER.trace("In doGetDropboxAccessAsHtml. Params dropboxAccessCode={}, password={}.", dropboxAccessCode,
+				password);
 
-		try
-		{
+		try {
 			LOGGER.debug("Finding dropbox with access code {}...", dropboxAccessCode);
 			DropboxDAO dropboxDAO = new DropboxDAOImpl();
 			CollectionDropbox dropbox = dropboxDAO.getSingleByAccessCode(dropboxAccessCode);
 
 			if (dropbox == null)
-				throw new NotFoundException(format("Dropbox with Access Code {0} doesn't exist.", dropboxAccessCode.toString()));
+				throw new NotFoundException(format("Dropbox with Access Code {0} doesn't exist.",
+						dropboxAccessCode.toString()));
 
 			LOGGER.debug("Dropbox found.");
 			model.put("dropbox", dropbox);
@@ -725,24 +707,24 @@ public class CollectionRequestService
 			if (!requestor.getUsername().equals(username))
 				throw new Exception("You are not authorised to view this dropbox.");
 
-			if (new Date().after(dropbox.getExpiry()))				// Check if today's date and time is after dropbox expiry.
+			if (new Date().after(dropbox.getExpiry())) // Check if today's date and time is after dropbox expiry.
 				throw new Exception("This Dropbox has expired. Please submit a new Collection Request.");
 
-			if (!dropbox.isActive())								// Check if dropbox active.
+			if (!dropbox.isActive()) // Check if dropbox active.
 				throw new Exception("This Dropbox has been marked as inactive.");
 
-			if (!Util.isNotEmpty(password))							// Check if password provided.
+			if (!Util.isNotEmpty(password)) // Check if password provided.
 				throw new IllegalArgumentException("Please enter password for this Dropbox.");
 
-			if (!password.equals(dropbox.getAccessPassword()))		// Check if password correct.
+			if (!password.equals(dropbox.getAccessPassword())) // Check if password correct.
 				throw new Exception("Incorrect password entered.");
 
 			// Create HashMap downloadables with a link for each item to be downloaded.
 			HashMap<String, String> downloadables = new HashMap<String, String>();
-			UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(UploadService.class).path(UploadService.class, "doGetFileInBagAsOctetStream")
+			UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(UploadService.class)
+					.path(UploadService.class, "doGetFileInBagAsOctetStream")
 					.queryParam("dropboxAccessCode", dropboxAccessCode).queryParam("p", password);
-			for (CollectionRequestItem reqItem : dropbox.getCollectionRequest().getItems())
-			{
+			for (CollectionRequestItem reqItem : dropbox.getCollectionRequest().getItems()) {
 				URI fileDlUri = uriBuilder.build(dropbox.getCollectionRequest().getPid(), reqItem.getItem());
 				LOGGER.debug("Adding URI {} to downloadables", fileDlUri.toString());
 				downloadables.put(reqItem.getItem(), fileDlUri.toString());
@@ -752,7 +734,8 @@ public class CollectionRequestService
 
 			// External references list.
 
-			Collection<String> extRefs = dcStorage.getRecordDataInfo(dropbox.getCollectionRequest().getPid()).getExtRefs();
+			Collection<String> extRefs = dcStorage.getRecordDataInfo(dropbox.getCollectionRequest().getPid())
+					.getExtRefs();
 			if (extRefs != null && extRefs.size() > 0) {
 				model.put("fetchables", extRefs);
 			}
@@ -761,18 +744,14 @@ public class CollectionRequestService
 			CollectionDropboxAccessLog log = new CollectionDropboxAccessLog(dropbox, request.getRemoteAddr());
 			dropbox.addAccessLogEntry(log);
 			dropboxDAO.update(dropbox);
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			LOGGER.error("Unable to get Dropbox for access.", e);
 			messages.clear();
 			if (e.getClass() == IllegalArgumentException.class)
 				messages.add(MessageType.INFO, e.getMessage(), model);
 			else
 				messages.add(MessageType.ERROR, e.getMessage(), model);
-		}
-		finally
-		{
+		} finally {
 			resp = Response.ok(new Viewable(DROPBOX_ACCESS_JSP, model)).build();
 		}
 
@@ -798,38 +777,33 @@ public class CollectionRequestService
 	@Path("question")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doGetQuestionsAsHtml()
-	{
+	public Response doGetQuestionsAsHtml() {
 		PageMessages messages = new PageMessages();
 		Map<String, Object> model = new HashMap<String, Object>();
 		Response resp = null;
 
 		LOGGER.info("User {} requested the questions page.", getCurUsername());
 
-		try
-		{
+		try {
 			// Get all questions from the Question Bank.
 			List<Question> questions = getAllQuestions();
 			LOGGER.debug("Retrieved {} questions from question bank.", questions.size());
 
-			// Add a warning to the message set to let the user know that there aren't any questions in the question bank.
+			// Add a warning to the message set to let the user know that there aren't any questions in the question
+			// bank.
 			if (questions.size() == 0) {
 				messages.add(MessageType.WARNING, "No questions found in the question bank.", model);
 			}
-			
+
 			model.put("questions", questions);
-			
+
 			List<Groups> groups = groupService.getReviewGroups();
 			model.put("groups", groups);
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			LOGGER.error("Unable to retrieve questions from question bank", e);
 			messages.clear();
 			messages.add(MessageType.ERROR, e.getMessage(), model);
-		}
-		finally
-		{
+		} finally {
 			resp = Response.ok(new Viewable(QUESTION_JSP, model)).build();
 		}
 
@@ -841,7 +815,8 @@ public class CollectionRequestService
 	 * 
 	 * Australian National University Data Commons
 	 * 
-	 * Accepts POST requests to add new questions in the question bank as well as requests to assign a question to a Pid.
+	 * Accepts POST requests to add new questions in the question bank as well as requests to assign a question to a
+	 * Pid.
 	 * 
 	 * <pre>
 	 * Version	Date		Developer				Description
@@ -851,8 +826,8 @@ public class CollectionRequestService
 	 * </pre>
 	 * 
 	 * @param submit
-	 *            The task to be performed. Value comes from the submit button in a form. "Add Question" to add a question to the question bank, or "Save" to
-	 *            update the list of questions against a Pid.
+	 *            The task to be performed. Value comes from the submit button in a form. "Add Question" to add a
+	 *            question to the question bank, or "Save" to update the list of questions against a Pid.
 	 * @param questionText
 	 *            Question as String
 	 * @param pid
@@ -866,25 +841,25 @@ public class CollectionRequestService
 	@Produces(MediaType.TEXT_HTML)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response doPostQuestionAsHtml(@Context UriInfo uriInfo, @FormParam("submit") String submit, @FormParam("q") String questionText,
-			@FormParam("pid") String pid, @FormParam("qid") Set<Long> qIdSet, @FormParam("group") Long groupId, @FormParam("domain") Long domainId, @FormParam("idPidQ") Set<Long> requiredQuestions, @FormParam("optQid") Set<Long> optQidSet)
-	{
+	public Response doPostQuestionAsHtml(@Context UriInfo uriInfo, @FormParam("submit") String submit,
+			@FormParam("q") String questionText, @FormParam("pid") String pid, @FormParam("qid") Set<Long> qIdSet,
+			@FormParam("group") Long groupId, @FormParam("domain") Long domainId,
+			@FormParam("idPidQ") Set<Long> requiredQuestions, @FormParam("optQid") Set<Long> optQidSet) {
 		LOGGER.debug("Number of req q's: {}, Number of opt q's: {}", qIdSet.size(), optQidSet.size());
 		Response resp = null;
-		UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(CollectionRequestService.class).path(CollectionRequestService.class, "doGetQuestionsAsHtml");
+		UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(CollectionRequestService.class)
+				.path(CollectionRequestService.class, "doGetQuestionsAsHtml");
 
-		LOGGER.trace("In doPostQuestionAsHtml. Params submit={}, questionStr={}, pid={}, qid={}.", new Object[] { submit, questionText, pid, qIdSet });
+		LOGGER.trace("In doPostQuestionAsHtml. Params submit={}, questionStr={}, pid={}, qid={}.", new Object[] {
+				submit, questionText, pid, qIdSet });
 
 		if (Util.isNotEmpty(pid))
 			uriBuilder = uriBuilder.queryParam("pid", pid);
 
-		if (Util.isNotEmpty(submit))
-		{
+		if (Util.isNotEmpty(submit)) {
 			// Adding a question to the question bank.
-			if (submit.equals("Add Question"))
-			{
-				try
-				{
+			if (submit.equals("Add Question")) {
+				try {
 					// Validate question text.
 					questionText = questionText.trim();
 					if (questionText.equals(""))
@@ -895,11 +870,10 @@ public class CollectionRequestService
 					Question question = new Question(questionText);
 					QuestionDAO questionDAO = new QuestionDAOImpl();
 					questionDAO.create(question);
-					uriBuilder = uriBuilder.queryParam("smsg", "The question <em>" + question.getQuestionText() + "</em> saved in the Question Bank.");
+					uriBuilder = uriBuilder.queryParam("smsg", "The question <em>" + question.getQuestionText()
+							+ "</em> saved in the Question Bank.");
 					LOGGER.info("Saved question in question bank: {}", question.getQuestionText());
-				}
-				catch (Exception e)
-				{
+				} catch (Exception e) {
 					LOGGER.error("Unable to save question in the question bank.", e);
 					uriBuilder.queryParam("emsg", "Unable to save question in the question bank.");
 				}
@@ -907,76 +881,72 @@ public class CollectionRequestService
 				resp = Response.seeOther(uriBuilder.build()).build();
 			}
 			// Assigning questions to a pid.
-			else if (submit.equals("Save"))
-			{
-				try
-				{
+			else if (submit.equals("Save")) {
+				try {
 					QuestionDAO questionDAO = new QuestionDAOImpl();
 					QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl();
 					updateQuestions(questionDAO, questionMapDAO, qIdSet, pid, groupId, domainId, Boolean.TRUE);
 					updateQuestions(questionDAO, questionMapDAO, optQidSet, pid, groupId, domainId, Boolean.FALSE);
 
 					uriBuilder = uriBuilder.queryParam("smsg", "Question List updated for this Item.");
-				}
-				catch (Exception e)
-				{
+				} catch (Exception e) {
 					LOGGER.error("Unable to update questions for Pid " + pid, e);
 					uriBuilder = uriBuilder.queryParam("emsg", "Unable to update questions for this Item.");
 				}
 
 				resp = Response.seeOther(uriBuilder.build()).build();
 			}
-		}
-		else
-		{
+		} else {
 			LOGGER.error("Attempt to POST question without param 'submit'.");
 			resp = Response.serverError().build();
 		}
 
 		return resp;
 	}
-	
+
 	/**
 	 * Save the questions to the database
 	 * 
-	 * @param questionDAO The question DAO
-	 * @param questionMapDAO The question map DAO
-	 * @param questions The list of questions to check
-	 * @param pid The pid to assign the values to
-	 * @param groupId The group to assign the questions to
-	 * @param domainId The domain to assign the questions to
-	 * @param required Whether set of questions are required questions or not
+	 * @param questionDAO
+	 *            The question DAO
+	 * @param questionMapDAO
+	 *            The question map DAO
+	 * @param questions
+	 *            The list of questions to check
+	 * @param pid
+	 *            The pid to assign the values to
+	 * @param groupId
+	 *            The group to assign the questions to
+	 * @param domainId
+	 *            The domain to assign the questions to
+	 * @param required
+	 *            Whether set of questions are required questions or not
 	 */
-	private void updateQuestions(QuestionDAO questionDAO, QuestionMapDAO questionMapDAO, Set<Long> questions, String pid, Long groupId, Long domainId, Boolean required) {
+	private void updateQuestions(QuestionDAO questionDAO, QuestionMapDAO questionMapDAO, Set<Long> questions,
+			String pid, Long groupId, Long domainId, Boolean required) {
 
 		List<Question> curQuestions = questionDAO.getQuestionsForObject(pid, groupId, domainId, required);
-		for (Long iUpdatedId : questions)
-		{
+		for (Long iUpdatedId : questions) {
 			boolean isAlreadyMapped = false;
-			for (Question iCurQuestion : curQuestions)
-			{
-				if (iCurQuestion.getId() == iUpdatedId.longValue())
-				{
+			for (Question iCurQuestion : curQuestions) {
+				if (iCurQuestion.getId() == iUpdatedId.longValue()) {
 					isAlreadyMapped = true;
 					break;
 				}
 			}
 
-			if (!isAlreadyMapped)
-			{
+			if (!isAlreadyMapped) {
 				Question question = questionDAO.getSingleById(iUpdatedId);
 				LOGGER.debug("Adding Question '{}' against Pid {}", question.getQuestionText(), pid);
 				QuestionMap qm = null;
-				//Create the question map for the pid, group or domain
+				// Create the question map for the pid, group or domain
 				if (pid != null && pid.trim().length() > 0) {
 					qm = new QuestionMap(pid, question, required);
-				}
-				else if (groupId != null) {
+				} else if (groupId != null) {
 					GenericDAO<Groups, Long> genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
 					Groups group = (Groups) genericDAO.getSingleById(groupId);
 					qm = new QuestionMap(group, question, required);
-				}
-				else if (domainId != null) {
+				} else if (domainId != null) {
 					GenericDAO<Domains, Long> genericDAO = new GenericDAOImpl<Domains, Long>(Domains.class);
 					Domains domain = (Domains) genericDAO.getSingleById(domainId);
 					qm = new QuestionMap(domain, question, required);
@@ -986,14 +956,13 @@ public class CollectionRequestService
 				}
 			}
 		}
-		
+
 		// Check if each question for a pid, group, or domain is provided in the updated list. If not, delete it.
-		for (Question iCurQuestion : curQuestions)
-		{
-			if (!questions.contains(iCurQuestion.getId()))
-			{
+		for (Question iCurQuestion : curQuestions) {
+			if (!questions.contains(iCurQuestion.getId())) {
 				LOGGER.debug("Mapping of Question ID" + iCurQuestion.getId() + "to be deleted...");
-				QuestionMap questionMap = questionMapDAO.getSingleByObjectAndQuestion(iCurQuestion, pid, groupId, domainId);
+				QuestionMap questionMap = questionMapDAO.getSingleByObjectAndQuestion(iCurQuestion, pid, groupId,
+						domainId);
 				questionMapDAO.delete(questionMap.getId());
 			}
 		}
@@ -1024,67 +993,58 @@ public class CollectionRequestService
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("json")
 	@PreAuthorize("hasRole('ROLE_REGISTERED')")
-	public Response doGetCollReqInfoAsJson(@QueryParam("task") String task, @QueryParam("pid") String pid, @QueryParam("group") Long groupId, @QueryParam("domain") Long domainId)
-	{
+	public Response doGetCollReqInfoAsJson(@QueryParam("task") String task, @QueryParam("pid") String pid,
+			@QueryParam("group") Long groupId, @QueryParam("domain") Long domainId) {
 		Response resp = null;
 		Boolean required = true;
 
 		LOGGER.trace("In doGetDsListAsJson. Params task={}, pid={}.", task, pid);
 
 		// Gets a list of Questions assigned to a Pid.
-		if (task.equals("listPidQuestions"))
-		{
-			try
-			{
+		if (task.equals("listPidQuestions")) {
+			try {
 				QuestionDAO questionDAO = new QuestionDAOImpl();
 				List<Question> reqQuestions = questionDAO.getQuestionsByPid(pid, true);
 				LOGGER.info("Number of req questions: {}", reqQuestions.size());
 				List<Question> optQuestions = questionDAO.getQuestionsByPid(pid, false);
 				LOGGER.info("Number of opt questions: {}", optQuestions.size());
 				resp = processQuestionsJsonResponse(reqQuestions, optQuestions);
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				LOGGER.error("Unable to get list of questions for Pid " + pid, e);
 				resp = Response.serverError().build();
 			}
-		}
-		else if ("listGroupQuestions".equals(task)) {
+		} else if ("listGroupQuestions".equals(task)) {
 			try {
 				QuestionDAO questionDAO = new QuestionDAOImpl();
 				List<Question> reqQuestions = questionDAO.getQuestionsByGroup(groupId, true);
 				List<Question> optQuestions = questionDAO.getQuestionsByGroup(groupId, false);
 				resp = processQuestionsJsonResponse(reqQuestions, optQuestions);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				LOGGER.error("Unable to get list of questions for group id ", groupId, e);
 				resp = Response.serverError().build();
 			}
-		}
-		else if ("listDomainQuestions".equals(task)) {
+		} else if ("listDomainQuestions".equals(task)) {
 			try {
 				QuestionDAO questionDAO = new QuestionDAOImpl();
 				List<Question> reqQuestions = questionDAO.getQuestionsByDomain(domainId, true);
 				List<Question> optQuestions = questionDAO.getQuestionsByDomain(domainId, false);
 				resp = processQuestionsJsonResponse(reqQuestions, optQuestions);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				LOGGER.error("Unable to get list of questions for group id ", groupId, e);
 				resp = Response.serverError().build();
 			}
 		}
 		// Get a list of Collection Requests and their details.
-		else if (task.equals("listCollReq"))
-		{
+		else if (task.equals("listCollReq")) {
 			JSONArray reqStatusListJsonArray = new JSONArray();
 
-			try
-			{
+			try {
 				LOGGER.debug("Requested Collection Requests as JSON.");
 
 				// Retrieve Collection Requests.
 
-				CustomUser customUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+				CustomUser customUser = (CustomUser) SecurityContextHolder.getContext().getAuthentication()
+						.getPrincipal();
 				Long id = customUser.getId();
 
 				List<Groups> reviewGroups = groupService.getReviewGroups();
@@ -1092,8 +1052,7 @@ public class CollectionRequestService
 				List<CollectionRequest> reqStatusList = requestDAO.getPermittedRequests(id, reviewGroups);
 
 				// Add the details of each CR into a JSONObject. Then add that JSONObject to a JSONArray.
-				for (CollectionRequest iCr : reqStatusList)
-				{
+				for (CollectionRequest iCr : reqStatusList) {
 					JSONObject reqStatusJsonObj = new JSONObject();
 					reqStatusJsonObj.put("id", iCr.getId());
 					reqStatusJsonObj.put("pid", iCr.getPid());
@@ -1106,9 +1065,7 @@ public class CollectionRequestService
 
 				// Convert the JSONArray into a JSON String and include in Response object.
 				resp = Response.ok(reqStatusListJsonArray.toString(), MediaType.APPLICATION_JSON_TYPE).build();
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				LOGGER.error("Unable to get list of Collection Requests.");
 				resp = Response.serverError().build();
 			}
@@ -1131,35 +1088,33 @@ public class CollectionRequestService
 	 * 
 	 * @return Questions as List<Questions>
 	 */
-	private List<Question> getAllQuestions()
-	{
+	private List<Question> getAllQuestions() {
 		List<Question> questions = new QuestionDAOImpl().getAll();
 		return questions;
 	}
-	
-	private Response processQuestionsJsonResponse(List<Question> reqQuestions, List<Question> optQuestions) throws JSONException {
+
+	private Response processQuestionsJsonResponse(List<Question> reqQuestions, List<Question> optQuestions)
+			throws JSONException {
 		JSONObject questionsJson = new JSONObject();
-		
+
 		JSONObject reqQuestionsJson = new JSONObject();
-		// Add the Id and question (String) for each Question (Object) into a JSONObject. 
-		for (Question iQuestion : reqQuestions)
-		{
+		// Add the Id and question (String) for each Question (Object) into a JSONObject.
+		for (Question iQuestion : reqQuestions) {
 			reqQuestionsJson.put(iQuestion.getId().toString(), iQuestion.getQuestionText());
 		}
 		questionsJson.put("required", reqQuestionsJson);
-		
+
 		JSONObject optQuestionsJson = new JSONObject();
 		for (Question iQuestion : optQuestions) {
 			optQuestionsJson.put(iQuestion.getId().toString(), iQuestion.getQuestionText());
 		}
 		questionsJson.put("optional", optQuestionsJson);
-		
+
 		// Convert the JSONObject into a JSON String and include it in the Response object.
 		return Response.ok(questionsJson.toString(), MediaType.APPLICATION_JSON_TYPE).build();
 	}
 
-	private List<String> getEmails(String pid)
-	{
+	private List<String> getEmails(String pid) {
 		List<String> emailList = new ArrayList<String>();
 		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
 		SolrQuery solrQuery = new SolrQuery();
@@ -1168,8 +1123,7 @@ public class CollectionRequestService
 		solrQuery.addField("unpublished.email");
 
 		QueryResponse queryResponse;
-		try
-		{
+		try {
 			queryResponse = solrServer.query(solrQuery);
 			SolrDocumentList resultList = queryResponse.getResults();
 			if (resultList.getNumFound() == 0)
@@ -1181,15 +1135,13 @@ public class CollectionRequestService
 			if (resultList.get(0).getFieldValues("unpublished.email") != null)
 				for (Object emailAsObj : resultList.get(0).getFieldValues("unpublished.email"))
 					emailList.add((String) emailAsObj);
-		}
-		catch (SolrServerException e)
-		{
+		} catch (SolrServerException e) {
 			LOGGER.warn(format("Unable to execute Solr Query to retrieve emails for pid {0}.", pid), e);
 		}
 
 		return emailList;
 	}
-	
+
 	private String getCurUsername() {
 		return SecurityContextHolder.getContext().getAuthentication().getName();
 	}

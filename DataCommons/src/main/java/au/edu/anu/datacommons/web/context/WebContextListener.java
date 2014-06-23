@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.web.context;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +35,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Enumeration;
 
-import javax.annotation.Resource;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
@@ -43,12 +42,8 @@ import javax.servlet.annotation.WebListener;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.datacommons.storage.DcStorage;
 
 import com.sun.jersey.core.util.Base64;
 
@@ -77,8 +72,9 @@ public final class WebContextListener implements ServletContextListener {
 		checkFidoPath();
 		
 		// Disabling checks for other web applications as they may not start before this web application.
-//		checkFedoraServer();
-//		checkSolrServer();
+		// These should be called if Fedora Commons and Solr are hosted on a separate Tomcat instance. 
+		// checkFedoraServer();
+		// checkSolrServer();
 	}
 
 	/**
@@ -192,6 +188,9 @@ public final class WebContextListener implements ServletContextListener {
 		return writer.toString();
 	}
 
+	/**
+	 * Deregisters all loaded JDBC drivers from memory.
+	 */
 	private void deregisterDrivers() {
 		Enumeration<Driver> drivers = DriverManager.getDrivers();
 		while (drivers.hasMoreElements()) {

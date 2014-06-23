@@ -43,7 +43,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +58,8 @@ import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
 
 /**
+ * Provides REST endpoints to which rest requests related to data storage of a collection record are sent. 
+ * 
  * @author Rahul Khanna
  * 
  */
@@ -73,22 +74,33 @@ public class StorageResource extends AbstractStorageResource {
 		return Response.ok("Test").build();
 	}
 
+	/**
+	 * GET request for a file or a folder. For a file, the response is an octet-stream with the contents of the file.
+	 * For a folder the response is an HTML page with the list of files in the folder.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param path
+	 *            Path to the file/folder. Note that 'data/' is not included in the path.
+	 * @return HTTP response
+	 */
 	@GET
 	@Path("data/{path:.*}")
 	@Produces({ "text/html; qs=1.1", MediaType.WILDCARD })
-	public Response getFileOrDirAsHtml(@PathParam("pid") String pid, @PathParam("path") String path,
-			@QueryParam("action") String action, @QueryParam("f") Set<String> filepaths) {
-		if (action == null) {
-			return createFileOrDirResponse(pid, path, "/storage.jsp");
-		} else {
-			if (action.equals("zip")) {
-				return createZipFileResponse(pid, path, filepaths);
-			} else {
-				return Response.status(Status.BAD_REQUEST).entity(format("Invalid action {0}", action)).build();
-			}
-		}
+	public Response getFileOrDirAsHtml(@PathParam("pid") String pid, @PathParam("path") String path) {
+		return createFileOrDirResponse(pid, path, "/storage.jsp");
 	}
 
+	/**
+	 * GET request for information about a file or folder. The response is an XML or JSON representation of the
+	 * RecordDataInfo object.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param path
+	 *            Filepath of the file/folder whose information is requested.
+	 * @return HTTP Response
+	 */
 	@GET
 	@Path("data/{path:.*}")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
@@ -96,6 +108,21 @@ public class StorageResource extends AbstractStorageResource {
 		return createFileOrDirResponse(pid, path, null);
 	}
 
+	/**
+	 * HTTP request for accepting a file upload requests. Upload requests from the Python script, JUpload applet and
+	 * HTML5 drag and drop uploaders are handled by this endpoint.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param path
+	 *            Filepath where the uploaded file will be stored. Note that 'data/' is not part of the path.
+	 * @param src
+	 *            Optional query parameter specifying the source of the upload. Requests with parameter src=jupload are
+	 *            handled differently
+	 * @param is
+	 *            Contents of the file being uploaded.
+	 * @return HTTP Response
+	 */
 	@POST
 	@Path("data/{path:.*}")
 	@Consumes({ MediaType.APPLICATION_OCTET_STREAM, MediaType.MULTIPART_FORM_DATA })
@@ -119,6 +146,36 @@ public class StorageResource extends AbstractStorageResource {
 		return resp;
 	}
 	
+	/**
+	 * Accepts POST requests for:
+	 * 
+	 * <ul>
+	 * <li>Downloading a Zip file. This is done with a POST request because a GET request placed a limit on the number
+	 * of files that can be included in the ZIP file depending on the allowable query size configured in the web server.
+	 * That is, selecting 1000 files would result in a GET request 1000 query parameters.
+	 * <li>Add one or more external references
+	 * <li>Remove one or more external references
+	 * <li>Toggle public flag for files of a collection.
+	 * </ul>
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param path
+	 *            Filepath of file. Currently this parameter is not used, but may be used in the future when data values
+	 *            are stored against individual files.
+	 * @param action
+	 *            Action to perform. The following values are valid:
+	 *            <ul>
+	 *            <li>zip
+	 *            <li>addExtRef
+	 *            <li>delExtRef
+	 *            <li>filesPublic
+	 *            </ul>
+	 * @param items
+	 *            parameters to be used in performing the 'action'. For zip file creation, list of filepaths, for
+	 *            adding/deleting external references, list of URLs.
+	 * @return HTTP Response
+	 */
 	@POST
 	@Path("data/{path:.*}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -140,6 +197,15 @@ public class StorageResource extends AbstractStorageResource {
 		return resp;
 	}
 
+	/**
+	 * Accepts a POST request to create a folder. This endpoint is reached when there is no body in the POST request.
+	 * 
+	 * @param pid
+	 *            Identifier of the collection request
+	 * @param path
+	 *            Filepath of the folder to be created.
+	 * @return HTTP response
+	 */
 	@POST
 	@Path("data/{path:.*}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
@@ -161,6 +227,15 @@ public class StorageResource extends AbstractStorageResource {
 		return resp;
 	}
 
+	/**
+	 * Deletes a file or folder within a collection record.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param path
+	 *            Path to the file or directory to be deleted.
+	 * @return HTTP Response
+	 */
 	@DELETE
 	@Path("data/{path:.*}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
@@ -169,6 +244,19 @@ public class StorageResource extends AbstractStorageResource {
 		return processDeleteFile(pid, path);
 	}
 	
+	/**
+	 * Provides an endpoint for accepting requests for performing administrative tasks on a collection record's files.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param task
+	 *            Task to perform as String. The following values are valid:
+	 *            <ul>
+	 *            <li>verify
+	 *            <li>complete
+	 *            </ul>
+	 * @return HTTP Response
+	 */
 	@GET
 	@Path("admin")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -196,21 +284,19 @@ public class StorageResource extends AbstractStorageResource {
 		return resp;
 	}
 	
-	@GET
-	@Path("attr")
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response getRecordAttr(@PathParam("pid") String pid, @QueryParam("attr") String attr) {
-		Response resp = null;
-		FedoraObject fo = fedoraObjectService.getItemByPidReadAccess(pid);
-		if (attr != null) {
-			if (attr.equals("filesPublic")) {
-				boolean isFilesPublic = fo.isFilesPublic();
-				resp = Response.ok(String.valueOf(isFilesPublic)).build();
-			}
-		}
-		return resp;
-	}
-
+	/**
+	 * Creates an HTTP response depending on the item represented by the filepath in the specified record. If file, then
+	 * response is an octet stream. If directory, then response is an HTML or XML/JSON response depending on Accepts
+	 * header.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param path
+	 *            Path to the file or folder being requested.
+	 * @param template
+	 *            JSP template to use if an HTML response is required. null if XML/JSON response is required.
+	 * @return HTTP Response
+	 */
 	private Response createFileOrDirResponse(String pid, String path, String template) {
 		Response resp = null;
 
@@ -251,6 +337,18 @@ public class StorageResource extends AbstractStorageResource {
 		return resp;
 	}
 
+	/**
+	 * Creates an HTTP response with an octetstream body comprising of a Zip stream of one or more files in a specified
+	 * collection record.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param path
+	 *            Root path to which all specified filepaths will be appended
+	 * @param filepaths
+	 *            Collection of relative paths (relative to path param) to be included in the Zip stream
+	 * @return HTTP Response
+	 */
 	private Response createZipFileResponse(String pid, String path, Set<String> filepaths) {
 		ResponseBuilder resp;
 		

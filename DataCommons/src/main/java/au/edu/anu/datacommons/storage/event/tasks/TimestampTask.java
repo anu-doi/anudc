@@ -29,6 +29,8 @@ import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 
 /**
+ * A storage event task that stores the timestamp of payload a file in the timestamps tagfile.
+ * 
  * @author Rahul Khanna
  * 
  */

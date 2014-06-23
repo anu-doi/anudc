@@ -30,6 +30,8 @@ import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 
 /**
+ * A storage event task that stores the virus scan result in the virus-scan tagfile.
+ * 
  * @author Rahul Khanna
  *
  */

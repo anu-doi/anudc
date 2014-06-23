@@ -28,6 +28,9 @@ import java.nio.file.Path;
 import au.edu.anu.datacommons.util.Util;
 
 /**
+ * POJO class that contains information about a file that's been uploaded using {@link SaveInputStreamTask} or
+ * {@link SavePartStreamTask}
+ * 
  * @author Rahul Khanna
  * 
  */
@@ -43,14 +46,23 @@ public class UploadedFileInfo {
 		this.md5 = md5;
 	}
 
+	/**
+	 * @return Saved file's Path
+	 */
 	public Path getFilepath() {
 		return filepath;
 	}
 
+	/**
+	 * @return Size of saved file, measured in bytes
+	 */
 	public long getSize() {
 		return size;
 	}
 
+	/**
+	 * @return Hex encoded MD5 of the saved of the saved file.
+	 */
 	public String getMd5() {
 		return md5;
 	}

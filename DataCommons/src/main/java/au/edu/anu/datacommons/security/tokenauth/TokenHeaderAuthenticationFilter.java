@@ -39,6 +39,9 @@ import au.edu.anu.datacommons.config.PropertiesFile;
  * This class allows for token-based authentication where a token specified in the HTTP request header 'X-Auth-Token'
  * allows the request to be authenticated to a predefined user. Usernames and their associated tokens are stored in a
  * properties file.
+ * 
+ * @author Rahul Khanna
+ * 
  */
 public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TokenHeaderAuthenticationFilter.class);
@@ -46,6 +49,10 @@ public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedPro
 	private static final String TOKEN_HEADER = "X-Auth-Token";
 	private static Properties tokens;
 
+	/**
+	 * Creates a properties file object to read token-username mapping information from. Because using a PropertiesFile
+	 * object, any changes made to the file will result in tokens to be re-read from it.
+	 */
 	static {
 		try {
 			tokens = new PropertiesFile(new File(Config.DIR, "datacommons/tokens.properties"));
@@ -64,15 +71,17 @@ public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedPro
 	 */
 	@Override
 	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-		// Principal = Uni Id of user
+		// Principal = Uni Id of user. E.g. u1234567
 		String token = request.getHeader(TOKEN_HEADER);
 		String principal;
 		if (token != null && tokens != null) {
 			principal = tokens.getProperty(token);
-			if (principal != null)
+			if (principal != null) {
 				principal = principal.toLowerCase();
-		} else
+			}
+		} else {
 			principal = null;
+		}
 
 		return principal;
 	}

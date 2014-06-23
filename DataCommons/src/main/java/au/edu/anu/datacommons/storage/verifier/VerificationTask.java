@@ -21,12 +21,11 @@
 
 package au.edu.anu.datacommons.storage.verifier;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.utilities.FilenameHelper;
 import gov.loc.repository.bagit.utilities.MessageDigestHelper;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -38,16 +37,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import javax.xml.crypto.dsig.Manifest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.tagfiles.AbstractKeyValueFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.ManifestMd5TagFile;
@@ -61,6 +55,10 @@ import au.edu.anu.datacommons.storage.verifier.ResultMessage.Severity;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 
 /**
+ * Task class that verifies the integrity of a Bag as per the BagIt specification.
+ * <p>
+ * <em>This class only </em>
+ * 
  * @author Rahul Khanna
  * 
  */
@@ -78,6 +76,18 @@ public class VerificationTask implements Callable<VerificationResults> {
 	private Map<Path, String> manifests = new HashMap<>();
 
 
+	/**
+	 * Creates an instance of this class that can be submitted to a thread pool for processing in another thread.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param bagDir
+	 *            Bag directory
+	 * @param tagFilesSvc
+	 *            Tag Files Service
+	 * @param threadPoolSvc
+	 *            Thread Pool to which subtasks can be submitted
+	 */
 	public VerificationTask(String pid, Path bagDir, TagFilesService tagFilesSvc, ThreadPoolService threadPoolSvc) {
 		this.pid = pid;
 		this.bagDir = bagDir;
@@ -102,6 +112,9 @@ public class VerificationTask implements Callable<VerificationResults> {
 		return results;
 	}
 
+	/**
+	 * Enumerates all the payload manifests in a bag. 
+	 */
 	private void iterateManifests() {
 		for (Entry<Path, String> tagFileEntry : tagFiles.entrySet()) {
 			if (tagFileEntry.getValue().startsWith("manifest-")) {
@@ -110,6 +123,16 @@ public class VerificationTask implements Callable<VerificationResults> {
 		}
 	}
 
+	/**
+	 * Enumerates files in a specified directory.
+	 * 
+	 * @param rootDir
+	 *            Directory to start walking
+	 * @param exclDataDir
+	 *            true if the data directory (payload directory) should be excluded
+	 * @return Map Path as keys and relative path with normalized path separators as values
+	 * @throws IOException
+	 */
 	private Map<Path, String> enumerateFiles(Path rootDir, boolean exclDataDir) throws IOException {
 		Map<Path, String> files = new HashMap<Path, String>();
 		if (Files.isDirectory(rootDir)) {
@@ -120,7 +143,8 @@ public class VerificationTask implements Callable<VerificationResults> {
 							files.putAll(enumerateFiles(dirEntry, false));
 						}
 					} else if (Files.isRegularFile(dirEntry)) {
-						files.put(dirEntry, FilenameHelper.normalizePathSeparators(bagDir.relativize(dirEntry).toString()));
+						files.put(dirEntry,
+								FilenameHelper.normalizePathSeparators(bagDir.relativize(dirEntry).toString()));
 					} else {
 						addEntry(Severity.WARN, Category.OTHER,
 								FilenameHelper.normalizePathSeparators(bagDir.relativize(dirEntry).toString()),
@@ -132,6 +156,10 @@ public class VerificationTask implements Callable<VerificationResults> {
 		return files;
 	}
 	
+	/**
+	 * Verifies entries in each tag file by checking that a payload file exists for each entry and an entry exists
+	 * for each payload file.
+	 */
 	private void validateTagFiles() {
 		List<Class<? extends AbstractKeyValueFile>> tagFilesClasses = new ArrayList<Class<? extends AbstractKeyValueFile>>();
 		tagFilesClasses.add(PronomFormatsTagFile.class);
@@ -139,21 +167,24 @@ public class VerificationTask implements Callable<VerificationResults> {
 		tagFilesClasses.add(FileMetadataTagFile.class);
 		tagFilesClasses.add(TimestampsTagFile.class);
 		tagFilesClasses.add(PreservationMapTagFile.class);
-		
+
 		// Verify each payload file has a corresponding entry in each custom tag file.
 		for (Entry<Path, String> plFile : payloadFiles.entrySet()) {
 			for (Class<? extends AbstractKeyValueFile> clazz : tagFilesClasses) {
 				try {
 					String tagFilename = (String) clazz.getField("FILEPATH").get(clazz);
 					if (!tagFilesSvc.containsKey(pid, clazz, plFile.getValue())) {
-						addEntry(Severity.WARN, Category.TAGFILE_ENTRY_MISSING, plFile.getValue(), format("No entry in {0}", tagFilename));
+						addEntry(Severity.WARN, Category.TAGFILE_ENTRY_MISSING, plFile.getValue(),
+								format("No entry in {0}", tagFilename));
 					}
-				} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException | IOException e) {
-					addEntry(Severity.ERROR, Category.VALIDATION_EXCEPTION, clazz.getSimpleName(), format("Exception on read: {0}", e.getMessage()));
+				} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException
+						| IOException e) {
+					addEntry(Severity.ERROR, Category.VALIDATION_EXCEPTION, clazz.getSimpleName(),
+							format("Exception on read: {0}", e.getMessage()));
 				}
 			}
 		}
-		
+
 		for (Class<? extends AbstractKeyValueFile> clazz : tagFilesClasses) {
 			try {
 				String tagFilename = (String) clazz.getField("FILEPATH").get(clazz);
@@ -163,12 +194,17 @@ public class VerificationTask implements Callable<VerificationResults> {
 								format("{0} refers to missing file", tagFilename));
 					}
 				}
-			} catch (IOException | IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
-				addEntry(Severity.ERROR, Category.VALIDATION_EXCEPTION, clazz.getSimpleName(), format("Exception on read: {0}", e.getMessage()));
+			} catch (IOException | IllegalArgumentException | IllegalAccessException | NoSuchFieldException
+					| SecurityException e) {
+				addEntry(Severity.ERROR, Category.VALIDATION_EXCEPTION, clazz.getSimpleName(),
+						format("Exception on read: {0}", e.getMessage()));
 			}
 		}
 	}
 
+	/**
+	 * Checks if the bag contains artifacts from previous storage formats.
+	 */
 	private void checkArtifacts() {
 		for (Entry<Path, String> tagFile : tagFiles.entrySet()) {
 			if (tagFile.getValue().startsWith("metadata/")) {
@@ -181,6 +217,9 @@ public class VerificationTask implements Callable<VerificationResults> {
 
 	}
 
+	/**
+	 * Validates the entries in payload manifest.
+	 */
 	private void validatePayloadManifests() {
 		try {
 			Map<String, String> md5Entries = tagFilesSvc.getAllEntries(pid, ManifestMd5TagFile.class);
@@ -204,6 +243,11 @@ public class VerificationTask implements Callable<VerificationResults> {
 		}
 	}
 	
+	/**
+	 * Checks that the entries in the payload manifest actually match the contents of the respective payload file.
+	 * 
+	 * @throws IOException
+	 */
 	private void validateChecksums() throws IOException {
 		Map<String, String> expectedMd5Map = tagFilesSvc.getAllEntries(pid, ManifestMd5TagFile.class);
 		Map<String, Future<String>> calculatedFixityMap = new HashMap<>();
@@ -240,6 +284,18 @@ public class VerificationTask implements Callable<VerificationResults> {
 		}
 	}
 
+	/**
+	 * Adds an issue entry to results.
+	 * 
+	 * @param severity
+	 *            Severity of the issue
+	 * @param category
+	 *            Category of the issue
+	 * @param filepath
+	 *            Filepath related to the issue
+	 * @param msg
+	 *            Message describing the issue
+	 */
 	private synchronized void addEntry(Severity severity, Category category, String filepath, String msg) {
 		this.results.addMessage(new ResultMessage(severity, category, filepath, msg == null ? "" : msg));
 		LOGGER.trace("{}-{}: [{}] {}", severity.toString(), category.toString(), filepath, msg == null ? "" : msg);

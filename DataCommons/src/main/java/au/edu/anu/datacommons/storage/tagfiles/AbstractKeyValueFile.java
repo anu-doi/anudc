@@ -40,6 +40,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * An abstract class representing any file containing data in key-value pairs. The default format of the file is: <code>
+ * KEY: VALUE
+ * </code>. The format can be changed by overriding appropriate methods in this class. Examples are Manifest Tag files
+ * that store their content in <code>VALUE  KEY</code> format.
+ * <p>
+ * Extends LinkedHashMap to retain the order of key values in the file.
+ * 
  * @author Rahul Khanna
  * 
  */
@@ -48,6 +55,11 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 	private static final long serialVersionUID = 1L;
 	
 	protected final Path path;
+	
+	/**
+	 * Flag to indicate if there have been any changes in the data since the last read and the write() method should be
+	 * called to write those changes to disk.
+	 */
 	protected boolean hasUnsavedChanges = false;
 
 	public AbstractKeyValueFile(File file) throws IOException {
@@ -60,6 +72,12 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 		read();
 	}
 
+	/**
+	 * Reads the file from disk and stores the key value pairs into this class.
+	 * 
+	 * @throws IOException
+	 *             when unable to read the tag file
+	 */
 	public void read() throws IOException {
 		boolean hasErrors = false;
 		if (Files.isRegularFile(this.path)) {
@@ -89,6 +107,12 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 		hasUnsavedChanges = hasErrors ? true : false;
 	}
 	
+	/**
+	 * Writes the key value pairs to the tag file on disk if there are any unsaved changes.
+	 * 
+	 * @throws IOException
+	 *             when unable to write to the tag file.
+	 */
 	public void write() throws IOException {
 		synchronized (this) {
 			if (hasUnsavedChanges) {
@@ -104,6 +128,14 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 		}
 	}
 	
+	/**
+	 * Serialises the key value pairs as specific to the tag file format into a stream that can be read by the caller.
+	 * To ensure that the returned InputStream is exactly the same as when the key value pairs will be written to disk,
+	 * this class extends LinkedHashMap instead of HashMap.
+	 * 
+	 * @return Key-Values serializes as InputStream
+	 * @throws IOException
+	 */
 	public InputStream serialize() throws IOException {
 		byte[] byteArray = null;
 		String lineSeparator = System.getProperty("line.separator");
@@ -150,6 +182,13 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 		return oldValue;
 	}
 	
+	/**
+	 * Removes a specified key and its value
+	 * 
+	 * @param key
+	 *            Key to be removed
+	 * @return Old value as String
+	 */
 	public String remove(String key) {
 		String oldValue;
 		synchronized (this) {
@@ -161,12 +200,29 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 		return oldValue;
 	}
 
+	/**
+	 * Get the file on disk that the instance of this class reads its data from and writes to.
+	 * 
+	 * @return File on disk as File
+	 */
 	public File getFile() {
 		return this.path.toFile();
 	}
 	
+	/**
+	 * Returns the filepath relative to the bag directory.
+	 * 
+	 * @return Filepath as String
+	 */
 	public abstract String getFilepath();
 
+	/**
+	 * Unserializes a single line of text.
+	 * 
+	 * @param line
+	 *            Line of text to unserialize
+	 * @return Key-Value pair as String[] with [0] as Key and [1] as Value
+	 */
 	protected String[] unserializeKeyValue(String line) {
 		String parts[];
 		parts = line.split("(?<!\\" + getEscapeChar() + ")" + getSeparator(), 2);
@@ -179,22 +235,47 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 		return parts;
 	}
 
+	/**
+	 * @param entry
+	 *            entry to serialise
+	 * @return serialised key-value pair as string
+	 */
 	protected String serializeEntry(Entry<String, String> entry) {
 		return escapeKey(entry.getKey()) + getSeparator() + entry.getValue();
 	}
 
+	/**
+	 * Prepends the escape string to all occurrences of the separator character in the key.
+	 * 
+	 * @param key
+	 *            Key with characters that should be escaped
+	 * @return Key with separactor character escaped.
+	 */
 	protected String escapeKey(String key) {
 		return key.replace(String.valueOf(getSeparator()), getEscapeChar() + getSeparator());
 	}
 	
+	/**
+	 * Removes any escape strings from the key.
+	 * 
+	 * @param key
+	 *            Key as String
+	 * @return Key with escape strings removed
+	 */
 	protected String unescapeKey(String key) {
 		return key.replace(getEscapeChar(), "");
 	}
 	
+	/**
+	 * @return Escape string used during serialisation to prefix the separator character.
+	 */
 	protected String getEscapeChar() {
 		return "\\";
 	}
 	
+	/**
+	 * @return Separator string added between the key and value while serialising a key-value pair. 
+	 */
 	protected String getSeparator() {
 		return ": ";
 	}

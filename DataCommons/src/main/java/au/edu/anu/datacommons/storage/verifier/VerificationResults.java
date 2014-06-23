@@ -28,11 +28,12 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
+ * A POJO class that holds information about the result of a verification performed on a bag.
+ * 
  * @author Rahul Khanna
  * 
  */
@@ -49,7 +50,7 @@ public class VerificationResults implements Iterable<ResultMessage> {
 	}
 	
 	public VerificationResults(String bagId) {
-		this.bagId = bagId;
+		this();
 		this.timestamp = new Date();
 	}
 

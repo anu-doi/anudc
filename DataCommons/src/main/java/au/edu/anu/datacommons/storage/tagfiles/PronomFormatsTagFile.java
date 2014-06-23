@@ -25,8 +25,10 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * Tag file class for pronom-formats.txt . This file contains FIDO results for payload files.
+ * 
  * @author Rahul Khanna
- *
+ * 
  */
 public class PronomFormatsTagFile extends AbstractKeyValueFile {
 	private static final long serialVersionUID = 1L;

@@ -41,6 +41,12 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+/**
+ * Calls Apache Tika to extract metadata from a file into a multi-valued hashmap.
+ * 
+ * @author Rahul Khanna
+ *
+ */
 public class MetadataExtractorImpl implements MetadataExtractor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MetadataExtractorImpl.class);
 
@@ -55,6 +61,15 @@ public class MetadataExtractorImpl implements MetadataExtractor {
 		this(new BufferedInputStream(new FileInputStream(inFile)));
 	}
 
+	/**
+	 * Extracts metadata from a specified inputstream using Apache Tika.
+	 * 
+	 * @param dataStream
+	 *            InputStream from which to extract data
+	 * @throws IOException
+	 * @throws SAXException
+	 * @throws TikaException
+	 */
 	private void parse(InputStream dataStream) throws IOException, SAXException, TikaException {
 		try {
 			ContentHandler textHandler = new DefaultHandler();

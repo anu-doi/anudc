@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * Tag file class for tagmanifest-md5.txt .
+ * 
  * @author Rahul Khanna
  *
  */

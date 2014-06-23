@@ -39,6 +39,9 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 /**
  * This class allows for execution of a Python script, passing specified parameters to it, send data through standard
  * input stream (STDIN) and retrieve the output from the Standard Output (STDOUT)
+ * 
+ * @author Rahul Khanna
+ * 
  */
 public class PythonExecutor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PythonExecutor.class);
@@ -140,6 +143,12 @@ public class PythonExecutor {
 	}
 	
 
+	/**
+	 * Returns the output data of the process.
+	 * 
+	 * @return StdOut output of the process as String
+	 * @throws IOException
+	 */
 	public String getOutputAsString() throws IOException {
 		try {
 			pythonProcess.waitFor();
@@ -153,6 +162,12 @@ public class PythonExecutor {
 		return stdoutStr;
 	}
 
+	/**
+	 * Returns the error data of the process.
+	 * 
+	 * @return StdErr output of the process as String
+	 * @throws IOException
+	 */
 	public String getErrorAsString() throws IOException {
 		try {
 			pythonProcess.waitFor();
@@ -178,7 +193,6 @@ public class PythonExecutor {
 		} else
 			return output.toString();
 	}
-	
 
 	/**
 	 * Reads the location of the python executable from fido.properties file.

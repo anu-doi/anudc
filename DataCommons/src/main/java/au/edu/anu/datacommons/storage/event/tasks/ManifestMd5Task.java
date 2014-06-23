@@ -30,6 +30,7 @@ import au.edu.anu.datacommons.storage.tagfiles.ManifestMd5TagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 
 /**
+ * A storage event task that calculates the MD5 of a payload file and adds an entry in the manifest file.
  * 
  * @author Rahul Khanna
  *

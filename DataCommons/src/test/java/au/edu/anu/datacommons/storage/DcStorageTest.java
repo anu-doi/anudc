@@ -32,14 +32,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
-import gov.loc.repository.bagit.Bag;
-import gov.loc.repository.bagit.BagFactory.LoadOption;
-import gov.loc.repository.bagit.BagFile;
-import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.utilities.MessageDigestHelper;
-import gov.loc.repository.bagit.utilities.SimpleMessage;
-import gov.loc.repository.bagit.utilities.SimpleResult;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -49,7 +43,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,12 +75,6 @@ import org.slf4j.LoggerFactory;
 import au.edu.anu.datacommons.storage.event.StorageEventListener;
 import au.edu.anu.datacommons.storage.filesystem.FileFactory;
 import au.edu.anu.datacommons.storage.info.RecordDataInfoService;
-import au.edu.anu.datacommons.storage.tagfiles.AbstractKeyValueFile;
-import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
-import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
-import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
-import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
-import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 import au.edu.anu.datacommons.test.util.TestUtil;
@@ -139,26 +126,42 @@ public class DcStorageTest {
 	public void tearDown() throws Exception {
 	}
 
+	/**
+	 * Add a file to a collection, then delete it.
+	 * 
+	 * @throws Exception
+	 */
 	@Test
-	public void testBasicAddDelete() throws Exception {
-		String pid = getNextPid();
+	public void testSingleAddUpdateDelete() throws Exception {
+		final String pid = getNextPid();
 		assertFalse(dcStorage.bagExists(pid));
 
 		Path srcFile = tempDir.newFile().toPath();
 		TestUtil.createFileOfSizeInRange(srcFile.toFile(), 2L, 5L, FileUtils.ONE_KB);
-
+		long srcFileSize = Files.size(srcFile);
+		
 		// Add a file.
 		String targetFilepath = "c/File 3.doc";
 		dcStorage.addFile(pid, new UploadedFileInfo(srcFile, Files.size(srcFile), null), targetFilepath);
-		assertTrue(Files.isRegularFile(getPayloadDir(pid).resolve(targetFilepath)));
+		Path targetFile = getPayloadDir(pid).resolve(targetFilepath);
+		assertTrue(Files.isRegularFile(targetFile));
+		assertThat(Files.size(targetFile), is(srcFileSize));
 
+		// Replace the added file with an updated file.
+		srcFile = tempDir.newFile().toPath();
+		String srcMd5 = TestUtil.createFileOfSizeInRange(srcFile.toFile(), 6L, 10L, FileUtils.ONE_KB);
+		srcFileSize = Files.size(srcFile);
+		dcStorage.addFile(pid, new UploadedFileInfo(srcFile, Files.size(srcFile), srcMd5), targetFilepath);
+		assertThat(Files.isRegularFile(targetFile), is(true));
+		assertThat(Files.size(targetFile), is(srcFileSize));
+		
 		// Delete the added file
 		dcStorage.deleteItem(pid, "c/File 3.doc");
-		assertFalse(Files.isRegularFile(getPayloadDir(pid).resolve(targetFilepath)));
+		assertFalse(Files.isRegularFile(targetFile));
 	}
-
+	
 	@Test
-	public void testFullWorkflow() throws IOException, InterruptedException {
+	public void testZipStream() throws Exception {
 		String pid = getNextPid();
 
 		assertFalse(dcStorage.bagExists(pid));
@@ -175,7 +178,7 @@ public class DcStorageTest {
 		assertTrue(MessageDigestHelper.fixityMatches(Files.newInputStream(getPayloadDir(pid).resolve(file1TargetPath)),
 				Algorithm.MD5, file1Md5));
 
-		// Add a file by downloading it from the web.
+		// Add another file.
 		File file2 = tempDir.newFile();
 		String file2Md5 = TestUtil.createFileOfSizeInRange(file2, 3L, 5L, FileUtils.ONE_MB);
 		String file2TargetPath = "b/File 2.pdf";
@@ -184,10 +187,10 @@ public class DcStorageTest {
 		assertTrue(Files.isRegularFile(getPayloadDir(pid).resolve(file2TargetPath)));
 
 		// With 2 payload files, get a zip stream of the 2 files.
-		when(threadPoolSvc.submitCachedPool((Callable<?>) org.mockito.Matchers.any())).thenAnswer(new Answer() {
+		when(threadPoolSvc.submitCachedPool((Callable<?>) org.mockito.Matchers.any())).thenAnswer(new Answer<Void>() {
 
 			@Override
-			public Object answer(InvocationOnMock invocation) throws Throwable {
+			public Void answer(InvocationOnMock invocation) throws Throwable {
 				ExecutorService tp = Executors.newSingleThreadExecutor();
 				tp.submit((Callable<?>) invocation.getArguments()[0]);
 				tp.shutdown();
@@ -211,11 +214,10 @@ public class DcStorageTest {
 	}
 
 	@Test
-	public void testThreadedAdditionsAndModificationsToSamePid() throws IOException, InterruptedException,
-			ExecutionException {
+	public void testThreadedAdditionsAndModificationsToSamePid() throws Exception {
 		ExecutorService workerPool = Executors.newCachedThreadPool();
 		final String pid = getNextPid();
-		int nFiles = 10;
+		final int nFiles = 10;
 		Map<File, String> srcFileMap = new HashMap<File, String>(nFiles);
 		List<Future<Void>> futures = new ArrayList<Future<Void>>();
 
@@ -262,9 +264,9 @@ public class DcStorageTest {
 
 				@Override
 				public Void call() throws Exception {
-					dcStorage.addFile(pid,
-							new UploadedFileInfo(fEntry.getKey().toPath(), Files.size(fEntry.getKey().toPath()), null),
-							fEntry.getKey().getName());
+					UploadedFileInfo ufi = new UploadedFileInfo(fEntry.getKey().toPath(), Files.size(fEntry.getKey()
+							.toPath()), null);
+					dcStorage.addFile(pid, ufi, fEntry.getKey().getName());
 					return null;
 				}
 			}));
@@ -284,7 +286,7 @@ public class DcStorageTest {
 	}
 
 	@Test
-	public void testThreadedUpdatingSameFileSamePid() throws IOException, InterruptedException, ExecutionException {
+	public void testThreadedUpdatingSameFileSamePid() throws Exception {
 		ExecutorService workerPool = Executors.newCachedThreadPool();
 		final String pid = getNextPid();
 		int nFiles = 10;
@@ -385,70 +387,6 @@ public class DcStorageTest {
 
 	private synchronized String getNextPid() {
 		return format("test:{0}", pidCounter++);
-	}
-
-	private boolean verifyBagAt(File bagDir) throws IOException {
-		Bag bag = DcStorage.bagFactory.createBag(bagDir, LoadOption.BY_FILES);
-		SimpleResult result = bag.verifyValid();
-		for (SimpleMessage sm : result.getSimpleMessages()) {
-			LOGGER.trace("Code: {}, MessageType: {}, Message: {}, Subject: {}", sm.getCode(), sm.getMessageType(),
-					sm.getMessage(), sm.getSubject());
-			if (sm.getObjects() != null) {
-				for (String obj : sm.getObjects()) {
-					LOGGER.trace("\t{}", obj);
-				}
-			}
-		}
-
-		// Verify each tag file's entry's present in each tag file manifest.
-		Collection<BagFile> tagFiles = bag.getTags();
-		for (Manifest tagManifest : bag.getTagManifests()) {
-			for (BagFile tagFile : tagFiles) {
-				if (!tagFile.getFilepath().startsWith("tagmanifest") && !tagManifest.containsKey(tagFile.getFilepath())) {
-					LOGGER.trace("Tagfile {} is not present in tag manifest {}", tagFile.getFilepath(),
-							tagManifest.getFilepath());
-					result.setSuccess(false);
-				}
-			}
-		}
-
-		// Verify each custom tag file contains an entry for each payload file.
-		Collection<BagFile> payloadFiles = bag.getPayload();
-		List<AbstractKeyValueFile> customTagFiles = new ArrayList<AbstractKeyValueFile>();
-		customTagFiles.add(new PronomFormatsTagFile(new File(bagDir, PronomFormatsTagFile.FILEPATH)));
-		customTagFiles.add(new VirusScanTagFile(new File(bagDir, VirusScanTagFile.FILEPATH)));
-		customTagFiles.add(new FileMetadataTagFile(new File(bagDir, FileMetadataTagFile.FILEPATH)));
-		customTagFiles.add(new TimestampsTagFile(new File(bagDir, TimestampsTagFile.FILEPATH)));
-		customTagFiles.add(new PreservationMapTagFile(new File(bagDir, PreservationMapTagFile.FILEPATH)));
-		for (BagFile bagFile : payloadFiles) {
-			for (AbstractKeyValueFile tagFile : customTagFiles) {
-				if (!tagFile.containsKey(bagFile.getFilepath())) {
-					LOGGER.trace("Tagfile {} doesn't contain entry for payload file {}", tagFile.getFile().getName(),
-							bagFile.getFilepath());
-					result.setSuccess(false);
-				}
-			}
-		}
-
-		// Verify that there's a payload file for each entry in each custom manifest.
-		for (AbstractKeyValueFile ctf : customTagFiles) {
-			for (String key : ctf.keySet()) {
-				boolean exists = false;
-				for (BagFile plFile : payloadFiles) {
-					if (plFile.getFilepath().equals(key)) {
-						exists = true;
-						break;
-					}
-				}
-				if (!exists) {
-					LOGGER.trace("Tag file {} contains entry for payload file {} that doesn't exist", ctf.getFile()
-							.getName(), key);
-					result.setSuccess(false);
-				}
-			}
-		}
-
-		return result.isSuccess();
 	}
 
 	private Path getBagDir(String pid) {

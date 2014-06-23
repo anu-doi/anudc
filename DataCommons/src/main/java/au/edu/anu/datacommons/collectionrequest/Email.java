@@ -133,6 +133,10 @@ public class Email {
 		}
 	}
 
+	/**
+	 * Creates a SimpleMailMessage object from the data provided previously. Sends that SimpleMailMessage object using
+	 * the {@link JavaMailSenderImpl} sender
+	 */
 	public void send() {
 		if (Boolean.parseBoolean(GlobalProps.getProperty(GlobalProps.PROP_EMAIL_DEBUG_SEND, "false"))) {
 			if (mailSender == null) {
@@ -210,7 +214,6 @@ public class Email {
 	 * 
 	 * @param email
 	 *            Email address to check as String
-	 * 
 	 * @return true if valid, false otherwise
 	 */
 	public static boolean isValidEmail(String email) {

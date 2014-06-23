@@ -77,6 +77,19 @@ import au.edu.anu.datacommons.tasks.ThreadPoolService;
 import au.edu.anu.datacommons.util.Util;
 
 /**
+ * A listener class that that receives notifications from {@link DcStorage} class before and after a file event occurs.
+ * A File Event is
+ * 
+ * <ul>
+ * <li>Add File
+ * <li>Read File
+ * <li>Update File
+ * <li>Delete File
+ * <li>Update Tagfile
+ * </ul>
+ * 
+ * Each event performs a specific list of tasks pre and post event.
+ * 
  * @author Rahul Khanna
  * 
  */
@@ -125,6 +138,27 @@ public class StorageEventListener {
 		this.archiveRootDir = archiveRootDir;
 	}
 
+	/**
+	 * This method gets called to notify this class of an event.
+	 * 
+	 * @param time
+	 *            EventTime.PRE if pre-event notification, EventTime.POST if post-event notification.
+	 * @param type
+	 *            Type of event
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param bagDir
+	 *            Directory where the bag for specified record is located. Note this is not the payload directory within
+	 *            the bag.
+	 * @param relPath
+	 *            Relative path (from the payload directory) to the file on which event was performed. This must point
+	 *            to a file and not to a directory. If an event was performed on a directory, then a notification should
+	 *            be sent for each file within that directory and each of its subdirectories. This can be null if the
+	 *            event was not for a payload file.
+	 * @param ufi
+	 *            Information about the source file that will replace or has replaced the payload file.
+	 * @throws IOException
+	 */
 	public void notify(EventTime time, EventType type, String pid, Path bagDir, String relPath, UploadedFileInfo ufi)
 			throws IOException {
 		relPath = normalizeRelPath(relPath);
@@ -138,6 +172,21 @@ public class StorageEventListener {
 
 	}
 
+	/**
+	 * Performs pre-event tasks for the specified event type.
+	 * 
+	 * @param type
+	 *            Type of event that triggered the notification
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param bagDir
+	 *            Bag directory of specified record.
+	 * @param relPath
+	 *            Relative path (from the payload directory) to the file on which event will be performed.
+	 * @param ufi
+	 *            Information about source file that will replace the payload file represented by relPath.
+	 * @throws IOException
+	 */
 	private void processPreEventTasks(EventType type, String pid, Path bagDir, String relPath, UploadedFileInfo ufi)
 			throws IOException {
 		if (type.isOneOf(EventType.TAGFILE_UPDATE)) {
@@ -158,6 +207,23 @@ public class StorageEventListener {
 		}
 	}
 
+	/**
+	 * Performs post-event tasks for the specified event type.
+	 * 
+	 * @param type
+	 *            Type of event that triggered the notification
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param bagDir
+	 *            Bag directory of the specified collection record
+	 * @param relPath
+	 *            Relative path (from the payload directory) to the file on which event was performed.
+	 * @param ufi
+	 *            Information about the source file that replaced the payload file represented by relPath. Note that the
+	 *            source file may not exist when this method is called, but information about the file will still be
+	 *            valid.
+	 * @throws IOException
+	 */
 	private void processPostEventTasks(EventType type, final String pid, Path bagDir, String relPath,
 			UploadedFileInfo ufi) throws IOException {
 		List<Future<?>> waitList = new ArrayList<>();
@@ -213,6 +279,15 @@ public class StorageEventListener {
 		}
 	}
 
+	/**
+	 * Creates a bag directory if it doesn't exist and initialises it as per BagIt specification.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param bagDir
+	 *            Bag directory of the specified record
+	 * @throws IOException
+	 */
 	private void initBagDir(String pid, Path bagDir) throws IOException {
 		if (!Files.isDirectory(bagDir.getParent())) {
 			throw new IllegalStateException(format("Bags Root directory {0} doesn''t exist.", bagDir.getParent()
@@ -224,6 +299,13 @@ public class StorageEventListener {
 		}
 	}
 
+	/**
+	 * Initialises the BagIt tag file within the bag of a specified record.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @throws IOException
+	 */
 	private void initBagIt(String pid) throws IOException {
 		Map<String, String> bagItEntries = tagFilesSvc.getAllEntries(pid, BagItTagFile.class);
 		if (bagItEntries.size() != 2) {
@@ -235,7 +317,20 @@ public class StorageEventListener {
 		}
 	}
 
-	private String normalizeRelPath(String relPath) throws IOException {
+	/**
+	 * Normalises a relative path (relative to the payload directory) appropriate for a file (notifications are for
+	 * files only) by:
+	 * 
+	 * <ol>
+	 * <li>Change all path separators to '/'
+	 * <li>Removing all leading and trailing path separators
+	 * </ol>
+	 * 
+	 * @param relPath
+	 *            Relative path to normalise. Can be null.
+	 * @return Normalised relative path as String. null if relPath is null.
+	 */
+	private String normalizeRelPath(String relPath) {
 		if (relPath != null) {
 			StringBuilder processed = new StringBuilder(FilenameHelper.normalizePathSeparators(relPath));
 			while (processed.charAt(0) == '/') {
@@ -255,6 +350,19 @@ public class StorageEventListener {
 		}
 	}
 
+	/**
+	 * Verifies that a specified file exists. This method is called when an Update or Delete event type is called on a
+	 * file.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param bagDir
+	 *            Bag directory of record
+	 * @param relPath
+	 *            Relative path of the file whose existence is to be verified
+	 * @throws FileNotFoundException
+	 *             when file does not exist
+	 */
 	private void verifyFileExists(String pid, Path bagDir, String relPath) throws FileNotFoundException {
 		Path targetFile = getPayloadDir(bagDir).resolve(relPath);
 		if (!Files.isRegularFile(targetFile)) {
@@ -262,6 +370,14 @@ public class StorageEventListener {
 		}
 	}
 
+	/**
+	 * Checks if the specified relPath contains dot files or folders.
+	 * 
+	 * @param relPath
+	 *            Relative path (relative to payload directory) to check
+	 * 
+	 * @return true if path has hidden part(s), false otherwise
+	 */
 	private boolean hasHiddenParts(String relPath) {
 		Path relPathAsPath = Paths.get(relPath);
 		for (int i = 0; i < relPathAsPath.getNameCount(); i++) {
@@ -272,12 +388,35 @@ public class StorageEventListener {
 		return false;
 	}
 
+	/**
+	 * Creates all parent directories for a specified relative path.
+	 * 
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param bagDir
+	 *            Bag directory
+	 * @param relPath
+	 * @throws IOException
+	 */
 	private void createParentPath(String pid, Path bagDir, String relPath) throws IOException {
 		Path targetFile = getPayloadDir(bagDir).resolve(relPath);
 		initBagDir(pid, bagDir);
 		Files.createDirectories(targetFile.getParent());
 	}
 
+	/**
+	 * Calls the archive task to archive the specified file.
+	 * 
+	 * @param type
+	 *            Type of event causing the archival of a file - Update or Delete
+	 * @param pid
+	 *            Identifier of collection record
+	 * @param bagDir
+	 *            Bag directory
+	 * @param relPath
+	 *            Relative path (relative to payload dir) to the file to be archived.
+	 * @throws IOException
+	 */
 	private void archive(EventType type, String pid, Path bagDir, String relPath) throws IOException {
 		Path fileToArchive = getPayloadDir(bagDir).resolve(relPath);
 		if (this.archiveRootDir != null) {
@@ -307,10 +446,24 @@ public class StorageEventListener {
 		}
 	}
 
+	/**
+	 * Returns the payload directory for a specified bag directory.
+	 * 
+	 * @param bagDir
+	 *            Bag directory whose payload directory is requested
+	 * @return Payload directory as Path
+	 */
 	private Path getPayloadDir(Path bagDir) {
 		return bagDir.resolve("data/");
 	}
 
+	/**
+	 * Returns if a specified collection record is published and has the files-public flag set.
+	 * 
+	 * @param fo
+	 *            FedoraObject representing the collection record.
+	 * @return true if published <strong>and</strong> public, false otherwise
+	 */
 	private boolean isPublishedAndPublic(FedoraObject fo) {
 		return fo.getPublished() && fo.isFilesPublic();
 	}
@@ -341,6 +494,13 @@ public class StorageEventListener {
 		}
 	}
 
+	/**
+	 * Changes the last modified timestamp of a bag directory to the current time.
+	 * 
+	 * @param bagDir
+	 *            Bag directory to touch
+	 * @throws IOException
+	 */
 	private void touchBagDir(Path bagDir) throws IOException {
 		if (bagDir != null && Files.isDirectory(bagDir)) {
 			Files.setLastModifiedTime(bagDir, FileTime.fromMillis(new Date().getTime()));

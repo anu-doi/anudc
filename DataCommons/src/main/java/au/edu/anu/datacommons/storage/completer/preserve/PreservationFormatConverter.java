@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,6 +45,10 @@ import au.gov.naa.digipres.xena.kernel.normalise.NormaliserResults;
 import au.gov.naa.digipres.xena.kernel.type.Type;
 
 /**
+ * Calls on Xena File converter by National Archives of Australia to convert a file into its preservation format.
+ * 
+ * <p>Convertable file list and corresponding convertable format is stored in resource ConvertableTypes.txt
+ * 
  * @author Rahul Khanna
  * 
  */
@@ -77,6 +80,12 @@ public class PreservationFormatConverter {
 		loadPlugins();
 	}
 
+	/**
+	 * Calls Xena to perform the file format conversion. The source file is left intact.
+	 * 
+	 * @return Results of the Normalisation process.
+	 * @throws IOException
+	 */
 	public NormaliserResults convert() throws IOException {
 		NormaliserResults results = null;
 		try {
@@ -115,6 +124,9 @@ public class PreservationFormatConverter {
 		return results;
 	}
 
+	/**
+	 * Loads the appropriate plugins required by Xena for file format conversion.
+	 */
 	private void loadPlugins() {
 		List<String> pluginList = new ArrayList<String>();
 		pluginList.add("au.gov.naa.digipres.xena.plugin.archive.ArchivePlugin");

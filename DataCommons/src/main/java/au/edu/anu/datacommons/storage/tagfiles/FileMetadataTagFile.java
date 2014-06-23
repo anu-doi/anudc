@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * Tag file class for file-metadata.txt . This is a custom tag file that contains metadata of each payload file. 
+ * 
  * @author Rahul Khanna
  *
  */

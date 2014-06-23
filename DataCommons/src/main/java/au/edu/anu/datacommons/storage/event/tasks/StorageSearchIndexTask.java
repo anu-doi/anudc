@@ -26,6 +26,8 @@ import java.nio.file.Path;
 import au.edu.anu.datacommons.storage.search.StorageSearchService;
 
 /**
+ * A storage event task that requests the data search service to index a payload file.
+ * 
  * @author Rahul Khanna
  *
  */

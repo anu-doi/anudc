@@ -25,8 +25,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
+ * This class duplicates the functionality provided by Paths.get.
+ * <p>
+ * <em>This is a workaround for Spring Framework's inability to instatiate a Path object through the Paths.get factory
+ * method.</em>
+ * 
  * @author Rahul Khanna
- *
+ * 
  */
 public class PathCreator {
 	

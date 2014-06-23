@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.Semaphore;
 
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.completer.preserve.PreservationFormatConverter;
@@ -34,10 +35,13 @@ import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.gov.naa.digipres.xena.kernel.normalise.NormaliserResults;
 
 /**
+ * A storage event task that creates a preservation file and adds a tag file entry in the preserve tagfile. 
+ * 
  * @author Rahul Khanna
  * 
  */
 public class PreservationTask extends AbstractTagFileTask {
+	private static Semaphore permit = new Semaphore(1);
 	public static final String PRESERVATION_PATH = "data/.preserve/";
 
 	private DcStorage dcStorageSvc;
@@ -56,24 +60,29 @@ public class PreservationTask extends AbstractTagFileTask {
 		}
 	}
 
-	private void preserveFile() throws IOException {
-		Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
-		PreservationFormatConverter pfc = new PreservationFormatConverter(this.absFilepath.toFile(),
-				tempDir.toFile());
-		NormaliserResults results = pfc.convert();
-		if (results != null) {
-			Path convertedFileInTemp = Paths.get(results.getDestinationDirString(), results.getOutputFileName());
-
-			String presvRelpath = this.dataPrependedRelPath
-					.toString()
-					.replaceFirst("data/", PRESERVATION_PATH)
-					.replaceFirst(this.absFilepath.getFileName().toString() + "$",
-							results.getOutputFileName());
-			UploadedFileInfo srcFileInfo = new UploadedFileInfo(convertedFileInTemp, Files.size(convertedFileInTemp), null);
-			this.dcStorageSvc.addHiddenFile(pid, srcFileInfo, presvRelpath.replaceFirst("data/", ""));
-			tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath, presvRelpath);
-		} else {
-			tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, this.dataPrependedRelPath, "UNCONVERTIBLE");
+	private void preserveFile() throws IOException, InterruptedException {
+		try {
+			permit.acquire();
+			Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
+			PreservationFormatConverter pfc = new PreservationFormatConverter(this.absFilepath.toFile(),
+					tempDir.toFile());
+			NormaliserResults results = pfc.convert();
+			if (results != null) {
+				Path convertedFileInTemp = Paths.get(results.getDestinationDirString(), results.getOutputFileName());
+	
+				String presvRelpath = this.dataPrependedRelPath
+						.toString()
+						.replaceFirst("data/", PRESERVATION_PATH)
+						.replaceFirst(this.absFilepath.getFileName().toString() + "$",
+								results.getOutputFileName());
+				UploadedFileInfo srcFileInfo = new UploadedFileInfo(convertedFileInTemp, Files.size(convertedFileInTemp), null);
+				this.dcStorageSvc.addHiddenFile(pid, srcFileInfo, presvRelpath.replaceFirst("data/", ""));
+				tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath, presvRelpath);
+			} else {
+				tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, this.dataPrependedRelPath, "UNCONVERTIBLE");
+			}
+		} finally {
+			permit.release();
 		}
 	}
 }

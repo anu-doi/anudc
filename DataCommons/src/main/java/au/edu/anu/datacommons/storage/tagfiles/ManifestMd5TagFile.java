@@ -23,9 +23,10 @@ package au.edu.anu.datacommons.storage.tagfiles;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map.Entry;
 
 /**
+ * Tag file class for the MD5 manifest. This file contains MD5 values for each payload file.
+ * 
  * @author Rahul Khanna
  * 
  */

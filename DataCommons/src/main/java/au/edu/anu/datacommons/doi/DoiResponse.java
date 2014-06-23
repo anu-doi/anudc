@@ -28,14 +28,17 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * This class contains the details of a response received from the Digital Object Identifier (DOI) web service. The response is recieved either in XML or JSON
- * format as specified in the request's query parameters. The values can then be directly mapped to an instance of this object by unmarshalling the response.
+ * This class contains the details of a response received from the Digital Object Identifier (DOI) web service. The
+ * response is recieved either in XML or JSON format as specified in the request's query parameters. The values can then
+ * be directly mapped to an instance of this object by unmarshalling the response.
  * 
  * @see <a href="http://ands.org.au/resource/r9-cite-my-data-v1.1-tech-doco.pdf">Cite My Data M2M Service</a>
+ * 
+ * @author Rahul Khanna
+ * 
  */
 @XmlRootElement(name = "response")
-public class DoiResponse
-{
+public class DoiResponse {
 	private String type;
 	private String code;
 	private String message;
@@ -50,8 +53,7 @@ public class DoiResponse
 	 * @return Type as String
 	 */
 	@XmlAttribute(name = "type")
-	public String getType()
-	{
+	public String getType() {
 		return type;
 	}
 
@@ -61,8 +63,7 @@ public class DoiResponse
 	 * @param type
 	 *            Type as String
 	 */
-	public void setType(String type)
-	{
+	public void setType(String type) {
 		this.type = type;
 	}
 
@@ -72,8 +73,7 @@ public class DoiResponse
 	 * @return Response code as String
 	 */
 	@XmlElement(name = "responsecode")
-	public String getCode()
-	{
+	public String getCode() {
 		return code;
 	}
 
@@ -83,8 +83,7 @@ public class DoiResponse
 	 * @param code
 	 *            Response code as String
 	 */
-	public void setCode(String code)
-	{
+	public void setCode(String code) {
 		this.code = code;
 	}
 
@@ -94,8 +93,7 @@ public class DoiResponse
 	 * @return Response message as String
 	 */
 	@XmlElement(name = "message")
-	public String getMessage()
-	{
+	public String getMessage() {
 		return message;
 	}
 
@@ -105,8 +103,7 @@ public class DoiResponse
 	 * @param message
 	 *            Response message as String
 	 */
-	public void setMessage(String message)
-	{
+	public void setMessage(String message) {
 		this.message = message;
 	}
 
@@ -116,8 +113,7 @@ public class DoiResponse
 	 * @return DOI as String
 	 */
 	@XmlElement(name = "doi")
-	public String getDoi()
-	{
+	public String getDoi() {
 		return doi;
 	}
 
@@ -127,8 +123,7 @@ public class DoiResponse
 	 * @param doi
 	 *            DOI as String
 	 */
-	public void setDoi(String doi)
-	{
+	public void setDoi(String doi) {
 		this.doi = doi;
 	}
 
@@ -138,8 +133,7 @@ public class DoiResponse
 	 * @return URL as String
 	 */
 	@XmlElement(name = "doi")
-	public String getUrl()
-	{
+	public String getUrl() {
 		return url;
 	}
 
@@ -149,8 +143,7 @@ public class DoiResponse
 	 * @param url
 	 *            URL as String
 	 */
-	public void setUrl(String url)
-	{
+	public void setUrl(String url) {
 		this.url = url;
 	}
 
@@ -160,8 +153,7 @@ public class DoiResponse
 	 * @return App ID as String
 	 */
 	@XmlElement(name = "app_id")
-	public String getAppId()
-	{
+	public String getAppId() {
 		return appId;
 	}
 
@@ -171,20 +163,17 @@ public class DoiResponse
 	 * @param appId
 	 *            App ID as String.
 	 */
-	public void setAppId(String appId)
-	{
+	public void setAppId(String appId) {
 		this.appId = appId;
 	}
 
 	/**
 	 * Gets the verbose message.
 	 * 
-	 * @return
-	 * Verbose Message as String.
+	 * @return Verbose Message as String.
 	 */
 	@XmlElement(name = "verbosemessage")
-	public String getVerboseMsg()
-	{
+	public String getVerboseMsg() {
 		return verboseMsg;
 	}
 
@@ -194,15 +183,15 @@ public class DoiResponse
 	 * @param verboseMsg
 	 *            Verbose Message as String.
 	 */
-	public void setVerboseMsg(String verboseMsg)
-	{
+	public void setVerboseMsg(String verboseMsg) {
 		this.verboseMsg = verboseMsg;
 	}
 
 	@Override
-	public String toString()
-	{
-		return MessageFormat.format("DOI Service Response: type={0}, code={1}, message={2}, doi={3}, url={4}, app_id={5}, verbosemessage={6}.", this.getType(),
-				this.getCode(), this.getMessage(), this.getDoi(), this.getUrl(), this.getAppId(), this.getVerboseMsg());
+	public String toString() {
+		return MessageFormat
+				.format("DOI Service Response: type={0}, code={1}, message={2}, doi={3}, url={4}, app_id={5}, verbosemessage={6}.",
+						this.getType(), this.getCode(), this.getMessage(), this.getDoi(), this.getUrl(),
+						this.getAppId(), this.getVerboseMsg());
 	}
 }

@@ -29,6 +29,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * A thread factory that allows the caller to the specify the name of the thread pool and the priority of the threads
+ * in the pool.
+ * 
  * @author Rahul Khanna
  *
  */
@@ -40,6 +43,18 @@ public class ThreadPoolFactory implements ThreadFactory {
 	private final AtomicInteger threadNumber = new AtomicInteger(1);
 	private final int priority;
 	
+	/**
+	 * Creates an instance of ThreadPoolFactory
+	 * 
+	 * @param poolId
+	 *            A string that is included in each thread that is created using an instance of this class. If an
+	 *            instance of ThreadPoolFactory already exists that uses the specified pool ID, an
+	 *            {@link IllegalArgumentException} is thrown
+	 * @param priority
+	 *            Priority of threads that will be created.
+	 * @throws IllegalArgumentException
+	 *             when poolId has been used for another ThreadPoolFactory.
+	 */
 	public ThreadPoolFactory(String poolId, int priority) {
 		super();
 		addId(poolId);
@@ -49,6 +64,9 @@ public class ThreadPoolFactory implements ThreadFactory {
 		group = (s != null) ? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Thread newThread(Runnable r) {
 		String threadName = "p-" + poolId + "-t-" + threadNumber.getAndIncrement();
@@ -60,6 +78,11 @@ public class ThreadPoolFactory implements ThreadFactory {
 		return t;
 	}
 
+	/** 
+	 * Adds the pool ID to a Set of IDs to ensure another pool isn't created with the same ID.
+	 * 
+	 * @param poolId
+	 */
 	private synchronized void addId(String poolId) {
 		if (poolIds.contains(poolId)) {
 			throw new IllegalArgumentException(format("Pool ID {0} already in use", poolId));

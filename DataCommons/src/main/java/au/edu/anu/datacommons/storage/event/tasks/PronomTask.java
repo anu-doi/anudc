@@ -30,6 +30,8 @@ import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 
 /**
+ * A storage event task that adds a tagfile entry to store FIDO results for a file.
+ * 
  * @author Rahul Khanna
  *
  */

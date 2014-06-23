@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.storage.search;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.utilities.FilenameHelper;
 
 import java.io.BufferedInputStream;
@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -40,15 +39,11 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.beans.Field;
-import org.apache.solr.common.SolrInputDocument;
-import org.apache.tika.config.TikaConfig;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
-import org.apache.tika.mime.MimeTypes;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.html.BoilerpipeContentHandler;
 import org.apache.tika.sax.BodyContentHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +53,8 @@ import org.xml.sax.SAXException;
 import au.edu.anu.datacommons.storage.completer.metadata.FitsParser;
 
 /**
+ * Task that generates a {@link StorageSolrDoc} for a file for submission to a Solr instance.
+ * 
  * @author Rahul Khanna
  * 
  */
@@ -108,6 +105,12 @@ public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumen
 		return docPojo;
 	}
 
+	/**
+	 * Maps the extracted metadata to fields in the Solr document, such as title, authors etc.
+	 * 
+	 * @param doc
+	 *            Solr Document to which metadata information will be added.
+	 */
 	private void processMetadata(StorageSolrDoc doc) {
 		if (metadata.get("Content-Type") != null) {
 			doc.mime_type = metadata.get("Content-Type");
@@ -129,6 +132,17 @@ public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumen
 		}
 	}
 
+	
+	/**
+	 * Extracts metadata and plain text contents from a specified file.
+	 * 
+	 * @param file
+	 *            File from which to extract metadata and plain text contents.
+	 * 
+	 * @throws IOException
+	 * @throws SAXException
+	 * @throws TikaException
+	 */
 	void extractMetadataAndContents(File file) throws IOException, SAXException, TikaException {
 		InputStream fileStream = null;
 		try {
@@ -139,6 +153,15 @@ public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumen
 		}
 	}
 
+	/**
+	 * Extracts metadata and plain text contents from a specified InputStream.
+	 * 
+	 * @param fileStream
+	 *            Stream from which metadata and contents are to be extracted
+	 * @throws IOException
+	 * @throws SAXException
+	 * @throws TikaException
+	 */
 	void extractMetadataAndContents(InputStream fileStream) throws IOException, SAXException, TikaException {
 		AutoDetectParser parser = new AutoDetectParser(new AutoDetectParser(), new FitsParser());
 		this.contents = new StringWriter();
@@ -157,6 +180,12 @@ public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumen
 				FilenameHelper.removeBasePath(bagDir.getAbsolutePath(), srcFile.getAbsolutePath()));
 	}
 
+	/**
+	 * POJO class representing a Storage Solr Document  
+	 * 
+	 * @author Rahul Khanna
+	 *
+	 */
 	public static class StorageSolrDoc {
 		@Field
 		String id;

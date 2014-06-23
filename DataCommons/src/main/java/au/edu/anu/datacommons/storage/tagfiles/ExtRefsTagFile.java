@@ -2,8 +2,14 @@ package au.edu.anu.datacommons.storage.tagfiles;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 
+/**
+ * Tag file class for ext-refs.txt . This is a custom tag file that stores links to resources hosted external to the
+ * DataCommons storage.
+ * 
+ * @author Rahul Khanna
+ *
+ */
 public class ExtRefsTagFile extends AbstractKeyValueFile {
 	private static final long serialVersionUID = 1L;
 	

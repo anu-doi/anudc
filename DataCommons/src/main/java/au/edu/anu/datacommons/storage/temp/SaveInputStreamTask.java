@@ -47,6 +47,8 @@ import au.edu.anu.datacommons.util.StopWatch;
 import au.edu.anu.datacommons.util.Util;
 
 /**
+ * Saves an inputstream to disk.
+ * 
  * @author Rahul Khanna
  *
  */
@@ -62,7 +64,20 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 	protected long actualLength;
 	protected String actualMd5;
 
-	
+	/**
+	 * Creates an instance of this task
+	 * 
+	 * @param uploadDir
+	 *            Directory to which a stream will be saved
+	 * @param is
+	 *            InputStream to save
+	 * @param expectedLength
+	 *            Expected length of the stream. No size verification is performed if <= 0 (not recommended)
+	 * @param expectedMd5
+	 *            Expected MD5 of the stream. No MD5 check is performed if null (not recommended)
+	 * @throws IOException
+	 *             if uploadDir doesn't exist or cannot be written to
+	 */
 	public SaveInputStreamTask(Path uploadDir, InputStream is, long expectedLength, String expectedMd5) throws IOException {
 		validateUploadDir(uploadDir);
 		this.uploadDir = uploadDir;
@@ -101,6 +116,17 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 		return ufi;
 	}
 	
+	/**
+	 * Writes out an InputStream to a file on disk.
+	 * 
+	 * @param srcStream
+	 *            Stream to read data from
+	 * @param targetFile
+	 *            File to which the stream will be written.
+	 * @return size of stream, measured in bytes
+	 * @throws IOException
+	 *             when unable to write to target file
+	 */
 	protected long saveStreamToFile(InputStream srcStream, Path targetFile) throws IOException {
 		long position = 0;
 		try (ReadableByteChannel srcChannel = Channels.newChannel(srcStream);
@@ -113,6 +139,13 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 		return position;
 	}
 
+	/**
+	 * Creates a temporary file with a unique name to save the InputStream to.
+	 * 
+	 * @return The created temporary file
+	 * @throws IOException
+	 *             when unable to create a temporary file
+	 */
 	protected Path createTempFile() throws IOException {
 		Path tempFile;
 		synchronized (uploadDir) {
@@ -130,6 +163,12 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 		verifyMd5();
 	}
 	
+	/**
+	 * Verifies that the saved file is the size expected in bytes. If expected bytes is specified as <= 0 then size
+	 * verification is not performed.
+	 * 
+	 * @throws IOException
+	 */
 	protected void verifyLength() throws IOException {
 		if (this.expectedLength > 0) {
 			if (this.actualLength != this.expectedLength) {
@@ -140,6 +179,10 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 		}
 	}
 	
+	/**
+	 * Verifies that the saved file's MD5 matches the expected MD5. 
+	 * @throws IOException
+	 */
 	protected void verifyMd5() throws IOException {
 		if (this.expectedMd5 != null) {
 			if (!expectedMd5.equals(this.actualMd5)) {
@@ -149,6 +192,11 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 		}
 	}
 
+	/**
+	 * Creates an instance of the MessageDigest instance for MD5 algorithm.
+	 * 
+	 * @return An instance of MessageDigest for MD5 algorithm.
+	 */
 	protected MessageDigest createMd5Digest() {
 		try {
 			return MessageDigest.getInstance("MD5");
@@ -158,6 +206,13 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 		}
 	}
 
+	/**
+	 * Verifies that the specified directory to which the stream will be saved exists and is writable.
+	 * 
+	 * @param uploadDir
+	 *            Directory where stream will be saved
+	 * @throws IOException
+	 */
 	private void validateUploadDir(Path uploadDir) throws IOException {
 		if (!Files.isDirectory(uploadDir)) {
 			throw new IOException(format("Upload directory {0} doesn''t exist.", uploadDir.toString()));

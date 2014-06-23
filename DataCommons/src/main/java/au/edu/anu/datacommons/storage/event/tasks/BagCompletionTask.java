@@ -50,10 +50,9 @@ import au.edu.anu.datacommons.util.StopWatch;
 import au.edu.anu.datacommons.util.Util;
 
 /**
- * <p>
- * Note: This class may wait on other tasks to finish and therefore <strong>must</strong> be scheduled in an unbounded
- * thread pool to prevent deadlock.
- * </p>
+ * <p>Task executed due to a storage event occurring.
+ * <p><em>This class may wait on other tasks to finish and therefore <strong>must</strong> be scheduled in an unbounded
+ * thread pool to prevent deadlock.</em>
  * 
  * @author Rahul Khanna
  * 
@@ -77,6 +76,9 @@ public class BagCompletionTask extends AbstractTagFileTask {
 		updateTagManifest();	
 	}
 
+	/**
+	 * Waits for dependency tasks to complete
+	 */
 	private void waitForTasks() {
 		if (waitTasks != null) {
 			for (Future<?> f : waitTasks) {
@@ -91,6 +93,18 @@ public class BagCompletionTask extends AbstractTagFileTask {
 		}
 	}
 
+	/**
+	 * Updates information stored in bag-info.txt . The following fields are updated:
+	 * 
+	 * <ul>
+	 * <li>External Identifier
+	 * <li>Bagging Date
+	 * <li>Payload Oxum
+	 * <li>Bag Size
+	 * </ul>
+	 * 
+	 * @throws IOException
+	 */
 	private void updateBagInfo() throws IOException {
 		Map<String, String> bagInfoEntries = tagFilesSvc.getAllEntries(pid, BagInfoTagFile.class);
 
@@ -113,6 +127,12 @@ public class BagCompletionTask extends AbstractTagFileTask {
 				Util.byteCountToDisplaySize(payloadOxum.getOctetCount()));
 	}
 
+	/**
+	 * Updates the tag manifest by clearing all entries from it, recalculating the MD5 for all tag files and manifest
+	 * entries for each of them.
+	 *  
+	 * @throws IOException
+	 */
 	private void updateTagManifest() throws IOException {
 		Map<String, String> messageDigests = tagFilesSvc.generateMessageDigests(pid, Algorithm.MD5);
 		tagFilesSvc.clearAllEntries(pid, TagManifestMd5TagFile.class);
@@ -121,6 +141,15 @@ public class BagCompletionTask extends AbstractTagFileTask {
 		}
 	}
 	
+	/**
+	 * Calculates the Payload Oxum (refer to BagIt specification) by walking the payload directory tree.
+	 * 
+	 * @param plDir
+	 *            Payload directory
+	 * @return PayloadOxum object containing octet count (sum of file sizes in bytes) and stream count (number of files)
+	 * 
+	 * @throws IOException
+	 */
 	private PayloadOxum calcPayloadOxum(Path plDir) throws IOException {
 		PayloadOxumFileVisitor poVisitor = new PayloadOxumFileVisitor();
 		StopWatch sw = new StopWatch();
@@ -139,6 +168,12 @@ public class BagCompletionTask extends AbstractTagFileTask {
 		return po;
 	}
 	
+	/**
+	 * Class representing payload oxum information
+	 * 
+	 * @author Rahul Khanna
+	 *
+	 */
 	private static class PayloadOxum {
 		// Sum of all payload files in bytes
 		private long octetCount;
@@ -164,6 +199,12 @@ public class BagCompletionTask extends AbstractTagFileTask {
 		}
 	}
 	
+	/**
+	 * FileVisitor that calculates payload oxum during a tree walk.
+	 *  
+	 * @author Rahul Khanna
+	 *
+	 */
 	private static class PayloadOxumFileVisitor extends SimpleFileVisitor<Path> {
 		private PayloadOxum po = new PayloadOxum();
 		

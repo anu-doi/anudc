@@ -21,7 +21,7 @@
 
 package au.edu.anu.datacommons.storage.archive;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.Manifest;
 import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.utilities.MessageDigestHelper;
@@ -107,6 +107,10 @@ public class ArchiveTask implements Callable<File> {
 		this.alg = alg;
 	}
 
+	/**
+	 * Calculates the MD5 for the interim-archived file (in the constructor) and renames the directory with the actual
+	 * MD5.
+	 */
 	@Override
 	public File call() throws Exception {
 		File archivedFile = new File(getPidArchiveDir(), generateArchivedFilename());

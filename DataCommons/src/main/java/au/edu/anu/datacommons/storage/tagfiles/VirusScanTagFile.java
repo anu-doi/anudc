@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * Tag file class for virus-scan.txt . This file contains virus scan results of all payload files.
+ * 
  * @author Rahul Khanna
  * 
  */

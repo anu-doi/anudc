@@ -36,6 +36,9 @@ import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 
 /**
+ * A storage event task that adds a tag file entry to the metadata tagfile with the value as a multivalued map
+ * consisting of metadata values serialized to a JSON object. 
+ * 
  * @author Rahul Khanna
  *
  */

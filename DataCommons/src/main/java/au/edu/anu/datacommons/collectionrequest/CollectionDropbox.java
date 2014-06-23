@@ -46,10 +46,15 @@ import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.util.Util;
 
+/**
+ * Entity class for a Collection Dropbox that gets created when a collection request is accepted.
+ * 
+ * @author Rahul Khanna
+ * 
+ */
 @Entity
 @Table(name = "collection_dropboxes")
-public class CollectionDropbox
-{
+public class CollectionDropbox {
 	private Long id;
 	private CollectionRequest collectionRequest;
 	private Long accessCode;
@@ -61,137 +66,128 @@ public class CollectionDropbox
 	private boolean isActive;
 	private Set<CollectionDropboxAccessLog> accessLog = new HashSet<CollectionDropboxAccessLog>();
 
-	protected CollectionDropbox()
-	{
+	protected CollectionDropbox() {
 	}
 
-	public CollectionDropbox(CollectionRequest request, Users user, boolean notifyOnPickup)
-	{
+	/**
+	 * Creates a new instance of Collection Dropbox
+	 * 
+	 * @param request
+	 *            Collection Request to which this Dropbox will have a one-to-one relationship with
+	 * @param user
+	 *            User who accepted the associated collection request resulting in the creation of this dropbox.
+	 * @param notifyOnPickup
+	 *            true if the creator should be notified when the requestor downloads the files from the dropbox.
+	 */
+	public CollectionDropbox(CollectionRequest request, Users user, boolean notifyOnPickup) {
 		this.collectionRequest = request;
 		this.creator = user;
 		this.notifyOnPickup = notifyOnPickup;
-		this.isActive = true;		// Default value.
+		this.isActive = true; // Default value.
 	}
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
-	public Long getId()
-	{
+	public Long getId() {
 		return id;
 	}
 
-	protected void setId(Long id)
-	{
+	protected void setId(Long id) {
 		this.id = id;
 	}
 
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "request_fk")
-	public CollectionRequest getCollectionRequest()
-	{
+	public CollectionRequest getCollectionRequest() {
 		return collectionRequest;
 	}
 
-	public void setCollectionRequest(CollectionRequest collectionRequest)
-	{
+	public void setCollectionRequest(CollectionRequest collectionRequest) {
 		this.collectionRequest = collectionRequest;
 	}
 
 	@Column(name = "access_code", nullable = false, unique = true)
-	public Long getAccessCode()
-	{
+	public Long getAccessCode() {
 		return accessCode;
 	}
 
-	public void setAccessCode(Long accessCode)
-	{
+	public void setAccessCode(Long accessCode) {
 		this.accessCode = accessCode;
 	}
 
 	@Column(name = "access_password", nullable = false)
-	public String getAccessPassword()
-	{
+	public String getAccessPassword() {
 		return accessPassword;
 	}
 
-	public void setAccessPassword(String accessPassword)
-	{
+	public void setAccessPassword(String accessPassword) {
 		this.accessPassword = accessPassword;
 	}
 
 	@Column(name = "created", nullable = false)
-	public Date getTimestamp()
-	{
+	public Date getTimestamp() {
 		return timestamp;
 	}
 
-	public void setTimestamp(Date timestamp)
-	{
+	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
 	}
 
 	@Column(name = "expiry", nullable = false)
 	@Temporal(TemporalType.DATE)
-	public Date getExpiry()
-	{
+	public Date getExpiry() {
 		return expiry;
 	}
 
-	public void setExpiry(Date expiry)
-	{
+	public void setExpiry(Date expiry) {
 		this.expiry = expiry;
 	}
 
 	@ManyToOne(optional = false)
-	@JoinColumn(name="creator_fk")
-	public Users getCreator()
-	{
+	@JoinColumn(name = "creator_fk")
+	public Users getCreator() {
 		return creator;
 	}
 
-	public void setCreator(Users creator)
-	{
+	public void setCreator(Users creator) {
 		this.creator = creator;
 	}
 
 	@Column(name = "notifyOnPickup")
-	public boolean isNotifyOnPickup()
-	{
+	public boolean isNotifyOnPickup() {
 		return notifyOnPickup;
 	}
 
-	public void setNotifyOnPickup(boolean notifyOnPickup)
-	{
+	public void setNotifyOnPickup(boolean notifyOnPickup) {
 		this.notifyOnPickup = notifyOnPickup;
 	}
 
 	@Column(name = "active", nullable = false)
-	public boolean isActive()
-	{
+	public boolean isActive() {
 		return isActive;
 	}
 
-	public void setActive(boolean isActive)
-	{
+	public void setActive(boolean isActive) {
 		this.isActive = isActive;
 	}
 
 	@OneToMany(cascade = CascadeType.ALL)
 	@JoinColumn(name = "dropbox_fk")
-	public Set<CollectionDropboxAccessLog> getDropboxAccessLog()
-	{
+	public Set<CollectionDropboxAccessLog> getDropboxAccessLog() {
 		return accessLog;
 	}
 
-	public void setDropboxAccessLog(Set<CollectionDropboxAccessLog> dropboxAccessLog)
-	{
+	public void setDropboxAccessLog(Set<CollectionDropboxAccessLog> dropboxAccessLog) {
 		this.accessLog = dropboxAccessLog;
 	}
 
+	/**
+	 * Called before this instance is persisted. Sets the expiry date, generates an access code and random password
+	 * that must be entered by the user to access the files in this dropbox.
+	 */
 	@PrePersist
-	protected void onCreate()
-	{
+	protected void onCreate() {
 		this.timestamp = new Date();
 
 		Calendar calendar = Calendar.getInstance();
@@ -199,22 +195,34 @@ public class CollectionDropbox
 		calendar.add(Calendar.DATE, 30);
 		this.expiry = calendar.getTime();
 		this.accessCode = Math.round(Math.random() * (double) Long.MAX_VALUE);
-		this.accessPassword = Util.generateRandomString(Integer.parseInt(GlobalProps.getProperty(GlobalProps.PROP_DROPBOX_PASSWORDLENGTH)));
+		this.accessPassword = Util.generateRandomString(Integer.parseInt(GlobalProps
+				.getProperty(GlobalProps.PROP_DROPBOX_PASSWORDLENGTH)));
 	}
 
-	public void addAccessLogEntry(CollectionDropboxAccessLog accessLogEntry)
-	{
+	public void addAccessLogEntry(CollectionDropboxAccessLog accessLogEntry) {
 		accessLogEntry.setDropbox(this);
 		this.accessLog.add(accessLogEntry);
 	}
-	
+
+	/**
+	 * Returns if the dropbox is valid. Checks:
+	 * <p>
+	 * <ul>
+	 * <li>If the provided password matches the one in the dropbox
+	 * <li>If the dropbox expiry date has passed
+	 * <li>If the dropbox has been specifically flagged as inactive
+	 * </ul>
+	 * 
+	 * @param password
+	 *            Password to match
+	 * @return true if the dropbox is valid, false otherwise
+	 */
 	@Transient
-	public boolean isValid(String password)
-	{
+	public boolean isValid(String password) {
 		// Check if active.
 		if (!this.isActive)
 			return false;
-		
+
 		// Check if expired.
 		if (new Date().after(this.getExpiry()))
 			return false;
@@ -222,7 +230,7 @@ public class CollectionDropbox
 		// Check if password matches.
 		if (!password.equals(this.getAccessPassword()))
 			return false;
-		
+
 		return true;
 	}
 }

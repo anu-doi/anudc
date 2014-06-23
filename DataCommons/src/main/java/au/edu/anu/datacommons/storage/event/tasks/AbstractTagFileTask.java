@@ -26,8 +26,11 @@ import java.nio.file.Path;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 
 /**
+ * 
+ * Abstract class that is extended by tasks that modify tag files within a bag.
+ * 
  * @author Rahul Khanna
- *
+ * 
  */
 public abstract class AbstractTagFileTask extends AbstractStorageEventTask {
 

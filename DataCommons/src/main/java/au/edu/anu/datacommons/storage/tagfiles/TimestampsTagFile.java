@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * Tag file class for timestamps.txt . The file contains last modified date and time of all payload files.
+ * 
  * @author Rahul Khanna
  *
  */
