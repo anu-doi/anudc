@@ -92,6 +92,7 @@
 					<xsl:call-template name="Label" />
 					<xsl:call-template name="ComboBox">
 						<xsl:with-param name="mValue"><xsl:if test="$data != ''"><xsl:value-of select="$mData/data/*[name() = $mName]" /></xsl:if></xsl:with-param>
+						<xsl:with-param name="mCode"><xsl:if test="$data != ''"><xsl:value-of select="$mData/data/*[name() = $mName]/@code" /></xsl:if></xsl:with-param>
 					</xsl:call-template>
 				</xsl:when>
 				<xsl:when test="@fieldType='ComboBoxMulti'">
@@ -109,7 +110,8 @@
 				<xsl:when test="@fieldType='RadioButton'">
 					<xsl:call-template name="Label" />
 					<xsl:call-template name="RadioButton">
-						<xsl:with-param name="mValue"><xsl:if test="$data != ''"><xsl:value-of select="$mData/data/*[name() = $mName]" /></xsl:if></xsl:with-param>
+				 		<xsl:with-param name="mValue"><xsl:if test="$data != ''"><xsl:value-of select="$mData/data/*[name() = $mName]" /></xsl:if></xsl:with-param>
+						<xsl:with-param name="mCode"><xsl:if test="$data != ''"><xsl:value-of select="$mData/data/*[name() = $mName]/@code" /></xsl:if></xsl:with-param>
 					</xsl:call-template>
 				</xsl:when>
 			</xsl:choose>
@@ -201,17 +203,19 @@
 	
 	<xsl:template name="ComboBox">
 		<xsl:param name="mValue" />
+		<xsl:param name="mCode" />
 		<xsl:variable name="mName" select="@name" />
 		<select id="{@name}" name="{@name}" class="{@class}">
 			<option value="">
 				- No Value Selected -
 			</option>
+			
 			<xsl:choose>
 				<xsl:when test="$data = '' and @defaultValue != ''">
-					<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option, @defaultValue)"/>
+					<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option, @defaultValue, '')"/>
 				</xsl:when>
 				<xsl:otherwise>
-					<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option, $mValue)"/>
+					<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@name, ./option, $mCode, $mValue)"/>
 				</xsl:otherwise>
 			</xsl:choose>
 		</select>
@@ -228,15 +232,20 @@
 		<select id="{@name}" name="{@name}" class="{@class}" multiple="multiple">
 			<xsl:if test="$data != ''">
 				<xsl:for-each select="$mData/data/*[name() = $mName]">
-					<xsl:variable name="mCurrText" select="text()" />
-					<option value="{$mCurrText}">
-						<xsl:value-of select="options:getOptionValue($mName, $mCurrent/option, $mCurrText)"/>
+					<xsl:variable name="mCurrCode" select="@code" />
+					<xsl:variable name="mCurrValue" select="text()" />
+					<option value="{$mCurrCode}">
+						<xsl:variable name="mDesc" select="options:getOptionValue($mName, $mCurrent/option, $mCurrCode, $mCurrValue)" />
+						<xsl:attribute name="title">
+							<xsl:value-of select="$mDesc" />
+						</xsl:attribute>
+						<xsl:value-of select="$mDesc" />
 					</option>
 				</xsl:for-each>
 			</xsl:if>
 			<xsl:if test="$data = '' and @defaultValue != ''">
 				<option value="{@defaultValue}">
-					<xsl:value-of select="options:getOptionValue($mName, $mCurrent/option, @defaultValue)"/>
+					<xsl:value-of select="options:getOptionValue($mName, $mCurrent/option, '', @defaultValue)"/>
 				</option>
 			</xsl:if>
 		</select>
@@ -246,11 +255,12 @@
 	
 	<xsl:template name="RadioButton">
 		<xsl:param name="mValue" />
+		<xsl:param name="mCode" />
 		<xsl:variable name="mCurrent" select="." />
 		<xsl:variable name="mName" select="@name" />
 		<xsl:for-each select="option">
 			<input type="radio" name="{$mName}" value="{@value}">
-				<xsl:if test="@value = $mValue or $data = '' and @value = $mCurrent/@defaultValue">
+				<xsl:if test="@value = $mValue or @value = $mCode or $data = '' and @value = $mCurrent/@defaultValue">
 					<xsl:attribute name="checked">checked</xsl:attribute>
 				</xsl:if>
 			</input>
@@ -294,6 +304,7 @@
 										<xsl:when test="@fieldType='Combobox'">
 											<xsl:call-template name="ComboBox">
 												<xsl:with-param name="mValue"><xsl:value-of select="$mRow/*[name() = $mColName]" /></xsl:with-param>
+												<xsl:with-param name="mCode"><xsl:value-of select="$mRow/*[name() = $mColName]/@code" /></xsl:with-param>
 											</xsl:call-template>
 										</xsl:when>
 									</xsl:choose>

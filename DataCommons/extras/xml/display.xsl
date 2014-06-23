@@ -91,7 +91,7 @@
 		<xsl:param name="comboVal" />
 		<xsl:variable name="item" select="." />
 		<xsl:for-each select="$comboVal/data/*[name() = $item/@name]">
-			<xsl:value-of select="options:getOptionValue(name(), $item/option, text())"/>
+			<xsl:value-of select="options:getOptionValue(name(), $item/option, @code, text())"/>
 			<br />
 		</xsl:for-each>
 	</xsl:template>

@@ -21,8 +21,8 @@
 
 package au.edu.anu.datacommons.xml.data;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
@@ -44,13 +44,14 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 public class DataItem {
 	private String name_;
 	private String value_;
-	private Map<String, String> childValues_;
+	private String description_;
+	private List<DataItem> childValues_;
 	
 	/**
 	 * Constructor class.
 	 */
 	public DataItem() {
-		childValues_ = new HashMap<String, String>();
+		childValues_ = new ArrayList<DataItem>();
 	}
 	
 	/**
@@ -110,30 +111,38 @@ public class DataItem {
 	}
 
 	/**
-	 * getChildValues_
+	 * Get the item description
 	 * 
-	 * Gets the element name and text value of the child nodes.
-	 * 
-	 * Version	Date		Developer				Description
-	 * 0.1		29/03/2012	Genevieve Turner (GT)	Initial
-	 * 
-	 * @return A map containing the name and values of the child nodes
+	 * @return The description
 	 */
-	public Map<String, String> getChildValues() {
+	public String getDescription() {
+		return description_;
+	}
+
+	/**
+	 * Set the item description
+	 * 
+	 * @param description_ The description
+	 */
+	public void setDescription(String description_) {
+		this.description_ = description_;
+	}
+
+	/**
+	 * Get the child values
+	 * 
+	 * @return The child values
+	 */
+	public List<DataItem> getChildValues() {
 		return childValues_;
 	}
 
 	/**
-	 * setChildValues_
+	 * Set the child values
 	 * 
-	 * Sets the element name and text value of the child nodes.
-	 * 
-	 * Version	Date		Developer				Description
-	 * 0.1		29/03/2012	Genevieve Turner (GT)	Initial
-	 * 
-	 * @param childValues_ A map containing the name and values of the child nodes
+	 * @param childValues_  The child values
 	 */
-	public void setChildValues(Map<String, String> childValues_) {
+	public void setChildValues(List<DataItem> childValues_) {
 		this.childValues_ = childValues_;
 	}
 }

@@ -34,6 +34,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,7 +136,9 @@ public class SearchService
 	 */
 	@GET
 	@Produces(MediaType.TEXT_HTML)
-	public Response doGetAsHtml(@QueryParam("q") String q, @QueryParam("offset") int offset, @QueryParam("limit") int limit, @QueryParam("filter") String filter)
+	public Response doGetAsHtml(@QueryParam("q") String q, @QueryParam("offset") int offset, @QueryParam("limit") int limit
+			, @QueryParam("filter") String filter, @QueryParam("sort") String sortField,
+			@QueryParam("order") String sortOrder)
 	{
 		Response response = null;
 		
@@ -143,7 +146,17 @@ public class SearchService
 			Map<String, Object> model = new HashMap<String, Object>();
 			try {
 				LOGGER.info("User {} submitted search query [{}]", getCurUsername(), q);
-				SolrSearchResult solrSearchResult = solrSearch.executeSearch(q, offset, limit, filter);
+				SolrSearchResult solrSearchResult = null;
+				if (sortOrder != null && !"".equals(sortOrder)) {
+					ORDER order = ORDER.asc;
+					if ("desc".equals(sortOrder)) {
+						order = ORDER.desc;
+					}
+					solrSearchResult = solrSearch.executeSearch(q, offset, limit, filter, sortField, order);
+				}
+				else {
+					solrSearchResult = solrSearch.executeSearch(q, offset, limit, filter);
+				}
 				model.put("resultSet", solrSearchResult);
 			}
 			catch (SolrServerException e) {

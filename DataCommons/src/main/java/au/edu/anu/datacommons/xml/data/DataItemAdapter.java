@@ -21,9 +21,8 @@
 
 package au.edu.anu.datacommons.xml.data;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 import javax.xml.parsers.DocumentBuilder;
@@ -90,14 +89,21 @@ public class DataItemAdapter extends XmlAdapter<Element, DataItem> {
 		
 		Document document = getDocumentBuilder().newDocument();
 		Element element = document.createElement(dataItem.getName());
-		element.setTextContent(dataItem.getValue());
-		
-		// Populate the child nodes
-		for (Entry<String, String> entry : dataItem.getChildValues().entrySet()) {
-			Element childElement = document.createElement(entry.getKey());
-			childElement.setTextContent(entry.getValue());
-			element.appendChild(childElement);
+		if (dataItem.getDescription() != null) {
+			element.setAttribute("code", dataItem.getValue());
+			element.setTextContent(dataItem.getDescription());
 		}
+		else {
+			element.setTextContent(dataItem.getValue());
+		}
+		
+		for (DataItem item : dataItem.getChildValues()) {
+			Element childElement = marshal(item);
+			Node childNode = document.importNode(childElement, true);
+			
+			element.appendChild(childNode);
+		}
+		
 		return element;
 	}
 
@@ -124,25 +130,26 @@ public class DataItemAdapter extends XmlAdapter<Element, DataItem> {
 		
 		// Essentially check if it contains just a text node or not
 		if (childNodes.getLength() > 1) {
-			String key;
-			String value;
-			
 			// Map the child nodes
-			Map<String, String> childValues = new HashMap<String, String>();
-			for(int i = 0; i < childNodes.getLength(); i++) {
+			List<DataItem> childValues = new ArrayList<DataItem>();
+			for (int i = 0; i < childNodes.getLength(); i++) {
 				Node node = childNodes.item(i);
 				if(node.getNodeType() == Node.ELEMENT_NODE) {
 					Element childElement = (Element) node;
-					key = childElement.getLocalName();
-					value = childElement.getTextContent();
-					
-					childValues.put(key, value);
+					DataItem childItem = unmarshal(childElement);
+					childValues.add(childItem);
 				}
 			}
 			dataItem.setChildValues(childValues);
 		}
 		else {
-			dataItem.setValue(element.getTextContent());
+			if (element.hasAttribute("code")) {
+				dataItem.setValue(element.getAttribute("code"));
+				dataItem.setDescription(element.getTextContent());
+			}
+			else {
+				dataItem.setValue(element.getTextContent());
+			}
 		}
 		
 		return dataItem;

@@ -21,11 +21,10 @@
 
 package au.edu.anu.datacommons.doi;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.datacite.schema.kernel_2.DescriptionType;
 import org.datacite.schema.kernel_2.Resource;
@@ -148,10 +147,19 @@ public class DoiResourceAdapter
 		List<Creator> list = new ArrayList<Creator>();
 		List<DataItem> dataItems = sourceData.getElementByName("citCreator");
 		for (DataItem item : dataItems) {
-			Map<String, String> map = item.getChildValues();
-			if (map != null && !map.isEmpty()) {
+			if (item.getChildValues() != null && item.getChildValues().size() > 0) {
 				Creator c = new Creator();
-				c.setCreatorName(format("{0} {1}", map.get("citCreatorGiven"), map.get("citCreatorSurname")));
+				String creatorGiven = null;
+				String creatorSurname = null;
+				for (DataItem childItem : item.getChildValues()) {
+					if ("citCreatorGiven".equals(childItem.getName())) {
+						creatorGiven = childItem.getValue();
+					}
+					else if ("citCreatorSurname".equals(childItem.getName())) {
+						creatorSurname = childItem.getValue();
+					}
+				}
+				c.setCreatorName(format("{0} {1}", creatorGiven, creatorSurname));
 				list.add(c);
 			}
 		}

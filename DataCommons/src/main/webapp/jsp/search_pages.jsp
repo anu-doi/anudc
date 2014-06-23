@@ -9,6 +9,9 @@
 <c:set var="curPage" value="${(param.offset == null ? 0 : param.offset) / searchItemsPerPage}" />
 
 <c:if test="${it.resultSet.numFound > 0}">
+	<c:if test="${not empty param.limit}">
+		<c:set var="searchItemsPerPage" value="${param.limit}" />
+	</c:if>
 	<p class="text-centre">
 		Pages&nbsp;
 		<fmt:formatNumber var="numPages" value="${((it.resultSet.numFound - 1) / searchItemsPerPage) - (((it.resultSet.numFound - 1) / searchItemsPerPage) % 1)}" groupingUsed="false" />
@@ -24,6 +27,12 @@
 			</c:if>
 			<c:if test="${not empty param.filter}">
 				<c:param name="filter">${param.filter}</c:param>
+			</c:if>
+			<c:if test="${not empty param.sort}">
+				<c:param name="sort">${param.sort}</c:param>
+			</c:if>
+			<c:if test="${not empty param.order}">
+				<c:param name="order">${param.order}</c:param>
 			</c:if>
 			<c:forEach items="${paramValues['search-val']}" var="sValue">
 				<c:param name="search-val">${sValue}</c:param>
@@ -46,6 +55,12 @@
 				</c:if>
 				<c:if test="${not empty param.filter}">
 					<c:param name="filter">${param.filter}</c:param>
+				</c:if>
+				<c:if test="${not empty param.sort}">
+					<c:param name="sort">${param.sort}</c:param>
+				</c:if>
+				<c:if test="${not empty param.order}">
+					<c:param name="order">${param.order}</c:param>
 				</c:if>
 				<c:forEach items="${paramValues['search-val']}" var="sValue">
 					<c:param name="search-val">${sValue}</c:param>
@@ -76,6 +91,12 @@
 			</c:if>
 			<c:if test="${not empty param.filter}">
 				<c:param name="filter">${param.filter}</c:param>
+			</c:if>
+			<c:if test="${not empty param.sort}">
+				<c:param name="sort">${param.sort}</c:param>
+			</c:if>
+			<c:if test="${not empty param.order}">
+				<c:param name="order">${param.order}</c:param>
 			</c:if>
 			<c:forEach items="${paramValues['search-val']}" var="sValue">
 				<c:param name="search-val">${sValue}</c:param>

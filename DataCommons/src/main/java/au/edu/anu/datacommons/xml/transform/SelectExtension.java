@@ -72,19 +72,26 @@ public class SelectExtension {
 	 * @param value The selected value for the list
 	 * @return
 	 */
-	public static String getOptionValue(String codeType, NodeList nodeList, String value) {
+	public static String getOptionValue(String codeType, NodeList nodeList, String code, String value) {
 		String optionValue = null;
+		
+		LOGGER.info("getOptionValue - Code: {}, Value: {}", code, value);
+		
+		String selectedCode = code;
+		if (code == null || "".equals(code)) {
+			selectedCode = value;
+		}
 		// If its a group we should be checking the groups table
 		if ("ownerGroup".equals(codeType)) {
 			GenericDAO<Groups, Long> groupDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
-			Groups group = groupDAO.getSingleById(new Long(value));
+			Groups group = groupDAO.getSingleById(new Long(selectedCode));
 			optionValue = group.getGroup_name();
 		}
 		else {
 			// Otherwise we should be searching the select code table
 			SelectCodePK selectCodePK = new SelectCodePK();
 			selectCodePK.setSelect_name(codeType);
-			selectCodePK.setCode(value);
+			selectCodePK.setCode(selectedCode);
 
 			SelectCodeDAO selectCodeDAO = new SelectCodeDAOImpl();
 			SelectCode selectCode = selectCodeDAO.getSingleById(selectCodePK);
@@ -97,7 +104,7 @@ public class SelectExtension {
 			Node node = nodeList.item(i);
 			if (node.getNodeType() == Node.ELEMENT_NODE) {
 				Element elementNode = (Element) node;
-				if(elementNode.getAttribute("value").equals(value)) {
+				if(elementNode.getAttribute("value").equals(selectedCode)) {
 					optionValue = elementNode.getAttribute("label");
 				}
 				
@@ -125,7 +132,8 @@ public class SelectExtension {
 	 * @return A list of options
 	 */
 	public static String getOptions(String codeType, NodeList nodeList) {
-		return getOptions(codeType, nodeList, "");
+		LOGGER.info("getOptions - {} - No code/value", codeType);
+		return getOptions(codeType, nodeList, "", "");
 	}
 	
 	/**
@@ -143,9 +151,13 @@ public class SelectExtension {
 	 * @param value The selected value for the drop down list
 	 * @return A list of options
 	 */
-	public static String getOptions(String codeType, NodeList nodeList, String value) {
+	public static String getOptions(String codeType, NodeList nodeList, String code, String value) {
 		SelectAction selectAction = new SelectAction(codeType, nodeList);
-		String options = selectAction.formatOptions(value);
+		String selectedCode = code;
+		if (selectedCode == null || "".equals(selectedCode)) {
+			selectedCode = value;
+		}
+		String options = selectAction.formatOptions(selectedCode);
 		
 		return options;
 	}

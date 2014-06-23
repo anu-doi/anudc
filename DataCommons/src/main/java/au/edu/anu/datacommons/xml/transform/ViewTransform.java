@@ -58,8 +58,12 @@ import org.xml.sax.SAXException;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.SelectCodeDAO;
+import au.edu.anu.datacommons.data.db.dao.SelectCodeDAOImpl;
 import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.SelectCode;
+import au.edu.anu.datacommons.data.db.model.SelectCodePK;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.CustomUser;
@@ -72,6 +76,7 @@ import au.edu.anu.datacommons.xml.dc.DublinCoreConstants;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.template.TemplateColumn;
 import au.edu.anu.datacommons.xml.template.TemplateItem;
+import au.edu.anu.datacommons.xml.template.TemplateOption;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 import com.yourmediashelf.fedora.generated.access.DatastreamType;
@@ -259,7 +264,6 @@ public class ViewTransform
 					values.put("itemType", getObjectType(doc));
 					parameters.put("data", doc);
 					if (modifiedDocument != null) {
-						LOGGER.debug("Adding modified data");
 						parameters.put("modifiedData", modifiedDocument);
 					}
 				}
@@ -527,8 +531,8 @@ public class ViewTransform
 		Source xslSource = new StreamSource (xslStream);
 		Transformer transformer = transformerFactory.newTransformer(xslSource);
 		if (parameters != null) {
-			for ( Entry param : parameters.entrySet() ) {
-				transformer.setParameter(param.getKey().toString(), param.getValue());
+			for ( Entry<String, Object> param : parameters.entrySet() ) {
+				transformer.setParameter(param.getKey(), param.getValue());
 			}
 		}
 		transformer.transform(xmlSource, new StreamResult(sw));
@@ -706,13 +710,14 @@ public class ViewTransform
 		
 		getTemplateAndData(tmplt, fedoraObject, map);
 		Data data = (Data) map.get("data");
+	//	Template template = (Template) map.get("tmplt");
 		
 		for (Entry<String, String> entry : form.entrySet()) {
 			String key = entry.getKey();
 			if (!data.hasElement(key)) {
 				List<String> values = new ArrayList<String>();
 				values.add(entry.getValue());
-				processSingleItem(key, values, data);
+				processSingleItem(null, key, values, data);
 			}
 		}
 		
@@ -1094,10 +1099,10 @@ public class ViewTransform
 			return true;
 		}
 		if (item.getSaveType().equals("single")) {
-			processSingleItem(key, values, data);
+			processSingleItem(item, key, values, data);
 		}
 		else if (item.getSaveType().equals("multiple")) {
-			processMultipleItem(key, values, data);
+			processMultipleItem(item, key, values, data);
 		}
 		else if (item.getSaveType().equals("table")) {
 			processTableItem(item, data, form);
@@ -1122,15 +1127,12 @@ public class ViewTransform
 	 * @param data The data object to put data in
 	 * @return if the item has sucessfully been processed
 	 */
-	private boolean processSingleItem(String key, List values, Data data) {
+	private boolean processSingleItem(TemplateItem item, String key, List values, Data data) {
 		for (Object value : values) {
 			if (value instanceof String) {
 				String strValue = (String) value;
 				if (Util.isNotEmpty(strValue)) {
-					DataItem dataItem = new DataItem();
-					dataItem.setName(key);
-					// Unescape the html characters
-					dataItem.setValue(StringEscapeUtils.unescapeHtml(strValue));
+					DataItem dataItem = generateDataItem(item, key, strValue);
 					data.getItems().add(dataItem);
 					addedItems_.add(dataItem);
 				}
@@ -1138,6 +1140,73 @@ public class ViewTransform
 		}
 		processedValues_.add(key);
 		return true;
+	}
+	
+	/**
+	 * Generate a data item
+	 * @param item
+	 * @param key
+	 * @param value
+	 * @return
+	 */
+	private DataItem generateDataItem(TemplateItem item, String key, String value) {
+		DataItem dataItem = new DataItem();
+		dataItem.setName(key);
+		// Unescape the html characters
+		dataItem.setValue(StringEscapeUtils.unescapeHtml(value));
+		
+		//If it is an optioin then we want set the description
+		if (isOptionTemplateItem(item)) {
+			dataItem.setDescription(getOptionDescription(item, value));
+		}
+		return dataItem;
+	}
+	
+	/**
+	 * Check if the item has options (i.e. is a Combobox, multi combo box or radio button
+	 * 
+	 * @param item The template item
+	 * @return Indicates whether the item is an option
+	 */
+	private boolean isOptionTemplateItem(TemplateItem item) {
+		if (item == null) {
+			return false;
+		}
+		String fieldType = item.getFieldType();
+		if ("Combobox".equals(fieldType)) {
+			return true;
+		}
+		else if ("ComboBoxMulti".equals(fieldType)) {
+			return true;
+		}
+		else if ("RadioButton".equals(fieldType)) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Get the template option description
+	 * 
+	 * @param item The template item
+	 * @param value The code to find
+	 * @return
+	 */
+	private String getOptionDescription(TemplateItem item, String value) {
+		SelectCodePK selectCodePK = new SelectCodePK();
+		selectCodePK.setSelect_name(item.getName());
+		selectCodePK.setCode(value);
+		SelectCodeDAO selectCodeDAO = new SelectCodeDAOImpl();
+		SelectCode selectCode = selectCodeDAO.getSingleById(selectCodePK);
+		if (selectCode != null) {
+			return selectCode.getDescription();
+		}
+		for (TemplateOption option : item.getTemplateOptions()) {
+			if (value.equals(option.getValue())) {
+				return option.getLabel();
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -1156,15 +1225,12 @@ public class ViewTransform
 	 * @param data The data object to put data in
 	 * @return If the item has sucessfully been processed
 	 */
-	private boolean processMultipleItem(String key, List values, Data data) {
+	private boolean processMultipleItem(TemplateItem item, String key, List values, Data data) {
 		for (Object value : values) {
 			if (value instanceof String) {
 				String strValue = (String) value;
 				if (Util.isNotEmpty(strValue)) {
-					DataItem dataItem = new DataItem();
-					dataItem.setName(key);
-					// Unescape the html characters
-					dataItem.setValue(StringEscapeUtils.unescapeHtml(strValue));
+					DataItem dataItem = generateDataItem(item, key, strValue);
 					data.getItems().add(dataItem);
 					addedItems_.add(dataItem);
 				}
@@ -1216,7 +1282,14 @@ public class ViewTransform
 					}
 					if(Util.isNotEmpty(values.get(i))) {
 						// Unescape the html characters
-						tableData.get(i).getChildValues().put(columnName, StringEscapeUtils.unescapeHtml(values.get(i)));
+						DataItem childItem = new DataItem();
+						childItem.setName(columnName);
+						childItem.setValue(StringEscapeUtils.unescapeHtml(values.get(i)));
+						if (isOptionColumnItem(column)) {
+							String description = getOptionDescription(column, childItem.getValue());
+							childItem.setDescription(description);
+						}
+						tableData.get(i).getChildValues().add(childItem);
 					}
 				}
 			}
@@ -1233,5 +1306,52 @@ public class ViewTransform
 		data.getItems().addAll(tableData);
 		
 		return true;
+	}
+
+	/**
+	 * Check if the column is of an option type (i.e. Combobox, multi combobox, radio button)
+	 * 
+	 * @param column The column to check
+	 * @return Indicator whether it is an option column
+	 */
+	private boolean isOptionColumnItem(TemplateColumn column) {
+		if (column == null) {
+			return false;
+		}
+		String fieldType = column.getFieldType();
+		if ("Combobox".equals(fieldType)) {
+			return true;
+		}
+		else if ("ComboBoxMulti".equals(fieldType)) {
+			return true;
+		}
+		else if ("RadioButton".equals(fieldType)) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Get the template option description
+	 * 
+	 * @param item The template column
+	 * @param value The code to find
+	 * @return The description
+	 */
+	private String getOptionDescription(TemplateColumn column, String value) {
+		SelectCodePK selectCodePK = new SelectCodePK();
+		selectCodePK.setSelect_name(column.getName());
+		selectCodePK.setCode(value);
+		SelectCodeDAO selectCodeDAO = new SelectCodeDAOImpl();
+		SelectCode selectCode = selectCodeDAO.getSingleById(selectCodePK);
+		if (selectCode != null) {
+			return selectCode.getDescription();
+		}
+		for (TemplateOption option : column.getTemplateOptions()) {
+			if (value.equals(option.getValue())) {
+				return option.getLabel();
+			}
+		}
+		return null;
 	}
 }
