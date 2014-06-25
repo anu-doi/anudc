@@ -5,6 +5,8 @@
 	<xsl:param name="tmplt" />
 	<xsl:param name="data" />
 	<xsl:variable name="mData" select="$data" />
+	<xsl:variable name="ucLetters" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'" />
+	<xsl:variable name="lcLetters" select="'abcdefghijklmnopqrstuvwxyz'" />
 	
 	<xsl:template match="/">
 		<xsl:if test="$data != null"></xsl:if>
@@ -234,13 +236,19 @@
 				<xsl:for-each select="$mData/data/*[name() = $mName]">
 					<xsl:variable name="mCurrCode" select="@code" />
 					<xsl:variable name="mCurrValue" select="text()" />
-					<option value="{$mCurrCode}">
-						<xsl:variable name="mDesc" select="options:getOptionValue($mName, $mCurrent/option, $mCurrCode, $mCurrValue)" />
-						<xsl:attribute name="title">
-							<xsl:value-of select="$mDesc" />
-						</xsl:attribute>
-						<xsl:value-of select="$mDesc" />
-					</option>
+					<xsl:variable name="mDesc" select="options:getOptionValue($mName, $mCurrent/option, $mCurrCode, $mCurrValue)" />
+					<xsl:choose>
+						<xsl:when test="$mCurrCode != ''">
+							<option value="{$mCurrCode}" title="{$mDesc}">
+								<xsl:value-of select="$mDesc" />
+							</option>
+						</xsl:when>
+						<xsl:otherwise>
+							<option value="{$mCurrValue}" title="{$mDesc}">
+								<xsl:value-of select="$mDesc" />
+							</option>
+						</xsl:otherwise>
+					</xsl:choose>
 				</xsl:for-each>
 			</xsl:if>
 			<xsl:if test="$data = '' and @defaultValue != ''">
@@ -258,9 +266,11 @@
 		<xsl:param name="mCode" />
 		<xsl:variable name="mCurrent" select="." />
 		<xsl:variable name="mName" select="@name" />
+		<xsl:variable name="lcValue" select="translate($mValue, $ucLetters, $lcLetters)" />
+		<xsl:variable name="lcCode" select="translate($mCode, $ucLetters, $lcLetters)" />
 		<xsl:for-each select="option">
 			<input type="radio" name="{$mName}" value="{@value}">
-				<xsl:if test="@value = $mValue or @value = $mCode or $data = '' and @value = $mCurrent/@defaultValue">
+				<xsl:if test="@value = $mValue or @value = $mCode or @value = $lcValue or @value = $lcCode or $data = '' and @value = $mCurrent/@defaultValue">
 					<xsl:attribute name="checked">checked</xsl:attribute>
 				</xsl:if>
 			</input>

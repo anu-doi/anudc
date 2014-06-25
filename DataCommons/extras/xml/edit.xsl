@@ -3,6 +3,8 @@
 	<xsl:param name="data" />
 	<xsl:param name="fieldName" />
 	<xsl:variable name="mData" select="$data" />
+	<xsl:variable name="ucLetters" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'" />
+	<xsl:variable name="lcLetters" select="'abcdefghijklmnopqrstuvwxyz'" />
 	<xsl:template match="/">
 		<xsl:if test="$fieldName != ''">
 			<xsl:for-each select="template/item[@name=$fieldName]">
@@ -112,14 +114,6 @@
 				- No Value Selected -
 			</option>
 			<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@mName, ./option, $mCode, $mValue)"/>
-			<!-- <xsl:choose>
-				<xsl:when test="$mCode != ''">
-					<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@mName, ./option, $mCode)"/>
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:value-of disable-output-escaping="yes" select="options:getOptions(@mName, ./option, $mValue)"/>
-				</xsl:otherwise>
-			</xsl:choose> -->
 		</select>
 	</xsl:template>
 	
@@ -127,9 +121,11 @@
 		<xsl:param name="mValue" />
 		<xsl:param name="mCode" />
 		<xsl:variable name="mName" select="@name" />
+		<xsl:variable name="lcValue" select="translate($mValue, $ucLetters, $lcLetters)" />
+		<xsl:variable name="lcCode" select="translate($mCode, $ucLetters, $lcLetters)" />
 		<xsl:for-each select="option">
 			<input type="radio" name="{$mName}" value="{@value}">
-				<xsl:if test="@value = $mValue or @value = $mCode">
+				<xsl:if test="@value = $mValue or @value = $mCode or @value = $lcValue or @value = $lcCode">
 					<xsl:attribute name="checked">checked</xsl:attribute>
 				</xsl:if>
 			</input>

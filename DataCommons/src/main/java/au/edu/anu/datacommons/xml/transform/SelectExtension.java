@@ -75,7 +75,7 @@ public class SelectExtension {
 	public static String getOptionValue(String codeType, NodeList nodeList, String code, String value) {
 		String optionValue = null;
 		
-		LOGGER.info("getOptionValue - Code: {}, Value: {}", code, value);
+		LOGGER.debug("getOptionValue - Code: {}, Value: {}", code, value);
 		
 		String selectedCode = code;
 		if (code == null || "".equals(code)) {
@@ -132,7 +132,7 @@ public class SelectExtension {
 	 * @return A list of options
 	 */
 	public static String getOptions(String codeType, NodeList nodeList) {
-		LOGGER.info("getOptions - {} - No code/value", codeType);
+		LOGGER.debug("getOptions - {} - No code/value", codeType);
 		return getOptions(codeType, nodeList, "", "");
 	}
 	
