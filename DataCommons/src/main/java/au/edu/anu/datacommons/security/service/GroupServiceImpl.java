@@ -66,7 +66,7 @@ public class GroupServiceImpl implements GroupService {
 	 * @return Returns a list of groups
 	 */
 	public List<Groups> getAll() {
-		GenericDAOImpl genericDAO = new GenericDAOImpl(Groups.class);
+		GenericDAOImpl<Groups, Long> genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
 		List<Groups> groups = genericDAO.getAll();
 		return groups;
 	}
@@ -85,7 +85,7 @@ public class GroupServiceImpl implements GroupService {
 	 * @see au.edu.anu.datacommons.security.service.GroupService#getCreateGroups()
 	 */
 	public List<Groups> getCreateGroups() {
-		GenericDAOImpl genericDAO = new GenericDAOImpl(Groups.class);
+		GenericDAOImpl<Groups, Long> genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
 		List<Groups> groups = genericDAO.getAll();
 		return groups;
 	}
@@ -104,7 +104,7 @@ public class GroupServiceImpl implements GroupService {
 	 * @see au.edu.anu.datacommons.security.service.GroupService#getReviewGroups()
 	 */
 	public List<Groups> getReviewGroups() {
-		GenericDAOImpl genericDAO = new GenericDAOImpl(Groups.class);
+		GenericDAOImpl<Groups, Long> genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
 		List<Groups> groups = genericDAO.getAll();
 		return groups;
 	}
@@ -123,7 +123,7 @@ public class GroupServiceImpl implements GroupService {
 	 * @see au.edu.anu.datacommons.security.service.GroupService#getAllowModifyGroups()
 	 */
 	public List<Groups> getAllowModifyGroups() {
-		GenericDAOImpl genericDAO = new GenericDAOImpl(Groups.class);
+		GenericDAOImpl<Groups, Long> genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
 		List<Groups> groups = genericDAO.getAll();
 		return groups;
 	}
@@ -142,7 +142,7 @@ public class GroupServiceImpl implements GroupService {
 	 * @see au.edu.anu.datacommons.security.service.GroupService#getValidationGroups()
 	 */
 	public List<Groups> getValidationGroups() {
-		GenericDAOImpl genericDAO = new GenericDAOImpl(Groups.class);
+		GenericDAOImpl<Groups, Long> genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
 		List<Groups> groups = genericDAO.getAll();
 		return groups;
 	}
@@ -161,7 +161,7 @@ public class GroupServiceImpl implements GroupService {
 	 * @see au.edu.anu.datacommons.security.service.GroupService#getMultiplePublishGroups()
 	 */
 	public List<Groups> getMultiplePublishGroups() {
-		GenericDAOImpl genericDAO = new GenericDAOImpl(Groups.class);
+		GenericDAOImpl<Groups, Long> genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
 		List<Groups> groups = genericDAO.getAll();
 		return groups;
 	}

@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 
 <anu:header id="1998" title="Browse" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
@@ -27,30 +27,33 @@
 		<c:param name="field">${param.field}</c:param>
 		<c:param name="filter">published</c:param>
 	</c:url>
-	Show keywords for: 
-	<c:if test="${empty param.filter}">
-		<b>
-	</c:if>
-	<a href="${allURL}">All</a>
-	<c:if test="${empty param.filter}">
-		</b>
-	</c:if>
-	| 
-	<c:if test='${"team" == param.filter}'>
-		<b>
-	</c:if>
-	<a href="${teamURL}">Team</a>
-	<c:if test='${"team" == param.filter}'>
-		</b>
-	</c:if>
-	| 
-	<c:if test='${"published" == param.filter}'>
-		<b>
-	</c:if>
-	<a href="${publishedURL}">Published</a>
-	<c:if test='${"published" == param.filter}'>
-		</b>
-	</c:if>
+	
+	<sec:authorize access="isAuthenticated()">
+		Show keywords for: 
+		<c:if test="${empty param.filter}">
+			<b>
+		</c:if>
+		<a href="${allURL}">All</a>
+		<c:if test="${empty param.filter}">
+			</b>
+		</c:if>
+		| 
+		<c:if test='${"team" == param.filter}'>
+			<b>
+		</c:if>
+		<a href="${teamURL}">Team</a>
+		<c:if test='${"team" == param.filter}'>
+			</b>
+		</c:if>
+		| 
+		<c:if test='${"published" == param.filter}'>
+			<b>
+		</c:if>
+		<a href="${publishedURL}">Published</a>
+		<c:if test='${"published" == param.filter}'>
+			</b>
+		</c:if>
+	</sec:authorize>
 	<hr/>
 	<c:if test="${it.resultSet != null}">
 		<c:forEach items="${it.resultSet.facetFields}" var="facetField">
