@@ -389,6 +389,8 @@ public class ANDSValidate implements Validate{
 		
 		sparqlQuery.addTripleSet(tripleString.toString());
 		sparqlQuery.addTriple("?item", "<dc:type>", "?type", true);
+		//Ensure that the linked to item is active (i.e. it hasn't been deleted)
+		sparqlQuery.addTriple("?item", "<fedora-model:state>", "<fedora-model:Active>", false);
 		StringBuilder filterString = new StringBuilder();
 		
 		// Add the predicate filter

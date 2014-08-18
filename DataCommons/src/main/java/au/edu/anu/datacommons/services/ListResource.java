@@ -163,6 +163,8 @@ public class ListResource {
 			sparqlQuery.addVar("?title");
 			sparqlQuery.addTriple("?item", "<dc:title>", "?title", false);
 			sparqlQuery.addTriple("?item", "<dc:type>", "?type", false);
+			//Ensure that the linked to item is active (i.e. it hasn't been deleted)
+			sparqlQuery.addTriple("?item", "<fedora-model:state>", "<fedora-model:Active>", false);
 			String titleFilterString = "regex(str(?title), '" + title + "', 'i')";
 			sparqlQuery.addFilter(titleFilterString, "");
 			if (Util.isNotEmpty(type)) {

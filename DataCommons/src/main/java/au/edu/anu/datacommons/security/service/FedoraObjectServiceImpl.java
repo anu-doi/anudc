@@ -696,11 +696,12 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		
 		sparqlQuery.addTripleSet(tripleString.toString());
 		*/
+		//Ensure that the linked to item is active (i.e. it hasn't been deleted)
+		sparqlQuery.addTriple("?item", "<fedora-model:state>", "<fedora-model:Active>", false);
 		sparqlQuery.addTriple("?item", "<dc:title>", "?title", true);
 		sparqlQuery.addTriple("?item", "<dc:type>", "?type", true);
 		String filterString = "regex(str(?predicate), '" + GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI) + "', 'i')";
 		sparqlQuery.addFilter(filterString, "");
-		
 		ClientResponse respFromRiSearch = riSearchService.post("query", sparqlQuery.generateQuery());
 		
 		List<Result> resultList = getSparqlResultList(respFromRiSearch);
@@ -812,6 +813,8 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		sparqlQuery.addVar("?name");
 		sparqlQuery.addTriple("?item", "<dc:identifier>", "?id", Boolean.FALSE);
 		sparqlQuery.addTriple("?item", "<dc:title>", "?name", Boolean.FALSE);
+		//Ensure that the linked to item is active (i.e. it hasn't been deleted)
+		sparqlQuery.addTriple("?item", "<fedora-model:state>", "<fedora-model:Active>", Boolean.FALSE);
 		StringBuffer queryFilter = new StringBuffer();
 		for (FedoraObject fedoraObject : fedoraObjects) {
 			if (queryFilter.length() > 0) {
