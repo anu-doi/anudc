@@ -65,6 +65,7 @@ import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.SelectCode;
 import au.edu.anu.datacommons.data.db.model.SelectCodePK;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
+import au.edu.anu.datacommons.exception.DataCommonsException;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.CustomUser;
 import au.edu.anu.datacommons.util.Constants;
@@ -172,6 +173,13 @@ public class ViewTransform
 	{
 		Map<String, Object> values = new HashMap<String, Object>();
 		Map<String, Object> parameters = new HashMap<String, Object>();
+		
+		String state = FedoraBroker.getObjectState(fedoraObject.getObject_id());
+		LOGGER.debug("The item {} has a state of {}", fedoraObject.getObject_id(), state);
+		
+		if (!"A".equals(state)) {
+			throw new DataCommonsException(404, "The requested item has been deleted");
+		}
 		InputStream xmlStream = getXMLInputStream(template, fedoraObject);
 
 		if (xmlStream == null) {
@@ -209,7 +217,7 @@ public class ViewTransform
 				dataStream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_PUBLISHED);
 			}
 			else {
-				List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(fedoraObject.getObject_id()); //FedoraBroker.getDatastreamAsStream(pid, streamId)
+				List<DatastreamType> datastreamList = FedoraBroker.getDatastreamList(fedoraObject.getObject_id());
 				boolean hasXMLSource = false;
 				boolean hasXMLPublished = false;
 				boolean hasXMLReview = false;

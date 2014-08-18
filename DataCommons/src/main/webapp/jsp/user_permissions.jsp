@@ -48,6 +48,7 @@
 		<ul class="nobullet">
 			<li><input type="checkbox" name="group_perm" class="chk_perm" value="1" />READ</li>
 			<li><input type="checkbox" name="group_perm" class="chk_perm" value="2" />WRITE</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="8" />DELETE</li>
 			<li><input type="checkbox" name="group_perm" class="chk_perm" value="16" />ADMINISTRATION</li>
 			<li><input type="checkbox" name="group_perm" class="chk_perm" value="32" />REVIEW</li>
 			<li><input type="checkbox" name="group_perm" class="chk_perm" value="64" />PUBLISH</li>

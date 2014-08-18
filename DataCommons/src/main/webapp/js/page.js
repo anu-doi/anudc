@@ -155,3 +155,13 @@ jQuery(document).ready(function()
 		});
 	})(jQuery);
 });
+
+/**
+ * As the user to confirm whether they want to delete the item or not.
+ * 
+ * @returns true or false
+ */
+function confirmDelete() {
+	var r = confirm("Do you really want to delete this item?");
+	return r;
+}

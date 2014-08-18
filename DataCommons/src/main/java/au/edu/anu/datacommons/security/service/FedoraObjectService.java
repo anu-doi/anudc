@@ -233,6 +233,17 @@ public interface FedoraObjectService {
 	public FedoraObject saveEdit(FedoraItem item, Long rid) throws FedoraClientException, JAXBException;
 	
 	/**
+	 * delete
+	 * 
+	 * Set the status of the given object to deleted
+	 * 
+	 * @param fedoraObject The fedora object
+	 * @throws FedoraClientException
+	 */
+	@PreAuthorize("hasPermission(#fedoraObject, 'DELETE') or hasPermission(#fedoraObject, 'ADMINISTRATION')")
+	public void delete(FedoraObject fedoraObject) throws FedoraClientException;
+	
+	/**
 	 * addLink
 	 * 
 	 * Create a link between two items

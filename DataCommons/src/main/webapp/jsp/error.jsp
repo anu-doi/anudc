@@ -27,3 +27,4 @@
 		</c:otherwise>
 	</c:choose>
 </anu:content>
+<jsp:include page="footer.jsp" />

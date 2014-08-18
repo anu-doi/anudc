@@ -30,6 +30,8 @@ import java.util.Map.Entry;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -56,10 +58,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import au.edu.anu.datacommons.data.db.dao.UsersDAO;
-import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
-import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.exception.DataCommonsException;
 import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
@@ -421,6 +420,62 @@ public class DisplayResource
 				uriBuilder = uriBuilder.queryParam("style", style);
 			}
 		}
+		return Response.seeOther(uriBuilder.build()).build();
+	}
+	
+	/**
+	 * <p>Delete the item with the given pid.</p>
+	 * <p>Note: a post method is required as not all browsers support the delete http method for buttons on html forms</p>
+	 * 
+	 * @param pid The pid of the item to delete
+	 * @param layout THe layout
+	 * @return The response
+	 */
+	@POST
+	@Path("/delete/{item}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.TEXT_HTML)
+	public Response deleteItemPost(@PathParam("item") String pid, 
+			@QueryParam("layout") @DefaultValue("def:display") String layout) {
+		return deleteItem(pid, layout);
+	}
+	
+	/**
+	 * <p>Delete the item with the given pid.</p>
+	 * 
+	 * @param pid The pid of the item to delete
+	 * @param layout THe layout
+	 * @return The response
+	 */
+	@DELETE
+	@Path("/delete/{item}")
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.TEXT_HTML)
+	public Response deleteItemDelete(@PathParam("item") String pid, 
+			@QueryParam("layout") @DefaultValue("def:display") String layout) {
+		return deleteItem(pid, layout);
+	}
+	
+	/**
+	 * Delete the item with the given pid
+	 * 
+	 * @param pid The pid of the item to delete
+	 * @param layout The layout to return the user to
+	 * @return
+	 */
+	private Response deleteItem(String pid, String layout) {
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
+		LOGGER.info("Requested to delete item: {}", fedoraObject.getObject_id());
+		try {
+			fedoraObjectService.delete(fedoraObject);
+		}
+		catch (FedoraClientException e) {
+			LOGGER.error("Exception deleting object", e);
+			throw new DataCommonsException(Status.INTERNAL_SERVER_ERROR, "Exception deleting object");
+		}
+		UriBuilder uriBuilder = UriBuilder.fromPath("/display/").path(pid).queryParam("layout", layout);
 		return Response.seeOther(uriBuilder.build()).build();
 	}
 

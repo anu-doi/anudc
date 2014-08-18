@@ -32,6 +32,14 @@
 						<input type="button" id="reportButton" name="reportButton" value="Get Report" onclick="window.location='${reportLink}'" />
 					</p>
 				</sec:accesscontrollist>
+				<sec:accesscontrollist hasPermission="DELETE,ADMINISTRATION" domainObject="${it.fedoraObject}">
+					<c:url value="/rest/display/delete/${it.fedoraObject.object_id}" var="deleteLink" />
+					<p>
+						<form>
+							<button formmethod="post" formaction="${deleteLink}" onclick="return confirmDelete();">Delete</button>
+						</form>
+					</p>
+				</sec:accesscontrollist>
 				<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">
 					<c:set var="editBaseURL" value="/rest/display/edit/${it.fedoraObject.object_id}" />
 					<c:url value="${editBaseURL}" var="editLink">

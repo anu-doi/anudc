@@ -71,6 +71,7 @@
 		<anu:box style="solid">
 			<input type="checkbox" disabled="disabled" name="group_perm" class="chk_perm" value="1"/>READ<br/>
 			<input type="checkbox" disabled="disabled" name="group_perm" class="chk_perm" value="2"/>WRITE<br/>
+			<input type="checkbox" disabled="disabled" name="group_perm" class="chk_perm" value="8"/>DELETE<br/>
 			<input type="checkbox" disabled="disabled" name="group_perm" class="chk_perm" value="16"/>ADMINISTRATION<br/>
 			<input type="checkbox" disabled="disabled" name="group_perm" class="chk_perm" value="32"/>REVIEW<br/>
 			<input type="checkbox" disabled="disabled" name="group_perm" class="chk_perm" value="64"/>PUBLISH<br/>

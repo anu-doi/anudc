@@ -38,13 +38,16 @@ import com.yourmediashelf.fedora.client.FedoraCredentials;
 import com.yourmediashelf.fedora.client.request.AddDatastream;
 import com.yourmediashelf.fedora.client.request.AddRelationship;
 import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
+import com.yourmediashelf.fedora.client.request.GetObjectProfile;
 import com.yourmediashelf.fedora.client.request.Ingest;
 import com.yourmediashelf.fedora.client.request.ListDatastreams;
 import com.yourmediashelf.fedora.client.request.ModifyDatastream;
+import com.yourmediashelf.fedora.client.request.ModifyObject;
 import com.yourmediashelf.fedora.client.request.PurgeDatastream;
 import com.yourmediashelf.fedora.client.request.PurgeRelationship;
 import com.yourmediashelf.fedora.client.response.AddDatastreamResponse;
 import com.yourmediashelf.fedora.client.response.FedoraResponse;
+import com.yourmediashelf.fedora.client.response.GetObjectProfileResponse;
 import com.yourmediashelf.fedora.client.response.IngestResponse;
 import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
 import com.yourmediashelf.fedora.client.response.ModifyDatastreamResponse;
@@ -118,6 +121,7 @@ public class FedoraBroker {
 	 */
 	public static boolean addDatastreamBySource (String pid, String streamId, String label, String content) 
 			throws FedoraClientException {
+		@SuppressWarnings("unused")
 		AddDatastreamResponse sourceResponse = new AddDatastream(pid, streamId).controlGroup("X").dsLabel(label).content(content).mimeType(MediaType.TEXT_XML).execute(fedoraClient_);
 		return true;
 	}
@@ -140,6 +144,7 @@ public class FedoraBroker {
 	 */
 	public static boolean addDatastreamByReference (String pid, String streamId, String controlGroup, String label, String location) 
 			throws FedoraClientException {
+		@SuppressWarnings("unused")
 		AddDatastreamResponse sourceResponse = new AddDatastream(pid, streamId).controlGroup(controlGroup).dsLabel(label).dsLocation(location).mimeType(MediaType.TEXT_XML).execute(fedoraClient_);
 		return true;
 	}
@@ -161,6 +166,7 @@ public class FedoraBroker {
 	 */
 	public static boolean modifyDatastreamBySource (String pid, String streamId, String label, String content)
 			throws FedoraClientException {
+		@SuppressWarnings("unused")
 		ModifyDatastreamResponse sourceResponse = new ModifyDatastream(pid, streamId).dsLabel(label).content(content).execute(fedoraClient_);
 		return true;
 	}
@@ -182,6 +188,7 @@ public class FedoraBroker {
 	 */
 	public static boolean modifyDatastreamByReference (String pid, String streamId, String label, String location)
 			throws FedoraClientException {
+		@SuppressWarnings("unused")
 		ModifyDatastreamResponse sourceResponse = new ModifyDatastream(pid, streamId).dsLabel(label).dsLocation(location).execute(fedoraClient_);
 		return true;
 	}
@@ -200,10 +207,12 @@ public class FedoraBroker {
 	 * @throws FedoraClientException
 	 */
 	public static boolean addRelationships (String pid, List<FedoraReference> references) throws FedoraClientException {
+		@SuppressWarnings("unused")
 		PurgeDatastreamResponse purgeDatastreamResponse = new PurgeDatastream(pid, "RELS-EXT").execute(fedoraClient_);
 		
 		for (int i = 0; i < references.size(); i++) {
 			FedoraReference reference = references.get(i);
+			@SuppressWarnings("unused")
 			FedoraResponse relResponse = new AddRelationship(pid).predicate(reference.getPredicate_()).object(reference.getObject_()).isLiteral(reference.getIsLiteral_()).execute(fedoraClient_);
 		}
 		
@@ -225,6 +234,7 @@ public class FedoraBroker {
 	 */
 	public static boolean addRelationship (String pid, FedoraReference reference)
 			throws FedoraClientException {
+		@SuppressWarnings("unused")
 		FedoraResponse relResponse = new AddRelationship(pid).predicate(reference.getPredicate_()).object(reference.getObject_()).isLiteral(reference.getIsLiteral_()).execute(fedoraClient_);
 		
 		return true;
@@ -232,6 +242,7 @@ public class FedoraBroker {
 	
 	public static boolean removeRelationship (String pid, FedoraReference reference)
 			throws FedoraClientException {
+		@SuppressWarnings("unused")
 		FedoraResponse relResponse = new PurgeRelationship(pid).predicate(reference.getPredicate_()).object(reference.getObject_()).isLiteral(reference.getIsLiteral_()).execute(fedoraClient_);
 		
 		return true;
@@ -272,6 +283,34 @@ public class FedoraBroker {
 		ListDatastreamsResponse response = new ListDatastreams(pid).format("xml").execute(fedoraClient_);
 		return response.getDatastreams();
 	}
+	
+	/**
+	 * getObjectState
+	 * 
+	 * Get the state of the object
+	 * 
+	 * @param pid The pid of the object
+	 * @return The object state
+	 * @throws FedoraClientException
+	 */
+	public static String getObjectState(String pid) throws FedoraClientException {
+		GetObjectProfileResponse response = new GetObjectProfile(pid).format("xml").execute(fedoraClient_);
+		return response.getState();
+	}
+	
+	/**
+	 * updateObjectState
+	 * 
+	 * Update the state of the object
+	 * 
+	 * @param pid THe pid of the object
+	 * @param state The state to change the object to
+	 * @throws FedoraClientException
+	 */
+	public static void updateObjectState(String pid, String state) throws FedoraClientException {
+		@SuppressWarnings("unused")
+		FedoraResponse response = new ModifyObject(pid).state(state).execute(fedoraClient_);
+	}
 
 	/**
 	 * getClient
@@ -283,7 +322,7 @@ public class FedoraBroker {
 	 * <pre>
 	 * Version	Date		Developer			Description
 	 * 0.1		1/05/2012	Rahul Khanna (RK)	Initial
-	 * 0.2		8/05/2012	Rahul Khanna (RK)	Depricated method.
+	 * 0.2		8/05/2012	Rahul Khanna (RK)	Deprecated method.
 	 * </pre>
 	 * @return
 	 */
