@@ -173,12 +173,13 @@ public class ViewTransform
 	{
 		Map<String, Object> values = new HashMap<String, Object>();
 		Map<String, Object> parameters = new HashMap<String, Object>();
-		
-		String state = FedoraBroker.getObjectState(fedoraObject.getObject_id());
-		LOGGER.debug("The item {} has a state of {}", fedoraObject.getObject_id(), state);
-		
-		if (!"A".equals(state)) {
-			throw new DataCommonsException(404, "The requested item has been deleted");
+		if (fedoraObject != null) {
+			String state = FedoraBroker.getObjectState(fedoraObject.getObject_id());
+			LOGGER.debug("The item {} has a state of {}", fedoraObject.getObject_id(), state);
+			
+			if (!"A".equals(state)) {
+				throw new DataCommonsException(404, "The requested item has been deleted");
+			}
 		}
 		InputStream xmlStream = getXMLInputStream(template, fedoraObject);
 
