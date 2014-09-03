@@ -30,6 +30,7 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.acls.domain.AccessControlEntryImpl;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -52,6 +53,7 @@ import au.edu.anu.datacommons.data.db.dao.AclSidDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.AclSid;
+import au.edu.anu.datacommons.data.db.model.Domains;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.util.Util;
@@ -505,5 +507,72 @@ public class PermissionService {
 		}
 		
 		return false;
+	}
+	
+	/**
+	 * Initialize the permissions for a domain object.  This will create the domain object identity and 
+	 * assign READ, WRITE, DELETE, ADMINISTRATION, REVIEW and PUBLISH permissions to the domain for 
+	 * the Administrative role.
+	 * 
+	 * @param domain The domain to initialize permissions for
+	 */
+	public void initializeDomainPermissions(Domains domain) {
+		ObjectIdentity domain_oi = new ObjectIdentityImpl(Domains.class, domain.getId());
+		MutableAcl domainAcl = null;
+		
+		Sid adminSid = new GrantedAuthoritySid("ROLE_ADMIN");
+		
+		try {
+			domainAcl = (MutableAcl) aclService.readAclById(domain_oi);
+		}
+		catch (NotFoundException nfe) {
+			// If the domain does not exit in acl_object_identity add the row
+			domainAcl = aclService.createAcl(domain_oi);
+		}
+		domainAcl.setEntriesInheriting(true);
+		domainAcl.setOwner(adminSid);
+		domainAcl.insertAce(domainAcl.getEntries().size(), CustomACLPermission.READ, adminSid, true);
+		domainAcl.insertAce(domainAcl.getEntries().size(), CustomACLPermission.WRITE, adminSid, true);
+		domainAcl.insertAce(domainAcl.getEntries().size(), CustomACLPermission.DELETE, adminSid, true);
+		domainAcl.insertAce(domainAcl.getEntries().size(), CustomACLPermission.ADMINISTRATION, adminSid, true);
+		domainAcl.insertAce(domainAcl.getEntries().size(), CustomACLPermission.REVIEW, adminSid, true);
+		domainAcl.insertAce(domainAcl.getEntries().size(), CustomACLPermission.PUBLISH, adminSid, true);
+		aclService.updateAcl(domainAcl);
+	}
+	
+	/**
+	 * Initialize the group permissions.  This will create the object identity and assign the provided
+	 * domain to be the parent object.
+	 * 
+	 * @param group The group to initialize
+	 * @param domain The parent domain
+	 */
+	public void initializeGroupPermissions(Groups group, Domains domain) {
+		ObjectIdentity domain_oi = new ObjectIdentityImpl(Domains.class, domain.getId());
+		MutableAcl domainAcl = null;
+		
+		Sid adminSid = new GrantedAuthoritySid("ROLE_ADMIN");
+		
+		try {
+			domainAcl = (MutableAcl) aclService.readAclById(domain_oi);
+		}
+		catch (NotFoundException nfe) {
+			// If the domain does not exit in acl_object_identity add the row
+			domainAcl = aclService.createAcl(domain_oi);
+		}
+		
+		ObjectIdentity group_oi = new ObjectIdentityImpl(Groups.class, group.getId());
+		MutableAcl groupAcl = null;
+		
+		try {
+			groupAcl = (MutableAcl) aclService.readAclById(group_oi);
+		}
+		catch (NotFoundException nfe) {
+			groupAcl = aclService.createAcl(group_oi);
+		}
+		groupAcl.setEntriesInheriting(true);
+		groupAcl.setOwner(adminSid);
+		groupAcl.setParent(domainAcl);
+		aclService.updateAcl(groupAcl);
 	}
 }

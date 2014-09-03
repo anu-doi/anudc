@@ -61,9 +61,10 @@
 	</anu:submenu>
 	<sec:authorize access="hasRole('ROLE_ADMIN')">
 		<anu:submenu title="Admin">
+			<li><a href="<c:url value='/rest/admin/domains' />">Domain Administration</a></li>
+			<li><a href="<c:url value='/rest/admin/groups' />">Group Administration</a></li>
 			<li><a href="<c:url value='/rest/user/permissions' />">User Administration</a></li>
 			<li><a href="<c:url value='/rest/search/admin' />">Update Index</a></li>
-			<li><a href="<c:url value='/rest/pambu/admin' />">Pambu Administration</a></li>
 			<li><a href="<c:url value='/rest/reload' />">Reload</a></li>
 			<li><a href="<c:url value='/rest/report' />">Report</a></li>
 		</anu:submenu>
