@@ -295,8 +295,8 @@ public class StorageEventListener {
 		}
 		if (!Files.isDirectory(bagDir)) {
 			Files.createDirectory(bagDir);
-			initBagIt(pid);
 		}
+		initBagIt(pid);
 	}
 
 	/**
