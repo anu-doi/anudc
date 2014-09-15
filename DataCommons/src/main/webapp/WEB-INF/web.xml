@@ -135,6 +135,9 @@
 	<listener>
 		<listener-class>au.edu.anu.datacommons.report.ReportAppListener</listener-class>
 	</listener>
+	<listener>
+		<listener-class>au.edu.anu.datacommons.embargo.EmbargoAppListener</listener-class>
+	</listener>
 	<session-config>
 		<session-timeout>120</session-timeout>
 	</session-config>

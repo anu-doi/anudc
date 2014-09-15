@@ -53,6 +53,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import au.edu.anu.datacommons.data.db.dao.AccessLogRecordDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO;
+import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Users;
@@ -182,7 +184,13 @@ public class AbstractStorageResource {
 	 * @return true if both published and files public, false otherwise.
 	 */
 	protected boolean isPublishedAndPublic(FedoraObject fo) {
-		return fo.getPublished() && fo.isFilesPublic();
+		//If the embargo date has been passed we want to ensure that the record is marked as public.
+		if (!fo.isFilesPublic() && fo.getEmbargoDatePassed()) {
+			fo.setFilesPublic(Boolean.TRUE);
+			FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl();
+			fedoraObjectDAO.update(fo);
+		}
+		return fo.getPublished() && fo.isFilesPublic() && !fo.getEmbargoed() || fo.getEmbargoDatePassed();
 	}
 
 	protected void addAccessLog(AccessLogRecord.Operation op) throws IOException {

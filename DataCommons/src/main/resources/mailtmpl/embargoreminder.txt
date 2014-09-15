@@ -1,0 +1,9 @@
+Dear Sir/Madam,
+
+The item ${itemName} found at ${itemURL} has an embargo that is expiring on ${embargoExpiryDate}.  You have been identified as a contact for this record.  
+
+On this date the data for this item will be made public.  If you wish to modify the embargo lift date please update the embargo date and republish the record.
+
+Regards,
+
+The Australian National University Data Commons Team

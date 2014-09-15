@@ -180,6 +180,9 @@
 	<item name="dataLocation" label="Data Location" fieldType="TextArea" saveType="single" tab="management">
 		<tooltip>Include where the data is located&#xA;&#xA;Example:&#xA;This data is located at (URL or physical location)</tooltip>
 	</item>
+	<item name="embargoDate" label="Embargo Date" fieldType="TextField" saveType="single" tab="management" class="date">
+		<tooltip>If this collection is under embargo, please provide the embargo lift date&#xA;Example:&#xA;2020-01-01</tooltip>
+	</item>
 	<item name="dataRetention" label="Retention Period" fieldType="TextField" saveType="single" tab="management">
 		<tooltip>Include the period of time that the data must be retained. This must be in line with institutional/funding body or legistlative retention&#xA;&#xA;Examples:&#xA;7 years&#xA;&#xA;Until 31st December 2016&#xA;&#xA;Indefinately</tooltip>
 	</item>

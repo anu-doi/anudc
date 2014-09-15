@@ -107,15 +107,19 @@
 				</field>
 				
 				<xsl:for-each select="foxml:datastream[@CONTROL_GROUP='M' and @ID='XML_PUBLISHED']">
-					<xsl:variable name="docstr"><xsl:value-of select="$REPOSBASEURL" />/get/<xsl:value-of select="$PID" />/XML_PUBLISHED</xsl:variable>
-					<xsl:for-each select="document($docstr)/data/*">
+					<xsl:variable name="pubData" select="exts:getDatastreamXML($PID, $REPOSITORYNAME, @ID, $FEDORASOAP, $FEDORAUSER, $FEDORAPASS, $TRUSTSTOREPATH, $TRUSTSTOREPASS)" />
+					
+					<xsl:for-each select="$pubData/data/*">
 						<xsl:call-template name="fields">
 							<xsl:with-param name="fieldname">published</xsl:with-param>
 						</xsl:call-template>
 					</xsl:for-each>
-					<xsl:if test="document($docstr)/data/coverageDates">
+					<xsl:if test="$pubData/data/embargoDate">
+						<field name="published.calcEmbargoDate"><xsl:value-of select="concat($pubData/data/embargoDate,'T00:00:00Z')" /></field>
+					</xsl:if>
+					<xsl:if test="$pubData/data/coverageDates">
 						<field name="published.combinedDates">
-							<xsl:for-each select="document($docstr)/data/coverageDates">
+							<xsl:for-each select="$pubData/data/coverageDates">
 								<xsl:sort select="concat(dateFrom,'_', dateTo,'_', dateText)" />
 								<xsl:choose>
 									<xsl:when test="dateFrom != '' and dateTo != ''">
@@ -132,7 +136,7 @@
 							</xsl:for-each>
 						</field>
 						<field name="published.combinedDates.formatted">
-							<xsl:for-each select="document($docstr)/data/coverageDates">
+							<xsl:for-each select="$pubData/data/coverageDates">
 								<xsl:sort select="concat(dateFrom,'_', dateTo,'_', dateText)" />
 								<xsl:choose>
 									<xsl:when test="dateFrom != '' and dateTo != ''">

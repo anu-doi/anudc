@@ -21,7 +21,10 @@
 
 package au.edu.anu.datacommons.data.db.model;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -37,6 +40,19 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.data.solr.SolrUtils;
+import au.edu.anu.datacommons.data.solr.dao.SolrSearchDAO;
+import au.edu.anu.datacommons.data.solr.dao.SolrSearchDAOImpl;
+import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 
 
 
@@ -60,6 +76,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name="fedora_object")
 public class FedoraObject {
+	static final Logger LOGGER = LoggerFactory.getLogger(FedoraObject.class);
+	
 	private Long id;
 	private String object_id;
 	private Long group_id;
@@ -70,6 +88,8 @@ public class FedoraObject {
 	private PublishReady publishReady;
 	private ReviewReject reviewReject;
 	private Boolean isFilesPublic;
+	private Boolean embargoed;
+	private Date embargoDate;
 	
 	public FedoraObject() {
 		publishedLocations = new ArrayList<PublishLocation>();
@@ -373,5 +393,79 @@ public class FedoraObject {
 	 */
 	public void setFilesPublic(Boolean isFilesPublic) {
 		this.isFilesPublic = isFilesPublic;
+	}
+	
+	/**
+	 * Get the embargo date if it exists
+	 * 
+	 * @return The embargo date
+	 */
+	@Transient
+	public Date getEmbargoDate() {
+		if (embargoDate == null) {
+			SolrQuery solrQuery = new SolrQuery();
+			String q = "id:" + SolrUtils.escapeSpecialCharacters(this.getObject_id());
+			solrQuery.setQuery(q);
+			solrQuery.setFields("published.embargoDate");
+			SolrSearchDAO solrSearchDAO = new SolrSearchDAOImpl();
+			try {
+				SolrSearchResult result = solrSearchDAO.executeSearch(solrQuery);
+				SolrDocumentList documentList = result.getDocumentList();
+				long numFound = documentList.getNumFound();
+				if (numFound > 0) {
+					SolrDocument doc = documentList.get(0);
+					String embargoDateStr = (String) doc.getFirstValue("published.embargoDate");
+					if (embargoDateStr != null) {
+						LOGGER.info("Embargo date string: {}", embargoDateStr);
+						SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+						embargoDate = sdf.parse(embargoDateStr);
+					}
+				}
+			}
+			catch (SolrServerException | ParseException e) {
+				LOGGER.info("Exception retrieving embargo date: {}", e);
+			}
+		}
+		return embargoDate;
+	}
+	
+	/**
+	 * Get whether or not the embargo date has passed
+	 * 
+	 * @return Whether the embargo date has passed
+	 */
+	@Transient
+	public Boolean getEmbargoDatePassed() {
+		Date embargoDate = getEmbargoDate();
+		if (embargoDate != null) {
+			Date now = new Date();
+			if (embargoDate.compareTo(now) <= 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Get whether the record is embargoed
+	 * 
+	 * @return Whether the item is embargoed
+	 */
+	@Transient
+	public Boolean getEmbargoed() {
+		LOGGER.info("Embargoed value: {}", embargoed);
+		if (embargoed == null) {
+			embargoed = false;
+			boolean passed = getEmbargoDatePassed();
+			LOGGER.info("Embargo date passed value: {}", passed);
+			Date embargoDate = getEmbargoDate();
+			if (embargoDate != null) {
+				Date now = new Date();
+				if (embargoDate.compareTo(now) > 0) {
+					embargoed = true;
+				}
+			}
+		}
+		return embargoed;
 	}
 }

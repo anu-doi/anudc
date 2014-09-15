@@ -610,6 +610,7 @@
    <field name="unpublished.combinedAuthors" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="unpublished.externalId" type="string" indexed="true" stored="true" multiValued="true" />
    <field name="published.externalId" type="string" indexed="true" stored="true" multiValued="true" />
+   <field name="published.calcEmbargoDate" type="date" index="true" stored="true" multiValued="false" />
    <field name="template.name" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="template.type" type="text_general" indexed="true" stored="true" multiValued="false" />
    <field name="template.briefDesc" type="text_general" indexed="true" stored="true" multiValued="false" />

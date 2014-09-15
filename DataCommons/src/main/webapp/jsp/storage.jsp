@@ -3,6 +3,7 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <anu:header id="1998" title="${it.fo.object_id}" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur"
 	respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
@@ -278,8 +279,18 @@
 					<th>Public</th>
 					<td><c:out value="${it.isFilesPublic}" />&nbsp;
 						<sec:accesscontrollist hasPermission="PUBLISH,ADMINISTRATION" domainObject="${it.fo}">
-							<a href="javascript:void(0);" onclick="toggleIsFilesPublic('${it.fo.object_id}', '${it.isFilesPublic}')">Change</a>
+							<c:choose>
+								<c:when test="${it.fo.embargoDatePassed}">
+									<br/>(Please note that as the embargo lift date has passed to change this value the embargo date will need to be changed/removed and the record republished)
+								</c:when>
+								<c:otherwise>
+									<a href="javascript:void(0);" onclick="toggleIsFilesPublic('${it.fo.object_id}', '${it.isFilesPublic}')">Change</a>
+								</c:otherwise>
+							</c:choose>
 						</sec:accesscontrollist>
+						<c:if test="${it.isFilesPublic and it.fo.embargoed}">
+						(But embargoed until <fmt:formatDate value="${it.fo.embargoDate}" pattern="dd MMM yyyy" />)
+						</c:if>
 					</td>
 				</tr>
 				<c:forEach var="iEntry" items="${it.bagInfoTxt}">
