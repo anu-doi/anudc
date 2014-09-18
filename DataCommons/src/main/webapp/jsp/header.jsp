@@ -38,6 +38,7 @@
 		</sec:authorize>
 		<sec:authorize access="hasRole('ROLE_ANU_USER')">
 			<li><a href="<c:url value='/rest/list/template' />">New</a></li>
+			<li><a href="<c:url value='/rest/extmetadata' />">Import</a></li>
 			<fmt:bundle basename='global'>
 				<fmt:message var="rejectedTitle" key="review.rejected.title" />
 				<fmt:message var="reviewReadyTitle" key="review.reviewready.title" />

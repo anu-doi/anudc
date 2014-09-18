@@ -141,4 +141,9 @@
 		<constructor-arg name="reminderDays" value="${embargo.reminder.days}" />
 	</bean>
 	<bean id="embargoLifter" class="au.edu.anu.datacommons.embargo.EmbargoLifter" />
+	
+	<bean id="client" class="com.sun.jersey.api.client.Client" factory-method="create"></bean>
+	
+	<bean id="metadataProviderGitHub" class="au.edu.anu.datacommons.external.github.MetadataProviderGitHub"></bean>
+	
 </beans>

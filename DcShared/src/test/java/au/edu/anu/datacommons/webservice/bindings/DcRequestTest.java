@@ -227,8 +227,6 @@ public class DcRequestTest
 		coll.setSignificanceStatement("This collection is significant");
 		coll.setBriefDesc("Brief Description of this collection.");
 		coll.setFullDesc("Full description of this collection.");
-		coll.setCitationType("AMA");
-		coll.setCitationText("Some citation text as per AMA.");
 
 		Publication pub1 = new Publication();
 		pub1.setIdType("issn");
