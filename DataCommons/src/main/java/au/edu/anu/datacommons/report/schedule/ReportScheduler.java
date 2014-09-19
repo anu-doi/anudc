@@ -29,12 +29,14 @@ import javax.servlet.ServletContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
+import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.model.ReportAuto;
+import au.edu.anu.datacommons.util.AppContext;
 
 /**
  * ReportScheduler
@@ -118,9 +120,13 @@ public class ReportScheduler {
 		TimeZone tz = TimeZone.getDefault();
 		LOGGER.info("Setting up report {} to execute with cron string: '{}'", reportAuto.getReportId(), reportAuto.getCron());
 		CronTrigger trigger = new CronTrigger(reportAuto.getCron(), tz);
-		
-		ConcurrentTaskScheduler scheduler = new ConcurrentTaskScheduler();
-		
+
+		ApplicationContext appContext = AppContext.getApplicationContext();
+		TaskScheduler scheduler = (TaskScheduler) appContext.getBean("taskScheduler");
+		if (scheduler == null) {
+			LOGGER.error("Unable to schedule automated report {} with id of {} as scheduler was not found", reportAuto.getReportId(), reportAuto.getId());
+			return;
+		}
 		ReportRunnable runnable = new ReportRunnable(reportAuto, context);
 		
 		ScheduledFuture<?> future = scheduler.schedule(runnable, trigger);

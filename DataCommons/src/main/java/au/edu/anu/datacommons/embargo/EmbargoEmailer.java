@@ -33,7 +33,6 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import au.edu.anu.datacommons.collectionrequest.Email;
@@ -41,7 +40,6 @@ import au.edu.anu.datacommons.data.solr.dao.SolrSearchDAO;
 import au.edu.anu.datacommons.data.solr.dao.SolrSearchDAOImpl;
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.properties.GlobalProps;
-import au.edu.anu.datacommons.util.AppContext;
 
 import com.ibm.icu.util.Calendar;
 
@@ -67,17 +65,9 @@ public class EmbargoEmailer implements Runnable {
 	/**
 	 * Constructor
 	 */
-	public EmbargoEmailer() {
-		days = -1;
-		String reminderDays = GlobalProps.getProperty("embargo.reminder.days");
-		if (reminderDays != null && !"".equals(reminderDays)) {
-			days = Integer.parseInt(reminderDays);
-			LOGGER.info("Number of days before an embargo lift date that a reminder is sent: {}", days);
-		}
-		ApplicationContext appContext = AppContext.getApplicationContext();
-		if (Boolean.parseBoolean(GlobalProps.getProperty(GlobalProps.PROP_EMAIL_DEBUG_SEND, "true"))) {
-			this.mailSender = (JavaMailSenderImpl) appContext.getBean("mailSender");
-		}
+	public EmbargoEmailer(JavaMailSenderImpl mailSender, int reminderDays) {
+		this.days = reminderDays;
+		this.mailSender = mailSender;
 	}
 
 	@Override

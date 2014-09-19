@@ -21,6 +21,7 @@
 package au.edu.anu.datacommons.embargo;
 
 import org.junit.Test;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 /**
  * EmbargoEmailerTest
@@ -38,7 +39,8 @@ import org.junit.Test;
 public class EmbargoEmailerTest {
 	@Test
 	public void test(){
-		EmbargoEmailer embargoEmailer = new EmbargoEmailer();
+		JavaMailSenderImpl mailSender = null;
+		EmbargoEmailer embargoEmailer = new EmbargoEmailer(mailSender, 3);
 		embargoEmailer.run();
 	}
 }
