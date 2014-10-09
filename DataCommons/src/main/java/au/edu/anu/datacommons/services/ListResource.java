@@ -30,11 +30,10 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.solr.client.solrj.SolrQuery.ORDER;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -44,13 +43,13 @@ import org.springframework.stereotype.Component;
 import au.edu.anu.datacommons.data.db.dao.LinkRelationDAO;
 import au.edu.anu.datacommons.data.db.dao.LinkRelationDAOImpl;
 import au.edu.anu.datacommons.data.db.model.LinkRelation;
+import au.edu.anu.datacommons.data.db.model.Template;
 import au.edu.anu.datacommons.data.solr.dao.SolrSearchDAO;
-import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
-import au.edu.anu.datacommons.exception.DataCommonsException;
 import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
+import au.edu.anu.datacommons.security.service.TemplateService;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.client.ClientResponse;
@@ -91,6 +90,9 @@ public class ListResource {
 	@Resource(name="solrSearchDAOImpl")
 	SolrSearchDAO solrSearch;
 	
+	@Resource
+	TemplateService templateService;
+	
 	/**
 	 * getTemplates
 	 * 
@@ -120,18 +122,25 @@ public class ListResource {
 		
 		Map<String, Object> model = new HashMap<String, Object>();
 
-		try {
-			SolrSearchResult solrSearchResult = solrSearch.executeSearch("", offset, limit, "template", "id", ORDER.asc);
-			solrSearchResult.getDocumentList().size();
-			model.put("resultSet", solrSearchResult);
-			response = Response.ok(new Viewable("/listtemplate.jsp", model)).build();
-		}
-		catch(SolrServerException e) {
-			LOGGER.error("Exception querying field");
-			throw new DataCommonsException(500, "Error retrieving the list of templates");
-		}
+		List<Template> templates = templateService.getTemplates();
+		int toVal = Math.min(templates.size(), offset + limit);
+		LOGGER.info("Number of templates: {}, Start: {}, End: {}", templates.size(), offset, toVal);
+		templates = templates.subList(offset, toVal);
+		model.put("templates", templates);
+		response = Response.ok(new Viewable("/listtemplate.jsp", model)).build();
 		
 		return response;
+	}
+	
+	@GET
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("template")
+	public Response getTemplates() {
+		List<Template> templates = templateService.getTemplates();
+		GenericEntity<List<Template>> entity = new GenericEntity<List<Template>>(templates) {};
+		
+		return Response.ok(entity).build();
 	}
 
 	/**

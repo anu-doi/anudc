@@ -16,12 +16,17 @@
 		Published to:<br />
 		${it.message}<br />
 	</c:if>
-	<form id="form" method="post" action="">
-		<c:forEach items="${it.publishLocations}" var="publishLocation">
-			<input type="checkbox" name="publish" value="${publishLocation.id}" />${publishLocation.code} - ${publishLocation.name} <br />
-		</c:forEach>
-		<input id="publishSubmit" type="submit" value="Publish" />
-	</form>
+	<c:if test="${not empty it.publishLocations}">
+		<form id="form" method="post" action="">
+			<c:forEach items="${it.publishLocations}" var="publishLocation">
+				<input type="checkbox" name="publish" value="${publishLocation.id}" />${publishLocation.code} - ${publishLocation.name} <br />
+			</c:forEach>
+			<input id="publishSubmit" type="submit" value="Publish" />
+		</form>
+	</c:if>
+	<c:if test="${empty it.publishLocations}">
+		You do not have permission to publish to any locations for this item.
+	</c:if>
 </anu:content>
 
 

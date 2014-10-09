@@ -11,7 +11,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublenarrow">
+<anu:content layout="doublewide">
 	<div id="divSearchResults">
 		<c:if test="${it.resultSet != null}">
 			<hr />
@@ -24,6 +24,12 @@
 			<jsp:include page="/jsp/search_pages.jsp">
 				<jsp:param value="/rest/list/template" name="searchURLPart"/>
 			</jsp:include>
+		</c:if>
+		<c:if test="${it.templates != null}">
+			<c:forEach items="${it.templates}" var="template">
+				<a href="<c:url value='/rest/display/new?layout=def:new&tmplt=${template.templatePid}' />">${template.name}</a><br/>
+				${template.description}<br/><br/>
+			</c:forEach>
 		</c:if>
 	</div>
 </anu:content>

@@ -18,51 +18,42 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-
-package au.edu.anu.datacommons.data.db.dao;
+package au.edu.anu.datacommons.security.service;
 
 import java.util.List;
 
-import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import org.springframework.security.access.prepost.PostFilter;
+
+import au.edu.anu.datacommons.data.db.model.Template;
 
 /**
- * PublishLocationDAO
  * 
+ * TemplateService
+ *
  * Australian National University Data Commons
  * 
- * PublishLocationDAOTest
+ * Service class for retrieving templates
  *
- * JUnit Coverage:
- * PublishLocationDAOTest
+ * JUnit coverage:
+ * None
  * 
- * <pre>
- * Version	Date		Developer				Description
- * 0.1		28/03/2013	Genevieve Turner (GT)	Initial
- * </pre>
+ * @author Genevieve Turner
  *
  */
-public interface PublishLocationDAO extends GenericDAO<PublishLocation, Long> {
+public interface TemplateService {
 	/**
-	 * getByCode
-	 *
-	 * Gets the Publish Location by with the given code
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		28/03/2013	Genevieve Turner(GT)	Initial
-	 * </pre>
+	 * Get the templates
 	 * 
-	 * @param code The code to retrieve the publish location for
-	 * @return The publish location
+	 * @return The list of templates
 	 */
-	public PublishLocation getByCode(String code);
+	@PostFilter("hasPermission(filterObject, 'WRITE')")
+	public List<Template> getTemplates();
 	
 	/**
-	 * getAllWithTemplates
+	 * Get the templates the specified user has permission to
 	 * 
-	 * Gets all the publish locations, and at the same time fetching their templates
-	 * 
-	 * @return The publish locations
+	 * @param username The username of the user
+	 * @return The list of templates
 	 */
-	public List<PublishLocation> getAllWithTemplates();
+	public List<Template> getTemplatesForUser(String username);
 }

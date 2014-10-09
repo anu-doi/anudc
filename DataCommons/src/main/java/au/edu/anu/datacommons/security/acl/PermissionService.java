@@ -30,7 +30,6 @@ import javax.annotation.Resource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.acls.domain.AccessControlEntryImpl;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
@@ -243,6 +242,36 @@ public class PermissionService {
 	}
 	
 	/**
+	 * checkPermission
+	 * 
+	 * Check the permission of the object
+	 * 
+	 * @param clazz The class of the object
+	 * @param id THe id of the object
+	 * @param permission The permission to check
+	 * @return Indicates whether the logged in user has the given permission
+	 */
+	public boolean checkPermission(Class<?> clazz, Long id, Permission permission) {
+		boolean hasPermission = false;
+		
+		List<Sid> sidList = getAuthenticatedSidList();
+
+		ObjectIdentity objectIdentity = new ObjectIdentityImpl(clazz, id);
+		
+		Acl acl = null;
+		try {
+			acl = aclService.readAclById(objectIdentity, sidList);
+			
+			hasPermission = acl.isGranted(Arrays.asList(permission), sidList, false);
+		}
+		catch (NotFoundException e) {
+			LOGGER.debug("User doesn't have permissions");
+		}
+		
+		return hasPermission;
+	}
+	
+	/**
 	 * getCreatePermissions
 	 *
 	 * This method has been created as the Spring Security post filters do not appear to work
@@ -352,7 +381,7 @@ public class PermissionService {
 	 * @param username The username to save permissions for
 	 * @param masks The masks of the permissions to save
 	 */
-	public void saveUserPermissions(Long id, String username, List<Integer> masks) {
+	public void saveUserPermissionsForGroup(Long id, String username, List<Integer> masks) {
 		// This code is here due to a exception with Transaction must be running
 		// On the updateAcl action if the acl_sid row does not exist
 		// There may be something in the spring security framework that can be used instead
@@ -391,6 +420,62 @@ public class PermissionService {
 			}
 		}
 		aclService.updateAcl(groupAcl);
+	}
+	
+	/**
+	 * saveUserPermissions
+	 * 
+	 * Assign permissions to the given user for the provided objects
+	 * 
+	 * @param clazz The class of the items to save permissions for
+	 * @param ids The id's of the items to save permissions for
+	 * @param idsToRemove The ids of the objects to remove
+	 * @param username The username
+	 * @param permission The permission
+	 */
+	public void saveUserPermissions(Class<?> clazz, List<Long> ids, List<Long> idsToRemove, String username, Permission permission) {
+		AclSidDAO aclSidDAO = new AclSidDAOImpl();
+		AclSid aclSid = aclSidDAO.getAclSidByUsername(username);
+		if (aclSid == null) {
+			aclSid = new AclSid();
+			aclSid.setPrincipal(Boolean.TRUE);
+			aclSid.setSid(username);
+			aclSidDAO.create(aclSid);
+		}
+
+		Sid sid = new PrincipalSid(username);
+		MutableAcl acl = null;
+		
+		for (Long id : idsToRemove) {
+			ObjectIdentity objectIdentity = new ObjectIdentityImpl(clazz, id);
+			try {
+				acl = (MutableAcl) aclService.readAclById(objectIdentity);
+				List<AccessControlEntry> entries = acl.getEntries();
+
+				for (int i = entries.size()-1; i >= 0; i--) {
+					AccessControlEntry entry = entries.get(i);
+					if (entry.getSid().equals(sid)) {
+						acl.deleteAce(i);
+					}
+				}
+				aclService.updateAcl(acl);
+			}
+			catch (NotFoundException e) {
+				
+			}
+		}
+		for (Long id : ids) {
+			ObjectIdentity objectIdentity = new ObjectIdentityImpl(clazz, id);
+			try {
+				acl = (MutableAcl) aclService.readAclById(objectIdentity);
+
+				acl.insertAce(acl.getEntries().size(), permission, sid, true);
+				aclService.updateAcl(acl);
+			}
+			catch (NotFoundException e) {
+				
+			}
+		}
 	}
 	
 	/**

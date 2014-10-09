@@ -34,10 +34,30 @@
 		</fieldset>
 	</form>
 	<div id="peopleList" class="w-doublewide"></div>
+	<sec:authorize ifAnyGranted="ROLE_ADMIN">
+		<div id="permissions2" class="w-wide right">
+			<p>
+			Allow publishing to locations:
+			<ul class="nobullet bdr-solid">
+				<c:forEach items="${it.publishLocations}" var="location">
+					<li><input type="checkbox" name="publish_location" class="chk_location" value="${location.id}" />${location.name}</li>
+				</c:forEach>
+			</ul>
+			</p>
+			<p>
+			Allow the use of templates:
+			<ul class="nobullet bdr-solid">
+				<c:forEach items="${it.templates}" var="template">
+					<li><input type="checkbox" name="template" class="chk_template" value="${template.id}" />${template.name}</li>
+				</c:forEach>
+			</ul>
+			</p>
+		</div>
+	</sec:authorize>
 	<div id="updateGroups" class="w-wide">
 		<p>Allowable groups to modify permissions for:</p>
 		<p>
-			<select id="groups" size="10" style="width: 300px">
+			<select id="groups" size="10" style="width: 100%">
 				<c:forEach items="${it.groups}" var="group">
 					<option value="${group.id}">${group.group_name} [${group.id}]</option>
 				</c:forEach>
@@ -45,7 +65,7 @@
 		</p>
 	</div>
 	<div id="permissions" class="w-wide">
-		<ul class="nobullet">
+		<ul class="nobullet bdr-solid">
 			<li><input type="checkbox" name="group_perm" class="chk_perm" value="1" />READ</li>
 			<li><input type="checkbox" name="group_perm" class="chk_perm" value="2" />WRITE</li>
 			<li><input type="checkbox" name="group_perm" class="chk_perm" value="8" />DELETE</li>

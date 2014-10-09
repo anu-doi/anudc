@@ -122,10 +122,11 @@ public class PublishResource {
 	@Path("{item}")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
-	public Response getPublishers() {
+	public Response getPublishers(@PathParam("item") String pid) {
 		LOGGER.info("User {} requested publish location selection page.", getCurUsername());
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 		
-		List<PublishLocation> publishLocations = publishService.getPublishers();
+		List<PublishLocation> publishLocations = publishService.getPublishers(fedoraObject);
 		
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("publishLocations", publishLocations);

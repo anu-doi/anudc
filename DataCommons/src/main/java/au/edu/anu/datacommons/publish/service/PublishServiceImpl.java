@@ -42,6 +42,7 @@ import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.model.Permission;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +50,8 @@ import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.PublishLocationDAO;
+import au.edu.anu.datacommons.data.db.dao.PublishLocationDAOImpl;
 import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
@@ -56,6 +59,7 @@ import au.edu.anu.datacommons.data.db.model.PublishLocation;
 import au.edu.anu.datacommons.data.db.model.PublishReady;
 import au.edu.anu.datacommons.data.db.model.ReviewReady;
 import au.edu.anu.datacommons.data.db.model.ReviewReject;
+import au.edu.anu.datacommons.data.db.model.Template;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.data.solr.SolrManager;
@@ -311,11 +315,48 @@ public class PublishServiceImpl implements PublishService {
 	 * @see au.edu.anu.datacommons.publish.service.PublishService#getPublishers()
 	 */
 	public List<PublishLocation> getPublishers() {
-		GenericDAO<PublishLocation, Long> publishDAO = new GenericDAOImpl<PublishLocation, Long>(PublishLocation.class);
+		PublishLocationDAO publishDAO = new PublishLocationDAOImpl();
 		
 		List<PublishLocation> publishLocations = publishDAO.getAll();
 		
 		return publishLocations;
+	}
+	
+	@Override
+	public List<PublishLocation> getPublishers(FedoraObject fedoraObject) {
+		PublishLocationDAO publishDAO = new PublishLocationDAOImpl();
+		List<PublishLocation> publishLocations = publishDAO.getAllWithTemplates();
+		List<PublishLocation> removeLocations = new ArrayList<PublishLocation>();
+		boolean hasTemplate = false;
+		for (PublishLocation location : publishLocations) {
+			if (location.getTemplates() != null) {
+				for (Template template : location.getTemplates()) {
+					if (template.getTemplatePid().equals(fedoraObject.getTmplt_id())) {
+						hasTemplate = true;
+					}
+				}
+			}
+			if (!hasTemplate) {
+				removeLocations.add(location);
+			}
+			hasTemplate = false;
+		}
+		publishLocations.removeAll(removeLocations);
+		
+		return publishLocations;
+	}
+
+	@Override
+	public List<PublishLocation> getPublishers(String username) {
+		List<PublishLocation> publishLocations = getPublishers();
+		List<PublishLocation> publishLocationsWithPermission = new ArrayList<PublishLocation>();
+		for (PublishLocation location : publishLocations) {
+			List<Permission> permission = permissionService.getListOfPermission(PublishLocation.class, location.getId(), username);
+			if (permission.contains(CustomACLPermission.PUBLISH)) {
+				publishLocationsWithPermission.add(location);
+			}
+		}
+		return publishLocationsWithPermission;
 	}
 	
 	/**
@@ -336,7 +377,6 @@ public class PublishServiceImpl implements PublishService {
 	 */
 	public List<String> publish(FedoraObject fedoraObject, List<String> publishers) throws ValidateException {
 		List<PublishLocation> publishLocations = getPublishLocationsFromList(publishers);
-		
 		return publishObject(fedoraObject, publishLocations);
 	}
 	
@@ -455,6 +495,7 @@ public class PublishServiceImpl implements PublishService {
 	 */
 	@PreAuthorize("hasPermission(#fedoraObject, 'PUBLISH')")
 	private List<String> publishObject(FedoraObject fedoraObject, List<PublishLocation> publishers) throws ValidateException {
+		verifyHasPublishPermissionsForLocations(fedoraObject, publishers);
 		prePublish(fedoraObject);
 		
 		List<String> locations = new ArrayList<String>();
@@ -505,6 +546,41 @@ public class PublishServiceImpl implements PublishService {
 		removeReviewReject(fedoraObject);
 		
 		return locations;
+	}
+	
+	/**
+	 * Verify whether the user actually has permissions to publish to the given location
+	 * 
+	 * @param fedoraObject The item to publish
+	 * @param publishLocations The locations to verify
+	 * @throws ValidateException
+	 */
+	private void verifyHasPublishPermissionsForLocations(FedoraObject fedoraObject, List<PublishLocation> publishLocations) throws ValidateException {
+		List<PublishLocation> templatePublishLocations = getPublishers(fedoraObject);
+		if (!templatePublishLocations.containsAll(publishLocations)) {
+			publishLocations.removeAll(templatePublishLocations);
+			List<String> messageList = new ArrayList<String>();
+			messageList.add("The item cannot be published to the following location(s):");
+			for (PublishLocation location : publishLocations) {
+				messageList.add(location.getName());
+			}
+			throw new ValidateException(messageList);
+		}
+		
+		List<PublishLocation> unpublishableLocations = new ArrayList<PublishLocation>();
+		for (PublishLocation location : publishLocations) {
+			if (!permissionService.checkPermission(PublishLocation.class, location.getId(), CustomACLPermission.PUBLISH)) {
+				unpublishableLocations.add(location);
+			}
+		}
+		if (unpublishableLocations.size() > 0) {
+			List<String> messageList = new ArrayList<String>();
+			messageList.add("You do not have permission to publish to the following location(s):");
+			for (PublishLocation location : unpublishableLocations) {
+				messageList.add(location.getName());
+			}
+			throw new ValidateException(messageList);
+		}
 	}
 	
 	/**

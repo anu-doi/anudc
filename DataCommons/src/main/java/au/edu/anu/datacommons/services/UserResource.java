@@ -23,6 +23,7 @@ package au.edu.anu.datacommons.services;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,7 @@ import javax.annotation.Resource;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -43,7 +45,6 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -70,6 +71,8 @@ import au.edu.anu.datacommons.data.db.dao.UsersDAO;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.Authorities;
 import au.edu.anu.datacommons.data.db.model.Groups;
+import au.edu.anu.datacommons.data.db.model.PublishLocation;
+import au.edu.anu.datacommons.data.db.model.Template;
 import au.edu.anu.datacommons.data.db.model.UserRegistered;
 import au.edu.anu.datacommons.data.db.model.UserRequestPassword;
 import au.edu.anu.datacommons.data.db.model.Users;
@@ -78,9 +81,12 @@ import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.ldap.LdapPerson;
 import au.edu.anu.datacommons.ldap.LdapRequest;
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.publish.service.PublishService;
 import au.edu.anu.datacommons.security.CustomUser;
+import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.GroupService;
+import au.edu.anu.datacommons.security.service.TemplateService;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.view.Viewable;
@@ -114,6 +120,12 @@ public class UserResource {
 
 	@Resource(name = "groupServiceImpl")
 	GroupService groupService;
+	
+	@Resource(name = "publishServiceImpl")
+	PublishService publishService;
+	
+	@Resource(name="templateServiceImpl")
+	TemplateService templateService;
 
 	@Resource(name = "permissionService")
 	PermissionService permissionService;
@@ -171,9 +183,16 @@ public class UserResource {
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ANU_USER')")
 	public Response getPermissionsPage() {
 		Map<String, Object> model = new HashMap<String, Object>();
-
+		
 		List<Groups> groups = groupService.getAllowModifyGroups();
 		model.put("groups", groups);
+		
+		List<PublishLocation> publishLocations = publishService.getPublishers();
+		model.put("publishLocations", publishLocations);
+		
+		List<Template> templates = templateService.getTemplates();
+		model.put("templates", templates);
+		
 		return Response.ok(new Viewable("/user_permissions.jsp", model)).build();
 	}
 
@@ -204,6 +223,32 @@ public class UserResource {
 			maskList.add(permission.getMask());
 		}
 		return maskList;
+	}
+	
+	@GET
+	@Path("permissions/template")
+	@PreAuthorize("isAuthenticated()")
+	public List<Long> getTemplatePermissions(@QueryParam("username") String username) {
+		LOGGER.debug("Request for user {} for template permissions", username);
+		List<Template> templates = templateService.getTemplatesForUser(username);
+		
+		List<Long> templateIds = new ArrayList<Long>();
+		for (Template template : templates) {
+			templateIds.add(template.getId());
+		}
+		
+		return templateIds;
+	}
+	
+	@GET
+	@Path("permissions/publish-location")
+	public List<Long> getPublishLocationPermissions(@QueryParam("username") String username) {
+		List<PublishLocation> publishLocations = publishService.getPublishers(username);
+		List<Long> locationIds = new ArrayList<Long>();
+		for (PublishLocation location : publishLocations) {
+			locationIds.add(location.getId());
+		}
+		return locationIds;
 	}
 
 	/**
@@ -257,8 +302,59 @@ public class UserResource {
 				permissions.add(Integer.valueOf(mask));
 			}
 		}
-		permissionService.saveUserPermissions(id, username, permissions);
+		permissionService.saveUserPermissionsForGroup(id, username, permissions);
 		return "{\"response\": \"Permission Updated\"}";
+	}
+	
+	@POST
+	@Path("permissions")
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces(MediaType.APPLICATION_JSON)
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ANU_USER')")
+	public String updateUserPermissions(@FormParam("group_id") Long groupId, @FormParam("group_perm[]") List<Integer> groupPermissions,
+			@FormParam("publish_location[]") List<Long> publishLocations, @FormParam("template[]") List<Long> templates,
+			@FormParam("username") String username) {
+		if (groupId == null && groupPermissions != null && groupPermissions.size() > 0) {
+			LOGGER.error("No group defined for the permissions");
+			throw new ValidateException("No group defined for the permissions");
+		}
+		
+		if (groupId != null) {
+			List<Groups> groups = groupService.getAllowModifyGroups();
+			boolean hasGroupPermission = false;
+			for (int i = 0; !hasGroupPermission && i < groups.size(); i++) {
+				if (groups.get(i).getId().equals(groupId)) {
+					hasGroupPermission = true;
+				}
+			}
+			if (!hasGroupPermission) {
+				LOGGER.error("{} does not have permissions to update group {}", SecurityContextHolder.getContext()
+						.getAuthentication().getName(), groupId);
+				throw new ValidateException("You do not have permissions to update the group");
+			}
+			
+			permissionService.saveUserPermissionsForGroup(groupId, username, groupPermissions);
+		}
+		Collection<GrantedAuthority> grantedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+		if (grantedAuthorities.contains(new GrantedAuthorityImpl("ROLE_ADMIN"))) {
+			if (templates != null) {
+				List<Template> templateObjects = templateService.getTemplatesForUser(username);
+				List<Long> existingTemplateIds = new ArrayList<Long>();
+				for (Template template : templateObjects) {
+					existingTemplateIds.add(template.getId());
+				}
+				permissionService.saveUserPermissions(Template.class, templates, existingTemplateIds, username, CustomACLPermission.WRITE);
+			}
+			if (publishLocations != null) {
+				List<PublishLocation> publishLocationObjects = publishService.getPublishers(username);
+				List<Long> existingLocationIds = new ArrayList<Long>();
+				for (PublishLocation location: publishLocationObjects) {
+					existingLocationIds.add(location.getId());
+				}
+				permissionService.saveUserPermissions(PublishLocation.class, publishLocations, existingLocationIds, username, CustomACLPermission.PUBLISH);
+			}
+		}
+		return "{\"response\": \"Permissions Updated\"}";
 	}
 
 	/**

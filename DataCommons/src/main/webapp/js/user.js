@@ -13,6 +13,7 @@ jQuery(document).ready(function () {
 	jQuery("#message").hide();
 	jQuery("#updateGroups").hide();
 	jQuery("#permissions").hide();
+	jQuery("#permissions2").hide();
 });
 
 /**
@@ -56,6 +57,7 @@ jQuery("#findPeople").live('click', function() {
 	jQuery("#message").hide();
 	jQuery("#updateGroups").hide();
 	jQuery("#permissions").hide();
+	jQuery("#permissions2").hide();
 	jQuery.ajax({
 		url: "/DataCommons/rest/user/find",
 		dataType: "json",
@@ -99,11 +101,39 @@ jQuery("input[name='username']").live('click', function() {
 	jQuery(".chk_perm").attr('checked',false);
 	jQuery("#updateGroups").show();
 	jQuery("#permissions").show();
+	jQuery("#permissions2").show();
 	jQuery("#message").hide();
 	var selGroup = jQuery("#groups").val();
 	if (selGroup) {
 		jQuery("#groups").click();
 	}
+	jQuery(".chk_template").attr('checked', false);
+	jQuery(".chk_location").attr('checked', false);
+	var username = jQuery("input[name='username']:checked").val();
+	jQuery.ajax({
+		url: "/DataCommons/rest/user/permissions/template",
+		data: {
+			username: username
+		},
+		dataType: "json",
+		success: function(data) {
+			jQuery.map(data, function(item, i) {
+				jQuery(".chk_template[value=" + item + "]").attr('checked', true);
+			});
+		}
+	});
+	jQuery.ajax({
+		url: "/DataCommons/rest/user/permissions/publish-location",
+		data: {
+			username: username
+		},
+		dataType: "json",
+		success: function(data) {
+			jQuery.map(data, function(item, i) {
+				jQuery(".chk_location[value=" + item + "]").attr('checked', true);
+			});
+		}
+	});
 });
 
 /**
@@ -113,28 +143,44 @@ jQuery("input[name='username']").live('click', function() {
  * 0.1		20/08/2012	Genevieve Turner	Initial
  */
 jQuery("#updatePerm").live('click', function(){
-	var value = jQuery("#groups").val();
-	var url = "/DataCommons/rest/user/permissions/" + value;
+	var groupId = jQuery("#groups").val();
+	if (jQuery.isEmptyObject(groupId)) {
+		console.log('Object empty');
+		groupId = '';
+	}
 	var username = jQuery("input[name='username']:checked").val();
 	var permissions = new Array();
 	jQuery("input[name='group_perm']:checked").each(function(i) {
 		permissions.push(jQuery(this).val());
 	});
+	var publishPermissions = new Array();
+	jQuery("input[name='publish_location']:checked").each(function(i) {
+		publishPermissions.push(jQuery(this).val());
+	});
+	var templatePermissions = new Array();
+	jQuery("input[name='template']:checked").each(function(i) {
+		templatePermissions.push(jQuery(this).val());
+	});
 	jQuery("#message").hide();
 	jQuery.ajax({
-		url: url,
+		url: "/DataCommons/rest/user/permissions/",
 		type: 'POST',
 		dataType: "json",
 		data: {
 			username: username,
+			group_id: groupId,
 			group_perm: permissions,
+			publish_location: publishPermissions,
+			template: templatePermissions,
 		},
 		success: function(data,textStatus,jqXHR) {
+			jQuery("#message").removeClass("msg-error");
 			jQuery("#message").addClass("msg-success");
 			jQuery("#message").text("User permissions updated.");
 			jQuery("#message").show();
 		},
 		error: function(jqXHR, textStatus, errorThrown) {
+			jQuery("#message").removeClass("msg-success");
 			jQuery("#message").addClass("msg-error");
 			jQuery("#message").text("Error updating user permissions");
 			jQuery("#message").show();

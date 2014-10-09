@@ -125,9 +125,30 @@ public interface PublishService {
 	 * 0.1		10/12/2012	Genevieve Turner(GT)	Initial
 	 * </pre>
 	 * 
-	 * @return Returns a viewable of publishers
+	 * @return A list of publishers
 	 */
 	public List<PublishLocation> getPublishers();
+	
+	/**
+	 * getPublishers
+	 * 
+	 * Returns a list of publishers
+	 * 
+	 * @param fedoraObject
+	 * @return A list of publishers
+	 */
+	@PostFilter("hasPermission(filterObject,'PUBLISH')")
+	public List<PublishLocation> getPublishers(FedoraObject fedoraObject);
+	
+	/**
+	 * getPublishers
+	 * 
+	 * Returns a list of pbulishers
+	 * 
+	 * @param username The username of the user to retrieve publishers for
+	 * @return A list of publishers
+	 */
+	public List<PublishLocation> getPublishers(String username);
 	
 	/**
 	 * publishMultiple

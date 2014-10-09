@@ -21,6 +21,8 @@
 
 package au.edu.anu.datacommons.data.db.dao;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
@@ -91,5 +93,19 @@ public class PublishLocationDAOImpl extends GenericDAOImpl<PublishLocation, Long
 			entityManager.close();
 		}
 		return location;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<PublishLocation> getAllWithTemplates() {
+		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		List<PublishLocation> objects = null;
+		try {
+			objects = entityManager.createQuery("SELECT DISTINCT pl from PublishLocation pl join fetch pl.templates").getResultList();
+		}
+		finally {
+			entityManager.close();
+		}
+		return objects;
 	}
 }

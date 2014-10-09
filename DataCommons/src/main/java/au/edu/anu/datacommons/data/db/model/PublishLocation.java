@@ -57,59 +57,178 @@ public class PublishLocation {
 	private String execute_class;
 	private Long requires;
 	private List<FedoraObject> fedoraObjects;
+	private List<Template> templates;
 	
+	/**
+	 * Get the id
+	 * 
+	 * @return The id
+	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public Long getId() {
 		return id;
 	}
 	
+	/**
+	 * Set the id
+	 * 
+	 * @param id  The id
+	 */
 	public void setId(Long id) {
 		this.id = id;
 	}
 
+	/**
+	 * Get the code
+	 * 
+	 * @return The code
+	 */
 	@Column(name="code")
 	public String getCode() {
 		return code;
 	}
 
+	/**
+	 * Set the code
+	 * 
+	 * @param code The code
+	 */
 	public void setCode(String code) {
 		this.code = code;
 	}
 
+	/**
+	 * Get the name
+	 * 
+	 * @return The name
+	 */
 	@Column(name="name")
 	public String getName() {
 		return name;
 	}
 	
+	/**
+	 * Set the name
+	 * 
+	 * @param name The name
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	/**
+	 * Get the execution class
+	 * 
+	 * @return The execution class
+	 */
 	@Column(name="execute_class")
 	public String getExecute_class() {
 		return execute_class;
 	}
 
+	/**
+	 * Set the execution class
+	 * 
+	 * @param execute_class The execution class
+	 */
 	public void setExecute_class(String execute_class) {
 		this.execute_class = execute_class;
 	}
 	
+	/**
+	 * Get the id of another publish location that is required for this object (unused)
+	 * 
+	 * @return The required publish location id
+	 */
 	@Column(name="requires")
 	public Long getRequires() {
 		return requires;
 	}
 	
+	/**
+	 * Set the id of another publish location that is required for this object (unused)
+	 * 
+	 * @param requires The required publish location id
+	 */
 	public void setRequires(Long requires) {
 		this.requires = requires;
 	}
 	
+	/**
+	 * Get the fedora objects that have been published to this location
+	 * 
+	 * @return The fedora objects
+	 */
 	@ManyToMany(mappedBy="publishedLocations", fetch=FetchType.LAZY)
 	public List<FedoraObject> getFedoraObjects() {
 		return fedoraObjects;
 	}
 
+	/**
+	 * Set the fedora objects that have been published to this location
+	 * 
+	 * @param fedoraObjects The fedora objects
+	 */
 	public void setFedoraObjects(List<FedoraObject> fedoraObjects) {
 		this.fedoraObjects = fedoraObjects;
+	}
+
+	/**
+	 * Get the templates that can be published to this location
+	 * 
+	 * @return The templates
+	 */
+	@ManyToMany(mappedBy="publishLocations", fetch=FetchType.LAZY)
+	public List<Template> getTemplates() {
+		return templates;
+	}
+
+	/**
+	 * Set the templates that can be published to this location
+	 * 
+	 * @param templates The templates
+	 */
+	public void setTemplates(List<Template> templates) {
+		this.templates = templates;
+	}
+	
+	@Override
+	public int hashCode() {
+		int result = 17;
+		result = 37 * result + getId().hashCode();
+		result = 37 * result + getCode().hashCode();
+		result = 37 * result + getName().hashCode();
+		result = 37 * result + getExecute_class().hashCode();
+		result = 37 * result + getRequires().hashCode();
+		return result;
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		if (this == other) {
+			return true;
+		}
+		if (other == null) {
+			return false;
+		}
+		if (!(other instanceof PublishLocation)) {
+			return false;
+		}
+		PublishLocation castOther = (PublishLocation) other;
+		
+		//return (this.getCode().equals(castOther.getCode()))
+		return (
+				((getId() == null && castOther.getId() == null) 
+						|| (getId() != null && getId().equals(castOther.getId()))) &&
+				((getCode() == null && castOther.getCode() == null) 
+						|| (getCode() != null && getCode().equals(castOther.getCode()))) &&
+				((getName() == null && castOther.getName() == null) 
+						|| (getName() != null && getName().equals(castOther.getName()))) &&
+				((getExecute_class() == null && castOther.getExecute_class() == null) 
+						|| (getExecute_class() != null && getExecute_class().equals(castOther.getExecute_class()))) &&
+				((getRequires() == null && castOther.getRequires() == null) 
+						|| (getRequires() != null && getRequires().equals(castOther)))
+				);
 	}
 }
