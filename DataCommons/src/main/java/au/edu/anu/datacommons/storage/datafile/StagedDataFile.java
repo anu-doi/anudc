@@ -19,27 +19,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.tagfiles;
+package au.edu.anu.datacommons.storage.datafile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+
+import au.edu.anu.datacommons.storage.messagedigest.FileMessageDigests;
 
 /**
- * Tag file class for preserve.txt . This file maps payload files to their preservation format file. 
- * 
  * @author Rahul Khanna
  *
  */
-public class PreservationMapTagFile extends AbstractKeyValueFile {
-	private static final long serialVersionUID = 1L;
-	public static final String FILEPATH = "preserve.txt";
-
-	public PreservationMapTagFile(InputStream stream) throws IOException {
-		super(stream);
-	}
-
-	@Override
-	public String getFilepath() {
-		return FILEPATH;
-	}
+public interface StagedDataFile {
+	public Path getPath();
+	
+	public InputStream getStream() throws IOException;
+	
+	public long getSize() throws IOException;
+	
+	public FileMessageDigests getMessageDigests();
 }

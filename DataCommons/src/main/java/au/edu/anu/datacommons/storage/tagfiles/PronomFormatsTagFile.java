@@ -21,8 +21,8 @@
 
 package au.edu.anu.datacommons.storage.tagfiles;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Tag file class for pronom-formats.txt . This file contains FIDO results for payload files.
@@ -35,8 +35,8 @@ public class PronomFormatsTagFile extends AbstractKeyValueFile {
 	
 	public static final String FILEPATH = "pronom-formats.txt";
 
-	public PronomFormatsTagFile(File tagFile) throws IOException {
-		super(tagFile);
+	public PronomFormatsTagFile(InputStream stream) throws IOException {
+		super(stream);
 	}
 	
 	@Override

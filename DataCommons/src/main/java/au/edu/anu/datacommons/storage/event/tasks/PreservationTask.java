@@ -22,13 +22,14 @@
 package au.edu.anu.datacommons.storage.event.tasks;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.Semaphore;
 
-import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.completer.preserve.PreservationFormatConverter;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
@@ -44,11 +45,8 @@ public class PreservationTask extends AbstractTagFileTask {
 	private static Semaphore permit = new Semaphore(1);
 	public static final String PRESERVATION_PATH = "data/.preserve/";
 
-	private DcStorage dcStorageSvc;
-
-	public PreservationTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc, DcStorage dcStorageSvc) {
-		super(pid, bagDir, relPath, tagFilesSvc);
-		this.dcStorageSvc = dcStorageSvc;
+	public PreservationTask(String pid, StorageProvider storageProvider, String relPath, TagFilesService tagFilesSvc) {
+		super(pid, storageProvider, relPath, tagFilesSvc);
 	}
 
 	@Override
@@ -64,19 +62,19 @@ public class PreservationTask extends AbstractTagFileTask {
 		try {
 			permit.acquire();
 			Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
-			PreservationFormatConverter pfc = new PreservationFormatConverter(this.absFilepath.toFile(),
-					tempDir.toFile());
+			InputStream fileStream = storageProvider.readStream(this.pid,
+					this.relPath);
+			PreservationFormatConverter pfc = new PreservationFormatConverter(this.relPath, fileStream, tempDir.toFile());
 			NormaliserResults results = pfc.convert();
 			if (results != null) {
 				Path convertedFileInTemp = Paths.get(results.getDestinationDirString(), results.getOutputFileName());
-	
-				String presvRelpath = this.dataPrependedRelPath
-						.toString()
-						.replaceFirst("data/", PRESERVATION_PATH)
-						.replaceFirst(this.absFilepath.getFileName().toString() + "$",
-								results.getOutputFileName());
-				UploadedFileInfo srcFileInfo = new UploadedFileInfo(convertedFileInTemp, Files.size(convertedFileInTemp), null);
-				this.dcStorageSvc.addHiddenFile(pid, srcFileInfo, presvRelpath.replaceFirst("data/", ""));
+
+				String searchRegEx = storageProvider.getFileInfo(this.pid, this.relPath).getFilename() + "$";
+				String presvRelpath = this.dataPrependedRelPath.replaceFirst("data/", PRESERVATION_PATH)
+						.replaceFirst(searchRegEx, results.getOutputFileName());
+				UploadedFileInfo srcFileInfo = new UploadedFileInfo(convertedFileInTemp,
+						Files.size(convertedFileInTemp), null);
+				storageProvider.addFile(pid, presvRelpath.replaceFirst("data/", ""), srcFileInfo);
 				tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath, presvRelpath);
 			} else {
 				tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, this.dataPrependedRelPath, "UNCONVERTIBLE");

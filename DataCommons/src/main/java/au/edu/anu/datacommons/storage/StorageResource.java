@@ -25,6 +25,7 @@ import static java.text.MessageFormat.format;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -51,8 +52,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
-import au.edu.anu.datacommons.storage.info.RecordDataInfo;
-import au.edu.anu.datacommons.storage.verifier.VerificationResults;
+import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.info.RecordDataSummary;
+import au.edu.anu.datacommons.storage.provider.StorageException;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
@@ -217,9 +219,9 @@ public class StorageResource extends AbstractStorageResource {
 
 		path = appendSeparator(path);
 		try {
-			dcStorage.createPayloadDir(pid, path);
+			storageController.addDir(pid, path);
 			resp = Response.created(getUri(pid, path)).build();
-		} catch (IOException e) {
+		} catch (IOException | StorageException e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.serverError().entity(e.getMessage()).build();
 		}
@@ -264,18 +266,25 @@ public class StorageResource extends AbstractStorageResource {
 		Response resp = null;
 		
 		Map<String, Object> model = new HashMap<String, Object>();
-		if (!dcStorage.bagExists(pid)) {
+		try {
+			if (!storageController.dirExists(pid, "")) {
+				throw new NotFoundException();
+			}
+		} catch (StorageException e1) {
 			throw new NotFoundException();
 		}
 
 		try {
-			if (task.equals("verify")) {
-				VerificationResults results = dcStorage.verifyBag(pid);
-				model.put("results", results);
-				resp = Response.ok(new Viewable("/verificationresults.jsp", model)).build();
-			} else if (task.equals("complete")) {
-				dcStorage.recompleteBag(pid);
-			}
+//			if (task.equals("verify")) {
+//				VerificationResults results = dcStorage.verifyBag(pid);
+//				model.put("results", results);
+//				resp = Response.ok(new Viewable("/verificationresults.jsp", model)).build();
+//			} else if (task.equals("complete")) {
+//				dcStorage.recompleteBag(pid);
+//			}
+			
+			// TODO Implement this.
+			throw new UnsupportedOperationException();
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.serverError().entity(e.getMessage()).build();
@@ -312,25 +321,37 @@ public class StorageResource extends AbstractStorageResource {
 
 		Map<String, Object> model = new HashMap<String, Object>();
 		try {
-			if (path == null || path.length() == 0 || dcStorage.dirExists(pid, path)) {
+			if (path == null || path.length() == 0 || storageController.dirExists(pid, path)) {
 				LOGGER.info("User {} ({}) requested list of files in {}/data/{}", getCurUsername(), getRemoteIp(), pid, path);
-				RecordDataInfo rdi = dcStorage.getDirLimitedRecordDataInfo(pid, path);
+				RecordDataSummary rdi = storageController.getRecordDataSummary(pid);
+				FileInfo fileInfo = null;
+				if (storageController.dirExists(pid, "")) {
+					fileInfo = storageController.getFileInfo(pid, path);
+				}
+				
+				List<FileInfo> parents = new ArrayList<FileInfo>();
+				for (FileInfo parent = fileInfo; parent != null && parent.getParent() != null; parent = parent.getParent()) {
+					parents.add(0, parent);
+				}
+				
 				if (template != null) {
 					model.put("fo", fo);
 					model.put("rdi", rdi);
+					model.put("fileInfo", fileInfo);
+					model.put("parents", parents);
 					model.put("path", path);
 					model.put("isFilesPublic", fo.isFilesPublic().toString());
 					resp = Response.ok(new Viewable(template, model)).build();
 				} else {
 					resp = Response.ok(rdi).build();
 				}
-			} else if (dcStorage.fileExists(pid, path)) {
+			} else if (storageController.fileExists(pid, path)) {
 				LOGGER.info("User {} ({}) requested file {}/data/{}", getCurUsername(), getRemoteIp(), pid, path);
 				resp = getBagFileOctetStreamResp(pid, path);
 			} else {
 				throw new NotFoundException(uriInfo.getAbsolutePath());
 			}
-		} catch (IOException e) {
+		} catch (IOException | StorageException e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.ok(e.getMessage()).build();
 		}
@@ -358,11 +379,11 @@ public class StorageResource extends AbstractStorageResource {
 			pathPrependedFilepaths.add(path + filepath);
 		}
 		try {
-			InputStream zipStream = dcStorage.createZipStream(pid, pathPrependedFilepaths);
+			InputStream zipStream = storageController.createZipStream(pid, pathPrependedFilepaths);
 			resp = Response.ok(zipStream, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 			String clientFilename = format("{0}.{1}", DcStorage.convertToDiskSafe(pid), "zip");
 			resp.header("Content-Disposition", format("attachment; filename=\"{0}\"", clientFilename));
-		} catch (IOException e) {
+		} catch (IOException | StorageException e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.serverError().entity(e.getMessage());
 		}
@@ -373,9 +394,9 @@ public class StorageResource extends AbstractStorageResource {
 	private Response createAddExtRefResponse(String pid, Set<String> items) {
 		ResponseBuilder resp = null;
 		try {
-			dcStorage.addExtRefs(pid, items);
+			storageController.addExtRefs(pid, items);
 			resp = Response.ok();
-		} catch (IOException e) {
+		} catch (IOException | StorageException e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.serverError().entity(e.getMessage());
 		}
@@ -385,9 +406,9 @@ public class StorageResource extends AbstractStorageResource {
 	private Response createDelExtRefResponse(String pid, Set<String> items) {
 		ResponseBuilder resp = null;
 		try {
-			dcStorage.deleteExtRefs(pid, items);
+			storageController.deleteExtRefs(pid, items);
 			resp = Response.ok();
-		} catch (IOException e) {
+		} catch (IOException | StorageException e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.serverError().entity(e.getMessage());
 		}

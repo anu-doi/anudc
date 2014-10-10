@@ -21,8 +21,8 @@
 
 package au.edu.anu.datacommons.storage.tagfiles;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Tag file class for bag-info.txt
@@ -34,8 +34,8 @@ public class BagInfoTagFile extends AbstractKeyValueFile {
 	private static final long serialVersionUID = 1L;
 	public static final String FILEPATH = "bag-info.txt";
 
-	public BagInfoTagFile(File file) throws IOException {
-		super(file);
+	public BagInfoTagFile(InputStream stream) throws IOException {
+		super(stream);
 	}
 
 	@Override

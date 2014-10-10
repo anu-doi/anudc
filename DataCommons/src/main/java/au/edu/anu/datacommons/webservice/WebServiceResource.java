@@ -29,6 +29,7 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Future;
 
 import javax.annotation.Resource;
 import javax.ws.rs.Consumes;
@@ -83,6 +84,9 @@ import au.edu.anu.datacommons.data.solr.SolrUtils;
 import au.edu.anu.datacommons.security.service.FedoraObjectException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.DcStorage;
+import au.edu.anu.datacommons.storage.controller.StorageController;
+import au.edu.anu.datacommons.storage.temp.TempFileService;
+import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
@@ -119,8 +123,10 @@ public class WebServiceResource
 	@Resource(name = "fedoraObjectServiceImpl")
 	private FedoraObjectService fedoraObjectService;
 	
-	@Resource(name = "dcStorage")
-	private DcStorage dcStorage;
+	@Autowired
+	private TempFileService tmpFileSvc;
+	@Autowired
+	protected StorageController storageController;
 
 	static {
 		docBuilderFactory.setNamespaceAware(true);
@@ -242,7 +248,8 @@ public class WebServiceResource
 								try
 								{
 									LOGGER.info("Beginning download of file {} from {} to add to {}...", filename, fileUrl, item.getPid());
-									dcStorage.addFile(item.getPid(), new URL(fileUrl), filename);
+									Future<UploadedFileInfo> futureTask = tmpFileSvc.saveInputStream(fileUrl.toString(), -1, null);
+									storageController.addFile(item.getPid(), filename, futureTask.get());
 									LOGGER.info("Successfully downloaded file {} from {} and added to {}.", filename, fileUrl, item.getPid());
 								}
 								catch (Exception e)
@@ -257,7 +264,7 @@ public class WebServiceResource
 					else
 					{
 						// Refer to the url.
-						dcStorage.addExtRefs(item.getPid(), Arrays.asList(iLink.getUrl()));
+						storageController.addExtRefs(item.getPid(), Arrays.asList(iLink.getUrl()));
 					}
 				}
 			}

@@ -31,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -242,7 +243,7 @@ public class PreservationFormatConverterTest {
 
 	private void convertFile(File file, String expectedExtension) throws XenaException, IOException {
 		LOGGER.trace("Converting file {} to preservation format...", file.getAbsolutePath());
-		pfc = new PreservationFormatConverter(file, tempDir.getRoot());
+		pfc = new PreservationFormatConverter(file.getName(), Files.newInputStream(file.toPath()), tempDir.getRoot());
 		NormaliserResults results = pfc.convert();
 
 		if (expectedExtension != null) {

@@ -19,27 +19,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.tagfiles;
+package au.edu.anu.datacommons.storage.messagedigest;
 
-import java.io.IOException;
-import java.io.InputStream;
+import org.apache.commons.codec.binary.Hex;
+
+import au.edu.anu.datacommons.storage.messagedigest.FileMessageDigests.Algorithm;
 
 /**
- * Tag file class for preserve.txt . This file maps payload files to their preservation format file. 
- * 
  * @author Rahul Khanna
  *
  */
-public class PreservationMapTagFile extends AbstractKeyValueFile {
-	private static final long serialVersionUID = 1L;
-	public static final String FILEPATH = "preserve.txt";
-
-	public PreservationMapTagFile(InputStream stream) throws IOException {
-		super(stream);
+public class FileMessageDigest {
+	
+	private Algorithm algorithm;
+	private byte[] messageDigest;
+	private String mdAsHex;
+	
+	public FileMessageDigest(Algorithm algorithm, byte[] messageDigest) {
+		this.algorithm = algorithm;
+		this.messageDigest = messageDigest;
+		this.mdAsHex = Hex.encodeHexString(this.messageDigest);
 	}
 
-	@Override
-	public String getFilepath() {
-		return FILEPATH;
+	public Algorithm getAlgorithm() {
+		return algorithm;
+	}
+
+	public byte[] getMessageDigest() {
+		return messageDigest;
+	}
+	
+	public String getMessageDigestAsHex() {
+		return mdAsHex;
 	}
 }

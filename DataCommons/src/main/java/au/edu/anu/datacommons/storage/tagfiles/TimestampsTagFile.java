@@ -21,8 +21,8 @@
 
 package au.edu.anu.datacommons.storage.tagfiles;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Tag file class for timestamps.txt . The file contains last modified date and time of all payload files.
@@ -35,8 +35,8 @@ public class TimestampsTagFile extends AbstractKeyValueFile {
 
 	public static final String FILEPATH = "timestamps.txt";
 
-	public TimestampsTagFile(File tagFile) throws IOException {
-		super(tagFile);
+	public TimestampsTagFile(InputStream stream) throws IOException {
+		super(stream);
 	}
 	
 	@Override

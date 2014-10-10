@@ -92,10 +92,6 @@
 		<constructor-arg value="${upload.bagsDir}" />
 	</bean>
 	
-	<bean id="fileFactory" class="au.edu.anu.datacommons.storage.filesystem.FileFactory">
-		<constructor-arg value="50" />
-	</bean>
-	
 	<bean id="storageSearch" class="au.edu.anu.datacommons.storage.search.StorageSearchService">
 		<constructor-arg value="${storage.search.url}" />
 	</bean>
@@ -104,12 +100,11 @@
 	</bean>
 	
 	<bean id="tagFilesService" class="au.edu.anu.datacommons.storage.tagfiles.TagFilesService" depends-on="threadPoolService">
-		<constructor-arg value="${upload.bagsDir}" />
 		<property name="writeFreq" value="${storage.tagfiles.writeFreqSec}" />
 		<property name="maxEntries" value="${storage.tagfiles.cacheSize}" />
 	</bean>
 	
-	<bean id="storageEventListener" class="au.edu.anu.datacommons.storage.event.StorageEventListener">
+	<bean id="tagFilesStorageEventListener" class="au.edu.anu.datacommons.storage.event.TagFilesStorageEventListener">
 		<property name="archiveRootDir">
 			<ref bean="archiveRootDir"/>
 		</property>
@@ -145,5 +140,12 @@
 	<bean id="client" class="com.sun.jersey.api.client.Client" factory-method="create"></bean>
 	
 	<bean id="metadataProviderGitHub" class="au.edu.anu.datacommons.external.github.MetadataProviderGitHub"></bean>
+
+	<bean id="fileSystemStorageProvider" class="au.edu.anu.datacommons.storage.provider.FileSystemStorageProvider">
+		<constructor-arg value="${upload.bagsDir}"></constructor-arg>
+	</bean>	
 	
+	<bean id="storageController" class="au.edu.anu.datacommons.storage.controller.StorageControllerImpl"></bean>
+	
+	<bean id="storageProviderResolver" class="au.edu.anu.datacommons.storage.provider.StorageProviderResolver"></bean>
 </beans>

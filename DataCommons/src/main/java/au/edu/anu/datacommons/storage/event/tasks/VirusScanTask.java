@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.concurrent.Semaphore;
 
 import au.edu.anu.datacommons.storage.completer.virusscan.ClamScan;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 
@@ -38,8 +39,8 @@ import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 public class VirusScanTask extends AbstractTagFileTask {
 	private static Semaphore permit = new Semaphore(1);
 	
-	public VirusScanTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
-		super(pid, bagDir, relPath, tagFilesSvc);
+	public VirusScanTask(String pid, StorageProvider storageProvider, String relPath, TagFilesService tagFilesSvc) {
+		super(pid, storageProvider, relPath, tagFilesSvc);
 	}
 
 	@Override

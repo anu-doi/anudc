@@ -19,27 +19,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.tagfiles;
+package au.edu.anu.datacommons.storage.provider;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Tag file class for preserve.txt . This file maps payload files to their preservation format file. 
- * 
  * @author Rahul Khanna
  *
  */
-public class PreservationMapTagFile extends AbstractKeyValueFile {
-	private static final long serialVersionUID = 1L;
-	public static final String FILEPATH = "preserve.txt";
+public class StorageProviderResolver {
+	@Autowired
+	private Map<String, StorageProvider> storageProviders;
 
-	public PreservationMapTagFile(InputStream stream) throws IOException {
-		super(stream);
+	public StorageProvider getStorageProvider(String pid) throws StorageException {
+		String providerId = getProviderId(pid);
+		return storageProviders.get(providerId);
 	}
-
-	@Override
-	public String getFilepath() {
-		return FILEPATH;
+	
+	private String getProviderId(String pid) {
+		// TODO Implement lookup.
+		return "fileSystemStorageProvider";
 	}
 }

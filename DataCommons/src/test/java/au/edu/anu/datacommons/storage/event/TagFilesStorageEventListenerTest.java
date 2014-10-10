@@ -62,17 +62,17 @@ import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
  * @author Rahul Khanna
  *
  */
-public class StorageEventListenerTest {
-	private static final Logger LOGGER = LoggerFactory.getLogger(StorageEventListenerTest.class);
+public class TagFilesStorageEventListenerTest {
+	private static final Logger LOGGER = LoggerFactory.getLogger(TagFilesStorageEventListenerTest.class);
 	
 	@Rule
 	public TemporaryFolder bagsRoot = new TemporaryFolder();
 	
 	@InjectMocks
-	StorageEventListener listener = new StorageEventListener();
+	private TagFilesStorageEventListener listener = new TagFilesStorageEventListener();
 	
 	@Mock
-	TagFilesService tfSvc;
+	private TagFilesService tfSvc;
 	
 	/**
 	 * @throws java.lang.Exception
@@ -107,14 +107,13 @@ public class StorageEventListenerTest {
 	@Test
 	public void testPreAdd() throws IOException {
 		String pid = "test:1";
-		Path bagDir = Paths.get(bagsRoot.getRoot().getAbsolutePath(), "test_1");
 		String relPath = "dir1/dir2/a.txt";
-		listener.notify(EventTime.PRE, EventType.ADD_FILE, pid, bagDir, relPath, null);
-		assertThat(Files.isDirectory(bagDir.resolve("data/").resolve(relPath).getParent()), is(true));
+		listener.notify(EventTime.PRE, EventType.ADD_FILE, pid, relPath, null, null);
 
 		InOrder inOrder = Mockito.inOrder(tfSvc);
+		inOrder.verify(tfSvc).getAllEntries(pid, BagItTagFile.class);
 		inOrder.verify(tfSvc).clearAllEntries(pid, BagItTagFile.class);
-		inOrder.verify(tfSvc).addEntry(pid, BagItTagFile.class, BagItTxtImpl.VERSION_KEY, Version.V0_97.toString());
+		inOrder.verify(tfSvc).addEntry(pid, BagItTagFile.class, BagItTxtImpl.VERSION_KEY, Version.V0_97.versionString);
 		inOrder.verify(tfSvc).addEntry(pid, BagItTagFile.class, BagItTxtImpl.CHARACTER_ENCODING_KEY,
 				AbstractBagConstants.BAG_ENCODING);
 
@@ -124,7 +123,7 @@ public class StorageEventListenerTest {
 		LinkedHashMap<String, String> mockedMap = mock(LinkedHashMap.class);
 		when(mockedMap.size()).thenReturn(2);
 		when(tfSvc.getAllEntries(pid, BagItTagFile.class)).thenReturn(mockedMap);
-		listener.notify(EventTime.PRE, EventType.ADD_FILE, pid, bagDir, relPath2, null);
+		listener.notify(EventTime.PRE, EventType.ADD_FILE, pid, relPath2, null, null);
 		verify(tfSvc, times(1)).clearAllEntries(pid, BagItTagFile.class);
 	}
 	

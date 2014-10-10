@@ -89,7 +89,7 @@ public class BagCompletionTaskTest {
 		LOGGER.info("Temp Dir: {}", tempDir.getRoot().getAbsolutePath());
 		bagDir = tempDir.getRoot().toPath();
 		MockitoAnnotations.initMocks(this);
-		bcTask = new BagCompletionTask(PID, bagDir, null, tagFilesSvc, null);
+		bcTask = new BagCompletionTask(PID, null, null, tagFilesSvc, null);
 	}
 
 	/**

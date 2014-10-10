@@ -23,11 +23,14 @@ package au.edu.anu.datacommons.collectionrequest;
 
 import static java.text.MessageFormat.format;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +52,8 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -60,6 +65,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -87,12 +93,16 @@ import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.SolrUtils;
 import au.edu.anu.datacommons.security.CustomUser;
+import au.edu.anu.datacommons.security.AccessLogRecord.Operation;
 import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.storage.DcStorage;
-import au.edu.anu.datacommons.storage.info.RecordDataInfo;
+import au.edu.anu.datacommons.storage.controller.StorageController;
+import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.info.RecordDataSummary;
+import au.edu.anu.datacommons.storage.provider.StorageException;
 import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Util;
 
@@ -150,6 +160,9 @@ public class CollectionRequestService {
 
 	@Resource(name = "permissionService")
 	private PermissionService permissionService;
+	
+	@Autowired
+	protected StorageController storageController;
 
 	/**
 	 * doGetAsHtml
@@ -232,13 +245,11 @@ public class CollectionRequestService {
 			model.put("collReq", collReq);
 
 			// Add files in payload to model.
-			if (dcStorage.bagExists(collReq.getPid())) {
-				FedoraObject fo = fedoraObjectService.getItemByPid(collReq.getPid());
-				if (permissionService.checkPermission(fo, CustomACLPermission.PUBLISH)
-						|| permissionService.checkPermission(fo, CustomACLPermission.REVIEW)) {
-					RecordDataInfo rdi = dcStorage.getRecordDataInfo(collReq.getPid());
-					model.put("downloadables", rdi);
-				}
+			FedoraObject fo = fedoraObjectService.getItemByPid(collReq.getPid());
+			if (permissionService.checkPermission(fo, CustomACLPermission.PUBLISH)
+					|| permissionService.checkPermission(fo, CustomACLPermission.REVIEW)) {
+				FileInfo downloadables = storageController.getFileInfo(collReq.getPid(), "");
+				model.put("downloadables", downloadables);
 			}
 		} catch (Exception e) {
 			LOGGER.error("Unable to find or retrieve Collection Request " + collReqId, e);
@@ -721,8 +732,8 @@ public class CollectionRequestService {
 
 			// Create HashMap downloadables with a link for each item to be downloaded.
 			HashMap<String, String> downloadables = new HashMap<String, String>();
-			UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(UploadService.class)
-					.path(UploadService.class, "doGetFileInBagAsOctetStream")
+			UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(CollectionRequestService.class)
+					.path(CollectionRequestService.class, "doGetDropboxFileAsOctetStream")
 					.queryParam("dropboxAccessCode", dropboxAccessCode).queryParam("p", password);
 			for (CollectionRequestItem reqItem : dropbox.getCollectionRequest().getItems()) {
 				URI fileDlUri = uriBuilder.build(dropbox.getCollectionRequest().getPid(), reqItem.getItem());
@@ -734,7 +745,7 @@ public class CollectionRequestService {
 
 			// External references list.
 
-			Collection<String> extRefs = dcStorage.getRecordDataInfo(dropbox.getCollectionRequest().getPid())
+			Collection<String> extRefs = storageController.getRecordDataSummary(dropbox.getCollectionRequest().getPid())
 					.getExtRefs();
 			if (extRefs != null && extRefs.size() > 0) {
 				model.put("fetchables", extRefs);
@@ -757,7 +768,78 @@ public class CollectionRequestService {
 
 		return resp;
 	}
+	
+	/**
+	 * Returns the contents of a file of a group of files combined into a ZipStream as InputStream in the Response
+	 * object. The user gets a request to open or save the requested file. This method checks that the user requesting
+	 * the file has a valid collection request.
+	 * 
+	 * @param pid
+	 *            Pid of collection whose files
+	 * @param filename
+	 *            filename of the file being requested. E.g. "data/file.txt"
+	 * @param dropboxAccessCode
+	 *            Access Code of the dropbox that the requestor's been given access to
+	 * @param password
+	 *            Password of dropbox
+	 * @return Response containing octet_stream of file or files as zipfile.
+	 */
+	@GET
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	@Path("dropbox/access/{dropboxAccessCode}/{fileInBag:.*}")
+	public Response doGetDropboxFileAsOctetStream(@PathParam("fileInBag") String filename,
+			@QueryParam("dropboxAccessCode") Long dropboxAccessCode, @QueryParam("p") String password) {
+		Response resp = null;
 
+		// Get dropbox requesting file.
+		DropboxDAO dropboxDAO = new DropboxDAOImpl();
+		CollectionDropbox dropbox = dropboxDAO.getSingleByAccessCode(dropboxAccessCode);
+		Users requestor = dropbox.getCollectionRequest().getRequestor();
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		String pid = dropbox.getCollectionRequest().getPid();
+		LOGGER.trace("User {} requested dropbox for pid: {}, filename: {}", username, pid, filename);
+
+		// If dropbox is valid and the requestor of the collection request is the one accessing it, return file as octet
+		// stream.
+		try {
+			if (dropbox.isValid(password) && requestor.getUsername().equals(username)) {
+				LOGGER.info("Dropbox details valid. ID: {}, Access Code: {}. Returning file requested.", dropbox
+						.getId().toString(), dropbox.getAccessCode().toString());
+				Set<CollectionRequestItem> items = dropbox.getCollectionRequest().getItems();
+				if (filename.equalsIgnoreCase("zip")) {
+					Set<String> fileSet = new HashSet<String>();
+					for (CollectionRequestItem item : items) {
+						fileSet.add(item.getItem());
+					}
+					resp = getBagFilesAsZip(pid, fileSet, DcStorage.convertToDiskSafe(pid) + ".zip");
+				} else {
+					boolean isAllowedItem = false;
+					for (CollectionRequestItem item : items) {
+						if (item.getItem().equals(filename)) {
+							isAllowedItem = true;
+							break;
+						}
+					}
+					if (isAllowedItem) {
+						// addAccessLog(Operation.READ);
+						resp = getBagFileOctetStreamResp(pid, filename);
+					} else {
+						resp = Response.status(Status.FORBIDDEN).build();
+					}
+				}
+			} else {
+				LOGGER.warn("Unauthorised access to Dropbox ID: {}, Access Code: {}. Returning HTTP 403 Forbidden.",
+						dropbox.getId().toString(), dropbox.getAccessCode().toString());
+				resp = Response.status(Status.FORBIDDEN).build();
+			}
+
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().entity(e.getMessage()).build();
+		}
+		return resp;
+	}
+	
 	/**
 	 * doGetQuestionsAsHtml
 	 * 
@@ -903,71 +985,7 @@ public class CollectionRequestService {
 
 		return resp;
 	}
-
-	/**
-	 * Save the questions to the database
-	 * 
-	 * @param questionDAO
-	 *            The question DAO
-	 * @param questionMapDAO
-	 *            The question map DAO
-	 * @param questions
-	 *            The list of questions to check
-	 * @param pid
-	 *            The pid to assign the values to
-	 * @param groupId
-	 *            The group to assign the questions to
-	 * @param domainId
-	 *            The domain to assign the questions to
-	 * @param required
-	 *            Whether set of questions are required questions or not
-	 */
-	private void updateQuestions(QuestionDAO questionDAO, QuestionMapDAO questionMapDAO, Set<Long> questions,
-			String pid, Long groupId, Long domainId, Boolean required) {
-
-		List<Question> curQuestions = questionDAO.getQuestionsForObject(pid, groupId, domainId, required);
-		for (Long iUpdatedId : questions) {
-			boolean isAlreadyMapped = false;
-			for (Question iCurQuestion : curQuestions) {
-				if (iCurQuestion.getId() == iUpdatedId.longValue()) {
-					isAlreadyMapped = true;
-					break;
-				}
-			}
-
-			if (!isAlreadyMapped) {
-				Question question = questionDAO.getSingleById(iUpdatedId);
-				LOGGER.debug("Adding Question '{}' against Pid {}", question.getQuestionText(), pid);
-				QuestionMap qm = null;
-				// Create the question map for the pid, group or domain
-				if (pid != null && pid.trim().length() > 0) {
-					qm = new QuestionMap(pid, question, required);
-				} else if (groupId != null) {
-					GenericDAO<Groups, Long> genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
-					Groups group = (Groups) genericDAO.getSingleById(groupId);
-					qm = new QuestionMap(group, question, required);
-				} else if (domainId != null) {
-					GenericDAO<Domains, Long> genericDAO = new GenericDAOImpl<Domains, Long>(Domains.class);
-					Domains domain = (Domains) genericDAO.getSingleById(domainId);
-					qm = new QuestionMap(domain, question, required);
-				}
-				if (qm != null) {
-					questionMapDAO.create(qm);
-				}
-			}
-		}
-
-		// Check if each question for a pid, group, or domain is provided in the updated list. If not, delete it.
-		for (Question iCurQuestion : curQuestions) {
-			if (!questions.contains(iCurQuestion.getId())) {
-				LOGGER.debug("Mapping of Question ID" + iCurQuestion.getId() + "to be deleted...");
-				QuestionMap questionMap = questionMapDAO.getSingleByObjectAndQuestion(iCurQuestion, pid, groupId,
-						domainId);
-				questionMapDAO.delete(questionMap.getId());
-			}
-		}
-	}
-
+	
 	/**
 	 * doGetDsListAsJson
 	 * 
@@ -996,7 +1014,6 @@ public class CollectionRequestService {
 	public Response doGetCollReqInfoAsJson(@QueryParam("task") String task, @QueryParam("pid") String pid,
 			@QueryParam("group") Long groupId, @QueryParam("domain") Long domainId) {
 		Response resp = null;
-		Boolean required = true;
 
 		LOGGER.trace("In doGetDsListAsJson. Params task={}, pid={}.", task, pid);
 
@@ -1072,6 +1089,135 @@ public class CollectionRequestService {
 		}
 
 		return resp;
+	}
+	
+	/**
+	 * Creates a Response object containing the contents of a single file in a bag of collection as Response object
+	 * containing InputStream.
+	 * 
+	 * @param pid
+	 *            Pid of the collection from which a bagfile is to be read.
+	 * @param fileInBag
+	 *            Name of file in bag whose contents are to be returned as InputStream.
+	 * @return Response object including HTTP headers and InputStream containing file contents.
+	 * @throws IOException
+	 */
+	protected Response getBagFileOctetStreamResp(String pid, String fileInBag) throws IOException,
+			StorageException {
+		Response resp = null;
+		InputStream is = null;
+
+		if (!storageController.fileExists(pid, fileInBag)) {
+			throw new NotFoundException(format("File {0} not found in record {1}", fileInBag, pid));
+		}
+		is = storageController.getFileStream(pid, fileInBag);
+		ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+		// Add filename, MD5 and file size to response header.
+		FileInfo fileInfo = storageController.getFileInfo(pid, fileInBag);
+		respBuilder = respBuilder.header("Content-Disposition",
+				format("attachment; filename=\"{0}\"", fileInfo.getFilename()));
+		String md5 = fileInfo.getMessageDigests().get("MD5");
+		if (md5 != null && md5.length() > 0) {
+			respBuilder = respBuilder.header("Content-MD5", md5);
+		}
+		respBuilder = respBuilder.header("Content-Length", Long.toString(fileInfo.getSize(), 10));
+		respBuilder = respBuilder.lastModified(new Date(fileInfo.getLastModified().toMillis()));
+		resp = respBuilder.build();
+
+		return resp;
+	}
+
+
+	/**
+	 * Creates a Response object containing a Zip file comprised of data from multiple files in a bag of a collection.
+	 * 
+	 * @param pid
+	 *            Pid of the collection whose files are to be included in the Response object.
+	 * 
+	 * @param fileSet
+	 *            Set of file names as Set&lt;String&gt; that are to be included in the Response.
+	 * @param zipFilename
+	 *            Name of the zip file that will be added to the Content-Disposition HTTP header.
+	 * @return Response object
+	 */
+	private Response getBagFilesAsZip(String pid, Set<String> fileSet, String zipFilename) {
+		Response resp = null;
+		InputStream zipStream;
+		try {
+			zipStream = storageController.createZipStream(pid, fileSet);
+			ResponseBuilder respBuilder = Response.ok(zipStream, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+			respBuilder.header("Content-Disposition", format("attachment; filename=\"{0}\"", zipFilename));
+			resp = respBuilder.build();
+		} catch (IOException | StorageException e) {
+			LOGGER.error(e.getMessage(), e);
+			throw new NotFoundException(e.getMessage());
+		}
+	
+		return resp;
+	}
+
+	/**
+	 * Save the questions to the database
+	 * 
+	 * @param questionDAO
+	 *            The question DAO
+	 * @param questionMapDAO
+	 *            The question map DAO
+	 * @param questions
+	 *            The list of questions to check
+	 * @param pid
+	 *            The pid to assign the values to
+	 * @param groupId
+	 *            The group to assign the questions to
+	 * @param domainId
+	 *            The domain to assign the questions to
+	 * @param required
+	 *            Whether set of questions are required questions or not
+	 */
+	private void updateQuestions(QuestionDAO questionDAO, QuestionMapDAO questionMapDAO, Set<Long> questions,
+			String pid, Long groupId, Long domainId, Boolean required) {
+	
+		List<Question> curQuestions = questionDAO.getQuestionsForObject(pid, groupId, domainId, required);
+		for (Long iUpdatedId : questions) {
+			boolean isAlreadyMapped = false;
+			for (Question iCurQuestion : curQuestions) {
+				if (iCurQuestion.getId() == iUpdatedId.longValue()) {
+					isAlreadyMapped = true;
+					break;
+				}
+			}
+	
+			if (!isAlreadyMapped) {
+				Question question = questionDAO.getSingleById(iUpdatedId);
+				LOGGER.debug("Adding Question '{}' against Pid {}", question.getQuestionText(), pid);
+				QuestionMap qm = null;
+				// Create the question map for the pid, group or domain
+				if (pid != null && pid.trim().length() > 0) {
+					qm = new QuestionMap(pid, question, required);
+				} else if (groupId != null) {
+					GenericDAO<Groups, Long> genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
+					Groups group = (Groups) genericDAO.getSingleById(groupId);
+					qm = new QuestionMap(group, question, required);
+				} else if (domainId != null) {
+					GenericDAO<Domains, Long> genericDAO = new GenericDAOImpl<Domains, Long>(Domains.class);
+					Domains domain = (Domains) genericDAO.getSingleById(domainId);
+					qm = new QuestionMap(domain, question, required);
+				}
+				if (qm != null) {
+					questionMapDAO.create(qm);
+				}
+			}
+		}
+	
+		// Check if each question for a pid, group, or domain is provided in the updated list. If not, delete it.
+		for (Question iCurQuestion : curQuestions) {
+			if (!questions.contains(iCurQuestion.getId())) {
+				LOGGER.debug("Mapping of Question ID" + iCurQuestion.getId() + "to be deleted...");
+				QuestionMap questionMap = questionMapDAO.getSingleByObjectAndQuestion(iCurQuestion, pid, groupId,
+						domainId);
+				questionMapDAO.delete(questionMap.getId());
+			}
+		}
 	}
 
 	/**

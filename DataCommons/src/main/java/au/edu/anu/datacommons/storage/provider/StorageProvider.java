@@ -19,41 +19,41 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.event;
+package au.edu.anu.datacommons.storage.provider;
 
-import static java.text.MessageFormat.format;
-
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Path;
+import java.io.InputStream;
 
 import au.edu.anu.datacommons.storage.datafile.StagedDataFile;
-import au.edu.anu.datacommons.storage.provider.StorageProvider;
-import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
+import au.edu.anu.datacommons.storage.info.FileInfo;
 
 /**
  * @author Rahul Khanna
  *
  */
-public interface StorageEventListener {
-
-	public enum EventTime {
-		PRE, POST
-	}
-
-	public enum EventType {
-		ADD_FILE, READ_FILE, UPDATE_FILE, DELETE_FILE, TAGFILE_UPDATE;
+public interface StorageProvider {
+	FileInfo addFile(String pid, String relativePath, StagedDataFile sourceFile) throws IOException;
 	
-		public boolean isOneOf(EventType... types) {
-			for (EventType iType : types) {
-				if (this.equals(iType)) {
-					return true;
-				}
-			}
-			return false;
-		}
-	}
+	FileInfo addDir(String pid, String relativePath) throws IOException;
 
-	public abstract void notify(EventTime time, EventType type, String pid, String relPath, StorageProvider provider,
-			StagedDataFile source) throws IOException;
+	FileInfo renameFile(String pid, String oldRelativePath, String newRelativePath) throws IOException;
+	
+	void deleteFile(String pid, String relativePath) throws IOException;
+	
+	boolean fileExists(String pid, String relativePath);
+	
+	boolean dirExists(String pid, String relativePath);
+	
+	FileInfo getFileInfo(String pid, String relativePath) throws IOException;
+	
+	FileInfo getDirInfo(String pid, String relativePath, int depth) throws IOException;
 
+	InputStream readStream(String pid, String relativePath) throws IOException;
+	
+	FileInfo writeStream(String pid, String relativePath, InputStream stream) throws IOException;
+
+	InputStream readTagFileStream(String pid, String path) throws IOException;
+
+	void writeTagFileStream(String pid, String path, InputStream stream) throws IOException;
 }

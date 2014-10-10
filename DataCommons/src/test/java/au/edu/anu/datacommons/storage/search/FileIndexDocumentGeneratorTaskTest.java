@@ -25,6 +25,7 @@ import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 
 import org.apache.commons.io.FileUtils;
@@ -36,9 +37,13 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.search.FileIndexDocumentGeneratorTask.StorageSolrDoc;
 
 /**
@@ -47,11 +52,16 @@ import au.edu.anu.datacommons.storage.search.FileIndexDocumentGeneratorTask.Stor
  */
 public class FileIndexDocumentGeneratorTaskTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileIndexDocumentGeneratorTaskTest.class);
-
+	
+	private static final String PID = "test:1";
+	private static final String REL_PATH = "file.txt";
 	private static final String BAGIT_PDF = "au/edu/anu/datacommons/storage/completer/fido/BagIt Specification.pdf";
 	
 	@Rule
 	public TemporaryFolder tempDir = new TemporaryFolder();
+	
+	@Mock
+	private StorageProvider sp;
 	
 	private FileIndexDocumentGeneratorTask docGenTask;
 	private File plFile;
@@ -75,11 +85,12 @@ public class FileIndexDocumentGeneratorTaskTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
+		MockitoAnnotations.initMocks(this);
 		LOGGER.trace("Using temp dir: {}", tempDir.getRoot().getAbsolutePath());
 		File plDir = tempDir.newFolder("data");
-		plFile = new File(plDir, "file.txt");
+		plFile = new File(plDir, REL_PATH);
 		FileUtils.writeStringToFile(plFile, "This is a test String", "UTF-8");
-		docGenTask = new FileIndexDocumentGeneratorTask(tempDir.getRoot(), plFile);
+		docGenTask = new FileIndexDocumentGeneratorTask(PID, REL_PATH, sp, "test:1/file.txt");
 	}
 
 	/**
@@ -101,25 +112,19 @@ public class FileIndexDocumentGeneratorTaskTest {
 	
 	@Test
 	public void testExtractTextFromText() throws Exception {
-		docGenTask.extractMetadataAndContents(plFile);
-		String contents = docGenTask.contents.toString();
-		assertThat(contents, not(isEmptyOrNullString()));
-		LOGGER.trace("Contents: {}", contents);
-	}
-
-	@Test
-	public void testExtractMetadataFromDocx() throws Exception {
-		docGenTask.extractMetadataAndContents(new File("C:\\Rahul\\Temp\\Sample Docs\\Custom.docx"));
-		String[] values = docGenTask.metadata.getValues(TikaCoreProperties.CREATOR);
-		for (int i = 0; i < values.length; i++) {
-			LOGGER.trace("{}: {}", String.valueOf(i), values[i]);
+		try (InputStream fileStream = new FileInputStream(plFile)) {
+			docGenTask.extractMetadataAndContents(fileStream);
+			String contents = docGenTask.contents.toString();
+			assertThat(contents, not(isEmptyOrNullString()));
+			LOGGER.trace("Contents: {}", contents);
 		}
 	}
-	
+
 	@Test
 	public void testDocGenWhenFileNotExist() throws Exception {
 		plFile.delete();
 		assertThat(plFile.isFile(), is(false));
+		Mockito.when(sp.fileExists(PID, REL_PATH)).thenReturn(false);
 		StorageSolrDoc doc = docGenTask.call();
 		assertThat(doc, is(not(nullValue())));
 		assertThat(doc.id, is(not(nullValue())));

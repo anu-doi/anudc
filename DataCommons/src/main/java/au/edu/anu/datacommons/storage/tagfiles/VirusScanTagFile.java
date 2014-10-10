@@ -21,8 +21,8 @@
 
 package au.edu.anu.datacommons.storage.tagfiles;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Tag file class for virus-scan.txt . This file contains virus scan results of all payload files.
@@ -35,8 +35,8 @@ public class VirusScanTagFile extends AbstractKeyValueFile {
 
 	public static final String FILEPATH = "virus-scan.txt";
 
-	public VirusScanTagFile(File tagFile) throws IOException {
-		super(tagFile);
+	public VirusScanTagFile(InputStream stream) throws IOException {
+		super(stream);
 	}
 	
 	@Override

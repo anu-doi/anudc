@@ -26,6 +26,7 @@ import gov.loc.repository.bagit.utilities.MessageDigestHelper;
 
 import java.nio.file.Path;
 
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.tagfiles.ManifestMd5TagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 
@@ -37,8 +38,8 @@ import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
  */
 public class ManifestMd5Task extends AbstractTagFileTask {
 
-	public ManifestMd5Task(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
-		super(pid, bagDir, relPath, tagFilesSvc);
+	public ManifestMd5Task(String pid, StorageProvider storageProvider, String relPath, TagFilesService tagFilesSvc) {
+		super(pid, storageProvider, relPath, tagFilesSvc);
 	}
 
 	@Override

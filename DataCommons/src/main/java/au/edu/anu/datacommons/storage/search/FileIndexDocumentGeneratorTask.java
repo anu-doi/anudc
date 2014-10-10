@@ -51,6 +51,8 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
 import au.edu.anu.datacommons.storage.completer.metadata.FitsParser;
+import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 
 /**
  * Task that generates a {@link StorageSolrDoc} for a file for submission to a Solr instance.
@@ -61,16 +63,21 @@ import au.edu.anu.datacommons.storage.completer.metadata.FitsParser;
 public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumentGeneratorTask.StorageSolrDoc> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileIndexDocumentGeneratorTask.class);
 
-	private File bagDir;
-	private File srcFile;
-
+	private String pid;
+	private String relPath;
+	private StorageProvider storageProvider;
+	private String docId;
+	
 	Metadata metadata;
 	StringWriter contents;
 
-	public FileIndexDocumentGeneratorTask(File bagDir, File srcFile) {
+
+	public FileIndexDocumentGeneratorTask(String pid, String relPath, StorageProvider storageProvider, String docId) {
 		super();
-		this.bagDir = bagDir;
-		this.srcFile = srcFile;
+		this.pid = pid;
+		this.relPath = relPath;
+		this.storageProvider = storageProvider;
+		this.docId = docId;
 	}
 
 	@Override
@@ -78,27 +85,29 @@ public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumen
 		return generateSolrInputDocument();
 	}
 
-	public StorageSolrDoc generateSolrInputDocument() {
+	public StorageSolrDoc generateSolrInputDocument() throws IOException {
 		StorageSolrDoc docPojo = new StorageSolrDoc();
 
-		docPojo.id = createId();
-		if (srcFile.isFile()) {
-			if (srcFile.getName().lastIndexOf('.') > 0) {
-				docPojo.name = srcFile.getName().substring(0, srcFile.getName().lastIndexOf('.'));
-				docPojo.ext = srcFile.getName().substring(srcFile.getName().lastIndexOf('.') + 1);
-			} else {
-				docPojo.name = srcFile.getName();
-			}
-			docPojo.size = srcFile.length();
-			docPojo.last_modified = new Date(srcFile.lastModified());
+		docPojo.id = this.docId;
+		if (storageProvider.fileExists(this.pid, this.relPath)) {
+			FileInfo fi = storageProvider.getFileInfo(this.pid, this.relPath);
 
+			if (fi.getFilename().lastIndexOf('.') > 0) {
+				docPojo.name = fi.getFilename().substring(0, fi.getFilename().lastIndexOf('.'));
+				docPojo.ext = fi.getFilename().substring(fi.getFilename().lastIndexOf('.') + 1);
+			} else {
+				docPojo.name = fi.getFilename();
+			}
+			docPojo.size = fi.getSize();
+			docPojo.last_modified = new Date(fi.getLastModified().toMillis());
+			
 			// Metadata & Contents
-			try {
-				extractMetadataAndContents(this.srcFile);
+			try (InputStream fileStream = storageProvider.readStream(pid, fi.getRelFilepath())) {
+				extractMetadataAndContents(fileStream);
 				processMetadata(docPojo);
 				docPojo.content = this.contents.toString();
-			} catch (IOException | SAXException | TikaException e) {
-				LOGGER.warn("Unable to extract content from {}: {}", srcFile.getAbsolutePath(), e.getMessage());
+			} catch (SAXException | TikaException e) {
+				LOGGER.warn("Unable to extract content from {}: {}", fi.getFilename(), e.getMessage());
 			}
 		}
 
@@ -134,26 +143,6 @@ public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumen
 
 	
 	/**
-	 * Extracts metadata and plain text contents from a specified file.
-	 * 
-	 * @param file
-	 *            File from which to extract metadata and plain text contents.
-	 * 
-	 * @throws IOException
-	 * @throws SAXException
-	 * @throws TikaException
-	 */
-	void extractMetadataAndContents(File file) throws IOException, SAXException, TikaException {
-		InputStream fileStream = null;
-		try {
-			fileStream = new BufferedInputStream(new FileInputStream(file));
-			extractMetadataAndContents(fileStream);
-		} finally {
-			IOUtils.closeQuietly(fileStream);
-		}
-	}
-
-	/**
 	 * Extracts metadata and plain text contents from a specified InputStream.
 	 * 
 	 * @param fileStream
@@ -173,11 +162,6 @@ public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumen
 		} finally {
 			IOUtils.closeQuietly(fileStream);
 		}
-	}
-
-	private String createId() {
-		return format("{0}/{1}", bagDir.getName(),
-				FilenameHelper.removeBasePath(bagDir.getAbsolutePath(), srcFile.getAbsolutePath()));
 	}
 
 	/**
@@ -212,7 +196,7 @@ public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumen
 		String[] authors;
 
 		@Field("metadata_*")
-		Map<String, List<String>> metadata = new HashMap<String, List<String>>();
+		Map<String, List<String>> metadata = new HashMap<>();
 
 		@Field
 		String content;

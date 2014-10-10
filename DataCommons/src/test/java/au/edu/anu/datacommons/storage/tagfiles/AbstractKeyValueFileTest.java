@@ -33,6 +33,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -113,7 +115,8 @@ public class AbstractKeyValueFileTest {
 		kvFile.putAll(randMap);
 		long start_ns = System.nanoTime();
 		kvFile.write();
-		LOGGER.info("Writing {} entries took {} millisec", nItems, String.valueOf((System.nanoTime() - start_ns) / 1000000.0));
+		String timeElapsed = String.valueOf((System.nanoTime() - start_ns) / 1000000.0);
+		LOGGER.info("Serialising {} entries took {} millisec", nItems, timeElapsed);
 		
 		compareMaps(randMap, file);
 	}
@@ -162,69 +165,6 @@ public class AbstractKeyValueFileTest {
 		execSvc.shutdown();
 		execSvc.awaitTermination(1, TimeUnit.MINUTES);
 		compareMaps(randMap, kvFile);		
-	}
-	
-	@Test
-	public void testSimultaneousReadWhileWrite() throws Exception {
-		final int nItems = 1000;
-		Map<String, String> randMap = generateRandomKeyValues(nItems, 64, 128);
-		ExecutorService execSvc = Executors.newCachedThreadPool();
-		
-		final File file = tempDir.newFile();
-		TestStopWatch sw = new TestStopWatch();
-		Runnable reader = new Runnable() {
-
-			@Override
-			public void run() {
-				FileInputStream fis = null;
-				for (long i = 0L; ; i++) {
-					try {
-						fis = new FileInputStream(file);
-						long j;
-						for (j = 0L; fis.read() != -1; j++) {
-						}
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					} finally {
-						IOUtils.closeQuietly(fis);
-					}
-				}
-			}
-			
-		};
-		Future<?> future = execSvc.submit(reader);
-		sw.start();
-		for (Entry<String, String> entry : randMap.entrySet()) {
-			kvFile = new KeyValueFileImpl(file);
-			kvFile.put(entry.getKey(), entry.getValue());
-			kvFile.write();
-		}
-		sw.stop();
-		if (future.isDone()) {
-			fail("Reader thread should not have stopped.");
-		}
-		future.cancel(true);
-		LOGGER.info("Writing {} entries took {} millisec", nItems, String.valueOf(sw.getMillisElapsed()));
-
-		List<Future<KeyValueFileImpl>> futureList = new ArrayList<Future<KeyValueFileImpl>>();
-		for (int i = 0; i < 30; i++) {
-			futureList.add(execSvc.submit(new Callable<KeyValueFileImpl>() {
-				
-				@Override
-				public KeyValueFileImpl call() throws Exception {
-					return new KeyValueFileImpl(file);
-				}
-				
-			}));
-		}
-		
-		for (Future<KeyValueFileImpl> f : futureList) {
-			kvFile = f.get();
-			compareMaps(randMap, kvFile);
-		}
-		
 	}
 	
 	@Test
@@ -431,21 +371,30 @@ public class AbstractKeyValueFileTest {
 	private class KeyValueFileImpl extends AbstractKeyValueFile {
 		private static final long serialVersionUID = 1L;
 		
+		private File file;
+		
 		public KeyValueFileImpl(File file) throws IOException {
-			super(file);
+			super(new FileInputStream(file));
+			this.file = file;
 		}
 
 		@Override
 		public String getFilepath() {
 			return null;
 		}
+		
+		public synchronized void write() throws IOException {
+			Files.copy(this.serialize(), this.file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		}
 	}
 	
 	private class KeyValueFileImplSpaceSeparator extends AbstractKeyValueFile {
 		private static final long serialVersionUID = 1L;
-
+		private File file;
+		
 		public KeyValueFileImplSpaceSeparator(File file) throws IOException {
-			super(file);
+			super(new FileInputStream(file));
+			this.file = file;
 		}
 
 		@Override
@@ -471,5 +420,10 @@ public class AbstractKeyValueFileTest {
 		public String getFilepath() {
 			return null;
 		}
+		
+		public synchronized void write() throws IOException {
+			Files.copy(this.serialize(), this.file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		}
+
 	}
 }

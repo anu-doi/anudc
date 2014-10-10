@@ -33,7 +33,7 @@
  * <li>Verify the tag files of a that contain supplementary information about files in a record
  * <li>Request a {@link au.edu.anu.datacommons.storage.info.FileInfo} object containing all info about a single file
  * in a record
- * <li>Request a {@link au.edu.anu.datacommons.storage.info.RecordDataInfo} object containing a collection of FileInfo
+ * <li>Request a {@link au.edu.anu.datacommons.storage.info.RecordDataSummary} object containing a collection of FileInfo
  * objects each containing all info about a single file in the record
  * <li>Request the contents of a file in a collection as an InputStream
  * <li>Request the contents of multiple files in a collection as a ZipStream

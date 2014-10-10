@@ -19,42 +19,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package au.edu.anu.datacommons.storage.tagfiles;
+package au.edu.anu.datacommons.storage.messagedigest;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.storage.messagedigest.FileMessageDigests.Algorithm;
 
 /**
  * @author Rahul Khanna
  *
  */
-public class BagInfoTagFileTest {
-	private static final Logger LOGGER = LoggerFactory.getLogger(BagInfoTagFileTest.class);
-	
-	@Rule
-	public TemporaryFolder tempDir = new TemporaryFolder();
-	
-	private File file;
-	private BagInfoTagFile tagFile;
+public class FileMessageDigestsTest {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileMessageDigestsTest.class);
 	
 	/**
 	 * @throws java.lang.Exception
@@ -75,9 +60,6 @@ public class BagInfoTagFileTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		LOGGER.trace("Using temp dir: {}" , tempDir.getRoot().getAbsolutePath());
-		file = tempDir.newFile();
-		tagFile = new BagInfoTagFile(new FileInputStream(file));
 	}
 
 	/**
@@ -88,15 +70,10 @@ public class BagInfoTagFileTest {
 	}
 
 	@Test
-	public void test() throws Exception {
-		assertThat(tagFile.entrySet(), hasSize(0));
-		tagFile.put("a", "b");
-		Files.copy(tagFile.serialize(), this.file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		
-		File f = this.file;
-		List<String> lines = FileUtils.readLines(f, StandardCharsets.UTF_8);
-		
-		assertThat(lines, contains("a: b"));
+	public void testAlgorithm() {
+		assertThat(Algorithm.valueOf("MD5"), is(Algorithm.MD5));
+		assertThat(Algorithm.SHA512.getJavaAlgorithmName(), is("SHA-512"));
+		assertThat(Algorithm.lookupJavaAlgorithm("SHA-1"), is(Algorithm.SHA1));
 	}
 
 }

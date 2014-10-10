@@ -22,12 +22,18 @@
 package au.edu.anu.datacommons.storage.completer.preserve;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -64,14 +70,12 @@ public class PreservationFormatConverter {
 	}
 
 	private Xena xena;
-	private File input;
-	private XenaInputSource xis;
+	private CustomXenaInputSource xis;
 	private File destDir;
 
-	public PreservationFormatConverter(File input, File destDir) throws FileNotFoundException {
+	public PreservationFormatConverter(String filename, InputStream fileStream, File destDir) throws IOException {
 		initXena();
-		this.input = input;
-		xis = new XenaInputSource(input);
+		xis = new CustomXenaInputSource(filename, fileStream);
 		this.destDir = destDir;
 	}
 
@@ -89,21 +93,19 @@ public class PreservationFormatConverter {
 	public NormaliserResults convert() throws IOException {
 		NormaliserResults results = null;
 		try {
-			Type type = xena.getMostLikelyType(xis);
+			// Type type = xena.getMostLikelyType(xis);
+			Type type = xena.getBestGuess(xis).getType();
 			if (convertibleTypes.contains(type.toString())) {
-				LOGGER.trace("Converting file {} of type [{}] to preservation format...", this.input.getAbsolutePath(),
-						type.toString());
+				LOGGER.trace("Converting stream of type [{}] to preservation format...", type.toString());
 				AbstractNormaliser normaliser = xena.getNormaliser(type);
 				if (normaliser.isConvertible()) {
 					results = xena.normalise(xis, destDir, CONVERT_ONLY);
 					if (results != null) {
 						File converted = new File(results.getDestinationDirString(), results.getOutputFileName());
 						if (converted.isFile() && converted.length() > 0) {
-							LOGGER.trace("Converted file {} to {}.", this.input.getAbsolutePath(),
-									converted.getAbsolutePath());
+							LOGGER.trace("Converted stream to {}.", converted.getAbsolutePath());
 						} else {
-							LOGGER.error("0 byte file generated when converting {} to preservation format.",
-									this.input.getName());
+							LOGGER.error("0 byte file generated when converting stream to preservation format.");
 							if (!converted.delete()) {
 								converted.deleteOnExit();
 							}
@@ -111,12 +113,12 @@ public class PreservationFormatConverter {
 						}
 					}
 				} else {
-					LOGGER.trace("File {} not converted to preservation format: Normaliser {} not convertible.",
-							this.input.getAbsolutePath(), type.getName());
+					LOGGER.trace("Stream not converted to preservation format: Normaliser {} not convertible.",
+							type.getName());
 				}
 			} else {
-				LOGGER.trace("File {} not converted to preservation format: Type {} not in convertible list.",
-						this.input.getAbsolutePath(), type.getName());
+				LOGGER.trace("Stream not converted to preservation format: Type {} not in convertible list.",
+						type.getName());
 			}
 		} catch (XenaException e) {
 			LOGGER.trace(e.getMessage());
@@ -159,7 +161,7 @@ public class PreservationFormatConverter {
 			BufferedReader bufferedReader = null;
 			try {
 				InputStream typesStream = PreservationFormatConverter.class.getResourceAsStream(RES_CONVERTABLE_TYPES);
-				bufferedReader = new BufferedReader(new InputStreamReader(typesStream, "UTF-8"));
+				bufferedReader = new BufferedReader(new InputStreamReader(typesStream, Charset.defaultCharset()));
 				for (String line = bufferedReader.readLine(); line != null; line = bufferedReader.readLine()) {
 					if (!line.trim().startsWith("#") && line.trim().length() != 0) {
 						convertibleTypes.add(line);
@@ -172,6 +174,36 @@ public class PreservationFormatConverter {
 			} finally {
 				IOUtils.closeQuietly(bufferedReader);
 			}
+		}
+	}
+	
+	private static class CustomXenaInputSource extends XenaInputSource {
+		private String filename;
+		private byte[] byteArray;
+		
+		public CustomXenaInputSource(String filename, InputStream is) throws IOException {
+			super(is);
+			this.filename = filename;
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			IOUtils.copy(is, baos);
+			this.byteArray = baos.toByteArray();
+			IOUtils.closeQuietly(is);
+		}
+		
+		@Override
+		public InputStream getByteStream() {
+			return new ByteArrayInputStream(this.byteArray);
+		}
+		
+		@Override
+		public String getSystemId() {
+			return this.filename;
+		}
+		
+		@Override
+		public String getFileNameExtension() {
+			int extIndex = this.filename.lastIndexOf(".");
+			return this.filename.substring(extIndex + 1);
 		}
 	}
 }

@@ -25,8 +25,6 @@ import gov.loc.repository.bagit.Manifest.Algorithm;
 import gov.loc.repository.bagit.utilities.MessageDigestHelper;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,7 +42,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import au.edu.anu.datacommons.storage.DcStorage;
+import au.edu.anu.datacommons.storage.provider.StorageException;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
+import au.edu.anu.datacommons.storage.provider.StorageProviderResolver;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 
 /**
@@ -61,9 +61,11 @@ public class TagFilesService {
 
 	@Autowired(required = true)
 	private ThreadPoolService threadPoolSvc;
+	
+	@Autowired
+	private StorageProviderResolver providerResolver;
 
 	private final Map<String, Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile>> pidMap;
-	private final Path bagsRoot;
 	private long writeFreq;
 	private int cacheSize;
 	
@@ -85,21 +87,8 @@ public class TagFilesService {
 
 	};
 
-	/**
-	 * @param bagsRoot
-	 *            Root directory where all bag folders are located.
-	 */
-	public TagFilesService(String bagsRoot) {
-		this(Paths.get(bagsRoot));
-	}
-
-	/**
-	 * @param bagsRoot
-	 *            Root directory where all bag folders are located.
-	 */
-	public TagFilesService(Path bagsRoot) {
+	public TagFilesService() {
 		super();
-		this.bagsRoot = bagsRoot;
 		pidMap = Collections.synchronizedMap(new LinkedHashMap<String, Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile>>(
 						cacheSize + 1, 0.75f, true) {
 					private static final long serialVersionUID = 1L;
@@ -329,34 +318,46 @@ public class TagFilesService {
 	 */
 	private Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> readTagFiles(String pid)
 			throws IOException {
-		Path bagDir = bagsRoot.resolve(DcStorage.convertToDiskSafe(pid));
 		Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFiles = new HashMap<>();
+		StorageProvider storageProvider;
+		try {
+			storageProvider = providerResolver.getStorageProvider(pid);
+		} catch (StorageException e) {
+			throw new IOException(e);
+		}
+
 		// BagIt
-		tagFiles.put(BagItTagFile.class, new BagItTagFile(bagDir.resolve(BagItTagFile.FILEPATH).toFile()));
+		tagFiles.put(BagItTagFile.class,
+				new BagItTagFile(storageProvider.readTagFileStream(pid, BagItTagFile.FILEPATH)));
 		// Bag Info
-		tagFiles.put(BagInfoTagFile.class, new BagInfoTagFile(bagDir.resolve(BagInfoTagFile.FILEPATH).toFile()));
-		
+		tagFiles.put(BagInfoTagFile.class,
+				new BagInfoTagFile(storageProvider.readTagFileStream(pid, BagInfoTagFile.FILEPATH)));
+
 		// Tag Manifest
-		tagFiles.put(TagManifestMd5TagFile.class, new TagManifestMd5TagFile(bagDir.resolve(TagManifestMd5TagFile.FILEPATH).toFile()));
-		
+		tagFiles.put(TagManifestMd5TagFile.class,
+				new TagManifestMd5TagFile(storageProvider.readTagFileStream(pid, TagManifestMd5TagFile.FILEPATH)));
+
 		// External References
-		tagFiles.put(ExtRefsTagFile.class, new ExtRefsTagFile(bagDir.resolve(ExtRefsTagFile.FILEPATH).toFile()));
+		tagFiles.put(ExtRefsTagFile.class,
+				new ExtRefsTagFile(storageProvider.readTagFileStream(pid, ExtRefsTagFile.FILEPATH)));
 		// Manifest MD5
-		tagFiles.put(ManifestMd5TagFile.class, new ManifestMd5TagFile(bagDir.resolve(ManifestMd5TagFile.FILEPATH).toFile()));
+		tagFiles.put(ManifestMd5TagFile.class,
+				new ManifestMd5TagFile(storageProvider.readTagFileStream(pid, ManifestMd5TagFile.FILEPATH)));
 		// File Metadata
-		tagFiles.put(FileMetadataTagFile.class, new FileMetadataTagFile(bagDir.resolve(FileMetadataTagFile.FILEPATH)
-				.toFile()));
+		tagFiles.put(FileMetadataTagFile.class,
+				new FileMetadataTagFile(storageProvider.readTagFileStream(pid, FileMetadataTagFile.FILEPATH)));
 		// Preservation Files
 		tagFiles.put(PreservationMapTagFile.class,
-				new PreservationMapTagFile(bagDir.resolve(PreservationMapTagFile.FILEPATH).toFile()));
+				new PreservationMapTagFile(storageProvider.readTagFileStream(pid, PreservationMapTagFile.FILEPATH)));
 		// Pronom File Formats
-		tagFiles.put(PronomFormatsTagFile.class, new PronomFormatsTagFile(bagDir.resolve(PronomFormatsTagFile.FILEPATH)
-				.toFile()));
+		tagFiles.put(PronomFormatsTagFile.class,
+				new PronomFormatsTagFile(storageProvider.readTagFileStream(pid, PronomFormatsTagFile.FILEPATH)));
 		// Timestamps
 		tagFiles.put(TimestampsTagFile.class,
-				new TimestampsTagFile(bagDir.resolve(TimestampsTagFile.FILEPATH).toFile()));
+				new TimestampsTagFile(storageProvider.readTagFileStream(pid, TimestampsTagFile.FILEPATH)));
 		// Virus Scan Results
-		tagFiles.put(VirusScanTagFile.class, new VirusScanTagFile(bagDir.resolve(VirusScanTagFile.FILEPATH).toFile()));
+		tagFiles.put(VirusScanTagFile.class,
+				new VirusScanTagFile(storageProvider.readTagFileStream(pid, VirusScanTagFile.FILEPATH)));
 
 		return tagFiles;
 	}
@@ -385,8 +386,11 @@ public class TagFilesService {
 		if (tagFiles != null) {
 			for (Entry<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFileEntry : tagFiles.entrySet()) {
 				try {
-					tagFileEntry.getValue().write();
-				} catch (IOException e) {
+					if (tagFileEntry.getValue().hasUnsavedChanges()) {
+						StorageProvider storageProvider = providerResolver.getStorageProvider(entry.getKey());
+						storageProvider.writeTagFileStream(entry.getKey(), tagFileEntry.getValue().getFilepath(), tagFileEntry.getValue().serialize());
+					}
+				} catch (IOException | StorageException e) {
 					LOGGER.error(e.getMessage(), e);
 				}
 			}
