@@ -124,7 +124,7 @@ public class ListResource {
 
 		List<Template> templates = templateService.getTemplates();
 		int toVal = Math.min(templates.size(), offset + limit);
-		LOGGER.info("Number of templates: {}, Start: {}, End: {}", templates.size(), offset, toVal);
+		LOGGER.debug("Number of templates found: {}, Returning templates: {} - {}", templates.size(), offset, toVal);
 		templates = templates.subList(offset, toVal);
 		model.put("templates", templates);
 		response = Response.ok(new Viewable("/listtemplate.jsp", model)).build();
