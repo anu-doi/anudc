@@ -44,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.storage.provider.StorageProvider;
-import au.edu.anu.datacommons.storage.search.FileIndexDocumentGeneratorTask.StorageSolrDoc;
 
 /**
  * @author Rahul Khanna
@@ -127,16 +126,16 @@ public class FileIndexDocumentGeneratorTaskTest {
 		Mockito.when(sp.fileExists(PID, REL_PATH)).thenReturn(false);
 		StorageSolrDoc doc = docGenTask.call();
 		assertThat(doc, is(not(nullValue())));
-		assertThat(doc.id, is(not(nullValue())));
-		assertThat(doc.name, is(nullValue()));
-		assertThat(doc.ext, is(nullValue()));
-		assertThat(doc.size, is(0L));
-		assertThat(doc.last_modified, is(nullValue()));
-		assertThat(doc.mime_type, is(nullValue()));
-		assertThat(doc.title, is(nullValue()));
-		assertThat(doc.authors, is(nullValue()));
-		assertThat(doc.metadata.entrySet(), is(empty()));
-		assertThat(doc.content, is(nullValue()));
+		assertThat(doc.getId(), is(not(nullValue())));
+		assertThat(doc.getName(), is(nullValue()));
+		assertThat(doc.getExt(), is(nullValue()));
+		assertThat(doc.getSize(), is(0L));
+		assertThat(doc.getLast_modified(), is(nullValue()));
+		assertThat(doc.getMime_type(), is(nullValue()));
+		assertThat(doc.getTitle(), is(nullValue()));
+		assertThat(doc.getAuthors(), is(nullValue()));
+		assertThat(doc.getMetadata().entrySet(), is(empty()));
+		assertThat(doc.getContent(), is(nullValue()));
 		
 	}
 }

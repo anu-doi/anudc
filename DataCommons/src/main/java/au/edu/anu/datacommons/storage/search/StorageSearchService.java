@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import au.edu.anu.datacommons.storage.info.FileInfo;
 import au.edu.anu.datacommons.storage.info.FileInfo.Type;
 import au.edu.anu.datacommons.storage.provider.StorageProvider;
-import au.edu.anu.datacommons.storage.search.FileIndexDocumentGeneratorTask.StorageSolrDoc;
 
 /**
  * Service class that interacts with a Solr instance for data search.
@@ -111,7 +110,7 @@ public class StorageSearchService {
 			try {
 				submitDoc(doc);
 			} catch (IOException | SolrServerException e) {
-				LOGGER.warn("Error submitting index document for {}: {}", doc.id, e.getMessage());
+				LOGGER.warn("Error submitting index document for {}: {}", doc.getId(), e.getMessage());
 			}
 		}
 		solrServer.commit();
@@ -172,12 +171,12 @@ public class StorageSearchService {
 	 * @throws SolrServerException
 	 */
 	private void submitDoc(StorageSolrDoc doc) throws IOException, SolrServerException {
-		if (doc.name != null) {
+		if (doc.getName() != null) {
 			solrServer.addBean(doc);
-			LOGGER.trace("Added index document for {}.", doc.id);
+			LOGGER.trace("Added index document for {}.", doc.getId());
 		} else {
-			solrServer.deleteById(doc.id);
-			LOGGER.trace("Removed index document for {}.", doc.id);
+			solrServer.deleteById(doc.getId());
+			LOGGER.trace("Removed index document for {}.", doc.getId());
 		}
 	}
 
