@@ -453,11 +453,9 @@ public class FedoraObject {
 	 */
 	@Transient
 	public Boolean getEmbargoed() {
-		LOGGER.info("Embargoed value: {}", embargoed);
 		if (embargoed == null) {
 			embargoed = false;
 			boolean passed = getEmbargoDatePassed();
-			LOGGER.info("Embargo date passed value: {}", passed);
 			Date embargoDate = getEmbargoDate();
 			if (embargoDate != null) {
 				Date now = new Date();

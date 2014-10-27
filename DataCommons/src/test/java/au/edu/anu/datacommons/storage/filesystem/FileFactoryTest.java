@@ -25,6 +25,8 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -58,7 +60,7 @@ public class FileFactoryTest {
 	private final int CAPACITY = 10;
 	private static final String TEMP_DIR = System.getProperty("java.io.tmpdir");
 
-	private FileFactory ff;
+	private FileFactory<Path> ff;
 
 	/**
 	 * @throws java.lang.Exception
@@ -80,7 +82,7 @@ public class FileFactoryTest {
 	 */
 	@Before
 	public void setUp() throws Exception {
-		ff = new FileFactory(CAPACITY);
+		ff = new FileFactory<>(CAPACITY);
 	}
 
 	/**
@@ -94,33 +96,33 @@ public class FileFactoryTest {
 	public void testGetFile() {
 		assertThat(ff.cache, is(empty()));
 		String path1 = "Abc1.txt";
-		File f1 = ff.getFile(TEMP_DIR, path1);
+		Path f1 = ff.getFromCache(Paths.get(TEMP_DIR, path1));
 		assertThat(ff.cache, hasSize(1));
-		assertThat(ff.getFile(TEMP_DIR, path1), sameInstance(f1));
+		assertThat(ff.getFromCache(Paths.get(TEMP_DIR, path1)), sameInstance(f1));
 
 		String path2 = "Abc2.txt";
-		File f2 = ff.getFile(TEMP_DIR, path2);
-		assertThat(ff.getFile(TEMP_DIR, path2), sameInstance(f2));
+		Path f2 = ff.getFromCache(Paths.get(TEMP_DIR, path2));
+		assertThat(ff.getFromCache(Paths.get(TEMP_DIR, path2)), sameInstance(f2));
 	}
 
 	@Test
 	public void testMaxCapacity() {
 		int capacity = ff.cache.remainingCapacity();
 		assertEquals(CAPACITY, capacity);
-		List<File> files = new ArrayList<File>(capacity);
+		List<Path> files = new ArrayList<>(capacity);
 		for (int i = 0; i < capacity; i++) {
-			files.add(ff.getFile(TEMP_DIR, "File-" + String.valueOf(i)));
+			files.add(ff.getFromCache(Paths.get(TEMP_DIR, "File-" + String.valueOf(i))));
 		}
 
 		assertEquals(0, ff.cache.remainingCapacity());
-		File newFile = ff.getFile(TEMP_DIR, "NewFile");
+		Path newFile = ff.getFromCache(Paths.get(TEMP_DIR, "NewFile"));
 		assertThat(ff.cache, not(hasItem(files.get(0))));
 		assertThat(ff.cache, hasItem(newFile));
 		assertEquals(newFile, ff.cache.peek());
 
 		logQueue(ff.cache);
 
-		File file5 = ff.getFile(files.get(5).getAbsolutePath());
+		Path file5 = ff.getFromCache(files.get(5));
 		assertThat(file5, sameInstance(files.get(5)));
 		assertEquals(file5, ff.cache.peek());
 
@@ -128,7 +130,7 @@ public class FileFactoryTest {
 	}
 
 	@Test
-	public void testThreaded() throws InterruptedException, ExecutionException {
+	public void testThreaded() throws Exception {
 		ExecutorService threadPool = Executors.newCachedThreadPool();
 		int nThreads = 10;
 		final AtomicInteger ai = new AtomicInteger(0);
@@ -138,7 +140,7 @@ public class FileFactoryTest {
 
 				@Override
 				public Boolean call() throws Exception {
-					File f = ff.getFile(TEMP_DIR, "File.txt");
+					Path f = ff.getFromCache(Paths.get(TEMP_DIR, "File.txt"));
 					synchronized (f) {
 						ai.getAndIncrement();
 						LOGGER.trace("Start {} {}", f.hashCode(), ai.get());
@@ -165,17 +167,13 @@ public class FileFactoryTest {
 		}
 
 		threadPool.shutdown();
-		try {
-			threadPool.awaitTermination(nThreads, TimeUnit.SECONDS);
-		} catch (InterruptedException e) {
-			fail(e.getMessage());
-		}
+		threadPool.awaitTermination(nThreads, TimeUnit.SECONDS);
 	}
 
 	@Test
 	public void testThreadedParentChild() throws InterruptedException, ExecutionException {
-		final File parent = ff.getFile(TEMP_DIR);
-		final File child = ff.getFile(parent, "abc.txt");
+		final Path parent = ff.getFromCache(Paths.get(TEMP_DIR));
+		final Path child = ff.getFromCache(parent.resolve("abc.txt"));
 		ExecutorService threadPool = Executors.newCachedThreadPool();
 		List<Future<Boolean>> futures = new ArrayList<Future<Boolean>>();
 		futures.add(threadPool.submit(new Callable<Boolean>() {
@@ -217,11 +215,11 @@ public class FileFactoryTest {
 	
 	}
 
-	private void logQueue(Queue<File> q) {
-		Iterator<File> iter = q.iterator();
+	private void logQueue(Queue<Path> q) {
+		Iterator<Path> iter = q.iterator();
 		LOGGER.trace("Queue contents in order:");
 		while (iter.hasNext()) {
-			LOGGER.trace(iter.next().getAbsolutePath());
+			LOGGER.trace(iter.next().toString());
 		}
 
 	}

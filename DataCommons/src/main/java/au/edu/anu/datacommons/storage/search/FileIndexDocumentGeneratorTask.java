@@ -21,24 +21,14 @@
 
 package au.edu.anu.datacommons.storage.search;
 
-import static java.text.MessageFormat.format;
-import gov.loc.repository.bagit.utilities.FilenameHelper;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.solr.client.solrj.beans.Field;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.metadata.TikaCoreProperties;
@@ -51,6 +41,8 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
 import au.edu.anu.datacommons.storage.completer.metadata.FitsParser;
+import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 
 /**
  * Task that generates a {@link StorageSolrDoc} for a file for submission to a Solr instance.
@@ -58,19 +50,24 @@ import au.edu.anu.datacommons.storage.completer.metadata.FitsParser;
  * @author Rahul Khanna
  * 
  */
-public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumentGeneratorTask.StorageSolrDoc> {
+public class FileIndexDocumentGeneratorTask implements Callable<StorageSolrDoc> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileIndexDocumentGeneratorTask.class);
 
-	private File bagDir;
-	private File srcFile;
-
+	private String pid;
+	private String relPath;
+	private StorageProvider storageProvider;
+	private String docId;
+	
 	Metadata metadata;
 	StringWriter contents;
 
-	public FileIndexDocumentGeneratorTask(File bagDir, File srcFile) {
+
+	public FileIndexDocumentGeneratorTask(String pid, String relPath, StorageProvider storageProvider, String docId) {
 		super();
-		this.bagDir = bagDir;
-		this.srcFile = srcFile;
+		this.pid = pid;
+		this.relPath = relPath;
+		this.storageProvider = storageProvider;
+		this.docId = docId;
 	}
 
 	@Override
@@ -78,27 +75,29 @@ public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumen
 		return generateSolrInputDocument();
 	}
 
-	public StorageSolrDoc generateSolrInputDocument() {
+	public StorageSolrDoc generateSolrInputDocument() throws IOException {
 		StorageSolrDoc docPojo = new StorageSolrDoc();
 
-		docPojo.id = createId();
-		if (srcFile.isFile()) {
-			if (srcFile.getName().lastIndexOf('.') > 0) {
-				docPojo.name = srcFile.getName().substring(0, srcFile.getName().lastIndexOf('.'));
-				docPojo.ext = srcFile.getName().substring(srcFile.getName().lastIndexOf('.') + 1);
-			} else {
-				docPojo.name = srcFile.getName();
-			}
-			docPojo.size = srcFile.length();
-			docPojo.last_modified = new Date(srcFile.lastModified());
+		docPojo.setId(this.docId);
+		if (storageProvider.fileExists(this.pid, this.relPath)) {
+			FileInfo fi = storageProvider.getFileInfo(this.pid, this.relPath);
 
+			if (fi.getFilename().lastIndexOf('.') > 0) {
+				docPojo.setName(fi.getFilename().substring(0, fi.getFilename().lastIndexOf('.')));
+				docPojo.setExt(fi.getFilename().substring(fi.getFilename().lastIndexOf('.') + 1));
+			} else {
+				docPojo.setName(fi.getFilename());
+			}
+			docPojo.setSize(fi.getSize());
+			docPojo.setLast_modified(new Date(fi.getLastModified().toMillis()));
+			
 			// Metadata & Contents
-			try {
-				extractMetadataAndContents(this.srcFile);
+			try (InputStream fileStream = storageProvider.readStream(pid, fi.getRelFilepath())) {
+				extractMetadataAndContents(fileStream);
 				processMetadata(docPojo);
-				docPojo.content = this.contents.toString();
-			} catch (IOException | SAXException | TikaException e) {
-				LOGGER.warn("Unable to extract content from {}: {}", srcFile.getAbsolutePath(), e.getMessage());
+				docPojo.setContent(this.contents.toString());
+			} catch (SAXException | TikaException e) {
+				LOGGER.warn("Unable to extract content from {}: {}", fi.getFilename(), e.getMessage());
 			}
 		}
 
@@ -113,46 +112,26 @@ public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumen
 	 */
 	private void processMetadata(StorageSolrDoc doc) {
 		if (metadata.get("Content-Type") != null) {
-			doc.mime_type = metadata.get("Content-Type");
+			doc.setMime_type(metadata.get("Content-Type"));
 		}
 		if (metadata.get(TikaCoreProperties.TITLE) != null) {
-			doc.title = metadata.get(TikaCoreProperties.TITLE);
+			doc.setTitle(metadata.get(TikaCoreProperties.TITLE));
 		}
 		if (metadata.get(TikaCoreProperties.CREATOR) != null) {
-			doc.authors = metadata.get(TikaCoreProperties.CREATOR).split(";");
-			if (doc.authors.length == 1) {
-				doc.authors = metadata.get(TikaCoreProperties.CREATOR).split(",");
+			doc.setAuthors(metadata.get(TikaCoreProperties.CREATOR).split(";"));
+			if (doc.getAuthors().length == 1) {
+				doc.setAuthors(metadata.get(TikaCoreProperties.CREATOR).split(","));
 			}
-			for (int i = 0; i < doc.authors.length; i++) {
-				doc.authors[i] = doc.authors[i].trim();
+			for (int i = 0; i < doc.getAuthors().length; i++) {
+				doc.getAuthors()[i] = doc.getAuthors()[i].trim();
 			}
 		}
 		for (String key : this.metadata.names()) {
-			doc.metadata.put("metadata_" + key, Arrays.asList(this.metadata.getValues(key)));
+			doc.getMetadata().put("metadata_" + key, Arrays.asList(this.metadata.getValues(key)));
 		}
 	}
 
 	
-	/**
-	 * Extracts metadata and plain text contents from a specified file.
-	 * 
-	 * @param file
-	 *            File from which to extract metadata and plain text contents.
-	 * 
-	 * @throws IOException
-	 * @throws SAXException
-	 * @throws TikaException
-	 */
-	void extractMetadataAndContents(File file) throws IOException, SAXException, TikaException {
-		InputStream fileStream = null;
-		try {
-			fileStream = new BufferedInputStream(new FileInputStream(file));
-			extractMetadataAndContents(fileStream);
-		} finally {
-			IOUtils.closeQuietly(fileStream);
-		}
-	}
-
 	/**
 	 * Extracts metadata and plain text contents from a specified InputStream.
 	 * 
@@ -173,48 +152,5 @@ public class FileIndexDocumentGeneratorTask implements Callable<FileIndexDocumen
 		} finally {
 			IOUtils.closeQuietly(fileStream);
 		}
-	}
-
-	private String createId() {
-		return format("{0}/{1}", bagDir.getName(),
-				FilenameHelper.removeBasePath(bagDir.getAbsolutePath(), srcFile.getAbsolutePath()));
-	}
-
-	/**
-	 * POJO class representing a Storage Solr Document  
-	 * 
-	 * @author Rahul Khanna
-	 *
-	 */
-	public static class StorageSolrDoc {
-		@Field
-		String id;
-
-		@Field
-		String name;
-
-		@Field
-		String ext;
-
-		@Field
-		long size;
-
-		@Field
-		Date last_modified;
-
-		@Field
-		String mime_type;
-
-		@Field
-		String title;
-
-		@Field("author")
-		String[] authors;
-
-		@Field("metadata_*")
-		Map<String, List<String>> metadata = new HashMap<String, List<String>>();
-
-		@Field
-		String content;
 	}
 }

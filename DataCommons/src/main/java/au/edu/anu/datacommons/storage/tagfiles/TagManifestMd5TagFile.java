@@ -21,8 +21,8 @@
 
 package au.edu.anu.datacommons.storage.tagfiles;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Tag file class for tagmanifest-md5.txt .
@@ -35,8 +35,8 @@ public class TagManifestMd5TagFile extends AbstractManifestTagFile {
 	private static final long serialVersionUID = 1L;
 	public static final String FILEPATH = "tagmanifest-md5.txt";
 
-	public TagManifestMd5TagFile(File file) throws IOException {
-		super(file);
+	public TagManifestMd5TagFile(InputStream stream) throws IOException {
+		super(stream);
 	}
 	
 	@Override

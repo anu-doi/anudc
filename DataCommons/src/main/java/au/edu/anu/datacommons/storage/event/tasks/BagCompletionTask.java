@@ -43,6 +43,9 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.info.FileInfo.Type;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.tagfiles.BagInfoTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.TagManifestMd5TagFile;
@@ -63,9 +66,9 @@ public class BagCompletionTask extends AbstractTagFileTask {
 
 	private Collection<Future<?>> waitTasks;
 
-	public BagCompletionTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc,
+	public BagCompletionTask(String pid, StorageProvider storageProvider, String relPath, TagFilesService tagFilesSvc,
 			Collection<Future<?>> waitTasks) {
-		super(pid, bagDir, relPath, tagFilesSvc);
+		super(pid, storageProvider, relPath, tagFilesSvc);
 		this.waitTasks = waitTasks;
 	}
 
@@ -73,7 +76,7 @@ public class BagCompletionTask extends AbstractTagFileTask {
 	protected void processTask() throws Exception {
 		waitForTasks();
 		updateBagInfo();
-		updateTagManifest();	
+		updateTagManifest();
 	}
 
 	/**
@@ -119,7 +122,7 @@ public class BagCompletionTask extends AbstractTagFileTask {
 		tagFilesSvc.addEntry(pid, BagInfoTagFile.class, BagInfoTxtImpl.FIELD_BAGGING_DATE, baggingDate);
 
 		// Payload-Oxum
-		PayloadOxum payloadOxum = calcPayloadOxum(bagDir.resolve("data/"));
+		PayloadOxum payloadOxum = calcPayloadOxum();
 		tagFilesSvc.addEntry(pid, BagInfoTagFile.class, BagInfoTxtImpl.FIELD_PAYLOAD_OXUM, payloadOxum.toString());
 
 		// Bag-Size
@@ -141,33 +144,26 @@ public class BagCompletionTask extends AbstractTagFileTask {
 		}
 	}
 	
-	/**
-	 * Calculates the Payload Oxum (refer to BagIt specification) by walking the payload directory tree.
-	 * 
-	 * @param plDir
-	 *            Payload directory
-	 * @return PayloadOxum object containing octet count (sum of file sizes in bytes) and stream count (number of files)
-	 * 
-	 * @throws IOException
-	 */
-	private PayloadOxum calcPayloadOxum(Path plDir) throws IOException {
-		PayloadOxumFileVisitor poVisitor = new PayloadOxumFileVisitor();
-		StopWatch sw = new StopWatch();
-		sw.start();
-		Files.walkFileTree(plDir, poVisitor);
-		sw.stop();
-
-		PayloadOxum po = poVisitor.getPo();
-		Object[] logObjs = { plDir.toString(), po.getStreamCount(), Util.byteCountToDisplaySize(po.getOctetCount()),
-				sw.getTimeElapsedFormatted() };
-		if (TimeUnit.MILLISECONDS.toMinutes(sw.getTimeElapsedMillis()) >= 2L) {
-			LOGGER.warn("Tree Walk {} ({} files, {}) : {}", logObjs);
-		} else {
-			LOGGER.debug("Tree Walk {} ({} files, {}) : {}", logObjs);
+	private PayloadOxum calcPayloadOxum() throws IOException {
+		PayloadOxum po = new PayloadOxum();
+		if (storageProvider.dirExists(pid, "")) {
+			FileInfo dirInfo = storageProvider.getDirInfo(pid, "", Integer.MAX_VALUE);
+			traverse(dirInfo, po);
 		}
 		return po;
 	}
 	
+	private void traverse(FileInfo dirInfo, PayloadOxum po) {
+		for (FileInfo i : dirInfo.getChildren()) {
+			if (i.getType() == Type.DIR) {
+				traverse(i, po);
+			} else if (i.getType() == Type.FILE) {
+				po.updateCounts(i.getSize());
+			}
+		}
+		
+	}
+
 	/**
 	 * Class representing payload oxum information
 	 * 
@@ -195,7 +191,7 @@ public class BagCompletionTask extends AbstractTagFileTask {
 
 		@Override
 		public String toString() {
-			return format("{0}.{1}", Long.toString(octetCount, 10), Long.toString(streamCount, 10));
+			return format("{0}.{1}", Long.toString(getOctetCount(), 10), Long.toString(getStreamCount(), 10));
 		}
 	}
 	

@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.concurrent.Semaphore;
 
 import au.edu.anu.datacommons.storage.completer.fido.FidoParser;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 
@@ -38,15 +39,15 @@ import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 public class PronomTask extends AbstractTagFileTask {
 	private static Semaphore permit = new Semaphore(1);
 	
-	public PronomTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
-		super(pid, bagDir, relPath, tagFilesSvc);
+	public PronomTask(String pid, StorageProvider storageProvider, String relPath, TagFilesService tagFilesSvc) {
+		super(pid, storageProvider, relPath, tagFilesSvc);
 	}
 
 	@Override
 	protected void processTask() throws Exception {
 		try (InputStream fileStream = createInputStream()) {
 			permit.acquire();
-			FidoParser fido = new FidoParser(fileStream, absFilepath.getFileName().toString());
+			FidoParser fido = new FidoParser(fileStream, storageProvider.getFileInfo(this.pid, this.relPath).getFilename());
 			String fidoStr = fido.getFidoStr();
 			tagFilesSvc.addEntry(pid, PronomFormatsTagFile.class, dataPrependedRelPath, fidoStr);
 		} finally {

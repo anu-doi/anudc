@@ -21,8 +21,8 @@
 
 package au.edu.anu.datacommons.storage.tagfiles;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Tag file class for the MD5 manifest. This file contains MD5 values for each payload file.
@@ -35,8 +35,8 @@ public class ManifestMd5TagFile extends AbstractManifestTagFile {
 
 	public static final String FILEPATH = "manifest-md5.txt";
 
-	public ManifestMd5TagFile(File file) throws IOException {
-		super(file);
+	public ManifestMd5TagFile(InputStream stream) throws IOException {
+		super(stream);
 	}
 
 	@Override

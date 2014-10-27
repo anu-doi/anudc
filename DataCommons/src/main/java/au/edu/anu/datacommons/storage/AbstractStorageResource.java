@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Future;
 
@@ -64,7 +65,9 @@ import au.edu.anu.datacommons.security.AccessLogRecord.Operation;
 import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
+import au.edu.anu.datacommons.storage.controller.StorageController;
 import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.provider.StorageException;
 import au.edu.anu.datacommons.storage.temp.TempFileService;
 import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.edu.anu.datacommons.util.Util;
@@ -93,8 +96,8 @@ public class AbstractStorageResource {
 	@Resource(name = "permissionService")
 	protected PermissionService permissionService;
 
-	@Resource(name = "dcStorage")
-	protected DcStorage dcStorage;
+	@Autowired
+	protected StorageController storageController;
 
 	@Autowired
 	protected TempFileService tmpFileSvc;
@@ -112,17 +115,18 @@ public class AbstractStorageResource {
 	 * @return Response object including HTTP headers and InputStream containing file contents.
 	 * @throws IOException
 	 */
-	protected Response getBagFileOctetStreamResp(String pid, String fileInBag) throws IOException {
+	protected Response getBagFileOctetStreamResp(String pid, String fileInBag) throws IOException,
+			StorageException {
 		Response resp = null;
 		InputStream is = null;
 
-		if (!dcStorage.fileExists(pid, fileInBag)) {
+		if (!storageController.fileExists(pid, fileInBag)) {
 			throw new NotFoundException(format("File {0} not found in record {1}", fileInBag, pid));
 		}
-		is = dcStorage.getFileStream(pid, fileInBag);
+		is = storageController.getFileStream(pid, fileInBag);
 		ResponseBuilder respBuilder = Response.ok(is, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 		// Add filename, MD5 and file size to response header.
-		FileInfo fileInfo = dcStorage.getFileInfo(pid, fileInBag);
+		FileInfo fileInfo = storageController.getFileInfo(pid, fileInBag);
 		respBuilder = respBuilder.header("Content-Disposition",
 				format("attachment; filename=\"{0}\"", fileInfo.getFilename()));
 		String md5 = fileInfo.getMessageDigests().get("MD5");
@@ -130,7 +134,7 @@ public class AbstractStorageResource {
 			respBuilder = respBuilder.header("Content-MD5", md5);
 		}
 		respBuilder = respBuilder.header("Content-Length", Long.toString(fileInfo.getSize(), 10));
-		respBuilder = respBuilder.lastModified(fileInfo.getLastModified());
+		respBuilder = respBuilder.lastModified(new Date(fileInfo.getLastModified().toMillis()));
 		resp = respBuilder.build();
 
 		return resp;
@@ -291,12 +295,13 @@ public class AbstractStorageResource {
 					if (ufi != null) {
 						String relPath = FilenameHelper
 								.normalizePathSeparators(appendSeparator(dirPath) + fi.getName());
-						if (dcStorage.fileExists(pid, dirPath)) {
+						if (storageController.fileExists(pid, relPath)) {
 							addAccessLog(Operation.UPDATE);
 						} else {
 							addAccessLog(Operation.CREATE);
 						}
-						dcStorage.addFile(pid, ufi, relPath);
+						// dcStorage.addFile(pid, ufi, relPath);
+						storageController.addFile(pid, relPath, ufi);
 					}
 				}
 			}
@@ -359,12 +364,13 @@ public class AbstractStorageResource {
 
 			Future<UploadedFileInfo> future = tmpFileSvc.saveInputStream(is, expectedLength, expectedMd5);
 			ufi = future.get();
-			if (dcStorage.fileExists(pid, path)) {
+			if (storageController.fileExists(pid, path)) {
 				addAccessLog(Operation.UPDATE);
 			} else {
 				addAccessLog(Operation.CREATE);
 			}
-			dcStorage.addFile(pid, ufi, path);
+			// dcStorage.addFile(pid, ufi, path);
+			storageController.addFile(pid, path, ufi);
 			LOGGER.info("User {} ({}) added file {}/data/{}, Size: {}, MD5: {}", getCurUsername(), getRemoteIp(), pid,
 					path, Util.byteCountToDisplaySize(ufi.getSize()), ufi.getMd5());
 			resp = Response.ok(ufi.getMd5()).build();
@@ -401,10 +407,10 @@ public class AbstractStorageResource {
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 
 		try {
-			if (dcStorage.fileExists(pid, fileInBag)) {
+			if (storageController.fileExists(pid, fileInBag)) {
 				addAccessLog(Operation.DELETE);
 			}
-			dcStorage.deleteItem(pid, fileInBag);
+			storageController.deleteFile(pid, fileInBag);
 			resp = Response.ok(format("File {0} deleted from {1}", fileInBag, pid)).build();
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
@@ -450,11 +456,11 @@ public class AbstractStorageResource {
 
 		try {
 			if (!isFilesPublic) {
-				dcStorage.deindexFilesInBag(pid);
+				storageController.deindexFiles(pid);
 			} else if (isFilesPublic && fo.getPublished()) {
-				dcStorage.indexFilesInBag(pid);
+				storageController.indexFiles(pid);
 			}
-		} catch (IOException e) {
+		} catch (IOException | StorageException e) {
 			LOGGER.warn("Error while processing files in record {} for indexing: {}", pid, e.getMessage());
 		}
 		resp = Response.ok().build();

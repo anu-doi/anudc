@@ -23,6 +23,8 @@ package au.edu.anu.datacommons.storage.event.tasks;
 
 import java.nio.file.Path;
 
+import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.search.StorageSearchService;
 
 /**
@@ -35,13 +37,13 @@ public class StorageSearchIndexTask extends AbstractStorageEventTask {
 
 	private StorageSearchService searchSvc;
 	
-	public StorageSearchIndexTask(String pid, Path bagDir, String relPath, StorageSearchService searchSvc) {
-		super(pid, bagDir, relPath);
+	public StorageSearchIndexTask(String pid, StorageProvider storageProvider, String relPath, StorageSearchService searchSvc) {
+		super(pid, storageProvider, relPath);
 		this.searchSvc = searchSvc;
 	}
 
 	@Override
 	protected void processTask() throws Exception {
-		searchSvc.indexFile(this.bagDir.toFile(), absFilepath.toFile());		
+		searchSvc.indexFile(pid, relPath, storageProvider);		
 	}
 }

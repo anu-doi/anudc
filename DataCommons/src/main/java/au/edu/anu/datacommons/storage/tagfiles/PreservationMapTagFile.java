@@ -21,8 +21,8 @@
 
 package au.edu.anu.datacommons.storage.tagfiles;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Tag file class for preserve.txt . This file maps payload files to their preservation format file. 
@@ -34,8 +34,8 @@ public class PreservationMapTagFile extends AbstractKeyValueFile {
 	private static final long serialVersionUID = 1L;
 	public static final String FILEPATH = "preserve.txt";
 
-	public PreservationMapTagFile(File tagFile) throws IOException {
-		super(tagFile);
+	public PreservationMapTagFile(InputStream stream) throws IOException {
+		super(stream);
 	}
 
 	@Override

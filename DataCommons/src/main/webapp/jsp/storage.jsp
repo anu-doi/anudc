@@ -50,24 +50,23 @@
 			<form name="frmFiles" action="?action=zip" method="post" class="anuform">
 				<!-- Navigation Breadcrumbs -->
 				<div class="nav-breadcrumbs">
-					<c:set var="parents" value="${it.rdi.getParents(it.path)}" />
-					<c:set var="parentUrl" value="" />
-					<c:forEach var="iLevel" begin="1" end="${fn:length(parents)}">
-						<c:set var="parentUrl" value="${parentUrl}../" />
-					</c:forEach>
-	
-					<c:set var="baseDataUrl" value="${parentUrl}" />
-					<a class="large" href="<c:url value='${baseDataUrl}'/>">Data</a>
-					<c:forEach var="iParent" items="${parents}" varStatus="stat">
-						&nbsp;&gt;
+					<c:forEach var="iParent" items="${it.parents}" varStatus="stat">
 						<c:set var="parentUrl" value="" />
-						<c:forEach var="iLevel" begin="1" end="${fn:length(parents) - stat.count}">
+						<c:forEach var="iLevel" begin="1" end="${fn:length(it.parents) - stat.count}">
 							<c:set var="parentUrl" value="${parentUrl}../" />
 						</c:forEach>
 						
-						<a class="large" href="<c:url value='${parentUrl}'/>"><c:out value="${iParent.filename}" /></a>
+						<c:choose>
+							<c:when test="${not stat.last}">
+								<span class="large"><a href="<c:url value='${parentUrl}'/>"><c:out value="${iParent.filename}" /></a>&nbsp;/</span>
+							</c:when>
+							<c:otherwise>
+								<span class="large"><c:out value="${iParent.filename}" /></span>
+							</c:otherwise>
+							
+						</c:choose>
 					</c:forEach>
-
+					
 					<!-- Actions -->
 					<div id="div-action-icons" class="right text-right">
 						<sec:authorize access="isAuthenticated()">
@@ -104,7 +103,7 @@
 						<th class="col-action-icons">&nbsp;</th>
 					</tr>
 					
-					<c:forEach var="iFile" items="${it.rdi.getFiles(it.path)}" varStatus="stat">
+					<c:forEach var="iFile" items="${it.fileInfo.getChildren('name')}" varStatus="stat">
 						<tr id="filerow-${stat.count}" class="file-row">
 							<c:choose>
 								<c:when test="${iFile.type == 'DIR'}">
@@ -188,7 +187,8 @@
 								<!-- Delete icon -->
 								<sec:authorize access="isAuthenticated()">
 									<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
-										<a href="javascript:void(0);" onclick="deleteFile('${relUrl}')">
+										<c:set var="escapedRelUrl" value="${fn:replace(relUrl, '\\'', '\\\\\\'') }" />
+										<a href="javascript:void(0);" onclick="deleteFile('${escapedRelUrl}')">
 											<img class="clickable-icon" src="<c:url value='/images/delete_red.png' />" title="Delete ${iFile.filename}" />
 										</a>
 									</sec:accesscontrollist>

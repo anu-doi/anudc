@@ -63,7 +63,7 @@
 						<p>
 							<!-- Files for approval -->
 						<ul>
-							<c:forEach var="iFile" items="${it.downloadables.files}">
+							<c:forEach var="iFile" items="${it.downloadables.getChildren('name')}">
 								<c:if test="${iFile.type == 'FILE'}">
 									<li><input type="checkbox" name="file" value="${iFile.relFilepath}"
 											<c:forEach items="${it.collReq.items}" var="iCurItem">

@@ -132,9 +132,6 @@ public class ArchiveTask implements Callable<File> {
 				interimArchivedFile.getAbsolutePath());
 		createIfNotExists(interimArchivedFile.getParentFile());
 		synchronized (fileToArchive) {
-			if (!fileToArchive.isFile()) {
-				throw new FileNotFoundException(format("File {0} doesn't exist.", fileToArchive.getAbsolutePath()));
-			}
 			if (!fileToArchive.renameTo(interimArchivedFile)) {
 				throw new IOException(format("Unable to move file {0} to {1}", fileToArchive.getAbsolutePath(),
 						interimArchivedFile.getAbsolutePath()));
@@ -148,12 +145,17 @@ public class ArchiveTask implements Callable<File> {
 		Object[] filenameElements = new Object[5];
 		filenameElements[0] = this.timeofArchival;
 		filenameElements[1] = this.op.toString();
-		if (this.alg != null) {
-			filenameElements[2] = alg.javaSecurityAlgorithm;
-			filenameElements[3] = MessageDigestHelper.generateFixity(fileToArchive, alg);
+		if (fileToArchive.isDirectory()) {
+			filenameElements[2] = "DIR";
+			filenameElements[3] = "NOMD5";
 		} else {
-			filenameElements[2] = "temp";
-			filenameElements[3] = String.valueOf(rand.nextLong());
+			if (this.alg != null) {
+				filenameElements[2] = alg.javaSecurityAlgorithm;
+				filenameElements[3] = MessageDigestHelper.generateFixity(fileToArchive, alg);
+			} else {
+				filenameElements[2] = "temp";
+				filenameElements[3] = String.valueOf(rand.nextLong());
+			}
 		}
 		filenameElements[4] = this.fileToArchive.getName();
 		generatedFilename = archivedFileFormat.format(filenameElements);

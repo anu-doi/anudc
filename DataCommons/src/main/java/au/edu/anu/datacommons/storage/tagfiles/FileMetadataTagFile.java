@@ -21,8 +21,8 @@
 
 package au.edu.anu.datacommons.storage.tagfiles;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Tag file class for file-metadata.txt . This is a custom tag file that contains metadata of each payload file. 
@@ -35,8 +35,8 @@ private static final long serialVersionUID = 1L;
 	
 	public static final String FILEPATH = "file-metadata.txt";
 
-	public FileMetadataTagFile(File tagFile) throws IOException {
-		super(tagFile);
+	public FileMetadataTagFile(InputStream stream) throws IOException {
+		super(stream);
 	}
 	
 	@Override

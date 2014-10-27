@@ -21,8 +21,8 @@
 
 package au.edu.anu.datacommons.storage.tagfiles;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Tag file class for bagit.txt
@@ -34,8 +34,8 @@ public final class BagItTagFile extends AbstractKeyValueFile {
 	private static final long serialVersionUID = 1L;
 	public static final String FILEPATH = "bagit.txt";
 
-	public BagItTagFile(File file) throws IOException {
-		super(file);
+	public BagItTagFile(InputStream stream) throws IOException {
+		super(stream);
 	}
 
 	@Override

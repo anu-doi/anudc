@@ -23,6 +23,7 @@ package au.edu.anu.datacommons.storage.tagfiles;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map.Entry;
 
 /**
@@ -35,8 +36,8 @@ public abstract class AbstractManifestTagFile extends AbstractKeyValueFile {
 
 	private static final long serialVersionUID = 1L;
 
-	public AbstractManifestTagFile(File file) throws IOException {
-		super(file);
+	public AbstractManifestTagFile(InputStream stream) throws IOException {
+		super(stream);
 	}
 
 	@Override

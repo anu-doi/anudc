@@ -23,8 +23,18 @@ package au.edu.anu.datacommons.storage.temp;
 
 import static java.text.MessageFormat.format;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+
+import au.edu.anu.datacommons.storage.datafile.StagedDataFile;
+import au.edu.anu.datacommons.storage.messagedigest.FileMessageDigests;
+import au.edu.anu.datacommons.storage.messagedigest.FileMessageDigests.Algorithm;
 import au.edu.anu.datacommons.util.Util;
 
 /**
@@ -34,16 +44,25 @@ import au.edu.anu.datacommons.util.Util;
  * @author Rahul Khanna
  * 
  */
-public class UploadedFileInfo {
+public class UploadedFileInfo implements StagedDataFile {
 	private Path filepath;
 	private long size;
 	private String md5;
+	private FileMessageDigests digests;
 
 	public UploadedFileInfo(Path filepath, long size, String md5) {
 		super();
 		this.filepath = filepath;
-		this.size = size;
+		this.size = size; 
 		this.md5 = md5;
+		try {
+			this.digests = new FileMessageDigests();
+			if (md5 != null) {
+				this.digests.addMessageDigest(Algorithm.MD5, Hex.decodeHex(md5.toCharArray()));
+			}
+		} catch (DecoderException e) {
+			// No op.
+		}
 	}
 
 	/**
@@ -71,5 +90,20 @@ public class UploadedFileInfo {
 	public String toString() {
 		return format("{0} {1} ({2}) {3}", filepath.toAbsolutePath().toString(), size,
 				Util.byteCountToDisplaySize(size), md5);
+	}
+
+	@Override
+	public Path getPath() {
+		return getFilepath();
+	}
+
+	@Override
+	public InputStream getStream() throws IOException {
+		return new BufferedInputStream(Files.newInputStream(getFilepath()));
+	}
+
+	@Override
+	public FileMessageDigests getMessageDigests() {
+		return digests;
 	}
 }

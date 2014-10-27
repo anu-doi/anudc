@@ -32,6 +32,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import au.edu.anu.datacommons.storage.completer.metadata.MetadataExtractor;
 import au.edu.anu.datacommons.storage.completer.metadata.MetadataExtractorImpl;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 
@@ -44,8 +45,8 @@ import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
  */
 public class MetadataTask extends AbstractTagFileTask {
 	
-	public MetadataTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
-		super(pid, bagDir, relPath, tagFilesSvc);
+	public MetadataTask(String pid, StorageProvider storageProvider, String relPath, TagFilesService tagFilesSvc) {
+		super(pid, storageProvider, relPath, tagFilesSvc);
 	}
 
 	@Override

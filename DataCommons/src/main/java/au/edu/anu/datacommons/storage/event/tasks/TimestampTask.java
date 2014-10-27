@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 
@@ -36,13 +37,14 @@ import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
  */
 public class TimestampTask extends AbstractTagFileTask {
 	
-	public TimestampTask(String pid, Path bagDir, String relPath, TagFilesService tagFilesSvc) {
-		super(pid, bagDir, relPath, tagFilesSvc);
+	public TimestampTask(String pid, StorageProvider storageProvider, String relPath, TagFilesService tagFilesSvc) {
+		super(pid, storageProvider, relPath, tagFilesSvc);
 	}
 
 	@Override
 	protected void processTask() throws Exception {
-		FileTime lastModifiedTime = Files.getLastModifiedTime(absFilepath);
+		// FileTime lastModifiedTime = Files.getLastModifiedTime(absFilepath);
+		FileTime lastModifiedTime = storageProvider.getFileInfo(this.pid, this.relPath).getLastModified();
 		String lastModifiedStr = Long.toString(lastModifiedTime.toMillis(), 10);
 		tagFilesSvc.addEntry(pid, TimestampsTagFile.class, dataPrependedRelPath, lastModifiedStr);
 	}

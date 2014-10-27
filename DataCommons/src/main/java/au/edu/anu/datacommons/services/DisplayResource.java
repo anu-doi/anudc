@@ -166,8 +166,15 @@ public class DisplayResource
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Produces(MediaType.TEXT_HTML)
 	public Response newItemPage(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item,
-			@QueryParam("error") String error)
+			@QueryParam("error") String error, @QueryParam("type") String type)
 	{
+		if (layout == null || layout.length() == 0) {
+			layout = "def:new";
+		}
+		if (tmplt == null || tmplt.length() == 0) {
+			tmplt = mapTemplateFromType(type);
+		}
+		
 		Map<String, Object> values = fedoraObjectService.getNewPage(layout, tmplt);
 		if (Util.isNotEmpty(error))
 		{
@@ -702,5 +709,19 @@ public class DisplayResource
 
 	private String getCurUsername() {
 		return SecurityContextHolder.getContext().getAuthentication().getName();
+	}
+
+	private String mapTemplateFromType(String type) {
+		String template = null;
+		String[] types = {"Collection", "Activity", "Service", "Party", "Person"};
+		
+		for (int i = 0; i < types.length; i++) {
+			if (types[i].equals(type)) {
+				template = "tmplt:" + String.valueOf(i + 1);
+				break;
+			}
+		}
+		
+		return template;
 	}
 }

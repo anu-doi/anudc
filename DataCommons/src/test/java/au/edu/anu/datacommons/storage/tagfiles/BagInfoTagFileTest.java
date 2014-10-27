@@ -25,8 +25,11 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -50,6 +53,7 @@ public class BagInfoTagFileTest {
 	@Rule
 	public TemporaryFolder tempDir = new TemporaryFolder();
 	
+	private File file;
 	private BagInfoTagFile tagFile;
 	
 	/**
@@ -72,8 +76,8 @@ public class BagInfoTagFileTest {
 	@Before
 	public void setUp() throws Exception {
 		LOGGER.trace("Using temp dir: {}" , tempDir.getRoot().getAbsolutePath());
-		File file = tempDir.newFile();
-		tagFile = new BagInfoTagFile(file);
+		file = tempDir.newFile();
+		tagFile = new BagInfoTagFile(new FileInputStream(file));
 	}
 
 	/**
@@ -87,9 +91,9 @@ public class BagInfoTagFileTest {
 	public void test() throws Exception {
 		assertThat(tagFile.entrySet(), hasSize(0));
 		tagFile.put("a", "b");
-		tagFile.write();
+		Files.copy(tagFile.serialize(), this.file.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		
-		File f = tagFile.getFile();
+		File f = this.file;
 		List<String> lines = FileUtils.readLines(f, StandardCharsets.UTF_8);
 		
 		assertThat(lines, contains("a: b"));

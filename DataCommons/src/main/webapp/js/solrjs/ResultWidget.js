@@ -84,8 +84,8 @@
 									snippet += 'Binary file. Extension: ' + doc.ext + ', Mime Type: ' + doc.mime_type;
 								}
 
-								var fileUrl = "../records/" + doc.id.replace("_", ":");
-								var output = '<div><h4><a href=\'' + fileUrl + '\'>' + doc.name + '</a></h4>';
+								var fileUrl = "../records/" + doc.id.replace("/", "/data/");
+								var output = '<div><h4><a href=\'' + fileUrl + '\'>' + doc.name + '.' + doc.ext  + '</a></h4>';
 								output += "<p class='text-grey'>" + snippet + '</p></div>';
 								return output;
 							},

@@ -35,10 +35,10 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Rahul Khanna
  */
-public class FileFactory {
+public class FileFactory<T> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileFactory.class);
 
-	LinkedBlockingDeque<File> cache;
+	LinkedBlockingDeque<T> cache;
 
 	/**
 	 * Constructor for this class with specified capacity.
@@ -47,25 +47,9 @@ public class FileFactory {
 	 *            Capacity of cache as int
 	 */
 	public FileFactory(int capacity) {
-		cache = new LinkedBlockingDeque<File>(capacity);
+		cache = new LinkedBlockingDeque<T>(capacity);
 	}
 
-	public File getFile(String pathname) {
-		return getFromCache(new File(pathname));
-	}
-
-	public File getFile(String parent, String child) {
-		return getFromCache(new File(parent, child));
-	}
-
-	public File getFile(File parent, String child) {
-		return getFromCache(new File(getFromCache(parent), child));
-	}
-	
-	public File getFile(File file) {
-		return getFromCache(file);
-	}
-	
 	/**
 	 * Searches the cache for an instance of File object equal to the one specified. If one exists, the existing object
 	 * in cache is returned. If not the specified instance is stored in the cache and the same instance is returned.
@@ -75,11 +59,11 @@ public class FileFactory {
 	 * @return Returns the File object that should be used. Will be the same as the one provided as parameter if an
 	 *         equivalent instance didn't already exist in cache.
 	 */
-	private synchronized File getFromCache(File f) {
-		File retF = null;
-		Iterator<File> iter = cache.iterator();
+	public synchronized T getFromCache(T f) {
+		T retF = null;
+		Iterator<T> iter = cache.iterator();
 		while (iter.hasNext()) {
-			File cachedFile = iter.next();
+			T cachedFile = iter.next();
 			if (cachedFile.equals(f)) {
 				retF = cachedFile;
 				break;

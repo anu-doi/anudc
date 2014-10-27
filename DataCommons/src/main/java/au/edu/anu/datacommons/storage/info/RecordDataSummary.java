@@ -1,13 +1,27 @@
+/*******************************************************************************
+ * Australian National University Data Commons
+ * Copyright (C) 2013  The Australian National University
+ * 
+ * This file is part of Australian National University Data Commons.
+ * 
+ * Australian National University Data Commons is free software: you
+ * can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
 package au.edu.anu.datacommons.storage.info;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -22,9 +36,8 @@ import au.edu.anu.datacommons.util.Util;
  *
  */
 @XmlRootElement
-public class RecordDataInfo {
+public class RecordDataSummary {
 	private String pid;
-	private Collection<FileInfo> files = new ArrayList<FileInfo>();
 	private long recordSize;
 	private long recordNumFiles;
 	private long dirSize;
@@ -41,15 +54,6 @@ public class RecordDataInfo {
 		this.pid = pid;
 	}
 
-	@XmlElementWrapper
-	public Collection<FileInfo> getFiles() {
-		return files;
-	}
-
-	public void setFiles(Collection<FileInfo> files) {
-		this.files = files;
-	}
-	
 	@XmlElement
 	public long getRecordSize() {
 		return recordSize;
@@ -96,47 +100,6 @@ public class RecordDataInfo {
 	}
 	
 
-	public Collection<FileInfo> getFiles(String dir) {
-		Path targetDir;
-		if (dir == null || dir.equals("") || dir.equals("/")) {
-			targetDir = null;
-		} else {
-			targetDir = Paths.get(dir);
-		}
-		
-		Collection<FileInfo> filtered = new TreeSet<>(getFiles());
-		Iterator<FileInfo> iter = filtered.iterator();
-		while (iter.hasNext()) {
-			FileInfo iFileInfo = iter.next();
-			Path iFileParent = Paths.get(iFileInfo.getRelFilepath()).getParent();
-			if (targetDir != null) {
-				if (!targetDir.equals(iFileParent)) {
-					iter.remove();
-				}
-			} else {
-				if (iFileParent != null) {
-					iter.remove();
-				}
-			}
-		}
-		return filtered;
-	}
-	
-	public List<FileInfo> getParents(String source) {
-		List<FileInfo> parents = new ArrayList<FileInfo>();
-		Path sourcePath = Paths.get(source);
-		for (Path parent = sourcePath; parent != null; parent = parent.getParent()) {
-			for (FileInfo iFileInfo : this.files) {
-				if (Paths.get(iFileInfo.getRelFilepath()).equals(parent)) {
-					parents.add(iFileInfo);
-					break;
-				}
-			}
-		}
-		Collections.reverse(parents);
-		return parents;
-	}
-	
 	public String getRecordFriendlySize() {
 		return Util.byteCountToDisplaySize(this.recordSize);
 	}

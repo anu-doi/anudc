@@ -32,103 +32,103 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 /**
- * This class represents a Collection record and contains metadata information of that record. This class can then be marshalled and unmarshalled to and from an
- * XML document as required for Data Commons Web Service. The class marshalls into the following XML element:
+ * This class represents a Collection record and contains metadata information of that record. This class can then be
+ * marshalled and unmarshalled to and from an XML document as required for Data Commons Web Service. The class marshalls
+ * into the following XML element:
  *
  * <pre>
  * {@code
  * <collection tmplt="...">
-        <accessRights>...</accessRights>
-        <altName>...</altName>
-        <anzforSubject>...</anzforSubject>
-        <anzforSubject>...</anzforSubject>
-        <anzseoSubject>...</anzseoSubject>
-        <anzseoSubject>...</anzseoSubject>
-        <briefDesc>...</briefDesc>
-        <abbrName>...</abbrName>
-        <fullCitation>...</fullCitation>
-        <fullCitationType>...</fullCitationType>
-        <collaborator>...</collaborator>
-        <collaborator>...</collaborator>
-        <postalAddress>...</postalAddress>
-        <coverageDateText>...</coverageDateText>
-        <coverageDateText>...</coverageDateText>
-        <dataExtent>...</dataExtent>
-        <dataLang>...</dataLang>
-        <dataLocation>...</dataLocation>
-        <dataMgmtPlan>...</dataMgmtPlan>
-        <dataSize>...</dataSize>
-        <coverageDates>
-            <dateFrom>...</dateFrom>
-            <dateTo>...</dateTo>
-        </coverageDates>
-        <coverageDates>
-            <dateFrom>...</dateFrom>
-            <dateTo>...</dateTo>
-        </coverageDates>
-        <disposalDate>...</disposalDate>
-        <email>...</email>
-        <email>...</email>
-        <externalId>...</externalId>
-        <externalId>...</externalId>
-        <fax>...</fax>
-        <fax>...</fax>
-        <link filename="...">...</link>
-        <link reference-only="...">...</link>
-        <fullDesc>...</fullDesc>
-        <coverageArea>
-            <covAreaType>...</covAreaType>
-            <covAreaValue>...</covAreaValue>
-        </coverageArea>
-        <coverageArea>
-            <covAreaType>...</covAreaType>
-            <covAreaValue>...</covAreaValue>
-        </coverageArea>
-        <locSubject>...</locSubject>
-        <locSubject>...</locSubject>
-        <licence>...</licence>
-        <licenceType>...</licenceType>
-        <metaLang>...</metaLang>
-        <ownerGroup>...</ownerGroup>
-        <phone>...</phone>
-        <phone>...</phone>
-        <principalInvestigator>...</principalInvestigator>
-        <principalInvestigator>...</principalInvestigator>
-        <principalInvestigator>...</principalInvestigator>
-        <publication>
-            <pubValue>...</pubValue>
-            <pubType>...</pubType>
-            <pubTitle>...</pubTitle>
-        </publication>
-        <relatedWebsites>
-            <relatedWebTitle>...</relatedWebTitle>
-            <relatedWebURL>...</relatedWebURL>
-        </relatedWebsites>
-        <relatedWebsites>
-            <relatedWebTitle>...</relatedWebTitle>
-            <relatedWebURL>...</relatedWebURL>
-        </relatedWebsites>
-        <anztoaSubject>...</anztoaSubject>
-        <dataRetention>...</dataRetention>
-        <rightsStatement>...</rightsStatement>
-        <significanceStatement>...</significanceStatement>
-        <subType>...</subType>
-        <supervisor>...</supervisor>
-        <supervisor>...</supervisor>
-        <name>...</name>
-        <type>...</type>
-        <websiteAddress>...</websiteAddress>
-        <websiteAddress>...</websiteAddress>
-    </collection>
+ *         <accessRights>...</accessRights>
+ *         <altName>...</altName>
+ *         <anzforSubject>...</anzforSubject>
+ *         <anzforSubject>...</anzforSubject>
+ *         <anzseoSubject>...</anzseoSubject>
+ *         <anzseoSubject>...</anzseoSubject>
+ *         <briefDesc>...</briefDesc>
+ *         <abbrName>...</abbrName>
+ *         <fullCitation>...</fullCitation>
+ *         <fullCitationType>...</fullCitationType>
+ *         <collaborator>...</collaborator>
+ *         <collaborator>...</collaborator>
+ *         <postalAddress>...</postalAddress>
+ *         <coverageDateText>...</coverageDateText>
+ *         <coverageDateText>...</coverageDateText>
+ *         <dataExtent>...</dataExtent>
+ *         <dataLang>...</dataLang>
+ *         <dataLocation>...</dataLocation>
+ *         <dataMgmtPlan>...</dataMgmtPlan>
+ *         <dataSize>...</dataSize>
+ *         <coverageDates>
+ *             <dateFrom>...</dateFrom>
+ *             <dateTo>...</dateTo>
+ *         </coverageDates>
+ *         <coverageDates>
+ *             <dateFrom>...</dateFrom>
+ *             <dateTo>...</dateTo>
+ *         </coverageDates>
+ *         <disposalDate>...</disposalDate>
+ *         <email>...</email>
+ *         <email>...</email>
+ *         <externalId>...</externalId>
+ *         <externalId>...</externalId>
+ *         <fax>...</fax>
+ *         <fax>...</fax>
+ *         <link filename="...">...</link>
+ *         <link reference-only="...">...</link>
+ *         <fullDesc>...</fullDesc>
+ *         <coverageArea>
+ *             <covAreaType>...</covAreaType>
+ *             <covAreaValue>...</covAreaValue>
+ *         </coverageArea>
+ *         <coverageArea>
+ *             <covAreaType>...</covAreaType>
+ *             <covAreaValue>...</covAreaValue>
+ *         </coverageArea>
+ *         <locSubject>...</locSubject>
+ *         <locSubject>...</locSubject>
+ *         <licence>...</licence>
+ *         <licenceType>...</licenceType>
+ *         <metaLang>...</metaLang>
+ *         <ownerGroup>...</ownerGroup>
+ *         <phone>...</phone>
+ *         <phone>...</phone>
+ *         <principalInvestigator>...</principalInvestigator>
+ *         <principalInvestigator>...</principalInvestigator>
+ *         <principalInvestigator>...</principalInvestigator>
+ *         <publication>
+ *             <pubValue>...</pubValue>
+ *             <pubType>...</pubType>
+ *             <pubTitle>...</pubTitle>
+ *         </publication>
+ *         <relatedWebsites>
+ *             <relatedWebTitle>...</relatedWebTitle>
+ *             <relatedWebURL>...</relatedWebURL>
+ *         </relatedWebsites>
+ *         <relatedWebsites>
+ *             <relatedWebTitle>...</relatedWebTitle>
+ *             <relatedWebURL>...</relatedWebURL>
+ *         </relatedWebsites>
+ *         <anztoaSubject>...</anztoaSubject>
+ *         <dataRetention>...</dataRetention>
+ *         <rightsStatement>...</rightsStatement>
+ *         <significanceStatement>...</significanceStatement>
+ *         <subType>...</subType>
+ *         <supervisor>...</supervisor>
+ *         <supervisor>...</supervisor>
+ *         <name>...</name>
+ *         <type>...</type>
+ *         <websiteAddress>...</websiteAddress>
+ *         <websiteAddress>...</websiteAddress>
+ *     </collection>
  * }
  * </pre>
  */
 @XmlType
-public class Collection implements FedoraItem
-{
+public class Collection implements FedoraItem {
 	private String pid;
 	private String template;
-	private final String type = "collection";
+	private final String type = "Collection";
 
 	// General
 	private String title;
@@ -136,6 +136,7 @@ public class Collection implements FedoraItem
 	private String altTitle;
 	private String subType;
 	private String ownerGroup;
+	private String websiteAddress;
 	private String metadataLanguage;
 	private String dataLanguage;
 
@@ -143,13 +144,14 @@ public class Collection implements FedoraItem
 	private List<DateCoverage> dateCoverage;
 	private List<String> coverageDateTextList;
 	private List<GeospatialLocation> geospatialLocations;
-	
+
 	// Description
 	private String significanceStatement;
 	private String briefDesc;
 	private String fullDesc;
-	private String citationType;
-	private String citationText;
+	private String citationYear;
+	private List<Creator> creators;
+	private String publisher;
 	private List<Publication> publications;
 	private List<RelatedWebsites> related;
 	private List<String> extIds;
@@ -163,7 +165,7 @@ public class Collection implements FedoraItem
 	private List<String> principalInvestigators;
 	private List<String> supervisors;
 	private List<String> collaborators;
-	
+
 	// Subject
 	private List<String> anzForCodes;
 	private List<String> anzSeoCodes;
@@ -175,7 +177,7 @@ public class Collection implements FedoraItem
 	private String rightsStatement;
 	private String licenceType;
 	private String licence;
-	
+
 	// Management
 	private String dataLocation;
 	private String retentionPeriod;
@@ -183,18 +185,17 @@ public class Collection implements FedoraItem
 	private String dataExtent;
 	private String dataSize;
 	private Boolean dataMgmtPlan;
-	
+
 	// Data files
 	private List<Link> fileUrlList;
-	
+
 	/**
 	 * Gets the title.
 	 * 
 	 * @return the title
 	 */
 	@XmlElement(name = "name")
-	public String getTitle()
-	{
+	public String getTitle() {
 		return title;
 	}
 
@@ -204,19 +205,17 @@ public class Collection implements FedoraItem
 	 * @param title
 	 *            the new title
 	 */
-	public void setTitle(String title)
-	{
+	public void setTitle(String title) {
 		this.title = title;
 	}
-	
+
 	/**
 	 * Gets the brief title.
 	 * 
 	 * @return the brief title
 	 */
 	@XmlElement(name = "abbrName")
-	public String getBriefTitle()
-	{
+	public String getBriefTitle() {
 		return briefTitle;
 	}
 
@@ -226,19 +225,17 @@ public class Collection implements FedoraItem
 	 * @param briefTitle
 	 *            the new brief title
 	 */
-	public void setBriefTitle(String briefTitle)
-	{
+	public void setBriefTitle(String briefTitle) {
 		this.briefTitle = briefTitle;
 	}
-	
+
 	/**
 	 * Gets the alt title.
 	 * 
 	 * @return the alt title
 	 */
 	@XmlElement(name = "altName")
-	public String getAltTitle()
-	{
+	public String getAltTitle() {
 		return altTitle;
 	}
 
@@ -248,19 +245,17 @@ public class Collection implements FedoraItem
 	 * @param altTitle
 	 *            the new alt title
 	 */
-	public void setAltTitle(String altTitle)
-	{
+	public void setAltTitle(String altTitle) {
 		this.altTitle = altTitle;
 	}
-	
+
 	/**
 	 * Gets the sub type.
 	 * 
 	 * @return the sub type
 	 */
 	@XmlElement(name = "subType")
-	public String getSubType()
-	{
+	public String getSubType() {
 		return subType;
 	}
 
@@ -270,20 +265,25 @@ public class Collection implements FedoraItem
 	 * @param subType
 	 *            the new sub type
 	 */
-	public void setSubType(String subType)
-	{
+	public void setSubType(String subType) {
 		this.subType = subType;
 	}
 
 	@XmlElement(name = "ownerGroup")
-	public String getOwnerGroup()
-	{
+	public String getOwnerGroup() {
 		return ownerGroup;
 	}
 
-	public void setOwnerGroup(String ownerGroup)
-	{
+	public void setOwnerGroup(String ownerGroup) {
 		this.ownerGroup = ownerGroup;
+	}
+
+	public String getWebsiteAddress() {
+		return websiteAddress;
+	}
+
+	public void setWebsiteAddress(String websiteAddress) {
+		this.websiteAddress = websiteAddress;
 	}
 
 	/**
@@ -292,8 +292,7 @@ public class Collection implements FedoraItem
 	 * @return the metadata language
 	 */
 	@XmlElement(name = "metaLang")
-	public String getMetadataLanguage()
-	{
+	public String getMetadataLanguage() {
 		return metadataLanguage;
 	}
 
@@ -303,8 +302,7 @@ public class Collection implements FedoraItem
 	 * @param metadataLanguage
 	 *            the new metadata language
 	 */
-	public void setMetadataLanguage(String metadataLanguage)
-	{
+	public void setMetadataLanguage(String metadataLanguage) {
 		this.metadataLanguage = metadataLanguage;
 	}
 
@@ -314,8 +312,7 @@ public class Collection implements FedoraItem
 	 * @return the data language
 	 */
 	@XmlElement(name = "dataLang")
-	public String getDataLanguage()
-	{
+	public String getDataLanguage() {
 		return dataLanguage;
 	}
 
@@ -325,11 +322,10 @@ public class Collection implements FedoraItem
 	 * @param dataLanguage
 	 *            the new data language
 	 */
-	public void setDataLanguage(String dataLanguage)
-	{
+	public void setDataLanguage(String dataLanguage) {
 		this.dataLanguage = dataLanguage;
 	}
-	
+
 	// Coverage
 
 	/**
@@ -338,8 +334,7 @@ public class Collection implements FedoraItem
 	 * @return the date coverage
 	 */
 	@XmlElement(name = "coverageDates")
-	public List<DateCoverage> getDateCoverage()
-	{
+	public List<DateCoverage> getDateCoverage() {
 		return dateCoverage;
 	}
 
@@ -349,19 +344,17 @@ public class Collection implements FedoraItem
 	 * @param dateCoverage
 	 *            the new date coverage
 	 */
-	public void setDateCoverage(List<DateCoverage> dateCoverage)
-	{
+	public void setDateCoverage(List<DateCoverage> dateCoverage) {
 		this.dateCoverage = dateCoverage;
 	}
-	
+
 	/**
 	 * Gets the coverage date text list.
 	 * 
 	 * @return the coverage date text list
 	 */
 	@XmlElement(name = "coverageDateText")
-	public List<String> getCoverageDateTextList()
-	{
+	public List<String> getCoverageDateTextList() {
 		return coverageDateTextList;
 	}
 
@@ -371,19 +364,17 @@ public class Collection implements FedoraItem
 	 * @param coverageDateTextList
 	 *            the new coverage date text list
 	 */
-	public void setCoverageDateTextList(List<String> coverageDateTextList)
-	{
+	public void setCoverageDateTextList(List<String> coverageDateTextList) {
 		this.coverageDateTextList = coverageDateTextList;
 	}
-	
+
 	/**
 	 * Gets the geospatial locations.
 	 * 
 	 * @return the geospatial locations
 	 */
 	@XmlElement(name = "coverageArea")
-	public List<GeospatialLocation> getGeospatialLocations()
-	{
+	public List<GeospatialLocation> getGeospatialLocations() {
 		return geospatialLocations;
 	}
 
@@ -393,21 +384,19 @@ public class Collection implements FedoraItem
 	 * @param geospatialLocations
 	 *            the new geospatial locations
 	 */
-	public void setGeospatialLocations(List<GeospatialLocation> geospatialLocations)
-	{
+	public void setGeospatialLocations(List<GeospatialLocation> geospatialLocations) {
 		this.geospatialLocations = geospatialLocations;
 	}
-	
+
 	// Description
-	
+
 	/**
 	 * Gets the significance statement.
 	 * 
 	 * @return the significance statement
 	 */
 	@XmlElement(name = "significanceStatement")
-	public String getSignificanceStatement()
-	{
+	public String getSignificanceStatement() {
 		return significanceStatement;
 	}
 
@@ -417,19 +406,17 @@ public class Collection implements FedoraItem
 	 * @param significanceStatement
 	 *            the new significance statement
 	 */
-	public void setSignificanceStatement(String significanceStatement)
-	{
+	public void setSignificanceStatement(String significanceStatement) {
 		this.significanceStatement = significanceStatement;
 	}
-	
+
 	/**
 	 * Gets the brief desc.
 	 * 
 	 * @return the brief desc
 	 */
 	@XmlElement(name = "briefDesc")
-	public String getBriefDesc()
-	{
+	public String getBriefDesc() {
 		return briefDesc;
 	}
 
@@ -439,8 +426,7 @@ public class Collection implements FedoraItem
 	 * @param briefDesc
 	 *            the new brief desc
 	 */
-	public void setBriefDesc(String briefDesc)
-	{
+	public void setBriefDesc(String briefDesc) {
 		this.briefDesc = briefDesc;
 	}
 
@@ -450,8 +436,7 @@ public class Collection implements FedoraItem
 	 * @return the full desc
 	 */
 	@XmlElement(name = "fullDesc")
-	public String getFullDesc()
-	{
+	public String getFullDesc() {
 		return fullDesc;
 	}
 
@@ -461,53 +446,62 @@ public class Collection implements FedoraItem
 	 * @param fullDesc
 	 *            the new full desc
 	 */
-	public void setFullDesc(String fullDesc)
-	{
+	public void setFullDesc(String fullDesc) {
 		this.fullDesc = fullDesc;
 	}
-	
+
 	/**
-	 * Gets the citation type.
+	 * Get year of data publication.
 	 * 
-	 * @return the citation type
+	 * @return
 	 */
-	@XmlElement(name = "fullCitationType")
-	public String getCitationType()
-	{
-		return citationType;
+	public String getCitationYear() {
+		return citationYear;
 	}
 
 	/**
-	 * Sets the citation type.
+	 * Set year of publication.
 	 * 
-	 * @param citationType
-	 *            the new citation type
+	 * @param citationYear
 	 */
-	public void setCitationType(String citationType)
-	{
-		this.citationType = citationType;
+	public void setCitationYear(String citationYear) {
+		this.citationYear = citationYear;
 	}
 
 	/**
-	 * Gets the citation text.
+	 * Get creators for citation.
 	 * 
-	 * @return the citation text
+	 * @return
 	 */
-	@XmlElement(name = "fullCitation")
-	public String getCitationText()
-	{
-		return citationText;
+	public List<Creator> getCreators() {
+		return creators;
 	}
 
 	/**
-	 * Sets the citation text.
+	 * Set creators for citation.
 	 * 
-	 * @param citationText
-	 *            the new citation text
+	 * @param creators
 	 */
-	public void setCitationText(String citationText)
-	{
-		this.citationText = citationText;
+	public void setCreators(List<Creator> creators) {
+		this.creators = creators;
+	}
+
+	/**
+	 * Get publisher
+	 * 
+	 * @return
+	 */
+	public String getPublisher() {
+		return publisher;
+	}
+
+	/**
+	 * Set publisher
+	 * 
+	 * @param publisher
+	 */
+	public void setPublisher(String publisher) {
+		this.publisher = publisher;
 	}
 
 	/**
@@ -516,19 +510,17 @@ public class Collection implements FedoraItem
 	 * @return the publications
 	 */
 	@XmlElement(name = "publication")
-	public List<Publication> getPublications()
-	{
+	public List<Publication> getPublications() {
 		return publications;
 	}
-	
+
 	/**
 	 * Sets the publications.
 	 * 
 	 * @param publications
 	 *            the new publications
 	 */
-	public void setPublications(List<Publication> publications)
-	{
+	public void setPublications(List<Publication> publications) {
 		this.publications = publications;
 	}
 
@@ -538,8 +530,7 @@ public class Collection implements FedoraItem
 	 * @return the related
 	 */
 	@XmlElement(name = "relatedWebsites")
-	public List<RelatedWebsites> getRelated()
-	{
+	public List<RelatedWebsites> getRelated() {
 		return related;
 	}
 
@@ -549,19 +540,17 @@ public class Collection implements FedoraItem
 	 * @param related
 	 *            the new related
 	 */
-	public void setRelated(List<RelatedWebsites> related)
-	{
+	public void setRelated(List<RelatedWebsites> related) {
 		this.related = related;
 	}
-	
+
 	/**
 	 * Gets the ext ids.
 	 * 
 	 * @return the ext ids
 	 */
 	@XmlElement(name = "externalId")
-	public List<String> getExtIds()
-	{
+	public List<String> getExtIds() {
 		return extIds;
 	}
 
@@ -571,11 +560,10 @@ public class Collection implements FedoraItem
 	 * @param extIds
 	 *            the new ext ids
 	 */
-	public void setExtIds(List<String> extIds)
-	{
+	public void setExtIds(List<String> extIds) {
 		this.extIds = extIds;
 	}
-	
+
 	// People
 
 	/**
@@ -584,8 +572,7 @@ public class Collection implements FedoraItem
 	 * @return the emails
 	 */
 	@XmlElement(name = "email")
-	public List<String> getEmails()
-	{
+	public List<String> getEmails() {
 		return emails;
 	}
 
@@ -595,8 +582,7 @@ public class Collection implements FedoraItem
 	 * @param emails
 	 *            the new emails
 	 */
-	public void setEmails(List<String> emails)
-	{
+	public void setEmails(List<String> emails) {
 		this.emails = emails;
 	}
 
@@ -606,8 +592,7 @@ public class Collection implements FedoraItem
 	 * @return the contact address
 	 */
 	@XmlElement(name = "postalAddress")
-	public String getContactAddress()
-	{
+	public String getContactAddress() {
 		return contactAddress;
 	}
 
@@ -617,8 +602,7 @@ public class Collection implements FedoraItem
 	 * @param contactAddress
 	 *            the new contact address
 	 */
-	public void setContactAddress(String contactAddress)
-	{
+	public void setContactAddress(String contactAddress) {
 		this.contactAddress = contactAddress;
 	}
 
@@ -628,8 +612,7 @@ public class Collection implements FedoraItem
 	 * @return the phones
 	 */
 	@XmlElement(name = "phone")
-	public List<String> getPhones()
-	{
+	public List<String> getPhones() {
 		return phones;
 	}
 
@@ -639,8 +622,7 @@ public class Collection implements FedoraItem
 	 * @param phones
 	 *            the new phones
 	 */
-	public void setPhones(List<String> phones)
-	{
+	public void setPhones(List<String> phones) {
 		this.phones = phones;
 	}
 
@@ -650,8 +632,7 @@ public class Collection implements FedoraItem
 	 * @return the faxes
 	 */
 	@XmlElement(name = "fax")
-	public List<String> getFaxes()
-	{
+	public List<String> getFaxes() {
 		return faxes;
 	}
 
@@ -661,8 +642,7 @@ public class Collection implements FedoraItem
 	 * @param faxes
 	 *            the new faxes
 	 */
-	public void setFaxes(List<String> faxes)
-	{
+	public void setFaxes(List<String> faxes) {
 		this.faxes = faxes;
 	}
 
@@ -672,8 +652,7 @@ public class Collection implements FedoraItem
 	 * @return the websites
 	 */
 	@XmlElement(name = "websiteAddress")
-	public List<String> getWebsites()
-	{
+	public List<String> getWebsites() {
 		return websites;
 	}
 
@@ -683,8 +662,7 @@ public class Collection implements FedoraItem
 	 * @param websites
 	 *            the new websites
 	 */
-	public void setWebsites(List<String> websites)
-	{
+	public void setWebsites(List<String> websites) {
 		this.websites = websites;
 	}
 
@@ -694,8 +672,7 @@ public class Collection implements FedoraItem
 	 * @return the principal investigators
 	 */
 	@XmlElement(name = "principalInvestigator")
-	public List<String> getPrincipalInvestigators()
-	{
+	public List<String> getPrincipalInvestigators() {
 		return principalInvestigators;
 	}
 
@@ -705,8 +682,7 @@ public class Collection implements FedoraItem
 	 * @param principalInvestigators
 	 *            the new principal investigators
 	 */
-	public void setPrincipalInvestigators(List<String> principalInvestigators)
-	{
+	public void setPrincipalInvestigators(List<String> principalInvestigators) {
 		this.principalInvestigators = principalInvestigators;
 	}
 
@@ -716,8 +692,7 @@ public class Collection implements FedoraItem
 	 * @return the supervisors
 	 */
 	@XmlElement(name = "supervisor")
-	public List<String> getSupervisors()
-	{
+	public List<String> getSupervisors() {
 		return supervisors;
 	}
 
@@ -727,19 +702,17 @@ public class Collection implements FedoraItem
 	 * @param supervisors
 	 *            the new supervisors
 	 */
-	public void setSupervisors(List<String> supervisors)
-	{
+	public void setSupervisors(List<String> supervisors) {
 		this.supervisors = supervisors;
 	}
-	
+
 	/**
 	 * Gets the collaborators.
 	 * 
 	 * @return the collaborators
 	 */
 	@XmlElement(name = "collaborator")
-	public List<String> getCollaborators()
-	{
+	public List<String> getCollaborators() {
 		return collaborators;
 	}
 
@@ -749,21 +722,19 @@ public class Collection implements FedoraItem
 	 * @param collaborators
 	 *            the new collaborators
 	 */
-	public void setCollaborators(List<String> collaborators)
-	{
+	public void setCollaborators(List<String> collaborators) {
 		this.collaborators = collaborators;
 	}
-	
+
 	// Subject
-	
+
 	/**
 	 * Gets the anz for codes.
 	 * 
 	 * @return the anz for codes
 	 */
 	@XmlElement(name = "anzforSubject")
-	public List<String> getAnzForCodes()
-	{
+	public List<String> getAnzForCodes() {
 		return anzForCodes;
 	}
 
@@ -773,8 +744,7 @@ public class Collection implements FedoraItem
 	 * @param anzForCodes
 	 *            the new anz for codes
 	 */
-	public void setAnzForCodes(List<String> anzForCodes)
-	{
+	public void setAnzForCodes(List<String> anzForCodes) {
 		this.anzForCodes = anzForCodes;
 	}
 
@@ -784,8 +754,7 @@ public class Collection implements FedoraItem
 	 * @return the anz seo codes
 	 */
 	@XmlElement(name = "anzseoSubject")
-	public List<String> getAnzSeoCodes()
-	{
+	public List<String> getAnzSeoCodes() {
 		return anzSeoCodes;
 	}
 
@@ -795,8 +764,7 @@ public class Collection implements FedoraItem
 	 * @param anzSeoCodes
 	 *            the new anz seo codes
 	 */
-	public void setAnzSeoCodes(List<String> anzSeoCodes)
-	{
+	public void setAnzSeoCodes(List<String> anzSeoCodes) {
 		this.anzSeoCodes = anzSeoCodes;
 	}
 
@@ -806,30 +774,27 @@ public class Collection implements FedoraItem
 	 * @return the keywords
 	 */
 	@XmlElement(name = "locSubject")
-	public List<String> getKeywords()
-	{
+	public List<String> getKeywords() {
 		return keywords;
 	}
-	
+
 	/**
 	 * Sets the keywords.
 	 * 
 	 * @param keywords
 	 *            the new keywords
 	 */
-	public void setKeywords(List<String> keywords)
-	{
+	public void setKeywords(List<String> keywords) {
 		this.keywords = keywords;
 	}
-	
+
 	/**
 	 * Gets the research type.
 	 * 
 	 * @return the research type
 	 */
 	@XmlElement(name = "anztoaSubject")
-	public String getResearchType()
-	{
+	public String getResearchType() {
 		return researchType;
 	}
 
@@ -839,101 +804,92 @@ public class Collection implements FedoraItem
 	 * @param researchType
 	 *            the new research type
 	 */
-	public void setResearchType(String researchType)
-	{
+	public void setResearchType(String researchType) {
 		this.researchType = researchType;
 	}
 
 	// Rights
-	
+
 	/**
 	 * Gets the access rights.
 	 * 
 	 * @return the access rights
 	 */
 	@XmlElement(name = "accessRights")
-	public String getAccessRights()
-	{
+	public String getAccessRights() {
 		return accessRights;
 	}
-	
+
 	/**
 	 * Sets the access rights.
 	 * 
 	 * @param accessRights
 	 *            the new access rights
 	 */
-	public void setAccessRights(String accessRights)
-	{
+	public void setAccessRights(String accessRights) {
 		this.accessRights = accessRights;
 	}
-	
+
 	/**
 	 * Gets the rights statement.
 	 * 
 	 * @return the rights statement
 	 */
 	@XmlElement(name = "rightsStatement")
-	public String getRightsStatement()
-	{
+	public String getRightsStatement() {
 		return rightsStatement;
 	}
-	
+
 	/**
 	 * Sets the rights statement.
 	 * 
 	 * @param rightsStatement
 	 *            the new rights statement
 	 */
-	public void setRightsStatement(String rightsStatement)
-	{
+	public void setRightsStatement(String rightsStatement) {
 		this.rightsStatement = rightsStatement;
 	}
-	
+
 	/**
 	 * Gets the licence type.
 	 * 
 	 * @return the licence type
 	 */
 	@XmlElement(name = "licenceType")
-	public String getLicenceType()
-	{
+	public String getLicenceType() {
 		return licenceType;
 	}
-	
+
 	/**
 	 * Sets the licence type.
 	 * 
 	 * @param licenceType
 	 *            the new licence type
 	 */
-	public void setLicenceType(String licenceType)
-	{
+	public void setLicenceType(String licenceType) {
 		this.licenceType = licenceType;
 	}
-	
+
 	/**
 	 * Gets the licence.
 	 * 
 	 * @return the licence
 	 */
 	@XmlElement(name = "licence")
-	public String getLicence()
-	{
+	public String getLicence() {
 		return licence;
 	}
-	
+
 	/**
 	 * Sets the licence.
 	 * 
 	 * @param licence
 	 *            the new licence
 	 */
-	public void setLicence(String licence)
-	{
+	public void setLicence(String licence) {
 		this.licence = licence;
 	}
-	
+
 	// Management
 
 	/**
@@ -942,8 +898,7 @@ public class Collection implements FedoraItem
 	 * @return the data location
 	 */
 	@XmlElement(name = "dataLocation")
-	public String getDataLocation()
-	{
+	public String getDataLocation() {
 		return dataLocation;
 	}
 
@@ -953,8 +908,7 @@ public class Collection implements FedoraItem
 	 * @param dataLocation
 	 *            the new data location
 	 */
-	public void setDataLocation(String dataLocation)
-	{
+	public void setDataLocation(String dataLocation) {
 		this.dataLocation = dataLocation;
 	}
 
@@ -964,8 +918,7 @@ public class Collection implements FedoraItem
 	 * @return the retention period
 	 */
 	@XmlElement(name = "dataRetention")
-	public String getRetentionPeriod()
-	{
+	public String getRetentionPeriod() {
 		return retentionPeriod;
 	}
 
@@ -975,8 +928,7 @@ public class Collection implements FedoraItem
 	 * @param retentionPeriod
 	 *            the new retention period
 	 */
-	public void setRetentionPeriod(String retentionPeriod)
-	{
+	public void setRetentionPeriod(String retentionPeriod) {
 		this.retentionPeriod = retentionPeriod;
 	}
 
@@ -986,8 +938,7 @@ public class Collection implements FedoraItem
 	 * @return the disposal date
 	 */
 	@XmlElement(name = "disposalDate")
-	public String getDisposalDate()
-	{
+	public String getDisposalDate() {
 		return disposalDate;
 	}
 
@@ -997,8 +948,7 @@ public class Collection implements FedoraItem
 	 * @param disposalDate
 	 *            the new disposal date
 	 */
-	public void setDisposalDate(String disposalDate)
-	{
+	public void setDisposalDate(String disposalDate) {
 		this.disposalDate = disposalDate;
 	}
 
@@ -1008,8 +958,7 @@ public class Collection implements FedoraItem
 	 * @return the data extent
 	 */
 	@XmlElement(name = "dataExtent")
-	public String getDataExtent()
-	{
+	public String getDataExtent() {
 		return dataExtent;
 	}
 
@@ -1019,8 +968,7 @@ public class Collection implements FedoraItem
 	 * @param dataExtent
 	 *            the new data extent
 	 */
-	public void setDataExtent(String dataExtent)
-	{
+	public void setDataExtent(String dataExtent) {
 		this.dataExtent = dataExtent;
 	}
 
@@ -1030,8 +978,7 @@ public class Collection implements FedoraItem
 	 * @return the data size
 	 */
 	@XmlElement(name = "dataSize")
-	public String getDataSize()
-	{
+	public String getDataSize() {
 		return dataSize;
 	}
 
@@ -1041,8 +988,7 @@ public class Collection implements FedoraItem
 	 * @param dataSize
 	 *            the new data size
 	 */
-	public void setDataSize(String dataSize)
-	{
+	public void setDataSize(String dataSize) {
 		this.dataSize = dataSize;
 	}
 
@@ -1052,8 +998,7 @@ public class Collection implements FedoraItem
 	 * @return the data mgmt plan
 	 */
 	@XmlElement(name = "dataMgmtPlan")
-	public Boolean getDataMgmtPlan()
-	{
+	public Boolean getDataMgmtPlan() {
 		return dataMgmtPlan;
 	}
 
@@ -1063,19 +1008,17 @@ public class Collection implements FedoraItem
 	 * @param dataMgmtPlan
 	 *            the new data mgmt plan
 	 */
-	public void setDataMgmtPlan(Boolean dataMgmtPlan)
-	{
+	public void setDataMgmtPlan(Boolean dataMgmtPlan) {
 		this.dataMgmtPlan = dataMgmtPlan;
 	}
-	
+
 	/**
 	 * Gets the file url list.
 	 * 
 	 * @return the file url list
 	 */
 	@XmlElement(name = "link")
-	public List<Link> getFileUrlList()
-	{
+	public List<Link> getFileUrlList() {
 		return fileUrlList;
 	}
 
@@ -1085,48 +1028,41 @@ public class Collection implements FedoraItem
 	 * @param fileUrlList
 	 *            the new file url list
 	 */
-	public void setFileUrlList(List<Link> fileUrlList)
-	{
+	public void setFileUrlList(List<Link> fileUrlList) {
 		this.fileUrlList = fileUrlList;
 	}
 
 	@Override
 	@XmlAttribute(name = "tmplt")
-	public String getTemplate()
-	{
+	public String getTemplate() {
 		return template;
 	}
-	
+
 	@Override
-	public void setTemplate(String template)
-	{
+	public void setTemplate(String template) {
 		this.template = template;
 	}
 
 	@Override
 	@XmlElement(name = "pid")
-	public String getPid()
-	{
+	public String getPid() {
 		return pid;
 	}
 
 	@Override
-	public void setPid(String pid)
-	{
+	public void setPid(String pid) {
 		this.pid = pid;
 	}
-	
+
 	@XmlElement(name = "type")
-	public String getType()
-	{
+	public String getType() {
 		return type;
 	}
 
 	@Override
-	public Map<String, List<String>> generateDataMap()
-	{
+	public Map<String, List<String>> generateDataMap() {
 		Map<String, List<String>> data = new HashMap<String, List<String>>();
-		
+
 		data.put("type", Arrays.asList(this.getType()));
 		if (this.getTitle() != null)
 			data.put("name", new ArrayList<String>(Arrays.asList(this.getTitle())));
@@ -1138,17 +1074,17 @@ public class Collection implements FedoraItem
 			data.put("subType", new ArrayList<String>(Arrays.asList(this.getSubType())));
 		if (this.getOwnerGroup() != null)
 			data.put("ownerGroup", new ArrayList<String>(Arrays.asList(this.getOwnerGroup())));
-		if (this.getMetadataLanguage() != null)
+		if (this.getWebsiteAddress() != null)
+			data.put("websiteAddress", new ArrayList<String>(Arrays.asList(this.getWebsiteAddress())));
+		if (this.getMetadataLanguage() != null) 
 			data.put("metaLang", new ArrayList<String>(Arrays.asList(this.getMetadataLanguage())));
 		if (this.getDataLanguage() != null)
 			data.put("dataLang", new ArrayList<String>(Arrays.asList(this.getDataLanguage())));
-		
-		if (this.getDateCoverage() != null && this.getDateCoverage().size() > 0)
-		{
+
+		if (this.getDateCoverage() != null && this.getDateCoverage().size() > 0) {
 			ArrayList<String> datesFrom = new ArrayList<String>();
 			ArrayList<String> datesTo = new ArrayList<String>();
-			for (DateCoverage iDc : this.getDateCoverage())
-			{
+			for (DateCoverage iDc : this.getDateCoverage()) {
 				datesFrom.add(iDc.getDateFrom());
 				datesTo.add(iDc.getDateTo());
 			}
@@ -1157,12 +1093,10 @@ public class Collection implements FedoraItem
 		}
 		if (this.getCoverageDateTextList() != null && this.getCoverageDateTextList().size() > 0)
 			data.put("coverageDateText", this.getCoverageDateTextList());
-		if (this.getGeospatialLocations() != null && this.getGeospatialLocations().size() > 0)
-		{
+		if (this.getGeospatialLocations() != null && this.getGeospatialLocations().size() > 0) {
 			ArrayList<String> covTypes = new ArrayList<String>();
 			ArrayList<String> covVals = new ArrayList<String>();
-			for (GeospatialLocation iGl : this.getGeospatialLocations())
-			{
+			for (GeospatialLocation iGl : this.getGeospatialLocations()) {
 				covTypes.add(iGl.getCovAreaType());
 				covVals.add(iGl.getCovAreaValue());
 			}
@@ -1175,18 +1109,26 @@ public class Collection implements FedoraItem
 			data.put("briefDesc", new ArrayList<String>(Arrays.asList(this.getBriefDesc())));
 		if (this.getFullDesc() != null)
 			data.put("fullDesc", new ArrayList<String>(Arrays.asList(this.getFullDesc())));
-		if (this.getCitationType() != null)
-			data.put("fullCitationType", new ArrayList<String>(Arrays.asList(this.getCitationType())));
-		if (this.getCitationText() != null)
-			data.put("fullCitation", new ArrayList<String>(Arrays.asList(this.getCitationText())));
-		
-		if (this.getPublications() != null)
-		{
+		if (this.getCitationYear() != null)
+			data.put("citationYear", new ArrayList<String>(Arrays.asList(this.getCitationYear())));
+		if (this.getCreators() != null) {
+			ArrayList<String> citCreatorGivenList = new ArrayList<>();
+			ArrayList<String> citCreatorSurnameList = new ArrayList<>();
+			for (Creator iCreator : this.getCreators()) {
+				citCreatorGivenList.add(iCreator.getCitCreatorGiven());
+				citCreatorSurnameList.add(iCreator.getCitCreatorSurname());
+			}
+			data.put("citCreatorGiven", citCreatorGivenList);
+			data.put("citCreatorSurname", citCreatorSurnameList);
+		}
+		if (this.publisher != null)
+			data.put("citationPublisher", new ArrayList<String>(Arrays.asList(this.getPublisher())));
+
+		if (this.getPublications() != null) {
 			ArrayList<String> pubTypeList = new ArrayList<String>();
 			ArrayList<String> pubValueList = new ArrayList<String>();
 			ArrayList<String> pubTitleList = new ArrayList<String>();
-			for (Publication iPub : this.getPublications())
-			{
+			for (Publication iPub : this.getPublications()) {
 				pubTypeList.add(iPub.getIdType());
 				pubValueList.add(iPub.getId());
 				pubTitleList.add(iPub.getTitle());
@@ -1196,19 +1138,17 @@ public class Collection implements FedoraItem
 			data.put("pubTitle", pubTitleList);
 		}
 
-		if (this.getRelated() != null)
-		{
+		if (this.getRelated() != null) {
 			ArrayList<String> relatedWebUrlList = new ArrayList<String>();
 			ArrayList<String> relatedWebTitleList = new ArrayList<String>();
-			for (RelatedWebsites iRelated : this.getRelated())
-			{
+			for (RelatedWebsites iRelated : this.getRelated()) {
 				relatedWebUrlList.add(iRelated.getRelatedWebUrl());
 				relatedWebTitleList.add(iRelated.getRelatedWebTitle());
 			}
 			data.put("relatedWebURL", relatedWebUrlList);
 			data.put("relatedWebTitle", relatedWebTitleList);
 		}
-		
+
 		if (this.getExtIds() != null && this.getExtIds().size() > 0)
 			data.put("externalId", this.getExtIds());
 
@@ -1228,7 +1168,7 @@ public class Collection implements FedoraItem
 			data.put("supervisor", this.getSupervisors());
 		if (this.getCollaborators() != null)
 			data.put("collaborator", this.getCollaborators());
-		
+
 		if (this.getAnzForCodes() != null)
 			data.put("anzforSubject", this.getAnzForCodes());
 		if (this.getAnzSeoCodes() != null)
@@ -1237,7 +1177,7 @@ public class Collection implements FedoraItem
 			data.put("locSubject", this.getKeywords());
 		if (this.getResearchType() != null)
 			data.put("anztoaSubject", new ArrayList<String>(Arrays.asList(this.getResearchType())));
-		
+
 		if (this.getAccessRights() != null)
 			data.put("accessRights", new ArrayList<String>(Arrays.asList(this.getAccessRights())));
 		if (this.getRightsStatement() != null)
@@ -1246,7 +1186,7 @@ public class Collection implements FedoraItem
 			data.put("licenceType", new ArrayList<String>(Arrays.asList(this.getLicenceType())));
 		if (this.getLicence() != null)
 			data.put("licence", new ArrayList<String>(Arrays.asList(this.getLicence())));
-		
+
 		if (this.getDataLocation() != null)
 			data.put("dataLocation", new ArrayList<String>(Arrays.asList(this.getDataLocation())));
 		if (this.getRetentionPeriod() != null)
@@ -1259,8 +1199,8 @@ public class Collection implements FedoraItem
 			data.put("dataSize", new ArrayList<String>(Arrays.asList(this.getDataSize())));
 		if (this.getDataMgmtPlan() != null)
 			data.put("dataMgmtPlan", new ArrayList<String>(Arrays.asList(this.getDataMgmtPlan().toString())));
-		
+
 		return data;
 	}
-	
+
 }

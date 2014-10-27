@@ -21,10 +21,15 @@
 
 package au.edu.anu.datacommons.storage.search;
 
+import static java.text.MessageFormat.format;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.PreDestroy;
 
@@ -35,7 +40,9 @@ import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.datacommons.storage.search.FileIndexDocumentGeneratorTask.StorageSolrDoc;
+import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.info.FileInfo.Type;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 
 /**
  * Service class that interacts with a Solr instance for data search.
@@ -45,17 +52,17 @@ import au.edu.anu.datacommons.storage.search.FileIndexDocumentGeneratorTask.Stor
  */
 public class StorageSearchService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StorageSearchService.class);
-	
+
 	HttpSolrServer solrServer;
-	
+
 	public StorageSearchService(String svcUrl) {
 		initSolrServer(svcUrl);
 	}
-	
+
 	public StorageSearchService(HttpSolrServer solrServer) {
 		this.solrServer = solrServer;
 	}
-	
+
 	/**
 	 * Creates an instance of HttpSolrServer from a provided URL of a Solr instance.
 	 * 
@@ -68,22 +75,19 @@ public class StorageSearchService {
 		solrServer.setParser(new XMLResponseParser());
 		solrServer.setRequestWriter(new BinaryRequestWriter());
 	}
-	
+
 	/**
 	 * Indexes the contents of a specified file in the Solr instance. If the specified file doesn't exist on disk (as a
 	 * result of a delete event) then its corresponding solr document is deleted.
 	 * 
-	 * @param bagDir
-	 *            Bag directory
-	 * @param file
-	 *            File object of the file on disk to index
 	 * @throws SolrServerException
 	 *             when the Solr instance is unable to index the file.
 	 * @throws IOException
 	 *             when unable to read the file on disk
 	 */
-	public void indexFile(File bagDir, File file) throws SolrServerException, IOException {
-		StorageSolrDoc doc = createSolrDoc(bagDir, file);
+	public void indexFile(String pid, String relPath, StorageProvider storageProvider) throws SolrServerException,
+			IOException {
+		StorageSolrDoc doc = createSolrDoc(pid, relPath, storageProvider);
 		submitDoc(doc);
 		solrServer.commit();
 	}
@@ -99,19 +103,19 @@ public class StorageSearchService {
 	 * @throws IOException
 	 * @throws SolrServerException
 	 */
-	public void indexAllFiles(File bagDir, File subDir) throws IOException, SolrServerException {
-		List<StorageSolrDoc> docs = new ArrayList<StorageSolrDoc>();
-		createSolrDocForEachFile(docs, bagDir, subDir);
+	public void indexAllFiles(String pid, StorageProvider storageProvider) throws IOException, SolrServerException {
+		Set<FileInfo> allChildren = getAllChildren(pid, storageProvider);
+		Set<StorageSolrDoc> docs = createSolrDocForEachFile(pid, allChildren, storageProvider);
 		for (StorageSolrDoc doc : docs) {
 			try {
 				submitDoc(doc);
 			} catch (IOException | SolrServerException e) {
-				LOGGER.warn("Error submitting index document for {}: {}", doc.id, e.getMessage());
+				LOGGER.warn("Error submitting index document for {}: {}", doc.getId(), e.getMessage());
 			}
 		}
 		solrServer.commit();
 	}
-	
+
 	/**
 	 * Removes indexes of all files in a collection record. Called when the files-public flag of a record is changed to
 	 * false.
@@ -123,35 +127,38 @@ public class StorageSearchService {
 	 * @throws SolrServerException
 	 * @throws IOException
 	 */
-	public void deindexAllFiles(File bagDir, File subDir) throws SolrServerException, IOException {
-		List<StorageSolrDoc> docs = new ArrayList<StorageSolrDoc>();
-		createSolrDocForEachFile(docs, bagDir, subDir);
-		for (StorageSolrDoc doc : docs) {
-			try {
-				solrServer.deleteById(doc.id);
-				LOGGER.trace("Removed index document for {}.", doc.id);
-			} catch (IOException | SolrServerException e) {
-				LOGGER.warn("Error submitting index document for {}: {}", doc.id, e.getMessage());
+	public void deindexAllFiles(String pid, StorageProvider storageProvider) throws SolrServerException, IOException {
+		Set<FileInfo> allChildren = getAllChildren(pid, storageProvider);
+
+		for (FileInfo fi : allChildren) {
+			if (fi.getType() == Type.FILE) {
+				String docId = createId(fi.getPid(), fi.getRelFilepath());
+				solrServer.deleteById(docId);
+				LOGGER.trace("Removed index document for {}.", docId);
 			}
 		}
 		solrServer.commit();
 	}
 
-	private StorageSolrDoc createSolrDoc(File bagDir, File file) {
-		FileIndexDocumentGeneratorTask docGenTask = new FileIndexDocumentGeneratorTask(bagDir, file);
+	private StorageSolrDoc createSolrDoc(String pid, String relPath, StorageProvider storageProvider)
+			throws IOException {
+		String docId = createId(pid, relPath);
+		FileIndexDocumentGeneratorTask docGenTask = new FileIndexDocumentGeneratorTask(pid, relPath, storageProvider,
+				docId);
 		StorageSolrDoc doc = docGenTask.generateSolrInputDocument();
 		return doc;
 	}
 
-	private void createSolrDocForEachFile(List<StorageSolrDoc> docs, File bagDir, File subDir) {
-		File[] files = subDir.listFiles();
-		for (int i = 0; i < files.length; i++) {
-			if (files[i].isDirectory()) {
-				createSolrDocForEachFile(docs, bagDir, files[i]);
-			} else {
-				docs.add(createSolrDoc(bagDir, files[i]));
+	private Set<StorageSolrDoc> createSolrDocForEachFile(String pid, Collection<FileInfo> fileInfos,
+			StorageProvider storageProvider) throws IOException {
+		Set<StorageSolrDoc> docs = new HashSet<>();
+		for (FileInfo fi : fileInfos) {
+			if (fi.getType() == Type.FILE) {
+				StorageSolrDoc solrDoc = createSolrDoc(pid, fi.getRelFilepath(), storageProvider);
+				docs.add(solrDoc);
 			}
 		}
+		return docs;
 	}
 
 	/**
@@ -164,13 +171,21 @@ public class StorageSearchService {
 	 * @throws SolrServerException
 	 */
 	private void submitDoc(StorageSolrDoc doc) throws IOException, SolrServerException {
-		if (doc.name != null) {
+		if (doc.getName() != null) {
 			solrServer.addBean(doc);
-			LOGGER.trace("Added index document for {}.", doc.id);
+			LOGGER.trace("Added index document for {}.", doc.getId());
 		} else {
-			solrServer.deleteById(doc.id);
-			LOGGER.trace("Removed index document for {}.", doc.id);
+			solrServer.deleteById(doc.getId());
+			LOGGER.trace("Removed index document for {}.", doc.getId());
 		}
+	}
+
+	private Set<FileInfo> getAllChildren(String pid, StorageProvider storageProvider) throws IOException {
+		return storageProvider.getDirInfo(pid, "", Integer.MAX_VALUE).getChildrenRecursive();
+	}
+
+	private String createId(String pid, String relPath) {
+		return format("{0}/{1}", pid, relPath);
 	}
 
 	/**
@@ -180,4 +195,5 @@ public class StorageSearchService {
 	public void close() {
 		solrServer.shutdown();
 	}
+
 }

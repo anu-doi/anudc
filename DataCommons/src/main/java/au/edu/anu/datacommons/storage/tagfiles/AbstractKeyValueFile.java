@@ -30,12 +30,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,79 +57,48 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractKeyValueFile.class);
 	private static final long serialVersionUID = 1L;
 	
-	protected final Path path;
-	
 	/**
 	 * Flag to indicate if there have been any changes in the data since the last read and the write() method should be
 	 * called to write those changes to disk.
 	 */
 	protected boolean hasUnsavedChanges = false;
 
-	public AbstractKeyValueFile(File file) throws IOException {
-		this(file.toPath());
-	}
-	
-	public AbstractKeyValueFile(Path path) throws IOException {
+	public AbstractKeyValueFile(InputStream stream) throws IOException {
 		super();
-		this.path = path;
-		read();
+		read(stream);
 	}
 
-	/**
-	 * Reads the file from disk and stores the key value pairs into this class.
-	 * 
-	 * @throws IOException
-	 *             when unable to read the tag file
-	 */
-	public void read() throws IOException {
-		boolean hasErrors = false;
-		if (Files.isRegularFile(this.path)) {
-			synchronized (this) {
-				try (BufferedReader reader = Files.newBufferedReader(this.path, StandardCharsets.UTF_8)) {
-					for (String line = reader.readLine(); line != null;) {
-						// If the next line starts with white spaces concatinate it to the current line.
-						String nextLine = reader.readLine();
-						while (nextLine != null && nextLine.startsWith("  ")) {
-							line += nextLine.substring(2);
-							nextLine = reader.readLine();
-						}
+	public void read(InputStream stream) throws IOException {
+		synchronized (this) {
+			BufferedReader reader = null;
+			try {
+				reader = new BufferedReader(new InputStreamReader(stream, Charset.defaultCharset()));
 
-						if (line.length() > 0) {
-							String parts[] = unserializeKeyValue(line);
-							if (parts != null) {
-								this.put(parts[0], parts[1]);
-							} else {
-								hasErrors = true;
-							}
-						}
-						line = nextLine;
+				for (String line = reader.readLine(); line != null;) {
+					// If the next line starts with white spaces concatinate it to the current line.
+					String nextLine = reader.readLine();
+					while (nextLine != null && nextLine.startsWith("  ")) {
+						line += nextLine.substring(2);
+						nextLine = reader.readLine();
 					}
+
+					if (line.length() > 0) {
+						String parts[] = unserializeKeyValue(line);
+						if (parts != null) {
+							this.put(parts[0], parts[1]);
+						} else {
+							hasUnsavedChanges = true;
+						}
+					}
+					line = nextLine;
 				}
+
+			} finally {
+				IOUtils.closeQuietly(reader);
 			}
 		}
-		hasUnsavedChanges = hasErrors ? true : false;
 	}
 	
-	/**
-	 * Writes the key value pairs to the tag file on disk if there are any unsaved changes.
-	 * 
-	 * @throws IOException
-	 *             when unable to write to the tag file.
-	 */
-	public void write() throws IOException {
-		synchronized (this) {
-			if (hasUnsavedChanges) {
-				try (BufferedWriter writer = Files.newBufferedWriter(this.path, StandardCharsets.UTF_8)){
-					for (Entry<String, String> entry : this.entrySet()) {
-						writer.write(serializeEntry(entry));
-						writer.newLine();
-					}
-				}
-				hasUnsavedChanges = false;
-				LOGGER.trace("File {} written to disk.", this.path.toString());
-			}
-		}
-	}
 	
 	/**
 	 * Serialises the key value pairs as specific to the tag file format into a stream that can be read by the caller.
@@ -143,7 +115,7 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 			try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
 				for (Entry<String, String> entry : this.entrySet()) {
 					String line = serializeEntry(entry) + lineSeparator;
-					os.write(line.getBytes(StandardCharsets.UTF_8));
+					os.write(line.getBytes(Charset.defaultCharset()));
 				}
 				byteArray = os.toByteArray();
 			}
@@ -164,9 +136,9 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 	@Override
 	public String put(String key, String value) {
 		if (key == null) {
-			throw new NullPointerException(format("Key cannot be null. File: {0}", this.path.toString()));
+			throw new NullPointerException(format("Key cannot be null."));
 		} else if (key.length() == 0) {
-			throw new IllegalArgumentException(format("Key cannot be a zero-length string. File: {0}", this.path.toString()));
+			throw new IllegalArgumentException(format("Key cannot be a zero-length string."));
 		}
 		if (value == null) {
 			value = "";
@@ -200,15 +172,16 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 		return oldValue;
 	}
 
-	/**
-	 * Get the file on disk that the instance of this class reads its data from and writes to.
-	 * 
-	 * @return File on disk as File
-	 */
-	public File getFile() {
-		return this.path.toFile();
+	public boolean hasUnsavedChanges() {
+		return hasUnsavedChanges;
 	}
 	
+
+	public synchronized void setHasUnsavedChanges(boolean hasUnsavedChanges) {
+		this.hasUnsavedChanges = hasUnsavedChanges;
+	}
+	
+
 	/**
 	 * Returns the filepath relative to the bag directory.
 	 * 

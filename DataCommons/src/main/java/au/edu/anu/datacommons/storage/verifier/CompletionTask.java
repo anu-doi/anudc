@@ -54,6 +54,7 @@ import au.edu.anu.datacommons.storage.event.tasks.PreservationTask;
 import au.edu.anu.datacommons.storage.event.tasks.PronomTask;
 import au.edu.anu.datacommons.storage.event.tasks.TimestampTask;
 import au.edu.anu.datacommons.storage.event.tasks.VirusScanTask;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.tagfiles.AbstractKeyValueFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.ManifestMd5TagFile;
@@ -78,6 +79,7 @@ public class CompletionTask implements Callable<Void>{
 
 	private String pid;
 	private Path bagDir;
+	private StorageProvider storageProvider;
 	private TagFilesService tagFilesSvc;
 	private StorageEventListener eventListener;
 	private ThreadPoolService threadPoolSvc;
@@ -93,7 +95,7 @@ public class CompletionTask implements Callable<Void>{
 	 * 
 	 * @param pid
 	 *            Identifier of the collection record to complete
-	 * @param bagDir
+	 * @param storageProvider
 	 *            Bag directory of the record
 	 * @param tagFilesSvc
 	 *            Tag files service
@@ -104,10 +106,10 @@ public class CompletionTask implements Callable<Void>{
 	 * @param dcStorage
 	 *            DcStorage class
 	 */
-	public CompletionTask(String pid, Path bagDir, TagFilesService tagFilesSvc, StorageEventListener eventListener,
+	public CompletionTask(String pid, StorageProvider storageProvider, TagFilesService tagFilesSvc, StorageEventListener eventListener,
 			ThreadPoolService threadPoolSvc, DcStorage dcStorage) {
 		this.pid = pid;
-		this.bagDir = bagDir;
+		this.storageProvider = storageProvider;
 		this.tagFilesSvc = tagFilesSvc;
 		this.eventListener = eventListener;
 		this.threadPoolSvc = threadPoolSvc;
@@ -139,22 +141,25 @@ public class CompletionTask implements Callable<Void>{
 
 	@Override
 	public Void call() throws Exception {
-		StopWatch sw = new StopWatch();
-		sw.start();
-		LOGGER.info("Completing tag files for {}...", pid);
-		if (!dryRun) {
-			eventListener.notify(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, bagDir, null, null);
-		}
-		Set<Path> plFiles = listFilesInDir(getPayloadDir());
-		checkArtifacts(plFiles);
-		verifyMessageDigests(plFiles);
-		verifyTagFiles(plFiles);
-		if (!dryRun) {
-			eventListener.notify(EventTime.POST, EventType.TAGFILE_UPDATE, pid, bagDir, null, null);
-		}
-		sw.stop();
-		LOGGER.info("Tag files completed for {}. Time taken {}", pid, sw.getTimeElapsedFormatted());
-		return null;
+//		StopWatch sw = new StopWatch();
+//		sw.start();
+//		LOGGER.info("Completing tag files for {}...", pid);
+//		if (!dryRun) {
+//			eventListener.notify(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, bagDir, null, null);
+//		}
+//		Set<Path> plFiles = listFilesInDir(getPayloadDir());
+//		checkArtifacts(plFiles);
+//		verifyMessageDigests(plFiles);
+//		verifyTagFiles(plFiles);
+//		if (!dryRun) {
+//			eventListener.notify(EventTime.POST, EventType.TAGFILE_UPDATE, pid, bagDir, null, null);
+//		}
+//		sw.stop();
+//		LOGGER.info("Tag files completed for {}. Time taken {}", pid, sw.getTimeElapsedFormatted());
+//		return null;
+		
+		// TODO Implement
+		throw new UnsupportedOperationException();
 	}
 	
 	/**
@@ -301,15 +306,15 @@ public class CompletionTask implements Callable<Void>{
 	private AbstractTagFileTask createTask(Class<? extends AbstractKeyValueFile> clazz, String relPath) {
 		AbstractTagFileTask task = null;
 		if (clazz == FileMetadataTagFile.class) {
-			task = new MetadataTask(pid, bagDir, relPath, tagFilesSvc);
+			task = new MetadataTask(pid, storageProvider, relPath, tagFilesSvc);
 		} else if (clazz == PronomFormatsTagFile.class) {
-			task = new PronomTask(pid, bagDir, relPath, tagFilesSvc);
+			task = new PronomTask(pid, storageProvider, relPath, tagFilesSvc);
 		} else if (clazz == TimestampsTagFile.class) {
-			task = new TimestampTask(pid, bagDir, relPath, tagFilesSvc);
+			task = new TimestampTask(pid, storageProvider, relPath, tagFilesSvc);
 		} else if (clazz == VirusScanTagFile.class) {
-			task = new VirusScanTask(pid, bagDir, relPath, tagFilesSvc);
+			task = new VirusScanTask(pid, storageProvider, relPath, tagFilesSvc);
 		} else if (clazz == PreservationMapTagFile.class) {
-			task = new PreservationTask(pid, bagDir, relPath, tagFilesSvc, dcStorage);
+			task = new PreservationTask(pid, storageProvider, relPath, tagFilesSvc);
 		} else {
 			throw new IllegalArgumentException(clazz.getSimpleName());
 		}

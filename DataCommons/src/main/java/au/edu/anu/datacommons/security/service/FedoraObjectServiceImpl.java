@@ -43,6 +43,7 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -68,7 +69,9 @@ import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.storage.DcStorage;
-import au.edu.anu.datacommons.storage.info.RecordDataInfo;
+import au.edu.anu.datacommons.storage.controller.StorageController;
+import au.edu.anu.datacommons.storage.info.RecordDataSummary;
+import au.edu.anu.datacommons.storage.provider.StorageException;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
@@ -147,6 +150,9 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	
 	@Resource(name = "dcStorage")
 	private DcStorage dcStorage;
+	
+	@Autowired
+	protected StorageController storageController;
 	
 	/**
 	 * getItemByName
@@ -613,13 +619,11 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			if (fedoraObject != null)
 			{
 				// Add bag summary to model.
-				if (dcStorage.bagExists(fedoraObject.getObject_id())) {
-					try {
-						RecordDataInfo rdi = dcStorage.getDirLimitedRecordDataInfo(fedoraObject.getObject_id(), "");
-						values.put("rdi", rdi);
-					} catch (IOException e) {
-						LOGGER.error(e.getMessage(), e);
-					}
+				try {
+					RecordDataSummary rdi = storageController.getRecordDataSummary(fedoraObject.getObject_id());
+					values.put("rdi", rdi);
+				} catch (IOException | StorageException e) {
+					LOGGER.error(e.getMessage(), e);
 				}
 			}
 			if (hasPermission) {

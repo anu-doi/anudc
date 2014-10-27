@@ -10,6 +10,7 @@
 	<script type="text/javascript" src="<c:url value='/js/jquery-ui-1.8.20.custom.min.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/global.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/page.js' />"></script>
+	<script type="text/javascript" src="<c:url value='/js/prepopulate.js' />"></script>
 </anu:header>
 
 <jsp:include page="header.jsp" />

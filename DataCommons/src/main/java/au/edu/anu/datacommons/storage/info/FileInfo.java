@@ -1,11 +1,37 @@
+/*******************************************************************************
+ * Australian National University Data Commons
+ * Copyright (C) 2013  The Australian National University
+ * 
+ * This file is part of Australian National University Data Commons.
+ * 
+ * Australian National University Data Commons is free software: you
+ * can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
+
 package au.edu.anu.datacommons.storage.info;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Date;
+import java.nio.file.attribute.FileTime;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import au.edu.anu.datacommons.util.Util;
@@ -16,12 +42,16 @@ public class FileInfo implements Comparable<FileInfo> {
 		DIR, FILE
 	};
 
+	private String pid;
 	private String filename;
 	private String relFilepath;
-	private String dirpath;
 	private FileInfo.Type type;
 	private long size;
-	private Date lastModified;
+	private FileTime lastModified;
+	
+	private FileInfo parent;
+	private Path path;
+	private Set<FileInfo> children = new HashSet<>();
 	
 	private Map<String, String> messageDigests;
 	private PronomFormat pronomFormat;
@@ -29,6 +59,14 @@ public class FileInfo implements Comparable<FileInfo> {
 	private String scanResult;
 	private String presvPath;
 
+	@XmlElement
+	public String getPid() {
+		return pid;
+	}
+
+	public void setPid(String pid) {
+		this.pid = pid;
+	}
 
 	@XmlElement
 	public String getFilename() {
@@ -46,15 +84,6 @@ public class FileInfo implements Comparable<FileInfo> {
 
 	public void setRelFilepath(String relFilepath) {
 		this.relFilepath = relFilepath;
-	}
-
-	@XmlElement
-	public String getDirpath() {
-		return dirpath;
-	}
-
-	public void setDirpath(String dirpath) {
-		this.dirpath = dirpath;
 	}
 
 	@XmlElement
@@ -81,12 +110,64 @@ public class FileInfo implements Comparable<FileInfo> {
 	}
 	
 	@XmlElement
-	public Date getLastModified() {
+	public FileTime getLastModified() {
 		return lastModified;
 	}
 
-	public void setLastModified(Date lastModified) {
+	public void setLastModified(FileTime lastModified) {
 		this.lastModified = lastModified;
+	}
+	
+	@XmlElement
+	public FileInfo getParent() {
+		return parent;
+	}
+
+	public void setParent(FileInfo parent) {
+		this.parent = parent;
+	}
+	
+	@XmlTransient
+	public Path getPath() {
+		return path;
+	}
+
+	public void setPath(Path path) {
+		this.path = path;
+	}
+
+	@XmlElement
+	public Set<FileInfo> getChildren() {
+		return children;
+	}
+
+	public void addChild(FileInfo child) {
+		this.children.add(child);
+	}
+	
+	@XmlTransient
+	public Set<FileInfo> getChildren(String sortBy) {
+		// TODO Implement custom sorting
+		TreeSet<FileInfo> sortedSet = new TreeSet<>();
+		sortedSet.addAll(this.getChildren());
+		return sortedSet;
+	}
+	
+	@XmlTransient
+	public Set<FileInfo> getChildrenRecursive() {
+		TreeSet<FileInfo> recursiveSet = new TreeSet<>();
+		
+		addChildren(recursiveSet, this);
+		return recursiveSet;
+	}
+	
+	private void addChildren(Set<FileInfo> set, FileInfo parent) {
+		for (FileInfo child : parent.getChildren()) {
+			set.add(child);
+			if (!child.getChildren().isEmpty()) {
+				addChildren(set, child);
+			}
+		}
 	}
 	
 	@XmlElementWrapper
@@ -133,7 +214,7 @@ public class FileInfo implements Comparable<FileInfo> {
 	public void setPresvPath(String presvPath) {
 		this.presvPath = presvPath;
 	}
-
+	
 	@Override
 	public int compareTo(FileInfo o) {
 		if (this.type == Type.DIR && o.type == Type.FILE) {

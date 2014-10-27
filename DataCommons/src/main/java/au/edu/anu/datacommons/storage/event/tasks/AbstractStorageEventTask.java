@@ -21,8 +21,11 @@
 
 package au.edu.anu.datacommons.storage.event.tasks;
 
+import gov.loc.repository.bagit.utilities.FilenameHelper;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.Callable;
@@ -30,6 +33,7 @@ import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.util.StopWatch;
 
 /**
@@ -44,21 +48,23 @@ public abstract class AbstractStorageEventTask implements Callable<Void> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStorageEventTask.class);
 	
 	protected String pid;
-	protected Path bagDir;
+	protected StorageProvider storageProvider;
 	protected String relPath;
+	
 	protected String dataPrependedRelPath;
-	protected Path absFilepath;
+	// protected Path absFilepath;
 	
 	protected StopWatch stopwatch = new StopWatch();
 
-	public AbstractStorageEventTask(String pid, Path bagDir, String relPath) {
+	public AbstractStorageEventTask(String pid, StorageProvider storageProvider, String relPath) {
 		this.pid = pid;
-		this.bagDir = bagDir;
-		this.relPath = relPath;
+		this.storageProvider = storageProvider;
+		// FilenameHelper.normalizePathSeparators returns null if relPath is null.
+		this.relPath = FilenameHelper.normalizePathSeparators(relPath);
 
-		if (relPath != null) {
-			this.dataPrependedRelPath = prependDataDir(relPath);
-			this.absFilepath = bagDir.resolve(dataPrependedRelPath);
+		if (this.relPath != null) {
+			this.dataPrependedRelPath = prependDataDir(this.relPath);
+			// this.absFilepath = storageProvider.resolve(dataPrependedRelPath);
 		}
 	}
 	
@@ -93,8 +99,8 @@ public abstract class AbstractStorageEventTask implements Callable<Void> {
 	 * @return BufferedInputStream
 	 * @throws IOException
 	 */
-	protected BufferedInputStream createInputStream() throws IOException {
-		return new BufferedInputStream(Files.newInputStream(absFilepath));
+	protected InputStream createInputStream() throws IOException {
+		return storageProvider.readStream(pid, this.relPath);
 	}
 	
 	protected void beginTask() {
