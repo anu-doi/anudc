@@ -63,7 +63,12 @@ jQuery(document).ready(function()
 		
 		jQuery("#anzforSubject option").attr("selected", "true");
 		jQuery("#anzseoSubject option").attr("selected", "true");
-		return jQuery('#form').validate().form();
+		var validated = jQuery('#form').validate().form();
+		
+		if (validated == true) {
+			jQuery("#submitForm").attr('disabled','disabled');
+		}
+		return validated;
 	});
 	
 	(function(jQuery) {
