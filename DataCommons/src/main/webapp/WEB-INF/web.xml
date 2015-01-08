@@ -33,7 +33,8 @@
 				au.edu.anu.datacommons.report;
 				au.edu.anu.datacommons.orca;
 				au.edu.anu.datacommons.webservice;
-				au.edu.anu.datacommons.item
+				au.edu.anu.datacommons.item;
+				au.edu.anu.datacommons.exception;
 			</param-value>
 		</init-param>
 		<init-param>

@@ -388,20 +388,24 @@ public class ANDSValidate implements Validate{
 		tripleString.append("> } ");
 		
 		sparqlQuery.addTripleSet(tripleString.toString());
-		sparqlQuery.addTriple("?item", "<dc:type>", "?type", true);
+		sparqlQuery.addTriple("?item", "<dc:type>", "?type", Boolean.TRUE);
 		//Ensure that the linked to item is active (i.e. it hasn't been deleted)
-		sparqlQuery.addTriple("?item", "<fedora-model:state>", "<fedora-model:Active>", false);
+		//sparqlQuery.addTriple("?item", "<fedora-model:state>", "<fedora-model:Active>", false);
+		sparqlQuery.addTriple("?item", "<fedora-model:state>", "?state", Boolean.TRUE);
 		StringBuilder filterString = new StringBuilder();
 		
 		// Add the predicate filter
 		filterString.append("regex(str(?predicate), '");
 		filterString.append(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI));
 		filterString.append("', 'i') ");
-		filterString.append("&& ");
 		// Add the type filter
+		filterString.append("&& ");
 		filterString.append("regex(?type , '");
 		filterString.append(type);
 		filterString.append("', 'i') ");
+		// Ensure that the relation is for an active object
+		filterString.append("&& ");
+		filterString.append("regex(?state, 'Active')");
 		
 		sparqlQuery.addFilter(filterString.toString(), "");
 		
@@ -417,7 +421,7 @@ public class ANDSValidate implements Validate{
 		}
 		
 		String queryString = sparqlQuery.generateQuery();
-		LOGGER.debug("Sparql Query String: {}", queryString);
+		LOGGER.debug("Validation relation Sparql query string: {}", queryString);
 		
 		//TODO see if there is an easier way to get this information
 		ExternalPoster poster = new ExternalPoster();
@@ -438,11 +442,11 @@ public class ANDSValidate implements Validate{
 		
 		NodeList resultNodes = responseDoc.getElementsByTagName("result");
 		if (resultNodes.getLength() > 0) {
-			LOGGER.info("Number of nodes: {}", resultNodes.getLength());
+			LOGGER.debug("Number of results for validation sparql query: {}", resultNodes.getLength());
 			isValid = true;
 		}
 		else {
-			LOGGER.info("No Results returned");
+			LOGGER.debug("No Results returned for validation sparql query");
 			errorMessages_.add("Quality Level " + qualityLevel + " - Link with item type " + type);
 			isValid = false;
 		}

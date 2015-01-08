@@ -687,7 +687,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		sparqlQuery.addVar("?type");
 		
 		sparqlQuery.addTriple("<info:fedora/" + fedoraObject.getObject_id() +">", "?predicate", "?item", Boolean.FALSE);
-		// GT - 20120928 - Note this code is only commended out as it may be placed back in at a later date.
+		// GT - 20120928 - Note this code is only commented out as it may be placed back in at a later date.
 		/*
 		StringBuilder tripleString = new StringBuilder();
 		tripleString.append("{ <info:fedora/");
@@ -701,15 +701,16 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		sparqlQuery.addTripleSet(tripleString.toString());
 		*/
 		//Ensure that the linked to item is active (i.e. it hasn't been deleted)
-		sparqlQuery.addTriple("?item", "<fedora-model:state>", "<fedora-model:Active>", false);
 		sparqlQuery.addTriple("?item", "<dc:title>", "?title", true);
 		sparqlQuery.addTriple("?item", "<dc:type>", "?type", true);
+		sparqlQuery.addTriple("?item", "<fedora-model:state>", "?state", true);
 		String filterString = "regex(str(?predicate), '" + GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI) + "', 'i')";
 		sparqlQuery.addFilter(filterString, "");
+		sparqlQuery.addFilter("!BOUND(?state) || regex(str(?state), 'Active')", "&&");
 		ClientResponse respFromRiSearch = riSearchService.post("query", sparqlQuery.generateQuery());
 		
 		List<Result> resultList = getSparqlResultList(respFromRiSearch);
-		
+		LOGGER.debug("Number of related items found: {}", resultList.size());
 		return resultList;
 	}
 	
@@ -831,19 +832,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		sparqlQuery.addFilter(queryFilter.toString(), "");
 		
 		ClientResponse clientResponse =riSearchService.post("query", sparqlQuery.generateQuery());
-		/*
-		List<Result> resultList = null;
-		JAXBTransform jaxbTransform = new JAXBTransform();
-		try {
-			Sparql sparqlResult = (Sparql)jaxbTransform.unmarshalStream(clientResponse.getEntityInputStream(), Sparql.class);
-			if (sparqlResult != null && sparqlResult.getResults() != null && sparqlResult.getResults().getResults() != null) {
-				resultList = sparqlResult.getResults().getResults();
-			}
-		}
-		catch (JAXBException e) {
-			LOGGER.info("Exception doing transform", e);
-		}
-		*/
+		
 		List<Result> resultList = getSparqlResultList(clientResponse);
 		return resultList;
 	}

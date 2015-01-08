@@ -152,7 +152,7 @@ public class Collection extends ObjectType {
 	 * @return the dates
 	 */
 	@Valid
-	@Size(min=1, message="Quality Level 3 - At least one dates element is recommended for this collection")
+	@Size(min=1, message="Quality Level 3 - At least one dates element is recommended for this collection (For example the date of data creation)")
 	@XmlElement(name="dates", namespace=Constants.ANDS_RIF_CS_NS)
 	public List<Dates> getDates() {
 		return dates;
