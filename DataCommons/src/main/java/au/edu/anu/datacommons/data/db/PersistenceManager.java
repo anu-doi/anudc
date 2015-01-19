@@ -21,11 +21,16 @@
 
 package au.edu.anu.datacommons.data.db;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.properties.GlobalProps;
 
 /**
  * PersistenceManager
@@ -130,7 +135,19 @@ public class PersistenceManager {
 	 */
 	protected synchronized void createEntityManagerFactory() {
 		if (this.emf == null) {
-			this.emf = Persistence.createEntityManagerFactory("datacommons");
+			Map<String, String> connProps = new HashMap<String, String>();
+			
+			String jdbcDriver = GlobalProps.getProperty("jdbc.driver");
+			String jdbcUrl = GlobalProps.getProperty("jdbc.url");
+			String jdbcUser = GlobalProps.getProperty("jdbc.username");
+			String jdbcPassword = GlobalProps.getProperty("jdbc.password");
+			
+			connProps.put("hibernate.connection.driver_class", jdbcDriver);
+			connProps.put("hibernate.connection.url", jdbcUrl);
+			connProps.put("hibernate.connection.user", jdbcUser);
+			connProps.put("hibernate.connection.password", jdbcPassword);
+			
+			this.emf = Persistence.createEntityManagerFactory("datacommons", connProps);
 		}
 	}
 }
