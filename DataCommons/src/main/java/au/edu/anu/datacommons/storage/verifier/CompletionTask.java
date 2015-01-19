@@ -47,7 +47,6 @@ import org.slf4j.LoggerFactory;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.event.StorageEventListener;
 import au.edu.anu.datacommons.storage.event.StorageEventListener.EventTime;
-import au.edu.anu.datacommons.storage.event.StorageEventListener.EventType;
 import au.edu.anu.datacommons.storage.event.tasks.AbstractTagFileTask;
 import au.edu.anu.datacommons.storage.event.tasks.MetadataTask;
 import au.edu.anu.datacommons.storage.event.tasks.PreservationTask;

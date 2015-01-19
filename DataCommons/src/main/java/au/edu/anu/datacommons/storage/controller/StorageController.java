@@ -45,6 +45,8 @@ public interface StorageController {
 
 	InputStream getFileStream(String pid, String filepath) throws IOException, StorageException;
 
+	void renameFile(String pid, String oldFilepath, String newFilepath) throws IOException, StorageException;
+	
 	boolean fileExists(String pid, String filepath) throws StorageException;
 
 	boolean dirExists(String pid, String filepath) throws StorageException;
@@ -62,4 +64,5 @@ public interface StorageController {
 	void indexFiles(String pid) throws IOException, StorageException;
 
 	void deindexFiles(String pid) throws IOException, StorageException;
+
 }

@@ -67,6 +67,13 @@
 						</c:choose>
 					</c:forEach>
 					
+					<c:set var="baseDataUrl" value="" />
+					<c:forEach var="iLevel" begin="1" end="${fn:length(it.parents) - 1}">
+						<c:set var="baseDataUrl" value="${baseDataUrl}../" />
+					</c:forEach> 
+					
+					
+					
 					<!-- Actions -->
 					<div id="div-action-icons" class="right text-right">
 						<sec:authorize access="isAuthenticated()">
@@ -183,6 +190,15 @@
 										</c:if>
 									</c:otherwise>
 								</c:choose>
+								
+								<!-- Rename icon -->
+								<sec:authorize access="isAuthenticated()">
+									<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+										<a href="javascript:void(0);" onclick="renameFile('${relUrl}', '${iFile.relFilepath}')">
+											<img class="clickable-icon" src="<c:url value='/images/rename.png' />" title="Rename ${iFile.filename}" />
+										</a>
+									</sec:accesscontrollist>
+								</sec:authorize>
 								
 								<!-- Delete icon -->
 								<sec:authorize access="isAuthenticated()">

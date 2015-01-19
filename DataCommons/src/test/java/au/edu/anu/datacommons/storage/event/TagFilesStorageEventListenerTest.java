@@ -21,20 +21,16 @@
 
 package au.edu.anu.datacommons.storage.event;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import gov.loc.repository.bagit.BagFactory.Version;
 import gov.loc.repository.bagit.impl.AbstractBagConstants;
 import gov.loc.repository.bagit.impl.BagItTxtImpl;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -51,10 +47,8 @@ import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.star.ucb.VerificationMode;
-
+import au.edu.anu.datacommons.storage.event.StorageEvent.EventType;
 import au.edu.anu.datacommons.storage.event.StorageEventListener.EventTime;
-import au.edu.anu.datacommons.storage.event.StorageEventListener.EventType;
 import au.edu.anu.datacommons.storage.tagfiles.BagItTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 
@@ -108,7 +102,8 @@ public class TagFilesStorageEventListenerTest {
 	public void testPreAdd() throws IOException {
 		String pid = "test:1";
 		String relPath = "dir1/dir2/a.txt";
-		listener.notify(EventTime.PRE, EventType.ADD_FILE, pid, relPath, null, null);
+		StorageEvent event = new StorageEvent(EventType.ADD_FILE, pid, null, relPath);
+		listener.notify(EventTime.PRE, event);
 
 		InOrder inOrder = Mockito.inOrder(tfSvc);
 		inOrder.verify(tfSvc).getAllEntries(pid, BagItTagFile.class);
@@ -123,7 +118,8 @@ public class TagFilesStorageEventListenerTest {
 		LinkedHashMap<String, String> mockedMap = mock(LinkedHashMap.class);
 		when(mockedMap.size()).thenReturn(2);
 		when(tfSvc.getAllEntries(pid, BagItTagFile.class)).thenReturn(mockedMap);
-		listener.notify(EventTime.PRE, EventType.ADD_FILE, pid, relPath2, null, null);
+		event = new StorageEvent(EventType.ADD_FILE, pid, null, relPath2);
+		listener.notify(EventTime.PRE, event);
 		verify(tfSvc, times(1)).clearAllEntries(pid, BagItTagFile.class);
 	}
 	

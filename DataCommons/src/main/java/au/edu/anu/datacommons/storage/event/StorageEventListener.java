@@ -21,14 +21,7 @@
 
 package au.edu.anu.datacommons.storage.event;
 
-import static java.text.MessageFormat.format;
-
 import java.io.IOException;
-import java.nio.file.Path;
-
-import au.edu.anu.datacommons.storage.datafile.StagedDataFile;
-import au.edu.anu.datacommons.storage.provider.StorageProvider;
-import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 
 /**
  * @author Rahul Khanna
@@ -39,21 +32,7 @@ public interface StorageEventListener {
 	public enum EventTime {
 		PRE, POST
 	}
-
-	public enum EventType {
-		ADD_FILE, READ_FILE, UPDATE_FILE, DELETE_FILE, TAGFILE_UPDATE;
 	
-		public boolean isOneOf(EventType... types) {
-			for (EventType iType : types) {
-				if (this.equals(iType)) {
-					return true;
-				}
-			}
-			return false;
-		}
-	}
-
-	public abstract void notify(EventTime time, EventType type, String pid, String relPath, StorageProvider provider,
-			StagedDataFile source) throws IOException;
+	public abstract void notify(EventTime time, StorageEvent event) throws IOException;
 
 }

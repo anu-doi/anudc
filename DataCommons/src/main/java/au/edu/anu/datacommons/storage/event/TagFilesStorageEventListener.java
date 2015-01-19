@@ -25,20 +25,17 @@ import static java.text.MessageFormat.format;
 import gov.loc.repository.bagit.BagFactory.Version;
 import gov.loc.repository.bagit.impl.AbstractBagConstants;
 import gov.loc.repository.bagit.impl.BagItTxtImpl;
-import gov.loc.repository.bagit.utilities.FilenameHelper;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Future;
 
 import javax.annotation.Resource;
@@ -50,11 +47,9 @@ import org.springframework.stereotype.Component;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
-import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask.Operation;
-import au.edu.anu.datacommons.storage.controller.StorageController;
-import au.edu.anu.datacommons.storage.datafile.StagedDataFile;
+import au.edu.anu.datacommons.storage.event.StorageEvent.EventType;
 import au.edu.anu.datacommons.storage.event.tasks.BagCompletionTask;
 import au.edu.anu.datacommons.storage.event.tasks.ManifestMd5Task;
 import au.edu.anu.datacommons.storage.event.tasks.MetadataTask;
@@ -63,11 +58,11 @@ import au.edu.anu.datacommons.storage.event.tasks.PronomTask;
 import au.edu.anu.datacommons.storage.event.tasks.StorageSearchIndexTask;
 import au.edu.anu.datacommons.storage.event.tasks.TimestampTask;
 import au.edu.anu.datacommons.storage.event.tasks.VirusScanTask;
-import au.edu.anu.datacommons.storage.info.RecordDataInfoService;
 import au.edu.anu.datacommons.storage.messagedigest.FileMessageDigests.Algorithm;
-import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.provider.StorageException;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.search.StorageSearchService;
+import au.edu.anu.datacommons.storage.tagfiles.AbstractKeyValueFile;
 import au.edu.anu.datacommons.storage.tagfiles.BagItTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.ManifestMd5TagFile;
@@ -76,7 +71,6 @@ import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
-import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 import au.edu.anu.datacommons.util.Util;
 
@@ -141,19 +135,21 @@ public class TagFilesStorageEventListener implements StorageEventListener {
 	 * @throws IOException
 	 */
 	@Override
-	public void notify(EventTime time, EventType type, String pid, String relPath, StorageProvider provider, StagedDataFile ufi)
-			throws IOException {
-		relPath = normalizeRelPath(relPath);
+	public void notify(EventTime time, StorageEvent event) throws IOException {
+		if (event == null) {
+			return;
+		}
+		
 		if (time == EventTime.PRE) {
 			try {
-				processPreEventTasks(type, pid, relPath, provider, ufi);
+				processPreEventTasks(event);
 			} catch (StorageException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} else if (time == EventTime.POST) {
 			try {
-				processPostEventTasks(type, pid, relPath, provider, ufi);
+				processPostEventTasks(event);
 			} catch (StorageException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -167,35 +163,27 @@ public class TagFilesStorageEventListener implements StorageEventListener {
 	/**
 	 * Performs pre-event tasks for the specified event type.
 	 * 
-	 * @param type
-	 *            Type of event that triggered the notification
-	 * @param pid
-	 *            Identifier of collection record
-	 * @param bagDir
-	 *            Bag directory of specified record.
-	 * @param relPath
-	 *            Relative path (from the payload directory) to the file on which event will be performed.
-	 * @param ufi
-	 *            Information about source file that will replace the payload file represented by relPath.
+	 * @param event
+	 *            Object containing information about the storage-related event.
 	 * @throws IOException
 	 * @throws StorageException 
 	 */
-	private void processPreEventTasks(EventType type, String pid, String relPath, StorageProvider provider, StagedDataFile ufi)
+	private void processPreEventTasks(StorageEvent event)
 			throws IOException, StorageException {
-		initBagIt(pid);
-		if (type.isOneOf(EventType.TAGFILE_UPDATE)) {
+		initBagIt(event.getPid());
+		if (event.getType().isOneOf(EventType.TAGFILE_UPDATE)) {
 			// TODO Create PID dir.
 		}
-		if (type.isOneOf(EventType.READ_FILE, EventType.UPDATE_FILE, EventType.DELETE_FILE)) {
+		if (event.getType().isOneOf(EventType.READ_FILE, EventType.UPDATE_FILE, EventType.DELETE_FILE)) {
 		}
-		if (type.isOneOf(EventType.ADD_FILE)) {
-			// createParentPath(pid, bagDir, relPath);
+		if (event.getType().isOneOf(EventType.ADD_FILE)) {
+			// createParentPath(event.getPid(), bagDir, relPath);
 		}
-		if (type.isOneOf(EventType.UPDATE_FILE, EventType.DELETE_FILE)) {
-			if (!hasHiddenParts(relPath)) {
-				archive(type, pid, relPath, provider);
+		if (event.getType().isOneOf(EventType.UPDATE_FILE, EventType.DELETE_FILE)) {
+			if (!hasHiddenParts(event.getRelPath())) {
+				archive(event.getType(), event.getPid(), event.getRelPath(), event.getProvider());
 			} else {
-				// deleteFileAndEmptyParents(bagDir, relPath);
+				// deleteFileAndEmptyParents(bagDir, event.getRelPath());
 			}
 		}
 	}
@@ -203,73 +191,139 @@ public class TagFilesStorageEventListener implements StorageEventListener {
 	/**
 	 * Performs post-event tasks for the specified event type.
 	 * 
-	 * @param type
-	 *            Type of event that triggered the notification
-	 * @param pid
-	 *            Identifier of collection record
-	 * @param bagDir
-	 *            Bag directory of the specified collection record
-	 * @param relPath
-	 *            Relative path (from the payload directory) to the file on which event was performed.
-	 * @param ufi
-	 *            Information about the source file that replaced the payload file represented by relPath. Note that the
-	 *            source file may not exist when this method is called, but information about the file will still be
-	 *            valid.
+	 * @param event
+	 *            Object containing information about the storage-related event.
 	 * @throws IOException
-	 * @throws StorageException 
+	 * @throws StorageException
 	 */
-	private void processPostEventTasks(EventType type, final String pid, String relPath,
-			StorageProvider storageProvider, StagedDataFile ufi) throws IOException, StorageException {
+	private void processPostEventTasks(StorageEvent event) throws IOException, StorageException {
 		List<Future<?>> waitList = new ArrayList<>();
-		String dataPrependedRelPath = "data/" + relPath;
-		if (type.isOneOf(EventType.ADD_FILE, EventType.UPDATE_FILE)) {
-			waitList.add(threadPoolSvc.submit(new PreservationTask(pid, storageProvider, relPath, tagFilesSvc)));
+		String dataPrependedRelPath = "data/" + event.getRelPath();
+		
+		// Add file
+		// Update File
+		if (event.getType().isOneOf(EventType.ADD_FILE, EventType.UPDATE_FILE)) {
+			waitList.add(threadPoolSvc.submit(new PreservationTask(event.getPid(), event.getProvider(), event.getRelPath(), tagFilesSvc, this)));
 
-			if (ufi.getMessageDigests().getMessageDigest(Algorithm.MD5) != null) {
-				tagFilesSvc.addEntry(pid, ManifestMd5TagFile.class, dataPrependedRelPath, ufi.getMessageDigests()
-						.getMessageDigest(Algorithm.MD5).getMessageDigestAsHex());
+			if (event.getSource().getMessageDigests().getMessageDigest(Algorithm.MD5) != null) {
+				String messageDigestAsHex = event.getSource().getMessageDigests()
+						.getMessageDigest(Algorithm.MD5).getMessageDigestAsHex();
+				tagFilesSvc.addEntry(event.getPid(), ManifestMd5TagFile.class, dataPrependedRelPath, messageDigestAsHex);
 			} else {
-				waitList.add(threadPoolSvc.submit(new ManifestMd5Task(pid, storageProvider, relPath, tagFilesSvc)));
+				waitList.add(threadPoolSvc.submit(new ManifestMd5Task(event.getPid(), event.getProvider(), event.getRelPath(), tagFilesSvc)));
 			}
-			waitList.add(threadPoolSvc.submit(new MetadataTask(pid, storageProvider, relPath, tagFilesSvc)));
-			waitList.add(threadPoolSvc.submit(new PronomTask(pid, storageProvider, relPath, tagFilesSvc)));
-			waitList.add(threadPoolSvc.submit(new TimestampTask(pid, storageProvider, relPath, tagFilesSvc)));
-			waitList.add(threadPoolSvc.submit(new VirusScanTask(pid, storageProvider, relPath, tagFilesSvc)));
+			waitList.add(threadPoolSvc.submit(new MetadataTask(event.getPid(), event.getProvider(), event.getRelPath(), tagFilesSvc)));
+			waitList.add(threadPoolSvc.submit(new PronomTask(event.getPid(), event.getProvider(), event.getRelPath(), tagFilesSvc)));
+			waitList.add(threadPoolSvc.submit(new TimestampTask(event.getPid(), event.getProvider(), event.getRelPath(), tagFilesSvc)));
+			waitList.add(threadPoolSvc.submit(new VirusScanTask(event.getPid(), event.getProvider(), event.getRelPath(), tagFilesSvc)));
 
-			if (searchSvc != null && isPublishedAndPublic(fedoraObjectService.getItemByPid(pid))) {
-				threadPoolSvc.submit(new StorageSearchIndexTask(pid, storageProvider, relPath, searchSvc));
+			if (searchSvc != null && isPublishedAndPublic(fedoraObjectService.getItemByPid(event.getPid()))) {
+				threadPoolSvc.submit(new StorageSearchIndexTask(event.getPid(), event.getProvider(), event.getRelPath(), searchSvc));
 			}
 
-			threadPoolSvc.submitCachedPool(new BagCompletionTask(pid, storageProvider, relPath, tagFilesSvc, waitList));
+			threadPoolSvc.submitCachedPool(new BagCompletionTask(event.getPid(), event.getProvider(), event.getRelPath(), tagFilesSvc, waitList));
 		}
-		if (type.isOneOf(EventType.DELETE_FILE)) {
-			String presvRelpath = tagFilesSvc.getEntryValue(pid, PreservationMapTagFile.class, dataPrependedRelPath);
+		
+		// Delete file
+		if (event.getType().isOneOf(EventType.DELETE_FILE)) {
+			String presvRelpath = tagFilesSvc.getEntryValue(event.getPid(), PreservationMapTagFile.class, dataPrependedRelPath);
 			if (presvRelpath != null && !presvRelpath.equals("UNCONVERTIBLE")) {
-				tagFilesSvc.removeEntry(pid, PreservationMapTagFile.class, presvRelpath);
-				storageProvider.deleteFile(pid, presvRelpath.replaceFirst("^data/", ""));
+				tagFilesSvc.removeEntry(event.getPid(), PreservationMapTagFile.class, presvRelpath);
+				event.getProvider().deleteFile(event.getPid(), presvRelpath.replaceFirst("^data/", ""));
 			}
-			tagFilesSvc.removeEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath);
+			tagFilesSvc.removeEntry(event.getPid(), PreservationMapTagFile.class, dataPrependedRelPath);
 
-			tagFilesSvc.removeEntry(pid, ManifestMd5TagFile.class, dataPrependedRelPath);
-			tagFilesSvc.removeEntry(pid, FileMetadataTagFile.class, dataPrependedRelPath);
-			tagFilesSvc.removeEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath);
-			tagFilesSvc.removeEntry(pid, PronomFormatsTagFile.class, dataPrependedRelPath);
-			tagFilesSvc.removeEntry(pid, TimestampsTagFile.class, dataPrependedRelPath);
-			tagFilesSvc.removeEntry(pid, VirusScanTagFile.class, dataPrependedRelPath);
+			tagFilesSvc.removeEntry(event.getPid(), ManifestMd5TagFile.class, dataPrependedRelPath);
+			tagFilesSvc.removeEntry(event.getPid(), FileMetadataTagFile.class, dataPrependedRelPath);
+			tagFilesSvc.removeEntry(event.getPid(), PreservationMapTagFile.class, dataPrependedRelPath);
+			tagFilesSvc.removeEntry(event.getPid(), PronomFormatsTagFile.class, dataPrependedRelPath);
+			tagFilesSvc.removeEntry(event.getPid(), TimestampsTagFile.class, dataPrependedRelPath);
+			tagFilesSvc.removeEntry(event.getPid(), VirusScanTagFile.class, dataPrependedRelPath);
 
 			// If a file's deleted, its search index entry must be deleted irrespective of
 			// published status.
 			if (searchSvc != null) {
-				threadPoolSvc.submit(new StorageSearchIndexTask(pid, storageProvider, relPath, searchSvc));
+				threadPoolSvc.submit(new StorageSearchIndexTask(event.getPid(), event.getProvider(), event.getRelPath(), searchSvc));
 			}
 
-			threadPoolSvc.submitCachedPool(new BagCompletionTask(pid, storageProvider, relPath, tagFilesSvc, waitList));
+			threadPoolSvc.submitCachedPool(new BagCompletionTask(event.getPid(), event.getProvider(), event.getRelPath(), tagFilesSvc, waitList));
 		}
 
-		if (type.isOneOf(EventType.TAGFILE_UPDATE)) {
-			threadPoolSvc.submitCachedPool(new BagCompletionTask(pid, storageProvider, relPath, tagFilesSvc, waitList));
+		// Rename file
+		if (event.getType().isOneOf(EventType.RENAME_FILE)) {
+			String dataPrependedNewRelPath = "data/" + event.getNewRelPath();
+			
+			StorageProvider provider = event.getProvider();
+			
+			movePreservedFiles(event, dataPrependedRelPath, provider);
+			
+			List<Class<? extends AbstractKeyValueFile>> tagFileClasses = new ArrayList<>();
+			tagFileClasses.add(PreservationMapTagFile.class);
+			tagFileClasses.add(ManifestMd5TagFile.class);
+			tagFileClasses.add(FileMetadataTagFile.class);
+			tagFileClasses.add(PronomFormatsTagFile.class);
+			tagFileClasses.add(TimestampsTagFile.class);
+			tagFileClasses.add(VirusScanTagFile.class);
+			
+			updateKeys(event.getPid(), dataPrependedRelPath, dataPrependedNewRelPath, tagFileClasses);
+			
+			threadPoolSvc.submitCachedPool(new BagCompletionTask(event.getPid(), event.getProvider(), event.getRelPath(), tagFilesSvc, waitList));
+		}
+		
+		// Tag file update
+		if (event.getType().isOneOf(EventType.TAGFILE_UPDATE)) {
+			threadPoolSvc.submitCachedPool(new BagCompletionTask(event.getPid(), event.getProvider(), event.getRelPath(), tagFilesSvc, waitList));
 		}
 	}
+
+	private void movePreservedFiles(StorageEvent event, String dataPrependedRelPath, StorageProvider provider)
+			throws IOException {
+		Map<String, String> prevEntries = tagFilesSvc.getAllEntries(event.getPid(), PreservationMapTagFile.class);
+		for (Entry<String, String> entry : prevEntries.entrySet()) {
+			String oldPresvFilepath = entry.getValue();
+			String newPresvFilepath = oldPresvFilepath.replaceFirst(event.getRelPath(), event.getNewRelPath());
+			if (entry.getKey().startsWith(dataPrependedRelPath + "/") || entry.getKey().equals(dataPrependedRelPath)) {
+				if (entry.getValue().equals("PRESERVED")) {
+					tagFilesSvc.removeEntry(event.getPid(), PreservationMapTagFile.class, entry.getKey());
+				} else if (!entry.getValue().equals("UNCONVERTIBLE") && provider.fileExists(event.getPid(), entry.getValue().replaceFirst("^data/", ""))) {
+					tagFilesSvc.addEntry(event.getPid(), PreservationMapTagFile.class, entry.getKey(), newPresvFilepath);
+					try {
+						provider.renameFile(event.getPid(), oldPresvFilepath.replaceFirst("^data/", ""), newPresvFilepath.replaceFirst("^data/", ""));
+					} catch (IOException e) {
+						LOGGER.error("Unable to rename {} to {} in {}", oldPresvFilepath, newPresvFilepath, event.getPid());
+					}
+				}
+			}
+		}
+	}
+	
+	private void updateKeys(String pid, String oldPath, String newPath,
+			List<Class<? extends AbstractKeyValueFile>> tagFileClasses) throws IOException {
+
+		for (Class<? extends AbstractKeyValueFile> tagFileClass : tagFileClasses) {
+			Map<String, String> allEntries = new HashMap<String, String>(tagFilesSvc.getAllEntries(pid, tagFileClass));
+			for (Entry<String, String> entry : allEntries.entrySet()) {
+				// Directory
+				if (entry.getKey().startsWith(oldPath + "/")) {
+					String newKey = entry.getKey().replaceFirst(oldPath, newPath);
+					tagFilesSvc.addEntry(pid, tagFileClass, newKey, entry.getValue());
+					if (!newKey.equals(entry.getKey())) {
+						tagFilesSvc.removeEntry(pid, tagFileClass, entry.getKey());
+					}
+				}
+				// File.
+				if (entry.getKey().equals(oldPath)) {
+					tagFilesSvc.addEntry(pid, tagFileClass, newPath, entry.getValue());
+					if (!newPath.equals(entry.getKey())) {
+						tagFilesSvc.removeEntry(pid, tagFileClass, entry.getKey());
+					}
+					// Break out of loop because it's a file - there wouldn't be another file with the same filepath.
+					break;
+				}
+			}
+		}
+	}
+
 
 	/**
 	 * Initialises the BagIt tag file within the bag of a specified record.
@@ -290,38 +344,6 @@ public class TagFilesStorageEventListener implements StorageEventListener {
 		}
 	}
 
-	/**
-	 * Normalises a relative path (relative to the payload directory) appropriate for a file (notifications are for
-	 * files only) by:
-	 * 
-	 * <ol>
-	 * <li>Change all path separators to '/'
-	 * <li>Removing all leading and trailing path separators
-	 * </ol>
-	 * 
-	 * @param relPath
-	 *            Relative path to normalise. Can be null.
-	 * @return Normalised relative path as String. null if relPath is null.
-	 */
-	private String normalizeRelPath(String relPath) {
-		if (relPath != null) {
-			StringBuilder processed = new StringBuilder(FilenameHelper.normalizePathSeparators(relPath));
-			while (processed.charAt(0) == '/') {
-				processed.deleteCharAt(0);
-			}
-
-			while (processed.charAt(processed.length() - 1) == '/') {
-				processed.deleteCharAt(processed.length() - 1);
-			}
-
-			if (LOGGER.isTraceEnabled() && !processed.toString().equals(relPath)) {
-				LOGGER.trace("Normalized relative path {} to {}", relPath, processed.toString());
-			}
-			return processed.toString();
-		} else {
-			return null;
-		}
-	}
 
 	/**
 	 * Checks if the specified relPath contains dot files or folders.

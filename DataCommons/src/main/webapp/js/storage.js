@@ -408,7 +408,8 @@ function addExtRef() {
 				"i" : url
 			}
 		}).fail(function() {
-			alert('Unable to add url.');
+			alert('Unable to add external reference.');
+			jQuery("img#loading").hide();
 		}).always(function() {
 			window.location = window.location.href.split("?")[0];
 		});
@@ -425,7 +426,8 @@ function deleteExtRef(extRefUrl) {
 				"i" : extRefUrl
 			}
 		}).fail(function() {
-			alert('Unable to delete file.');
+			alert('Unable to delete external reference.');
+			jQuery("img#loading").hide();
 		}).always(function() {
 			window.location = window.location.href.split("?")[0];
 		});
@@ -451,8 +453,34 @@ function toggleIsFilesPublic(pid, curFlag) {
 		window.location = window.location.href + "?smsg=Public status changed successfully.";
 	}).fail(function(msg, status) {
 		alert("Unable to change Files Public status");
+		jQuery("img#loading").hide();
 	});
 }
+
+function renameFile(fileToRename, relPathToRename) {
+	var newRelPath = prompt("Rename " + fileToRename + " to:", relPathToRename);
+	if (newRelPath != null) {
+		if (newRelPath != relPathToRename) {
+			jQuery("img#loading").show();
+			jQuery.ajax({
+				url: fileToRename + "?action=renameFile",
+				type: "POST",
+				data: {
+					"i" : newRelPath 
+				}
+			}).done(function(msg, status) {
+				window.location = window.location.href + "?smsg=File renamed successfully.";
+			}).fail(function(msg, status) {
+				jQuery("img#loading").hide();
+				alert("Unable to rename file");
+			});
+		} else {
+			alert("New name is the same as old one. No action taken.");
+		} 
+	}
+}
+
+
 
 function scrollToUploadPane() {
 	jQuery("html, body").animate({scrollTop: jQuery("#dragandrophandler").offset().top}, 100);

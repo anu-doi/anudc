@@ -194,6 +194,8 @@ public class StorageResource extends AbstractStorageResource {
 				resp = createDelExtRefResponse(pid, items);
 			} else if (action.equals("filesPublic") && !items.isEmpty()) {
 				resp = processSetFilesPublicFlag(pid, items.iterator().next());
+			} else if (action.equals("renameFile") && !items.isEmpty()) {
+				resp = createRenameResponse(pid, path, items);
 			}
 		}
 		return resp;
@@ -213,7 +215,7 @@ public class StorageResource extends AbstractStorageResource {
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response createDir(@PathParam("pid") String pid, @PathParam("path") String path) {
 		Response resp = null;
-		LOGGER.info("User {} ({})requested creation of directory {} in record {} file upload to {}", getCurUsername(),
+		LOGGER.info("User {} ({}) requested creation of directory {} in record {} file upload to {}", getCurUsername(),
 				getRemoteIp(), uriInfo.getPath(true).toString(), pid);
 		fedoraObjectService.getItemByPidWriteAccess(pid);
 
@@ -407,6 +409,19 @@ public class StorageResource extends AbstractStorageResource {
 		ResponseBuilder resp = null;
 		try {
 			storageController.deleteExtRefs(pid, items);
+			resp = Response.ok();
+		} catch (IOException | StorageException e) {
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().entity(e.getMessage());
+		}
+		return resp.build();
+	}
+
+	private Response createRenameResponse(String pid, String path, Set<String> items) {
+		ResponseBuilder resp = null;
+		
+		try {
+			storageController.renameFile(pid, path, items.iterator().next());
 			resp = Response.ok();
 		} catch (IOException | StorageException e) {
 			LOGGER.error(e.getMessage(), e);

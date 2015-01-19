@@ -22,7 +22,7 @@ th.col-checkbox,td.col-checkbox {
 }
 
 th.col-filename,td.col-filename {
-	width: 340px;
+	width: 310px;
 	overflow:hidden;
 	text-overflow:ellipsis;
 	white-space:nowrap;
@@ -41,6 +41,7 @@ th.col-filesize, td.col-filesize {
 
 td.col-action-icons {
 	text-align: right;
+	width: 96px;
 }
 
 img.clickable-icon {

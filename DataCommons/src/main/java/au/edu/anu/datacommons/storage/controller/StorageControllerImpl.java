@@ -54,9 +54,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import au.edu.anu.datacommons.storage.datafile.StagedDataFile;
+import au.edu.anu.datacommons.storage.event.StorageEvent;
+import au.edu.anu.datacommons.storage.event.StorageEvent.EventType;
 import au.edu.anu.datacommons.storage.event.StorageEventListener;
 import au.edu.anu.datacommons.storage.event.StorageEventListener.EventTime;
-import au.edu.anu.datacommons.storage.event.StorageEventListener.EventType;
 import au.edu.anu.datacommons.storage.info.FileInfo;
 import au.edu.anu.datacommons.storage.info.FileInfo.Type;
 import au.edu.anu.datacommons.storage.info.PronomFormat;
@@ -102,7 +103,7 @@ public class StorageControllerImpl implements StorageController {
 	public FileInfo addFile(String pid, String filepath, StagedDataFile source) throws IOException, StorageException {
 		// Validation
 		pid = validatePid(pid);
-		filepath = validateRelPath(filepath);
+		filepath = validateRelPath(filepath, false);
 		Objects.requireNonNull(source);
 		
 		StorageProvider sp = providerResolver.getStorageProvider(pid);
@@ -112,9 +113,10 @@ public class StorageControllerImpl implements StorageController {
 		} else {
 			eventType = EventType.UPDATE_FILE;
 		}
-		notifyListeners(EventTime.PRE, eventType, pid, filepath, sp, source);
+		StorageEvent event = new StorageEvent(eventType, pid, sp, filepath, source);
+		notifyListeners(EventTime.PRE, event);
 		FileInfo addedFile = sp.addFile(pid, filepath, source);
-		notifyListeners(EventTime.POST, eventType, pid, filepath, sp, source);
+		notifyListeners(EventTime.POST, event);
 		return addedFile;
 	}
 	
@@ -122,7 +124,7 @@ public class StorageControllerImpl implements StorageController {
 	public FileInfo addDir(String pid, String filepath) throws IOException, StorageException {
 		// Validation
 		pid = validatePid(pid);
-		filepath = validateRelPath(filepath);
+		filepath = validateRelPath(filepath, false);
 
 		StorageProvider sp = providerResolver.getStorageProvider(pid);
 		return sp.addDir(pid, filepath);
@@ -132,30 +134,30 @@ public class StorageControllerImpl implements StorageController {
 	public void deleteFile(String pid, String filepath) throws IOException, StorageException {
 		// Validation
 		pid = validatePid(pid);
-		filepath = validateRelPath(filepath);
+		filepath = validateRelPath(filepath, false);
 		
 		StorageProvider sp = providerResolver.getStorageProvider(pid);
 		
 		if (fileExists(pid, filepath)) {
-			notifyListeners(EventTime.PRE, EventType.DELETE_FILE, pid, filepath, sp, null);
+			StorageEvent event = new StorageEvent(EventType.DELETE_FILE, pid, sp, filepath);
+			notifyListeners(EventTime.PRE, event);
 			// Checking again if file exists as it may have been deleted by the pre-event tasks.
 			if (fileExists(pid, filepath)) {
 				sp.deleteFile(pid, filepath);
 			}
-			notifyListeners(EventTime.POST, EventType.DELETE_FILE, pid, filepath, sp, null);
+			notifyListeners(EventTime.POST, event);
 		} else if (dirExists(pid, filepath)) {
 			FileInfo fileInfo = sp.getDirInfo(pid, filepath, Integer.MAX_VALUE);
 			
 			// Delete only files in first pass as deleting folders can delete files within them.
-			List<String> deletedRelPaths = new ArrayList<>();
+			List<StorageEvent> deleteEvents = new ArrayList<>();
 			for (FileInfo child : fileInfo.getChildrenRecursive()) {
 				if (child.getType() == Type.FILE) {
-					notifyListeners(EventTime.PRE, EventType.DELETE_FILE, pid, child.getRelFilepath(), sp, null);
+					StorageEvent event = new StorageEvent(EventType.DELETE_FILE, pid, sp, child.getRelFilepath());
+					deleteEvents.add(event);
+					notifyListeners(EventTime.PRE, event);
 					try {
 						sp.deleteFile(pid, child.getRelFilepath());
-						if (fileExists(pid, child.getRelFilepath())) {
-							deletedRelPaths.add(child.getRelFilepath());
-						}
 					} catch (IOException e) {
 						LOGGER.error("Unable to delete {}/{}", pid, child.getRelFilepath());
 					}
@@ -164,8 +166,10 @@ public class StorageControllerImpl implements StorageController {
 			// Delete the dir and that will delete all folders within it. Files already deleted in the first pass.
 			sp.deleteFile(pid, filepath);
 			
-			for (String iPath : deletedRelPaths) {
-				notifyListeners(EventTime.POST, EventType.DELETE_FILE, pid, iPath, sp, null);
+			// Notify post event listeners after all files have been deleted so they don't start acting on files
+			// still being deleted.
+			for (StorageEvent event : deleteEvents) {
+				notifyListeners(EventTime.POST, event);
 			}
 		} else {
 			throw new FileNotFoundException(format("{0} does not contain {1}", pid, filepath));
@@ -173,10 +177,25 @@ public class StorageControllerImpl implements StorageController {
 	}
 	
 	@Override
+	public void renameFile(String pid, String oldFilepath, String newFilepath) throws IOException, StorageException {
+		// Validation
+		pid = validatePid(pid);
+		oldFilepath = validateRelPath(oldFilepath, false);
+		newFilepath = validateRelPath(newFilepath, false);
+		
+		StorageProvider sp = providerResolver.getStorageProvider(pid);
+		
+		StorageEvent event = new StorageEvent(EventType.RENAME_FILE, pid, sp, oldFilepath, newFilepath);
+		notifyListeners(EventTime.PRE, event);
+		sp.renameFile(pid, oldFilepath, newFilepath);
+		notifyListeners(EventTime.POST, event);
+	}
+	
+	@Override
 	public boolean fileExists(String pid, String filepath) throws StorageException {
 		// Validation
 		pid = validatePid(pid);
-		filepath = validateRelPath(filepath);
+		filepath = validateRelPath(filepath, true);
 
 		StorageProvider sp = providerResolver.getStorageProvider(pid);
 		return sp.fileExists(pid, filepath);
@@ -186,7 +205,7 @@ public class StorageControllerImpl implements StorageController {
 	public boolean dirExists(String pid, String filepath) throws StorageException {
 		// Validation
 		pid = validatePid(pid);
-		filepath = validateRelPath(filepath);
+		filepath = validateRelPath(filepath, true);
 
 		StorageProvider sp = providerResolver.getStorageProvider(pid);
 		return sp.dirExists(pid, filepath);
@@ -196,7 +215,7 @@ public class StorageControllerImpl implements StorageController {
 	public InputStream getFileStream(String pid, String filepath) throws IOException, StorageException {
 		// Validation
 		pid = validatePid(pid);
-		filepath = validateRelPath(filepath);
+		filepath = validateRelPath(filepath, true);
 
 		StorageProvider sp = providerResolver.getStorageProvider(pid);
 		return sp.readStream(pid, filepath);
@@ -211,7 +230,7 @@ public class StorageControllerImpl implements StorageController {
 	public FileInfo getFileInfo(String pid, String filepath) throws IOException, StorageException {
 		// Validation
 		pid = validatePid(pid);
-		filepath = validateRelPath(filepath);
+		filepath = validateRelPath(filepath, true);
 
 		StorageProvider sp = providerResolver.getStorageProvider(pid);
 		FileInfo fileInfo = sp.getDirInfo(pid, filepath, 1);
@@ -235,11 +254,12 @@ public class StorageControllerImpl implements StorageController {
 		validateNonEmptyCollection(urls);
 		
 		StorageProvider sp = providerResolver.getStorageProvider(pid);
-		notifyListeners(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, null, sp, null);
+		StorageEvent event = new StorageEvent(EventType.TAGFILE_UPDATE, pid, sp);
+		notifyListeners(EventTime.PRE, event);
 		for (String url : urls) {
 			tagFilesSvc.addEntry(pid, ExtRefsTagFile.class, base64Encode(url), url);
 		}
-		notifyListeners(EventTime.POST, EventType.TAGFILE_UPDATE, pid, null, sp, null);
+		notifyListeners(EventTime.POST, event);
 	}
 
 	/**
@@ -258,11 +278,12 @@ public class StorageControllerImpl implements StorageController {
 		validateNonEmptyCollection(urls);
 		
 		StorageProvider sp = providerResolver.getStorageProvider(pid);
-		notifyListeners(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, null, sp, null);
+		StorageEvent event = new StorageEvent(EventType.TAGFILE_UPDATE, pid, sp);
+		notifyListeners(EventTime.PRE, event);
 		for (String url : urls) {
 			tagFilesSvc.removeEntry(pid, ExtRefsTagFile.class, base64Encode(url));
 		}
-		notifyListeners(EventTime.POST, EventType.TAGFILE_UPDATE, pid, null, sp, null);
+		notifyListeners(EventTime.POST, event);
 	}
 
 	@Override
@@ -271,7 +292,7 @@ public class StorageControllerImpl implements StorageController {
 		final String fPid = validatePid(pid);
 		Set<String> validatedRelPaths = new HashSet<>(relPaths.size());
 		for (String relPath : relPaths) {
-			validatedRelPaths.add(validateRelPath(relPath));
+			validatedRelPaths.add(validateRelPath(relPath, false));
 		}
 		relPaths = validatedRelPaths;
 		
@@ -355,11 +376,10 @@ public class StorageControllerImpl implements StorageController {
 		});
 	}
 
-	private void notifyListeners(EventTime time, EventType type, String pid, String relPath, StorageProvider provider,
-			StagedDataFile source) throws IOException {
+	private void notifyListeners(EventTime time, StorageEvent event) throws IOException {
 		if (this.eventListeners != null) {
 			for (StorageEventListener iListener : this.eventListeners) {
-				iListener.notify(time, type, pid, relPath, provider, source);
+				iListener.notify(time, event);
 			}
 		}
 	}
@@ -406,19 +426,30 @@ public class StorageControllerImpl implements StorageController {
 		return validatedPid;
 	}
 
-	private String validateRelPath(String relPath) {
+	private String validateRelPath(String relPath, boolean allowHidden) {
 		// Normalise path, change path separators to unix-style and remove trailing separator, if any.
 		String validatedRelPath = FilenameUtils.normalizeNoEndSeparator(Objects.requireNonNull(relPath), true);
-		
-		// Throw an exception if any path part starts with a '.' which indicate a hidden directory. These are special
-		// folders in which derived data files are stored.
+
 		String[] pathParts = Objects.requireNonNull(validatedRelPath).split("\\/");
 		for (String part : pathParts) {
-			if (part.startsWith(".")) {
-				throw new IllegalArgumentException(format("Path cannot contain hidden names - {0}", validatedRelPath));
+			if (!allowHidden) {
+				// Throw an exception if any path part starts with a '.' which indicate a hidden directory. These are
+				// special folders in which derived data files are stored.
+				if (part.startsWith(".")) {
+					throw new IllegalArgumentException(format("Path cannot contain hidden names - {0}",
+							validatedRelPath));
+				}
+			}
+
+			// Throw an exception if any path part contains '..' - which may grant access to files outside the bags
+			// root.
+			if (part.contains("..")) {
+				throw new IllegalArgumentException(format("Path connot contain double period - {0}", validatedRelPath));
 			}
 		}
+
 		return validatedRelPath;
+
 	}
 
 	private void validateNonEmptyCollection(Collection<String> urls) {
