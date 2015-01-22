@@ -313,7 +313,7 @@ public class CompletionTask implements Callable<Void>{
 		} else if (clazz == VirusScanTagFile.class) {
 			task = new VirusScanTask(pid, storageProvider, relPath, tagFilesSvc);
 		} else if (clazz == PreservationMapTagFile.class) {
-			task = new PreservationTask(pid, storageProvider, relPath, tagFilesSvc);
+			task = new PreservationTask(pid, storageProvider, relPath, tagFilesSvc, null);
 		} else {
 			throw new IllegalArgumentException(clazz.getSimpleName());
 		}
