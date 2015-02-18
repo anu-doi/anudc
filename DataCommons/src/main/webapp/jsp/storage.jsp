@@ -68,7 +68,7 @@
 					</c:forEach>
 					
 					<c:set var="baseDataUrl" value="" />
-					<c:forEach var="iLevel" begin="1" end="${fn:length(it.parents) - 1}">
+					<c:forEach var="iLevel" begin="0" end="${fn:length(it.parents)}">
 						<c:set var="baseDataUrl" value="${baseDataUrl}../" />
 					</c:forEach> 
 					
