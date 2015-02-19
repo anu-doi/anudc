@@ -3,4 +3,5 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 
-<anu:footer respOfficer="Doug Moncur" respOfficerContact="doug.moncur@anu.edu.au" siteContactName="Doug Moncur" siteContact="doug.moncur@anu.edu.au" ssl="true" />
+<anu:footer respOfficer="Chief Information Officer" respOfficerContact="mailto:webquery.cio@anu.edu.au"
+	siteContactName="IT Services" siteContact="mailto:communications.its@anu.edu.au" ssl="true" />
