@@ -78,8 +78,8 @@ public class FileSystemStorageProvider extends AbstractStorageProvider {
 		synchronized (ff.getFromCache(targetPath)) {
 			moveFilePath(sourceFile, targetPath);
 			// Create a FileInfo object representing the file that's been added.
-			addedFile = createFileInfo(pid, targetPath, 0);
 		}
+		addedFile = createFileInfo(pid, targetPath, 0);
 		LOGGER.trace("Moved file {} to {}", sourceFile.getPath().toString(), targetPath.toString());
 		return addedFile;
 	}
@@ -114,7 +114,6 @@ public class FileSystemStorageProvider extends AbstractStorageProvider {
 		synchronized(ff.getFromCache(oldTargetPath)) {
 			synchronized(ff.getFromCache(newTargetPath)) {
 				Files.move(oldTargetPath, newTargetPath);
-				renamedFile = createFileInfo(pid, newTargetPath, 0);
 				
 				// Check that the new file exists.
 				if (!fileExists(newTargetPath) && !dirExists(newTargetPath)) {
@@ -122,8 +121,8 @@ public class FileSystemStorageProvider extends AbstractStorageProvider {
 				}
 			}
 		}
+		renamedFile = createFileInfo(pid, newTargetPath, 0);
 		LOGGER.trace("Moved file {} to {}", oldTargetPath.toString(), newTargetPath.toString());
-		
 		
 		// Create a FileInfo object representing the renamed file.
 		return renamedFile;
