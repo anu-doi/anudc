@@ -90,7 +90,7 @@ public class BagCompletionTask extends AbstractTagFileTask {
 				} catch (InterruptedException | ExecutionException e) {
 					// Not rethrowing the exception as outcome of the tasks is irrelevant. If another thread depends on
 					// a task's successful completion then it can call the future's .get() and handle exception.
-					LOGGER.warn("A waitlisted task threw exception: {}", e.getMessage());
+					LOGGER.warn("A waitlisted task threw exception: " + e.getMessage(), e);
 				}
 			}
 		}
