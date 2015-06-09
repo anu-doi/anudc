@@ -405,7 +405,7 @@ public class ANDSValidate implements Validate{
 		filterString.append("', 'i') ");
 		// Ensure that the relation is for an active object
 		filterString.append("&& ");
-		filterString.append("regex(?state, 'Active')");
+		filterString.append("regex(str(?state), 'Active')");
 		
 		sparqlQuery.addFilter(filterString.toString(), "");
 		
