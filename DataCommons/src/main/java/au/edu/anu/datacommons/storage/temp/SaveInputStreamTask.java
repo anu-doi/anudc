@@ -107,8 +107,8 @@ public class SaveInputStreamTask implements Callable<UploadedFileInfo> {
 			LOGGER.debug("Saved {} ({}) Computed MD5:{}, Time: {}, Speed: {}", ufi.getFilepath().toString(),
 					Util.byteCountToDisplaySize(ufi.getSize()), ufi.getMd5(), sw.getTimeElapsedFormatted(), sw.getRate(ufi.getSize()));
 		} catch (Exception e) {
-			LOGGER.error("Error saving {} ({}) Expected MD5:{} - {}", targetFile.toString(),
-					Util.byteCountToDisplaySize(this.expectedLength), this.expectedMd5, e.getMessage());
+			LOGGER.error("Error saving {} ({} bytes) Expected MD5:{} - {}", targetFile.toString(),
+					this.expectedLength, this.expectedMd5, e.getMessage());
 			throw e;
 		} finally {
 			IOUtils.closeQuietly(dis);

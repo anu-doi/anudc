@@ -29,7 +29,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 import au.edu.anu.datacommons.storage.datafile.StagedDataFile;
-import au.edu.anu.datacommons.util.Util;
 
 /**
  * @author Rahul Khanna
@@ -62,9 +61,10 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 
 	private void checkFileSize(StagedDataFile source, Path targetPath) throws IOException {
 		if (source.getSize() != -1) {
-			if (source.getSize() != Files.size(targetPath)) {
-				throw new IOException(format("File {0} is not expected size {1} ({2} bytes)", targetPath.toString(),
-						Util.byteCountToDisplaySize(source.getSize()), source.getSize()));
+			long actualSize = Files.size(targetPath);
+			if (source.getSize() != actualSize) {
+				throw new IOException(format("File {0} ({1} bytes) is not expected size ({2} bytes)",
+						targetPath.toString(), actualSize, source.getSize()));
 			}
 		}
 	}
