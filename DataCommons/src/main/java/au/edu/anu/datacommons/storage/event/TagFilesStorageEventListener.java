@@ -50,6 +50,7 @@ import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask;
 import au.edu.anu.datacommons.storage.archive.ArchiveTask.Operation;
 import au.edu.anu.datacommons.storage.event.StorageEvent.EventType;
+import au.edu.anu.datacommons.storage.event.StorageEventListener.EventTime;
 import au.edu.anu.datacommons.storage.event.tasks.BagCompletionTask;
 import au.edu.anu.datacommons.storage.event.tasks.ManifestMd5Task;
 import au.edu.anu.datacommons.storage.event.tasks.MetadataTask;
@@ -227,9 +228,11 @@ public class TagFilesStorageEventListener implements StorageEventListener {
 		// Delete file
 		if (event.getType().isOneOf(EventType.DELETE_FILE)) {
 			String presvRelpath = tagFilesSvc.getEntryValue(event.getPid(), PreservationMapTagFile.class, dataPrependedRelPath);
-			if (presvRelpath != null && !presvRelpath.equals("UNCONVERTIBLE")) {
-				tagFilesSvc.removeEntry(event.getPid(), PreservationMapTagFile.class, presvRelpath);
+			if (presvRelpath != null && !presvRelpath.equals("UNCONVERTIBLE") && !presvRelpath.equals("PRESERVED")) {
+				StorageEvent presvFileDelEvt = new StorageEvent(EventType.DELETE_FILE, event.getPid(), event.getProvider(), presvRelpath.replaceFirst("^data/", ""));
+				notify(EventTime.PRE, presvFileDelEvt);
 				event.getProvider().deleteFile(event.getPid(), presvRelpath.replaceFirst("^data/", ""));
+				notify(EventTime.POST, presvFileDelEvt);
 			}
 			tagFilesSvc.removeEntry(event.getPid(), PreservationMapTagFile.class, dataPrependedRelPath);
 
