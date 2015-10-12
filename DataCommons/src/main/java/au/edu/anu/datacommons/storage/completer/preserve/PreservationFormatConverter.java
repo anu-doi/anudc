@@ -23,19 +23,15 @@ package au.edu.anu.datacommons.storage.completer.preserve;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -73,11 +69,13 @@ public class PreservationFormatConverter {
 	private CustomXenaInputSource xis;
 	private File destDir;
 
-	public PreservationFormatConverter(String filename, InputStream fileStream, File destDir) throws IOException {
+	public PreservationFormatConverter(String filename, InputStreamProvider inputStreamProvider, File destDir)
+			throws IOException {
 		initXena();
-		xis = new CustomXenaInputSource(filename, fileStream);
+		xis = new CustomXenaInputSource(filename, inputStreamProvider);
 		this.destDir = destDir;
 	}
+
 
 	private void initXena() {
 		xena = new Xena();
@@ -179,20 +177,26 @@ public class PreservationFormatConverter {
 	
 	private static class CustomXenaInputSource extends XenaInputSource {
 		private String filename;
-		private byte[] byteArray;
+		private InputStreamProvider isProvider;
 		
-		public CustomXenaInputSource(String filename, InputStream is) throws IOException {
-			super(is);
+		public CustomXenaInputSource(String filename, InputStreamProvider isProvider) throws IOException {
+			// super(isProvider.getInputStream());
+			super((InputStream) null);
+			this.isProvider = isProvider;
 			this.filename = filename;
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			IOUtils.copy(is, baos);
-			this.byteArray = baos.toByteArray();
-			IOUtils.closeQuietly(is);
 		}
+		
 		
 		@Override
 		public InputStream getByteStream() {
-			return new ByteArrayInputStream(this.byteArray);
+			InputStream is = null;
+			try {
+				is = isProvider.getInputStream();
+				this.openedFiles.add(is);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return is;
 		}
 		
 		@Override
@@ -205,5 +209,19 @@ public class PreservationFormatConverter {
 			int extIndex = this.filename.lastIndexOf(".");
 			return this.filename.substring(extIndex + 1);
 		}
+		
+		@Override
+		public void close() throws IOException {
+			for (InputStream is : openedFiles) {
+				IOUtils.closeQuietly(is);
+			}
+			openedFiles.clear();
+			
+			super.close();
+		}
+	}
+	
+	public static interface InputStreamProvider {
+		InputStream getInputStream() throws IOException;
 	}
 }

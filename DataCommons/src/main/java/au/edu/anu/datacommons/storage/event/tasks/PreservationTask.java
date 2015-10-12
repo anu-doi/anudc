@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.storage.completer.preserve.PreservationFormatConverter;
+import au.edu.anu.datacommons.storage.completer.preserve.PreservationFormatConverter.InputStreamProvider;
 import au.edu.anu.datacommons.storage.event.StorageEvent;
 import au.edu.anu.datacommons.storage.event.StorageEvent.EventType;
 import au.edu.anu.datacommons.storage.event.StorageEventListener;
@@ -78,9 +79,15 @@ public class PreservationTask extends AbstractTagFileTask {
 		try {
 			permit.acquire();
 			Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
-			InputStream fileStream = storageProvider.readStream(this.pid,
-					this.relPath);
-			PreservationFormatConverter pfc = new PreservationFormatConverter(this.relPath, fileStream, tempDir.toFile());
+			InputStreamProvider inputStreamProvider = new InputStreamProvider() {
+
+				@Override
+				public InputStream getInputStream() throws IOException {
+					return storageProvider.readStream(pid, relPath);
+				}
+			};
+			PreservationFormatConverter pfc = new PreservationFormatConverter(this.relPath, inputStreamProvider,
+					tempDir.toFile());
 			NormaliserResults results = pfc.convert();
 			if (results != null) {
 				// file could be converted - converted file saved in tempDir
@@ -88,24 +95,28 @@ public class PreservationTask extends AbstractTagFileTask {
 				UploadedFileInfo srcFileInfo = new UploadedFileInfo(convertedFileInTemp,
 						Files.size(convertedFileInTemp), null);
 
-				String convertedFileExtn = results.getOutputFileName().substring(results.getOutputFileName().lastIndexOf('.'));
-				String dataPrependedPresvRelPath = this.dataPrependedRelPath.replaceFirst("^data/", PRESERVATION_PATH) + convertedFileExtn;
+				String convertedFileExtn = results.getOutputFileName()
+						.substring(results.getOutputFileName().lastIndexOf('.'));
+				String dataPrependedPresvRelPath = this.dataPrependedRelPath.replaceFirst("^data/", PRESERVATION_PATH)
+						+ convertedFileExtn;
 				String presvRelPath = dataPrependedPresvRelPath.replaceFirst("^data/", "");
-				
-				StorageEvent presvFileAddEvt = new StorageEvent(EventType.ADD_FILE, pid, storageProvider, presvRelPath, srcFileInfo);
+
+				StorageEvent presvFileAddEvt = new StorageEvent(EventType.ADD_FILE, pid, storageProvider, presvRelPath,
+						srcFileInfo);
 				this.evtListener.notify(EventTime.PRE, presvFileAddEvt);
-				
+
 				// add preserved file in .preserve folder within payload directory maintaining relative path
 				storageProvider.addFile(pid, presvRelPath, srcFileInfo);
-				tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath, dataPrependedPresvRelPath);
-				
+				tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, dataPrependedRelPath,
+						dataPrependedPresvRelPath);
+
 				this.evtListener.notify(EventTime.POST, presvFileAddEvt);
 			} else {
 				tagFilesSvc.addEntry(pid, PreservationMapTagFile.class, this.dataPrependedRelPath, "UNCONVERTIBLE");
 			}
 		} finally {
 			permit.release();
-			
+
 			if (convertedFileInTemp != null && Files.isRegularFile(convertedFileInTemp)) {
 				try {
 					Files.delete(convertedFileInTemp);
@@ -115,4 +126,6 @@ public class PreservationTask extends AbstractTagFileTask {
 			}
 		}
 	}
+	
+
 }

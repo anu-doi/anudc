@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -54,6 +55,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.completer.preserve.PreservationFormatConverter.InputStreamProvider;
 import au.edu.anu.datacommons.test.util.TestUtil;
 import au.gov.naa.digipres.xena.kernel.XenaException;
 import au.gov.naa.digipres.xena.kernel.normalise.NormaliserResults;
@@ -241,9 +243,17 @@ public class PreservationFormatConverterTest {
 		}
 	}
 
-	private void convertFile(File file, String expectedExtension) throws XenaException, IOException {
+	private void convertFile(final File file, String expectedExtension) throws XenaException, IOException {
 		LOGGER.trace("Converting file {} to preservation format...", file.getAbsolutePath());
-		pfc = new PreservationFormatConverter(file.getName(), Files.newInputStream(file.toPath()), tempDir.getRoot());
+		InputStreamProvider inputStreamProvider = new InputStreamProvider() {
+
+			@Override
+			public InputStream getInputStream() throws IOException {
+				return Files.newInputStream(file.toPath());
+			}
+			
+		};
+		pfc = new PreservationFormatConverter(file.getName(), inputStreamProvider, tempDir.getRoot());
 		NormaliserResults results = pfc.convert();
 
 		if (expectedExtension != null) {

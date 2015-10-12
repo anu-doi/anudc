@@ -47,9 +47,9 @@ import au.edu.anu.datacommons.util.StopWatch;
 public abstract class AbstractStorageEventTask implements Callable<Void> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractStorageEventTask.class);
 	
-	protected String pid;
-	protected StorageProvider storageProvider;
-	protected String relPath;
+	protected final String pid;
+	protected final StorageProvider storageProvider;
+	protected final String relPath;
 	
 	protected String dataPrependedRelPath;
 	// protected Path absFilepath;
