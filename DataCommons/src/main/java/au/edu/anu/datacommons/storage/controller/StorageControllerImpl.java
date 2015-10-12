@@ -74,6 +74,8 @@ import au.edu.anu.datacommons.storage.tagfiles.PreservationMapTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.PronomFormatsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
+import au.edu.anu.datacommons.storage.verifier.VerificationResults;
+import au.edu.anu.datacommons.storage.verifier.VerificationTask;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 
 /**
@@ -236,6 +238,28 @@ public class StorageControllerImpl implements StorageController {
 		FileInfo fileInfo = sp.getDirInfo(pid, filepath, 1);
 		addMetadata(pid, fileInfo);
 		return fileInfo;
+	}
+	
+	@Override
+	public VerificationResults verifyIntegrity(String pid) throws IOException, StorageException {
+		pid = validatePid(pid);
+		StorageProvider sp = providerResolver.getStorageProvider(pid);
+		VerificationTask vt = new VerificationTask(pid, sp, tagFilesSvc, threadPoolSvc);
+		try {
+			VerificationResults results = vt.call();
+			return results;
+		} catch (IOException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new StorageException(e);
+		}
+		
+	}
+	
+	@Override
+	public void fixIntegrity(String pid) throws IOException, StorageException {
+		// TODO Auto-generated method stub
+		
 	}
 
 	/**

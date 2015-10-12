@@ -32,9 +32,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -42,6 +44,9 @@ import java.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.info.FileInfo.Type;
+import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.tagfiles.AbstractKeyValueFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.ManifestMd5TagFile;
@@ -65,15 +70,25 @@ import au.edu.anu.datacommons.tasks.ThreadPoolService;
 public class VerificationTask implements Callable<VerificationResults> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VerificationTask.class);
 
-	private Path bagDir;
 	private String pid;
+	private StorageProvider sp;
 	private TagFilesService tagFilesSvc;
 	private ThreadPoolService threadPoolSvc;
 	
 	private VerificationResults results;
-	private Map<Path, String> payloadFiles = new HashMap<>();
-	private Map<Path, String> tagFiles = new HashMap<>();
-	private Map<Path, String> manifests = new HashMap<>();
+	private Set<FileInfo> payloadFiles = new HashSet<>();
+	private static final List<Class<? extends AbstractKeyValueFile>> tagFilesClasses = new ArrayList<>();
+
+	// private Map<Path, String> tagFiles = new HashMap<>();
+	// private Map<Path, String> manifests = new HashMap<>();
+
+	static {
+		tagFilesClasses.add(PronomFormatsTagFile.class);
+		tagFilesClasses.add(VirusScanTagFile.class);
+		tagFilesClasses.add(FileMetadataTagFile.class);
+		tagFilesClasses.add(TimestampsTagFile.class);
+		tagFilesClasses.add(PreservationMapTagFile.class);
+	}
 
 
 	/**
@@ -88,40 +103,40 @@ public class VerificationTask implements Callable<VerificationResults> {
 	 * @param threadPoolSvc
 	 *            Thread Pool to which subtasks can be submitted
 	 */
-	public VerificationTask(String pid, Path bagDir, TagFilesService tagFilesSvc, ThreadPoolService threadPoolSvc) {
+	public VerificationTask(String pid, StorageProvider sp, TagFilesService tagFilesSvc, ThreadPoolService threadPoolSvc) {
 		this.pid = pid;
-		this.bagDir = bagDir;
+		this.sp = sp;
 		this.tagFilesSvc = tagFilesSvc;
 		this.threadPoolSvc = threadPoolSvc;
 		
-		this.results = new VerificationResults(bagDir.getFileName().toString());
+		this.results = new VerificationResults(this.pid);
 	}
 
 	@Override
 	public VerificationResults call() throws Exception {
-		tagFiles = enumerateFiles(bagDir, true);
-		payloadFiles = enumerateFiles(bagDir.resolve("data/"), false);
-		iterateManifests();
+		FileInfo dirInfo = sp.getDirInfo(pid, "", Integer.MAX_VALUE);
 		
+//		tagFiles = enumerateFiles(bagDir, true);
+		payloadFiles = dirInfo.getChildrenRecursive();
+//		iterateManifests();
+//		
 		validateTagFiles();
 		validatePayloadManifests();
 		validateChecksums();
-		
 		checkArtifacts();
-
 		return results;
 	}
 
 	/**
 	 * Enumerates all the payload manifests in a bag. 
 	 */
-	private void iterateManifests() {
-		for (Entry<Path, String> tagFileEntry : tagFiles.entrySet()) {
-			if (tagFileEntry.getValue().startsWith("manifest-")) {
-				manifests.put(tagFileEntry.getKey(), tagFileEntry.getValue());
-			}
-		}
-	}
+//	private void iterateManifests() {
+//		for (Entry<Path, String> tagFileEntry : tagFiles.entrySet()) {
+//			if (tagFileEntry.getValue().startsWith("manifest-")) {
+//				manifests.put(tagFileEntry.getKey(), tagFileEntry.getValue());
+//			}
+//		}
+//	}
 
 	/**
 	 * Enumerates files in a specified directory.
@@ -133,63 +148,59 @@ public class VerificationTask implements Callable<VerificationResults> {
 	 * @return Map Path as keys and relative path with normalized path separators as values
 	 * @throws IOException
 	 */
-	private Map<Path, String> enumerateFiles(Path rootDir, boolean exclDataDir) throws IOException {
-		Map<Path, String> files = new HashMap<Path, String>();
-		if (Files.isDirectory(rootDir)) {
-			try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(rootDir)) {
-				for (Path dirEntry : dirStream) {
-					if (Files.isDirectory(dirEntry)) {
-						if (!(exclDataDir && dirEntry.getFileName().toString().equals("data"))) {
-							files.putAll(enumerateFiles(dirEntry, false));
-						}
-					} else if (Files.isRegularFile(dirEntry)) {
-						files.put(dirEntry,
-								FilenameHelper.normalizePathSeparators(bagDir.relativize(dirEntry).toString()));
-					} else {
-						addEntry(Severity.WARN, Category.OTHER,
-								FilenameHelper.normalizePathSeparators(bagDir.relativize(dirEntry).toString()),
-								"Unexpected item found");
-					}
-				}
-			}
-		}
-		return files;
-	}
+//	private Map<Path, String> enumerateFiles(Path rootDir, boolean exclDataDir) throws IOException {
+//		Map<Path, String> files = new HashMap<Path, String>();
+//		if (Files.isDirectory(rootDir)) {
+//			try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(rootDir)) {
+//				for (Path dirEntry : dirStream) {
+//					if (Files.isDirectory(dirEntry)) {
+//						if (!(exclDataDir && dirEntry.getFileName().toString().equals("data"))) {
+//							files.putAll(enumerateFiles(dirEntry, false));
+//						}
+//					} else if (Files.isRegularFile(dirEntry)) {
+//						files.put(dirEntry,
+//								FilenameHelper.normalizePathSeparators(bagDir.relativize(dirEntry).toString()));
+//					} else {
+//						addEntry(Severity.WARN, Category.OTHER,
+//								FilenameHelper.normalizePathSeparators(bagDir.relativize(dirEntry).toString()),
+//								"Unexpected item found");
+//					}
+//				}
+//			}
+//		}
+//		return files;
+//	}
 	
 	/**
 	 * Verifies entries in each tag file by checking that a payload file exists for each entry and an entry exists
 	 * for each payload file.
 	 */
 	private void validateTagFiles() {
-		List<Class<? extends AbstractKeyValueFile>> tagFilesClasses = new ArrayList<Class<? extends AbstractKeyValueFile>>();
-		tagFilesClasses.add(PronomFormatsTagFile.class);
-		tagFilesClasses.add(VirusScanTagFile.class);
-		tagFilesClasses.add(FileMetadataTagFile.class);
-		tagFilesClasses.add(TimestampsTagFile.class);
-		tagFilesClasses.add(PreservationMapTagFile.class);
-
 		// Verify each payload file has a corresponding entry in each custom tag file.
-		for (Entry<Path, String> plFile : payloadFiles.entrySet()) {
-			for (Class<? extends AbstractKeyValueFile> clazz : tagFilesClasses) {
-				try {
-					String tagFilename = (String) clazz.getField("FILEPATH").get(clazz);
-					if (!tagFilesSvc.containsKey(pid, clazz, plFile.getValue())) {
-						addEntry(Severity.WARN, Category.TAGFILE_ENTRY_MISSING, plFile.getValue(),
-								format("No entry in {0}", tagFilename));
+		for (FileInfo plFile : payloadFiles) {
+			if (plFile.getType().equals(Type.FILE)) {
+				for (Class<? extends AbstractKeyValueFile> clazz : tagFilesClasses) {
+					try {
+						String tagFilename = (String) clazz.getField("FILEPATH").get(clazz);
+						if (!tagFilesSvc.containsKey(pid, clazz, "data/" + plFile.getRelFilepath())) {
+							addEntry(Severity.WARN, Category.TAGFILE_ENTRY_MISSING, plFile.getRelFilepath(),
+									format("No entry in {0}", tagFilename));
+						}
+					} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException
+							| IOException e) {
+						addEntry(Severity.ERROR, Category.VALIDATION_EXCEPTION, clazz.getSimpleName(),
+								format("Exception on read: {0}", e.getMessage()));
 					}
-				} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException
-						| IOException e) {
-					addEntry(Severity.ERROR, Category.VALIDATION_EXCEPTION, clazz.getSimpleName(),
-							format("Exception on read: {0}", e.getMessage()));
 				}
 			}
 		}
 
+		// Verify each tag file entry has a corresponding payload file
 		for (Class<? extends AbstractKeyValueFile> clazz : tagFilesClasses) {
 			try {
 				String tagFilename = (String) clazz.getField("FILEPATH").get(clazz);
 				for (String tagFileKey : tagFilesSvc.getAllEntries(pid, clazz).keySet()) {
-					if (!payloadFiles.values().contains(tagFileKey)) {
+					if (!sp.fileExists(pid, tagFileKey.replaceFirst("^data/", ""))) {
 						addEntry(Severity.WARN, Category.PAYLOADFILE_NOTFOUND, tagFileKey,
 								format("{0} refers to missing file", tagFilename));
 					}
@@ -206,13 +217,10 @@ public class VerificationTask implements Callable<VerificationResults> {
 	 * Checks if the bag contains artifacts from previous storage formats.
 	 */
 	private void checkArtifacts() {
-		for (Entry<Path, String> tagFile : tagFiles.entrySet()) {
-			if (tagFile.getValue().startsWith("metadata/")) {
-				addEntry(Severity.WARN, Category.ARTIFACT_FOUND, tagFile.getValue(), null);
+		for (FileInfo plFile : payloadFiles) {
+			if (plFile.getType().equals(Type.DIR) && plFile.getRelFilepath().equals("metadata")) {
+				addEntry(Severity.WARN, Category.ARTIFACT_FOUND, "metadata/", null);
 			}
-		}
-		if (Files.isDirectory(bagDir.resolve("data/").resolve("metadata/"))) {
-			addEntry(Severity.WARN, Category.ARTIFACT_FOUND, "metadata/", null);
 		}
 
 	}
@@ -225,14 +233,24 @@ public class VerificationTask implements Callable<VerificationResults> {
 			Map<String, String> md5Entries = tagFilesSvc.getAllEntries(pid, ManifestMd5TagFile.class);
 
 			for (String plFilepath : md5Entries.keySet()) {
-				if (!payloadFiles.values().contains(plFilepath)) {
+
+				boolean plFileExists = false;
+				for (FileInfo plFile : payloadFiles) {
+					if (plFile.getType().equals(Type.FILE) && plFilepath.equals("data/" + plFile.getRelFilepath())) {
+						plFileExists = true;
+						break;
+					}
+				}
+
+				if (!plFileExists) {
 					addEntry(Severity.ERROR, Category.PAYLOADFILE_NOTFOUND, plFilepath,
 							format("{0} refers to missing file", ManifestMd5TagFile.FILEPATH));
 				}
 			}
-			for (String plFilepath : payloadFiles.values()) {
-				if (!md5Entries.keySet().contains(plFilepath)) {
-					addEntry(Severity.ERROR, Category.MANIFEST_ENTRY_MISSING, plFilepath,
+			for (FileInfo plFilepath : payloadFiles) {
+				if (plFilepath.getType().equals(Type.FILE)
+						&& !md5Entries.keySet().contains("data/" + plFilepath.getRelFilepath())) {
+					addEntry(Severity.ERROR, Category.MANIFEST_ENTRY_MISSING, plFilepath.getRelFilepath(),
 							format("{0} refers to missing file", ManifestMd5TagFile.FILEPATH));
 				}
 			}
@@ -251,10 +269,10 @@ public class VerificationTask implements Callable<VerificationResults> {
 	private void validateChecksums() throws IOException {
 		Map<String, String> expectedMd5Map = tagFilesSvc.getAllEntries(pid, ManifestMd5TagFile.class);
 		Map<String, Future<String>> calculatedFixityMap = new HashMap<>();
-		for (Entry<Path, String> plFile : payloadFiles.entrySet()) {
-			if (expectedMd5Map.get(plFile.getValue()) != null) {
-				final Path fPlPath = plFile.getKey();
-				calculatedFixityMap.put(plFile.getValue(), threadPoolSvc.submit(new Callable<String>() {
+		for (FileInfo plFile : payloadFiles) {
+			if (expectedMd5Map.get("data/" + plFile.getRelFilepath()) != null) {
+				final Path fPlPath = plFile.getPath();
+				calculatedFixityMap.put("data/" + plFile.getRelFilepath(), threadPoolSvc.submit(new Callable<String>() {
 					
 					@Override
 					public String call() throws Exception {
@@ -266,15 +284,15 @@ public class VerificationTask implements Callable<VerificationResults> {
 		}
 		
 		for (Entry<String, Future<String>> entry : calculatedFixityMap.entrySet()) {
-			String relPath = entry.getKey();
-			String expectedFixity = expectedMd5Map.get(relPath);
+			String dataRelPath = entry.getKey();
+			String expectedFixity = expectedMd5Map.get(dataRelPath);
 			try {
 				String calculatedFixity = entry.getValue().get();
-				if (expectedMd5Map.containsKey(relPath) && !expectedMd5Map.get(relPath).equals(calculatedFixity)) {
+				if (expectedMd5Map.containsKey(dataRelPath) && !expectedMd5Map.get(dataRelPath).equals(calculatedFixity)) {
 					addEntry(
 							Severity.ERROR,
 							Category.CHECKSUM_MISMATCH,
-							relPath,
+							dataRelPath,
 							format("Computed MD5 {0} does not match {1}", calculatedFixity, expectedFixity));
 				}
 			} catch (InterruptedException | ExecutionException e) {

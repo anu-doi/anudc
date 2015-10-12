@@ -55,6 +55,7 @@ import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.storage.info.FileInfo;
 import au.edu.anu.datacommons.storage.info.RecordDataSummary;
 import au.edu.anu.datacommons.storage.provider.StorageException;
+import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
@@ -277,16 +278,17 @@ public class StorageResource extends AbstractStorageResource {
 		}
 
 		try {
-//			if (task.equals("verify")) {
-//				VerificationResults results = dcStorage.verifyBag(pid);
-//				model.put("results", results);
-//				resp = Response.ok(new Viewable("/verificationresults.jsp", model)).build();
+			if (task.equals("verify")) {
+				VerificationResults results = storageController.verifyIntegrity(pid);
+				model.put("results", results);
+				resp = Response.ok(new Viewable("/verificationresults.jsp", model)).build();
+			}
 //			} else if (task.equals("complete")) {
 //				dcStorage.recompleteBag(pid);
 //			}
 			
 			// TODO Implement this.
-			throw new UnsupportedOperationException();
+//			throw new UnsupportedOperationException();
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.serverError().entity(e.getMessage()).build();

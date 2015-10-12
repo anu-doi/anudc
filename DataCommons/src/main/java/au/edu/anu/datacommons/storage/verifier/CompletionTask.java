@@ -21,10 +21,6 @@
 
 package au.edu.anu.datacommons.storage.verifier;
 
-import gov.loc.repository.bagit.Manifest.Algorithm;
-import gov.loc.repository.bagit.utilities.FilenameHelper;
-import gov.loc.repository.bagit.utilities.MessageDigestHelper;
-
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -46,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.event.StorageEventListener;
-import au.edu.anu.datacommons.storage.event.StorageEventListener.EventTime;
 import au.edu.anu.datacommons.storage.event.tasks.AbstractTagFileTask;
 import au.edu.anu.datacommons.storage.event.tasks.MetadataTask;
 import au.edu.anu.datacommons.storage.event.tasks.PreservationTask;
@@ -63,7 +58,9 @@ import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
-import au.edu.anu.datacommons.util.StopWatch;
+import gov.loc.repository.bagit.Manifest.Algorithm;
+import gov.loc.repository.bagit.utilities.FilenameHelper;
+import gov.loc.repository.bagit.utilities.MessageDigestHelper;
 
 /**
  * Task class that completes a bag as per the BagIt specification. Occassionally after making changes to files in a
@@ -82,7 +79,6 @@ public class CompletionTask implements Callable<Void>{
 	private TagFilesService tagFilesSvc;
 	private StorageEventListener eventListener;
 	private ThreadPoolService threadPoolSvc;
-	private DcStorage dcStorage;
 	
 	List<Class<? extends AbstractKeyValueFile>> classes;
 	
@@ -106,13 +102,12 @@ public class CompletionTask implements Callable<Void>{
 	 *            DcStorage class
 	 */
 	public CompletionTask(String pid, StorageProvider storageProvider, TagFilesService tagFilesSvc, StorageEventListener eventListener,
-			ThreadPoolService threadPoolSvc, DcStorage dcStorage) {
+			ThreadPoolService threadPoolSvc) {
 		this.pid = pid;
 		this.storageProvider = storageProvider;
 		this.tagFilesSvc = tagFilesSvc;
 		this.eventListener = eventListener;
 		this.threadPoolSvc = threadPoolSvc;
-		this.dcStorage = dcStorage;
 		initTagFileClasses();
 	}
 	
