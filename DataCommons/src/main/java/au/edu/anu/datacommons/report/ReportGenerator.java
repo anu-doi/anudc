@@ -413,27 +413,22 @@ public class ReportGenerator {
 		File file = new File(reportPath);
 		if (!file.exists()) {
 			LOGGER.error("Report path does not exist: {}", file.getAbsolutePath());
-			throw new WebApplicationException(Response.status(500).entity("Report path does not exist").build());
+			throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Report path does not exist").build());
 		}
 		File[] files = file.listFiles(new ExtensionFileFilter(JASPER_UNCOMPILED_EXTENSION));
 		for (File jrxmlFile : files) {
 			String outputFilename = String.format("%s.%s", stripExtension(jrxmlFile.getAbsolutePath()), JASPER_COMPILED_EXTENSION);
-			LOGGER.info(outputFilename);
 			File outputFile = new File(outputFilename);
-			try {
-				InputStream is = new FileInputStream(jrxmlFile);
-				OutputStream os = new FileOutputStream(outputFile);
+			try (InputStream is = new FileInputStream(jrxmlFile); OutputStream os = new FileOutputStream(outputFile)) {
 				try {
 					JasperCompileManager.compileReportToStream(is, os);
 				}
 				catch(JRException e) {
 					LOGGER.error("Exception compiling report: {}", jrxmlFile.getName(), e);
 				}
-				is.close();
-				os.close();
 			}
 			catch (IOException e) {
-				throw new WebApplicationException(Response.status(500).entity("Error reloading reports").build());
+				throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error reloading reports").build());
 			}
 		}
 	}
@@ -491,7 +486,7 @@ public class ReportGenerator {
 		}
 		catch (SolrServerException e) {
 			LOGGER.error("Error executing query", e);
-			throw new WebApplicationException(500);
+			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}
 		
 		return name;
