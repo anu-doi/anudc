@@ -61,10 +61,21 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 
 	private void checkFileSize(StagedDataFile source, Path targetPath) throws IOException {
 		if (source.getSize() != -1) {
-			long actualSize = Files.size(targetPath);
-			if (source.getSize() != actualSize) {
-				throw new IOException(format("File {0} ({1} bytes) is not expected size ({2} bytes)",
-						targetPath.toString(), actualSize, source.getSize()));
+			int maxTries = 3;
+			for (int attempt = 0; ; attempt++) {
+				long actualSize = Files.size(targetPath);
+				if (source.getSize() == actualSize) {
+					break;
+				} else if (attempt < maxTries) {
+					try {
+						Thread.sleep(1000L);
+					} catch (InterruptedException e) {
+						// No op
+					}
+				} else {
+					throw new IOException(format("File {0} ({1} bytes) is not expected size ({2} bytes)",
+							targetPath.toString(), actualSize, source.getSize()));
+				}
 			}
 		}
 	}
