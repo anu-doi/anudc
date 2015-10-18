@@ -1,14 +1,14 @@
 # Comment the types that shouldn't be converted by prepending '#'
 
 AIFF
-Binary
+# Binary
 BMP
 Csv
 Excel
 Flac
 # Generates multiple output files
 # GIF
-GZip
+# GZip
 HTML
 ICO
 IMAP Mail Box
