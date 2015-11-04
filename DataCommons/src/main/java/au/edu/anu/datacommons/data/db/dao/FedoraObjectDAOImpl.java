@@ -87,7 +87,7 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 			query.setParameter("pid", name);
 			fedoraObject = (FedoraObject) query.getSingleResult();
 		} catch (NoResultException e) {
-			LOGGER.warn("No entity found for pid {}", name);
+			// LOGGER.warn("No entity found for pid {}", name);
 		} finally {
 			entityManager.close();
 		}

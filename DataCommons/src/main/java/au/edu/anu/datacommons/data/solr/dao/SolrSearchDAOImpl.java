@@ -156,7 +156,7 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 	 * @return The class that generates the solr query
 	 */
 	private AbstractSolrQuery getQueryTerms(String q, String filter) {
-		LOGGER.info("Get the query terms with the search value '{}', and filter '{}'", q, filter);
+		LOGGER.trace("Get the query terms with the search value '{}', and filter '{}'", q, filter);
 		AbstractSolrQuery absSolrQuery = null;
 		
 		if ("team".equals(filter)) {

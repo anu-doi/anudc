@@ -184,7 +184,7 @@ public class ViewTransform
 		InputStream xmlStream = getXMLInputStream(template, fedoraObject);
 
 		if (xmlStream == null) {
-			LOGGER.warn("XML Stream is empty");
+			// LOGGER.warn("XML Stream is empty");
 			return values;
 		}
 		
@@ -572,9 +572,6 @@ public class ViewTransform
 		}
 		else if(fedoraObject != null){
 			xmlStream = FedoraBroker.getDatastreamAsStream(fedoraObject.getObject_id(), Constants.XML_TEMPLATE);
-		}
-		else {
-			LOGGER.warn("No Template or Item to retrieve the datastream from specified");
 		}
 		
 		return xmlStream;
