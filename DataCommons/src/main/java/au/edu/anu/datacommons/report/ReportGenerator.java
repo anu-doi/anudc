@@ -21,6 +21,8 @@
 
 package au.edu.anu.datacommons.report;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -409,27 +411,25 @@ public class ReportGenerator {
 	 * @param reportPath The path the reports are located on
 	 */
 	public static void reloadReports(String reportPath) {
-
-		File file = new File(reportPath);
-		if (!file.exists()) {
-			LOGGER.error("Report path does not exist: {}", file.getAbsolutePath());
-			throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Report path does not exist").build());
-		}
-		File[] files = file.listFiles(new ExtensionFileFilter(JASPER_UNCOMPILED_EXTENSION));
-		for (File jrxmlFile : files) {
-			String outputFilename = String.format("%s.%s", stripExtension(jrxmlFile.getAbsolutePath()), JASPER_COMPILED_EXTENSION);
-			File outputFile = new File(outputFilename);
-			try (InputStream is = new FileInputStream(jrxmlFile); OutputStream os = new FileOutputStream(outputFile)) {
-				try {
-					JasperCompileManager.compileReportToStream(is, os);
-				}
-				catch(JRException e) {
-					LOGGER.error("Exception compiling report: {}", jrxmlFile.getName(), e);
+		File reportsDir = new File(reportPath);
+		if (reportsDir.exists()) {
+			File[] files = reportsDir.listFiles(new ExtensionFileFilter(JASPER_UNCOMPILED_EXTENSION));
+			for (File jrxmlFile : files) {
+				String outputFilename = String.format("%s.%s", stripExtension(jrxmlFile.getAbsolutePath()), JASPER_COMPILED_EXTENSION);
+				File outputFile = new File(outputFilename);
+				if (!outputFile.exists()) {
+					try (InputStream is = new BufferedInputStream(new FileInputStream(jrxmlFile));
+							OutputStream os = new BufferedOutputStream(new FileOutputStream(outputFile))) {
+						JasperCompileManager.compileReportToStream(is, os);
+					} catch(JRException e) {
+						LOGGER.error("Exception compiling report: {}", jrxmlFile.getName(), e);
+					} catch (IOException e) {
+						LOGGER.warn("Unable to read {} or write to {}", jrxmlFile.getName(), outputFile.getName());
+					}
 				}
 			}
-			catch (IOException e) {
-				throw new WebApplicationException(Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error reloading reports").build());
-			}
+		} else {
+			LOGGER.warn("Report path does not exist: {}", reportsDir.getAbsolutePath());
 		}
 	}
 	
