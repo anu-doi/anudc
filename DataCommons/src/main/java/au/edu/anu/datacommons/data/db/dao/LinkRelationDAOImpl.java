@@ -79,7 +79,7 @@ public class LinkRelationDAOImpl extends GenericDAOImpl<LinkRelation, Long> impl
 	 * @see au.edu.anu.datacommons.data.db.dao.LinkRelationDAO#getRelations(java.lang.String, java.lang.String)
 	 */
 	public List<LinkRelation> getRelations(String category1, String category2) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<LinkRelation> linkRelations = null;
 		try {
 			//Query query = entityManager.createQuery("from LinkRelation lr where lr.id.category1 = :category1 and lr.id.category2 = :category2");

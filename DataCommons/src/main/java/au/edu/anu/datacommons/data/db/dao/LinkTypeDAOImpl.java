@@ -76,7 +76,7 @@ public class LinkTypeDAOImpl extends GenericDAOImpl<LinkType, Long> implements
 	 */
 	@Override
 	public LinkType getByCode(String code) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		LinkType linkType = null;
 		try {
 			Query query = entityManager.createQuery("from LinkType lt where lt.code = :code");

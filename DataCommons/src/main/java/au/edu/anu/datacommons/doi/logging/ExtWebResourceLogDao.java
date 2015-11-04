@@ -44,7 +44,7 @@ public class ExtWebResourceLogDao implements Closeable {
 	protected EntityManager entityManager;
 
 	public ExtWebResourceLogDao() {
-		this.entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		this.entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 	}
 
 	@Override

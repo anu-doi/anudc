@@ -93,7 +93,7 @@ public class QuestionDAOImpl extends GenericDAOImpl<Question, Long> implements
 	 */
 	@Override
 	public List<Question> getQuestionsByPid(String pid, Boolean required) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<Question> questions = null;
 		try {
 			Query query = entityManager.createQuery(fedoraObjectStr);
@@ -135,7 +135,7 @@ public class QuestionDAOImpl extends GenericDAOImpl<Question, Long> implements
 	 * @see au.edu.anu.datacommons.data.db.dao.QuestionDAO#getQuestionsByGroup(java.lang.Long)
 	 */
 	public List<Question> getQuestionsByGroup(Long groupId, Boolean required) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<Question> questions = null;
 		try {
 			Query groupQuery = entityManager.createQuery(groupQueryStr);
@@ -170,7 +170,7 @@ public class QuestionDAOImpl extends GenericDAOImpl<Question, Long> implements
 	 * @return The list of associated questions
 	 */
 	public List<Question> getQuestionsByDomain(Long domainId, Boolean required) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<Question> questions = null;
 		try {
 			Query domainQuery = entityManager.createQuery(domainQueryStr);
@@ -253,7 +253,7 @@ public class QuestionDAOImpl extends GenericDAOImpl<Question, Long> implements
 	 * @return A list of associated questions
 	 */
 	public List<Question> getQuestionsForObject(String pid, Long groupId, Long domainId, Boolean required) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<Question> questions = null;
 		try {
 			if (pid != null && pid.trim().length() > 0) {

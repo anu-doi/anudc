@@ -78,7 +78,7 @@ public class PublishLocationDAOImpl extends GenericDAOImpl<PublishLocation, Long
 	 */
 	@Override
 	public PublishLocation getByCode(String code) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		PublishLocation location = null;
 		try {
 			Query query = entityManager.createQuery("from PublishLocation where code = :code");
@@ -98,7 +98,7 @@ public class PublishLocationDAOImpl extends GenericDAOImpl<PublishLocation, Long
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<PublishLocation> getAllWithTemplates() {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<PublishLocation> objects = null;
 		try {
 			objects = entityManager.createQuery("SELECT DISTINCT pl from PublishLocation pl join fetch pl.templates").getResultList();

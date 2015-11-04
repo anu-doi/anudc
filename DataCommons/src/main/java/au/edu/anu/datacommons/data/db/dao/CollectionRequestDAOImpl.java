@@ -88,7 +88,7 @@ public class CollectionRequestDAOImpl extends GenericDAOImpl<CollectionRequest, 
 	 * @see au.edu.anu.datacommons.data.db.dao.CollectionRequestDAO#getPermittedRequests(java.lang.Long, java.util.List)
 	 */
 	public List<CollectionRequest> getPermittedRequests(Long userId, List<Groups> groups) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		TypedQuery<CollectionRequest> query = null;
 
 		if (groups != null && groups.size() > 0) {
@@ -133,7 +133,7 @@ public class CollectionRequestDAOImpl extends GenericDAOImpl<CollectionRequest, 
 	 * @see au.edu.anu.datacommons.data.db.dao.CollectionRequestDAO#getSingleByIdEager(java.lang.Long)
 	 */
 	public CollectionRequest getSingleByIdEager(Long id) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		Query query = entityManager.createQuery("SELECT cr FROM CollectionRequest cr left join fetch cr.answers left join fetch cr.items left join fetch cr.status join fetch cr.fedoraObject WHERE cr.id = :id");
 		query.setParameter("id", id);
 		

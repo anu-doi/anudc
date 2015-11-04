@@ -85,7 +85,7 @@ public class DropboxDAOImpl extends GenericDAOImpl<CollectionDropbox, Long> impl
 	 * @see au.edu.anu.datacommons.data.db.dao.DropboxDAO#getPermittedRequests(java.util.List)
 	 */
 	public List<CollectionDropbox> getPermittedRequests(List<Groups> groups) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		Query query = null;
 		
 		List<Long> groupIds = new ArrayList<Long>();
@@ -118,7 +118,7 @@ public class DropboxDAOImpl extends GenericDAOImpl<CollectionDropbox, Long> impl
 	 * @see au.edu.anu.datacommons.data.db.dao.DropboxDAO#getSingleByIdEager(java.lang.Long)
 	 */
 	public CollectionDropbox getSingleByIdEager(Long id) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		
 		Query query = entityManager.createQuery("SELECT cd FROM CollectionDropbox cd WHERE cd.id = :id");
 		query.setParameter("id", id);
@@ -143,7 +143,7 @@ public class DropboxDAOImpl extends GenericDAOImpl<CollectionDropbox, Long> impl
 	 * @see au.edu.anu.datacommons.data.db.dao.DropboxDAO#getSingleByAccessCode(java.lang.Long)
 	 */
 	public CollectionDropbox getSingleByAccessCode(Long accessCode) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		
 		Query query = entityManager.createQuery("FROM CollectionDropbox cd left join fetch cd.collectionRequest cr left join fetch cr.items ci left join fetch cd.dropboxAccessLog cl WHERE cd.accessCode=:accessCode");
 		query.setParameter("accessCode", accessCode);
@@ -171,7 +171,7 @@ public class DropboxDAOImpl extends GenericDAOImpl<CollectionDropbox, Long> impl
 	 */
 	public List<CollectionDropbox> getUserDropboxes(Users user) {
 		
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		Query query = null;
 		
 		query = entityManager.createQuery("SELECT cd FROM CollectionDropbox cd join cd.collectionRequest cr WHERE cr.requestor = :user",CollectionDropbox.class);

@@ -76,7 +76,7 @@ public class ExternalLinkDAOImpl extends GenericDAOImpl<ExternalLinkPattern, Lon
 	 * @see au.edu.anu.datacommons.data.db.dao.ExternalLinkDAO#getByObjectType(java.lang.String)
 	 */
 	public List<ExternalLinkPattern> getByObjectType(String objectType) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<ExternalLinkPattern> patterns = null;
 		
 		try {

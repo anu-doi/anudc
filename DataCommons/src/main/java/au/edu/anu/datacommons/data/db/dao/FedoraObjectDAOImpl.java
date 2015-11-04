@@ -80,7 +80,7 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	 * @return The Object returned from the query.
 	 */
 	public FedoraObject getSingleByName(String name) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		FedoraObject fedoraObject = null;
 		try {
 			Query query = entityManager.createQuery("from FedoraObject where object_id = :pid");
@@ -108,7 +108,7 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	 * @see au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO#getAllReadyForReview()
 	 */
 	public List<FedoraObject> getAllReadyForReview() {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<FedoraObject> fedoraObjects = null;
 
 		try {
@@ -135,7 +135,7 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	 * @see au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO#getAllReadyForPublish()
 	 */
 	public List<FedoraObject> getAllReadyForPublish() {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<FedoraObject> fedoraObjects = null;
 
 		try {
@@ -162,7 +162,7 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	 * @see au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO#getAllRejected()
 	 */
 	public List<FedoraObject> getAllRejected() {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<FedoraObject> fedoraObjects = null;
 
 		try {
@@ -176,7 +176,7 @@ public class FedoraObjectDAOImpl extends GenericDAOImpl<FedoraObject, Long> impl
 	}
 	
 	public List<FedoraObject> getAllPublishedAndPublic() {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<FedoraObject> records;
 		try {
 			TypedQuery<FedoraObject> query = entityManager

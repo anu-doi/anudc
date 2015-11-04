@@ -77,7 +77,7 @@ public class UsersDAOImpl extends GenericDAOImpl<Users, Long> implements UsersDA
 	 */
 	@Override
 	public Users getUserByName(String username) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		
 		Users users = null;
 		try {

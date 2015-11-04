@@ -56,7 +56,7 @@ public class PersistenceAppListener implements ServletContextListener {
 	 */
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
-		PersistenceManager.getInstance().closeEntityManagerFactory();
+		PersistenceManager.closeEntityManagerFactory();
 	}
 
 	/**

@@ -89,7 +89,7 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 	 * @return
 	 */
 	public T create(T o) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		EntityTransaction entityTransaction = entityManager.getTransaction();
 		try {
 			entityTransaction.begin();
@@ -117,7 +117,7 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 	 * @return
 	 */
 	public T getSingleById(PK id) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		T object = null;
 		try {
 			object = (T) entityManager.find(type_, id);
@@ -141,7 +141,7 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 	 * @return A list of objects of the appropriate type
 	 */
 	public List<T> getAll() {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<T> objects = null;
 		try {
 			objects = entityManager.createQuery("from " + type_.getName()).getResultList();
@@ -167,7 +167,7 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 	 * @return
 	 */
 	public T update(T o) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		EntityTransaction entityTransaction = entityManager.getTransaction();
 		try {
 			entityTransaction.begin();
@@ -194,7 +194,7 @@ public class GenericDAOImpl<T, PK extends Serializable> implements GenericDAO<T,
 	 * @param t The object to delete
 	 */
 	public void delete (PK id) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		EntityTransaction entityTransaction = entityManager.getTransaction();
 		try {
 			entityTransaction.begin();

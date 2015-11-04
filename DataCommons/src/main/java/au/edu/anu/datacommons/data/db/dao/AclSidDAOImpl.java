@@ -75,7 +75,7 @@ public class AclSidDAOImpl extends GenericDAOImpl<AclSid, Long> implements AclSi
 	 */
 	@Override
 	public AclSid getAclSidByUsername(String username) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		
 		AclSid aclSid = null;
 		try {

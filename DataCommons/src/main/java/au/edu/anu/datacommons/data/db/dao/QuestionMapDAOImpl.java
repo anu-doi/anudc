@@ -85,7 +85,7 @@ public class QuestionMapDAOImpl extends GenericDAOImpl<QuestionMap, Long> implem
 	 * @see au.edu.anu.datacommons.data.db.dao.QuestionMapDAO#getSingleByPidAndQuestion(java.lang.String, au.edu.anu.datacommons.collectionrequest.Question)
 	 */
 	public QuestionMap getSingleByPidAndQuestion(String pid, Question question) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		
 		//Query query = entityManager.createQuery("SELECT qm FROM QuestionMap qm WHERE qm.pid = :pid AND qm.question = :question", QuestionMap.class);
 		Query query = entityManager.createQuery(fedoraObjectQueryStr, QuestionMap.class);
@@ -115,7 +115,7 @@ public class QuestionMapDAOImpl extends GenericDAOImpl<QuestionMap, Long> implem
 	 * @see au.edu.anu.datacommons.data.db.dao.QuestionMapDAO#getSingleByObjectAndQuestion(au.edu.anu.datacommons.collectionrequest.Question, java.lang.String, java.lang.Long, java.lang.Long)
 	 */
 	public QuestionMap getSingleByObjectAndQuestion(Question question, String pid, Long groupId, Long domainId) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		QuestionMap questionMap = null;
 		try {
 			if (pid != null && pid.trim().length() > 0) {

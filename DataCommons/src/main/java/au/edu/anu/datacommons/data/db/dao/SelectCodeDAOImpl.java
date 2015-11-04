@@ -81,7 +81,7 @@ public class SelectCodeDAOImpl extends GenericDAOImpl<SelectCode, SelectCodePK> 
 	@Override
 	public List<SelectCode> getOptionsByNames(List<String> names) {
 		// TODO Auto-generated method stub
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<SelectCode> selectCodes = null;
 		try {
 			Query query = entityManager.createQuery("from SelectCode where select_name in (:names)");

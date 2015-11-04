@@ -375,7 +375,7 @@ public class ReportGenerator {
 	private Connection getConnection() throws ClassNotFoundException, SQLException {
 		//TODO further investigate options for getting information from hibernate?
 		
-		Map<String, Object> entityManagerProperties = PersistenceManager.getInstance().getEntityManagerFactory().getProperties();
+		Map<String, Object> entityManagerProperties = PersistenceManager.getEntityManagerFactory().getProperties();
 		
 		String dbUrl = (String) entityManagerProperties.get("hibernate.connection.url");
 		String dbDriver = (String) entityManagerProperties.get("hibernate.connection.driver_class");

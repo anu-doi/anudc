@@ -76,7 +76,7 @@ public class UserRequestPasswordDAOImpl extends GenericDAOImpl<UserRequestPasswo
 	 * @see au.edu.anu.datacommons.data.db.dao.UserRequestPasswordDAO#getByLink(java.lang.String)
 	 */
 	public UserRequestPassword getByLink(String link) {
-		EntityManager entityManager = PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		UserRequestPassword userRequest = null;
 		try {
 			Query query = entityManager.createQuery("from UserRequestPassword urp1 where link_id = :link_id and request_date = (select max(urp2.request_date)" +

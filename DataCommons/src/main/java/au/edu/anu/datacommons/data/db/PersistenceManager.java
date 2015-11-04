@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.util.StopWatch;
 
 /**
  * PersistenceManager
@@ -52,37 +53,7 @@ import au.edu.anu.datacommons.properties.GlobalProps;
 public class PersistenceManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceManager.class);
 	
-	private static final PersistenceManager inst = new PersistenceManager();
-	
-	private EntityManagerFactory emf;
-	
-	/**
-	 * getInstance
-	 * 
-	 * Returns an instance of the object
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		03/05/2012	Genevieve Turner (GT)	Initial
-	 * </pre>
-	 * 
-	 * @return Returns the PersistenceManager
-	 */
-	public static PersistenceManager getInstance() {
-		return inst;
-	}
-	
-	/**
-	 * Constructor class
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		03/05/2012	Genevieve Turner (GT)	Initial
-	 * </pre>
-	 * 
-	 */
-	private PersistenceManager() {
-	}
+	private static EntityManagerFactory emf;
 	
 	/**
 	 * getEntityManagerFactory
@@ -96,7 +67,7 @@ public class PersistenceManager {
 	 * 
 	 * @return
 	 */
-	public EntityManagerFactory getEntityManagerFactory() {
+	public static EntityManagerFactory getEntityManagerFactory() {
 		if (emf == null) {
 			createEntityManagerFactory();
 		}
@@ -113,8 +84,8 @@ public class PersistenceManager {
 	 * 0.1		03/05/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 */
-	public void closeEntityManagerFactory() {
-		if (emf != null) {
+	public static void closeEntityManagerFactory() {
+		if (emf != null && emf.isOpen()) {
 			try {
 				emf.close();
 			} catch (IllegalStateException e) {
@@ -133,8 +104,8 @@ public class PersistenceManager {
 	 * 0.1		03/05/2012	Genevieve Turner (GT)	Initial
 	 * </pre>
 	 */
-	protected synchronized void createEntityManagerFactory() {
-		if (this.emf == null) {
+	private static synchronized void createEntityManagerFactory() {
+		if (emf == null) {
 			Map<String, String> connProps = new HashMap<String, String>();
 			
 			String jdbcDriver = GlobalProps.getProperty("jdbc.driver");
@@ -147,7 +118,11 @@ public class PersistenceManager {
 			connProps.put("hibernate.connection.user", jdbcUser);
 			connProps.put("hibernate.connection.password", jdbcPassword);
 			
-			this.emf = Persistence.createEntityManagerFactory("datacommons", connProps);
+			StopWatch sw = new StopWatch();
+			sw.start();
+			emf = Persistence.createEntityManagerFactory("datacommons", connProps);
+			sw.stop();
+			LOGGER.debug("Time to create EntityManagerFactory: {}", sw.getTimeElapsedFormatted());
 		}
 	}
 }
