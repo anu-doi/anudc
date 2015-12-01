@@ -11,6 +11,8 @@ function prepopulate() {
 			abbrName: null,
 			altName: null,
 			websiteAddress: null,
+			subType: null,
+			metaLang: null,
 
 			significanceStatement: null,
 			briefDesc: null,
@@ -28,8 +30,8 @@ function prepopulate() {
 			collaborator: null,
 			
 			websiteAddress: null,
-		
-	}
+			externalId: null,
+	};
 
 	// Read the value for each of the recognised parameters from the query string.
 	for (iParam in queryParams) {
@@ -39,11 +41,19 @@ function prepopulate() {
 	// Fill the form field for each of the recognised query parameter with provided values.
 	for (iParam in queryParams) {
 		if (queryParams[iParam] != null) {
-			if (jQuery("input[name='" + iParam + "']").length > 0) {
-				jQuery("input[name='" + iParam + "']").val(queryParams[iParam]);
+			if (jQuery("input[type='text'][name='" + iParam + "']").length > 0) {
+				// textbox
+				jQuery("input[type='text'][name='" + iParam + "']").val(queryParams[iParam]);
 			} else if (jQuery("textarea[name='" + iParam + "']").length > 0) {
+				// text area
 				jQuery("textarea[name='" + iParam + "']").val(queryParams[iParam]);
+			} else if (jQuery("select[name='" + iParam + "']").length > 0) {
+				// dropdown list
+				jQuery("select[name='" + iParam + "'] option[value='" + queryParams[iParam] + "']").attr('selected', 'selected');
+			} else if (jQuery("input[type='radio'][name='" + iParam + "'][value='" + queryParams[iParam] + "']").length > 0) {
+				jQuery("input[type='radio'][name='" + iParam + "'][value='" + queryParams[iParam] + "']").prop("checked", true);
 			}
+			
 		}
 	}
 }

@@ -140,6 +140,7 @@
 	<bean id="client" class="com.sun.jersey.api.client.Client" factory-method="create"></bean>
 	
 	<bean id="metadataProviderGitHub" class="au.edu.anu.datacommons.external.github.MetadataProviderGitHub"></bean>
+	<bean id="metadataProviderGmd" class="au.edu.anu.datacommons.external.geographicmetadata.MetadataProviderGmd"></bean>
 
 	<bean id="fileSystemStorageProvider" class="au.edu.anu.datacommons.storage.provider.FileSystemStorageProvider">
 		<constructor-arg value="${upload.bagsDir}"></constructor-arg>

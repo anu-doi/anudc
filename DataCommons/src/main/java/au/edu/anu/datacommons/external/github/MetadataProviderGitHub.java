@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +27,6 @@ import au.edu.anu.datacommons.external.ParamInfo;
 import au.edu.anu.datacommons.webservice.bindings.Collection;
 import au.edu.anu.datacommons.webservice.bindings.Creator;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
-import au.edu.anu.datacommons.webservice.bindings.RelatedWebsites;
 
 /**
  * Retrieves metadata from a GitHub repository and returns a FedoraItem object with that metadata.
@@ -43,7 +41,7 @@ public class MetadataProviderGitHub implements ExternalMetadataProvider {
 	private static final ClientResponse.Status[] SUCCESS_STATUSES = {ClientResponse.Status.OK};
 	private static final String FRIENDLY_NAME = "GitHub";
 	
-	private static final List<ParamInfo> requiredParams = new ArrayList<>();
+	private static final List<ParamInfo> requiredParams = new ArrayList<>(1);
 	
 	static {
 		requiredParams.add(new ParamInfo("repoUrl", "Repository URL"));
