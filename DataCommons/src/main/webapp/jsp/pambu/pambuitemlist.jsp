@@ -8,8 +8,7 @@
 <anu:header id="226" title="Catalogue - PAMBU - ANU" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
 	<c:set var="pambusite" value="http://asiapacific.anu.edu.au/pambu" scope="page" />
-	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
-	<link href="//styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
+
 </anu:header>
 
 <jsp:include page="pambuheader.jsp" />

@@ -5,8 +5,7 @@
 
 <anu:header id="1998" title="Publish Multiple Records" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
-	<!-- Possible bug in the ANU taglib. The following CSS should not be referenced here. Should be referenced in the taglib. -->
-	<link href="//styles.anu.edu.au/_anu/3/style/anu-forms.css" rel="stylesheet" type="text/css" />
+
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/default.css' />" />
 	<script type="text/javascript" src="<c:url value='/js/jquery.validate.min.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/publish.js' />"></script>
