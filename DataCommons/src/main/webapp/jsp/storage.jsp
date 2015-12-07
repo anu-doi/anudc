@@ -92,7 +92,7 @@
 						<!-- Check bag files icon -->
 						<sec:authorize access="hasRole('ROLE_ADMIN')">
 							<a href="<c:url value='${baseDataUrl}../admin?task=verify' />">
-								<img id="action-verify-files" class="clickable-icon" src="//styles.anu.edu.au/_anu/images/icons/web/check.png" title="Verify"></img>
+								<img id="action-verify-files" class="clickable-icon" src="//style.anu.edu.au/_anu/images/icons/web/check.png" title="Verify"></img>
 							</a>
 						</sec:authorize>
 					</div>
@@ -127,14 +127,14 @@
 							<td class="col-filename"><a class="nounderline" href="<c:url value='${relUrl}'/>" title="${iFile.relFilepath}">
 								<c:choose>
 									<c:when test="${iFile.type == 'DIR'}">
-										<img class="clickable-icon" src="//styles.anu.edu.au/_anu/images/icons/web/folder.png"
-												onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder-over.png'"
-												onmouseout="this.src='//styles.anu.edu.au/_anu/images/icons/web/folder.png'" />
+										<img class="clickable-icon" src="//style.anu.edu.au/_anu/images/icons/web/folder.png"
+												onmouseover="this.src='//style.anu.edu.au/_anu/images/icons/web/folder-over.png'"
+												onmouseout="this.src='//style.anu.edu.au/_anu/images/icons/web/folder.png'" />
 									</c:when>
 									<c:when test="${iFile.type == 'FILE'}">
-										<img class="clickable-icon" src="//styles.anu.edu.au/_anu/images/icons/web/paper.png"
-												onmouseover="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper-over.png'"
-												onmouseout="this.src='//styles.anu.edu.au/_anu/images/icons/web/paper.png'" />
+										<img class="clickable-icon" src="//style.anu.edu.au/_anu/images/icons/web/paper.png"
+												onmouseover="this.src='//style.anu.edu.au/_anu/images/icons/web/paper-over.png'"
+												onmouseout="this.src='//style.anu.edu.au/_anu/images/icons/web/paper.png'" />
 									</c:when>
 								</c:choose>
 							<c:out value="${iFile.filename}" /></a></td>

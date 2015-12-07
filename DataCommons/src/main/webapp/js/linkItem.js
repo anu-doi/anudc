@@ -157,7 +157,7 @@ function getLinks() {
 				var relation = getRelationshipType(item.predicate);
 				row.append(jQuery('<td></td>').text(relation));
 				var editImg = jQuery('<img/>', {
-					src: 'http://styles.anu.edu.au/_anu/images/icons/silk/pencil.png',
+					src: '//style.anu.edu.au/_anu/images/icons/silk/pencil.png',
 					title: 'Edit relationship ' + title,
 					click: function(e) {
 						editLink(item, this);
@@ -166,7 +166,7 @@ function getLinks() {
 				row.append(jQuery('<td></td>').html(editImg));
 				
 				var deleteImg = jQuery('<img/>', {
-					src: 'http://styles.anu.edu.au/_anu/images/icons/silk/cross.png',
+					src: '//style.anu.edu.au/_anu/images/icons/silk/cross.png',
 					title: 'Delete relationship ' + item.title,
 					click: function(e) {
 						deleteLink(item, this);
