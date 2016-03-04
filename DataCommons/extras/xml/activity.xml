@@ -15,6 +15,7 @@
 		<option label="Course" value="course"/>
 		<option label="Award" value="award"/>
 		<option label="Event" value="event"/>
+		<option label="Grant" value="grant"/>
 	</item>
 	<item name="ownerGroup" label="Access Privileges" fieldType="Combobox" saveType="single" class="required" tab="general">
 		<tooltip>Please choose the access privilege group for the activity</tooltip>

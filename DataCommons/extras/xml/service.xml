@@ -25,6 +25,7 @@
 		<option label="z39.50 search" value="search-z3950" />
 		<option label="ATOM syndication" value="syndicate-atom" />
 		<option label="RSS feed" value="syndicate-rss" />
+		<option label="Store" value="store" />
 	</item>
 	<item name="ownerGroup" label="Access Privileges" fieldType="Combobox" saveType="single" class="required" tab="general">
 		<tooltip>Please choose the access privilege group for the service</tooltip>

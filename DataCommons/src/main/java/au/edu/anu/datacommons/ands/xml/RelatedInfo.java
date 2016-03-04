@@ -21,6 +21,8 @@
 
 package au.edu.anu.datacommons.ands.xml;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 
@@ -44,6 +46,7 @@ import javax.xml.bind.annotation.XmlElement;
 public class RelatedInfo {
 	private String type;
 	private Identifier identifier;
+	private List<Relation> relations;
 	private Format format;
 	private String title;
 	private String notes;
@@ -112,6 +115,28 @@ public class RelatedInfo {
 	 */
 	public void setIdentifier(Identifier identifier) {
 		this.identifier = identifier;
+	}
+
+	/**
+	 * getRelations
+	 * 
+	 * Get the relation types for the relation information.
+	 * 
+	 * @return The relations
+	 */
+	public List<Relation> getRelations() {
+		return relations;
+	}
+
+	/**
+	 * setRelations
+	 * 
+	 * Set the relation types for the relation information
+	 * 
+	 * @param relations The relations
+	 */
+	public void setRelations(List<Relation> relations) {
+		this.relations = relations;
 	}
 
 	/**

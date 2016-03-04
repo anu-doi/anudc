@@ -54,7 +54,12 @@ import au.edu.anu.datacommons.ands.check.PartyCheck;
 @XmlRootElement(name="electronic")
 public class ElectronicAddress {
 	private String type;
+	private String target;
 	private String value;
+	private String title;
+	private List<String> notes;
+	private List<String> mediaType;
+	private String byteSize;
 	private List<ElectronicAddressArgument> args;
 	//TODO filter out types for electronic addresses
 	public ElectronicAddress() {
@@ -94,6 +99,15 @@ public class ElectronicAddress {
 		this.type = type;
 	}
 	
+	@XmlAttribute
+	public String getTarget() {
+		return target;
+	}
+	
+	public void setTarget(String target) {
+		this.target = target;
+	}
+	
 	/**
 	 * getValue
 	 *
@@ -128,6 +142,42 @@ public class ElectronicAddress {
 		this.value = value;
 	}
 	
+	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
+	public List<String> getNotes() {
+		return notes;
+	}
+
+	public void setNotes(List<String> notes) {
+		this.notes = notes;
+	}
+
+	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
+	public List<String> getMediaType() {
+		return mediaType;
+	}
+
+	public void setMediaType(List<String> mediaType) {
+		this.mediaType = mediaType;
+	}
+
+	@XmlElement(namespace=Constants.ANDS_RIF_CS_NS)
+	public String getByteSize() {
+		return byteSize;
+	}
+
+	public void setByteSize(String byteSize) {
+		this.byteSize = byteSize;
+	}
+
 	/**
 	 * getArgs
 	 *

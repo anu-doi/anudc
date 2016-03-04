@@ -30,6 +30,8 @@
 		<option value="collection" label="Collection" />
 		<option value="registry" label="Registry" />
 		<option value="repository" label="Repository" />
+		<option value="classificationScheme" label="Classification Scheme"/>
+		<option value="software" label="Software"/>
 	</item>
 	<item name="ownerGroup" label="Access Privileges" fieldType="Combobox" saveType="single" class="required" tab="general">
 		<tooltip>Please choose the access privilege group for the collection</tooltip>
@@ -107,7 +109,7 @@
 			<option value="iso31663" label="ISO 3166-3 Deleted Country Codes" />
 			<option value="iso19139dcmiBox" label="DCMI Box notation conformant with iso 19139" />
 			<option value="kmlPolyCoords" label="Keyhole Markup Language co-ordinates defining a polygon" />
-			<option value="dcmiPpoint" label="Spatial Location Information in DCMI Point Notation" />
+			<option value="dcmiPoint" label="Spatial Location Information in DCMI Point Notation" />
 		</column>
 		<column name="covAreaValue" label="Location Value" fieldType="TextField" />
 	</item>
@@ -157,6 +159,13 @@
 	</item>
 	<item name="accessRights" label="Access Rights" fieldType="TextArea" saveType="single" tab="rights">
 		<tooltip>Enter a statement about access (or access conditions) to the resource. This will include access restrictions or embargoes based on privacy, security or other policies.&#xA;&#xA;Examples:&#xA;Contact Chief Investigator to negotiate access to the data&#xA;&#xA;Embargoes until 1 year after publication of the research&#xA;&#xA;Open Access allowed (see rights held in and over resource below)</tooltip>
+	</item>
+	<item name="accessRightsType" label="Access Rights Type" fieldType="Combobox" saveType="single" tab="rights">
+		<tooltip>Open - Data is publicly accessible online&#xA;&#xA;Conditional - Data is publicly accessible to certain conditions. For example:&#xA;&#xb7; a fee applies&#xA;&#xb7; the data is only accessible at a specific physical location&#xA;&#xA;Restricted - Data access is limited. For example:&#xA;&#xb7; following an embargo period&#xA;&#xb7; to a particular group of users&#xA;&#xb7; where formal permission is granted</tooltip>
+		<tooltip>Open - Data is publicly accessible online&#xA;Conditional - Data is publicly accessible subject to certain conditions. For example a fee applies or the data is only accessible at a specific physical location&#xA;Restricted - Data access is limited. For example following an embargo period, it is limited to a particular group of users, where formal permission is granted</tooltip>
+		<option value="open" label="Open" />
+		<option value="conditional" label="Conditional" />
+		<option value="restricted" label="Restricted" />
 	</item>
 	<item name="rightsStatement" label="Rights held in and over the data" fieldType="TextArea" saveType="single" tab="rights">
 		<tooltip>Include information on copyright, licences and other intellectual property rights.&#xA;&#xA;Examples:&#xA;This dataset is made available under the Public Domain Dedication and Licence v1.0. Full text can be found at http://www.opendatacommons.org/licences/pddl/1.0/&#xA;&#xA;Creative Commons Licence (CC BY or CC BY-SA or CC BY-ND or CC BY-NC or CC BY-NC-SA or CC BY-NC-ND) is assigned to this data. Details of the licence can be found at http://creativecommons.org.au/licences.&#xA;&#xA;The (name) licence that controls this data is available at (URL)</tooltip>

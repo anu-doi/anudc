@@ -95,7 +95,7 @@ public class RightsSection {
 	 * @return the type
 	 */
 	//TODO - fix this regex so its more efficient
-	@Pattern(regexp="^CC-BY|CC-BY-SA|CC-BY-ND|CC-BY-NC|CC-BY-NC-SA|CC-BY-NC-ND|GPL|AusGoalRestrictive|NoLicence|Unknown/Other$", message="")
+	@Pattern(regexp="^CC-BY|CC-BY-SA|CC-BY-ND|CC-BY-NC|CC-BY-NC-SA|CC-BY-NC-ND|GPL|AusGoalRestrictive|NoLicence|Unknown/Other|open|conditional|restricted$", message="Unexpected rights type")
 	@XmlAttribute
 	public String getType() {
 		return type;

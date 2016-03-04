@@ -78,7 +78,7 @@ public class WelcomeResource {
 			if (auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
 				LOGGER.debug("User {} opened welcome page", auth.getName());
 				try {
-					SolrSearchResult searchResult = solrSearch.executeSearch("*", 0, 10, "team", "_docid_", ORDER.desc);
+					SolrSearchResult searchResult = solrSearch.executeSearch("*", 0, 10, "team", "unpublished.lastModified", ORDER.desc);
 					model.put("resultSet", searchResult);
 				} catch (SolrServerException e) {
 					LOGGER.error("Error retrieving list of recently modified collections for {}", auth.getName());

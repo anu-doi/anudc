@@ -371,7 +371,10 @@
 		</xsl:choose>
 		<xsl:if test="data/licenceType or data/licence">
 				<rights>
-					<licence type="{data/licenceType/@code}">
+					<licence>
+						<xsl:if test="data/licenceType/@code">
+							<xsl:attribute name="type"><xsl:value-of select="data/licenceType/@code"/></xsl:attribute>
+						</xsl:if>
 						<xsl:choose>
 							<xsl:when test="data/licenceType/@code = 'CC-BY'">
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by/3.0/au/deed.en</xsl:attribute>
@@ -402,14 +405,15 @@
 					</licence>
 				</rights>
 		</xsl:if>
-		<xsl:if test="data/accessRights">
-			<xsl:for-each select="data/accessRights">
-				<rights>
-					<accessRights>
-						<xsl:value-of select="text()" />
-					</accessRights>
-				</rights>
-			</xsl:for-each>
+		<xsl:if test="data/accessRights or data/accessRightsType">
+			<rights>
+				<accessRights>
+					<xsl:if test="data/accessRightsType/@code">
+						<xsl:attribute name="type"><xsl:value-of select="data/accessRightsType/@code"/></xsl:attribute>
+					</xsl:if>
+					<xsl:value-of select="data/accessRights" />
+				</accessRights>
+			</rights>
 		</xsl:if>
 		<xsl:if test="data/accessPolicy">
 			<accessPolicy>

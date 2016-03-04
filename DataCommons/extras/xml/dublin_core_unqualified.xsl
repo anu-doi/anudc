@@ -22,7 +22,7 @@
 			<!-- Ensure the for subjects are resolved -->
 			<xsl:if test="data/anzforSubject">
 				<xsl:for-each select="data/anzforSubject">
-					<dc:subject><xsl:value-of select="selext:getSelectValue('anzforSubject', text())"  xmlns:selext="java:au.edu.anu.datacommons.xslt.SelectExtension"/></dc:subject>
+					<dc:subject><xsl:value-of select="selext:getSelectValue('anzforSubject', @code)"  xmlns:selext="java:au.edu.anu.datacommons.xslt.SelectExtension"/></dc:subject>
 				</xsl:for-each>
 			</xsl:if>
 			<xsl:if test="data/locSubject">
