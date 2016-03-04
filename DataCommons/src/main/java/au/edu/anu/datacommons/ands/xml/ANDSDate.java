@@ -92,7 +92,7 @@ public class ANDSDate {
 	 * 
 	 * @return the dateFormat
 	 */
-	@NotNull(message="The date format needs to be set")
+//	@NotNull(message="The date format needs to be set")
 	@XmlAttribute
 	public String getDateFormat() {
 		return dateFormat;
