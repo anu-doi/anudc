@@ -37,7 +37,7 @@
 				<c:param name="limit">5000</c:param>
 				<c:param name="filter">team</c:param>
 				<c:param name="offset">0</c:param>
-				<c:param name="sort">_docid_</c:param>
+				<c:param name="sort">unpublished.lastModified</c:param>
 				<c:param name="order">desc</c:param>
 			</c:url>
 			<p class="right"><a href="${viewAll}">Show All My Records</a></p>
