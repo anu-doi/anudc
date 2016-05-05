@@ -35,12 +35,6 @@ import java.io.File;
 public class Config
 {
 	/**
-	 * Location of configuration files. Individual projects may store configuration within a subdirectory within the returned subdirectory. Returns C:\AnuDc if
-	 * on Windows, /etc/anudc on *nix.
-	 */
-	public static final File DIR;
-	
-	/**
 	 * Returns the value of system property line.separator
 	 */
 	public static final String NEWLINE = System.getProperty("line.separator");
@@ -50,15 +44,12 @@ public class Config
 	 */
 	public static final String CHARSET = "UTF-8";
 
-	static
-	{
-		String osName = System.getProperty("os.name");
-		if (osName.toLowerCase().startsWith("windows"))
-			DIR = new File("C:\\AnuDc");
-		else
-			DIR = new File("/etc/anudc");
-
-		if (!DIR.exists())
-			DIR.mkdirs();
+	/**
+	 * Returns the value of the system property <code>dc.home</code>
+	 * 
+	 * @return value of <code>dc.home</code> system property as String
+	 */
+	public static String getAppHome() {
+		return System.getProperty("dc.home");
 	}
 }

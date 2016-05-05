@@ -12,11 +12,9 @@
 	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
 			<list>
-				<value>file:/etc/anudc/datacommons/datacommons.properties</value>
-				<value>file:/C:/AnuDc/datacommons/datacommons.properties</value>
+				<value>file:/#{systemProperties['dc.home']}/config/datacommons.properties</value>
 			</list>
 		</property>
-		<property name="ignoreResourceNotFound" value="true"/>
 	</bean>
 	
 	<context:annotation-config />
@@ -84,10 +82,6 @@
 		</property>
 	</bean>
 	
-	<bean id="config" class="au.edu.anu.datacommons.config.PropertiesFile" scope="singleton">
-		<constructor-arg value="#{ T(au.edu.anu.datacommons.config.Config).DIR}/datacommons/datacommons.properties" />
-	</bean>
-
 	<bean id="dcStorage" class="au.edu.anu.datacommons.storage.DcStorage" scope="singleton">
 		<constructor-arg value="${upload.bagsDir}" />
 	</bean>

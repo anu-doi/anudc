@@ -113,7 +113,7 @@ public final class GlobalProps {
 
 	static {
 		try {
-			globalProperties = new PropertiesFile(new File(Config.DIR, "datacommons/datacommons.properties"));
+			globalProperties = new PropertiesFile(new File(Config.getAppHome(), "config/datacommons.properties"));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

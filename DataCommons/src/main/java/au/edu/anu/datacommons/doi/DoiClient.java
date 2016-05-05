@@ -108,7 +108,7 @@ public class DoiClient {
 	public DoiClient() {
 		Properties doiProps;
 		try {
-			doiProps = new PropertiesFile(new File(Config.DIR, "datacommons/doi.properties"));
+			doiProps = new PropertiesFile(new File(Config.getAppHome(), "config/doi.properties"));
 		} catch (IOException e) {
 			throw new RuntimeException("doi.properties not found or unreadable.");
 		}

@@ -55,7 +55,7 @@ public class TokenHeaderAuthenticationFilter extends AbstractPreAuthenticatedPro
 	 */
 	static {
 		try {
-			tokens = new PropertiesFile(new File(Config.DIR, "datacommons/tokens.properties"));
+			tokens = new PropertiesFile(new File(Config.getAppHome(), "config/tokens.properties"));
 		} catch (IOException e) {
 			LOGGER.info("tokens.properties doesn't exist or unreadable. No tokens will be authenticated.");
 		}
