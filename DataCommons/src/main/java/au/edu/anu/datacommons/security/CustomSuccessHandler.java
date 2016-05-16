@@ -75,7 +75,7 @@ public class CustomSuccessHandler extends
 	 */
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) 
 			throws IOException, ServletException {
-		Object savedObject = request.getSession().getAttribute(WebAttributes.SAVED_REQUEST);
+		Object savedObject = request.getSession().getAttribute("SPRING_SECURITY_SAVED_REQUEST");
 		if (savedObject instanceof SavedRequest) {
 			SavedRequest savedRequest = (SavedRequest) savedObject;
 			List<String> referer = savedRequest.getHeaderValues("Referer");

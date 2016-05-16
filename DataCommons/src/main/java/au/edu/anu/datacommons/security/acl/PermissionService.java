@@ -188,7 +188,7 @@ public class PermissionService {
 		Sid sid = new PrincipalSid(authentication.getName());
 		sidList.add(sid);
 		
-		Iterator<GrantedAuthority> it = authentication.getAuthorities().iterator();
+		Iterator<? extends GrantedAuthority> it = authentication.getAuthorities().iterator();
 		while (it.hasNext()) {
 			GrantedAuthority auth = it.next();
 			Sid authSid = new GrantedAuthoritySid(auth.getAuthority());
@@ -356,7 +356,7 @@ public class PermissionService {
 		Sid sid = new PrincipalSid(authentication.getName());
 		sidList.add(sid);
 		
-		Iterator<GrantedAuthority> it = authentication.getAuthorities().iterator();
+		Iterator<? extends GrantedAuthority> it = authentication.getAuthorities().iterator();
 		while (it.hasNext()) {
 			GrantedAuthority auth = it.next();
 			Sid authSid = new GrantedAuthoritySid(auth.getAuthority());

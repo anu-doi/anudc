@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
@@ -167,7 +168,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 * @param authorities A list of the users authorities
 	 */
 	protected void addCustomAuthorities(String username, List<GrantedAuthority> authorities) {
-		authorities.add(new GrantedAuthorityImpl("ROLE_ANU_USER"));
-		authorities.add(new GrantedAuthorityImpl("ROLE_REGISTERED"));
+		authorities.add(new SimpleGrantedAuthority("ROLE_ANU_USER"));
+		authorities.add(new SimpleGrantedAuthority("ROLE_REGISTERED"));
 	}
 }

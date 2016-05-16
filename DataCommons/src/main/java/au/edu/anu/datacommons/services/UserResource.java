@@ -59,6 +59,7 @@ import org.springframework.security.authentication.dao.SaltSource;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -335,8 +336,8 @@ public class UserResource {
 			
 			permissionService.saveUserPermissionsForGroup(groupId, username, groupPermissions);
 		}
-		Collection<GrantedAuthority> grantedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
-		if (grantedAuthorities.contains(new GrantedAuthorityImpl("ROLE_ADMIN"))) {
+		Collection<? extends GrantedAuthority> grantedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+		if (grantedAuthorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
 			if (templates != null) {
 				List<Template> templateObjects = templateService.getTemplatesForUser(username);
 				List<Long> existingTemplateIds = new ArrayList<Long>();
@@ -642,7 +643,7 @@ public class UserResource {
 		user.setUsername(emailAddr);
 
 		List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-		authorities.add(new GrantedAuthorityImpl("ROLE_REGISTERED"));
+		authorities.add(new SimpleGrantedAuthority("ROLE_REGISTERED"));
 		String encodedPassword = getEncodedPassword(password, password2, user);
 
 		user.setPassword(encodedPassword);

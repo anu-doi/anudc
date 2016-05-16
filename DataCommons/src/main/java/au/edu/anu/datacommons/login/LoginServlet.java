@@ -36,6 +36,7 @@ import org.springframework.security.web.PortResolver;
 import org.springframework.security.web.PortResolverImpl;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
@@ -99,14 +100,14 @@ public class LoginServlet extends HttpServlet
 		}
 		else {
 			request.removeAttribute("error");
-			SavedRequest savedRequest = (SavedRequest) request.getSession().getAttribute(WebAttributes.SAVED_REQUEST);
+			SavedRequest savedRequest = (SavedRequest) request.getSession().getAttribute("SPRING_SECURITY_SAVED_REQUEST");
 			if (savedRequest == null) {
 				String referer = request.getHeader("Referer");
 				if (Util.isNotEmpty(referer)) {
 					LOGGER.trace("Referer on login page is: {}", referer);
 					PortResolver portResolver = new PortResolverImpl();
 					DefaultSavedRequest savedRequestToSet = new DefaultSavedRequest (request, portResolver);
-					request.getSession().setAttribute(WebAttributes.SAVED_REQUEST, savedRequestToSet);
+					request.getSession().setAttribute("SPRING_SECURITY_SAVED_REQUEST", savedRequestToSet);
 				}
 			}
 		}
