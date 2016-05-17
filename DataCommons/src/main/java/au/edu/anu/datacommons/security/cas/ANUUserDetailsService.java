@@ -29,7 +29,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -109,7 +108,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 		
 			throw new UsernameNotFoundException(
 					messages.getMessage("JdbcDaoImpl.noAuthority",
-							new Object[] {username}, "User {0} has no GrantedAuthority"), username);
+							new Object[] {username}, "User {0} has no GrantedAuthority"));
 		}
 		
 		return createUserDetails(username, null, dbAuths);
