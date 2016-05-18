@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.data.db.model;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -422,7 +423,7 @@ public class FedoraObject {
 					}
 				}
 			}
-			catch (SolrServerException | ParseException e) {
+			catch (SolrServerException | ParseException | IOException e) {
 				LOGGER.info("Exception retrieving embargo date: {}", e);
 			}
 		}

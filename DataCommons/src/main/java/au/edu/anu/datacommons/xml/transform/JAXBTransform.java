@@ -100,7 +100,7 @@ public class JAXBTransform {
 	 * @return The unmarshalled object
 	 * @throws JAXBException
 	 */
-	public Object unmarshalStream(InputStream transformStream, Class classToBeBound)
+	public Object unmarshalStream(InputStream transformStream, Class<?> classToBeBound)
 			throws JAXBException {
 		JAXBContext jaxbContext = getJAXBContext();
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
@@ -123,7 +123,7 @@ public class JAXBTransform {
 	 * @param classToBeBound The class type of the object
 	 * @throws JAXBException
 	 */
-	public void marshalStream(Writer out, Object object, Class classToBeBound)
+	public void marshalStream(Writer out, Object object, Class<?> classToBeBound)
 			throws JAXBException {
 		marshalStream(out, object, classToBeBound, null);
 	}
@@ -146,7 +146,7 @@ public class JAXBTransform {
 	 * @param properties Additional marshal properties to be used when marshalling the object
 	 * @throws JAXBException
 	 */
-	public void marshalStream(Writer out, Object object, Class classToBeBound, Map<String, Object> properties)
+	public void marshalStream(Writer out, Object object, Class<?> classToBeBound, Map<String, Object> properties)
 			throws JAXBException {
 		JAXBContext jaxbContext = getJAXBContext();
 		Marshaller marshaller = jaxbContext.createMarshaller();

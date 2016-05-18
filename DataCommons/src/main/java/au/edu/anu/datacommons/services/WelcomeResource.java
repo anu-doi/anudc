@@ -20,6 +20,7 @@
  ******************************************************************************/
 package au.edu.anu.datacommons.services;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,7 +81,7 @@ public class WelcomeResource {
 				try {
 					SolrSearchResult searchResult = solrSearch.executeSearch("*", 0, 10, "team", "unpublished.lastModified", ORDER.desc);
 					model.put("resultSet", searchResult);
-				} catch (SolrServerException e) {
+				} catch (SolrServerException | IOException e) {
 					LOGGER.error("Error retrieving list of recently modified collections for {}", auth.getName());
 				}
 			}

@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.pambu;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,9 +34,9 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
@@ -45,12 +46,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.sun.jersey.api.view.Viewable;
+
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.SolrUtils;
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.util.Util;
-
-import com.sun.jersey.api.view.Viewable;
 
 /**
  * PambuItemResource
@@ -111,9 +112,9 @@ public class PambuItemResource {
 		
 		solrQuery.setQuery(queryString.toString());
 		
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
 		try {
-			QueryResponse queryResponse = solrServer.query(solrQuery);
+			QueryResponse queryResponse = solrClient.query(solrQuery);
 			SolrDocumentList solrDocumentList = queryResponse.getResults();
 			LOGGER.info("Number of records found: {}", solrDocumentList.size());
 			if (solrDocumentList.size() > 0) {
@@ -126,7 +127,7 @@ public class PambuItemResource {
 				}
 			}
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException | IOException e) {
 			throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
 		}
 		
@@ -147,7 +148,7 @@ public class PambuItemResource {
 	 * @return
 	 * @throws SolrServerException
 	 */
-	private SolrSearchResult getItemList(List<String> parts) throws SolrServerException {
+	private SolrSearchResult getItemList(List<String> parts) throws SolrServerException, IOException {
 		// This query may be better handled upgrading from solr 3.6 to 4.0 as solr 4.0 has joins
 		
 		SolrQuery solrQuery = new SolrQuery();
@@ -159,7 +160,7 @@ public class PambuItemResource {
 		solrQuery.addField("unpublished.name");
 		solrQuery.addField("unpublished.briefDesc");
 		solrQuery.addField("unpublished.serialNum");
-		solrQuery.setSortField("unpublished.sortVal", ORDER.asc);
+		solrQuery.setSort("unpublished.sortVal", ORDER.asc);
 
 		StringBuilder fq = new StringBuilder();
 		for (String id : parts) {
@@ -168,8 +169,8 @@ public class PambuItemResource {
 			fq.append("\" ");
 		}
 		solrQuery.addFilterQuery(fq.toString());
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
-		QueryResponse queryResponse = solrServer.query(solrQuery);
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
+		QueryResponse queryResponse = solrClient.query(solrQuery);
 		SolrDocumentList solrDocumentList = queryResponse.getResults();
 		SolrSearchResult solrSearchResult = new SolrSearchResult(solrDocumentList);
 		

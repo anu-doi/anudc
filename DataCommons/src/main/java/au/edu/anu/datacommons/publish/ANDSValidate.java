@@ -467,7 +467,7 @@ public class ANDSValidate implements Validate{
 	 * @param clazz The class type to validate
 	 * @return Whether the xml is valid
 	 */
-	private boolean xmlValidate(String pid, Class clazz) {
+	private boolean xmlValidate(String pid, Class<?> clazz) {
 		boolean isValid = false;
 		try {
 			InputStream xmlStream = FedoraBroker.getDatastreamAsStream(pid, Constants.XML_SOURCE);

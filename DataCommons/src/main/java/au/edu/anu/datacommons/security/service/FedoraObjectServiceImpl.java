@@ -39,13 +39,16 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+
+import com.sun.jersey.api.client.ClientResponse;
+import com.yourmediashelf.fedora.client.FedoraClientException;
 
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
@@ -81,9 +84,6 @@ import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.JAXBTransform;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
-
-import com.sun.jersey.api.client.ClientResponse;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 
 /**
  * FedoraObjectServiceImpl
@@ -478,9 +478,9 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		FedoraBroker.updateObjectState(fedoraObject.getObject_id(), "D");
 		// Add this as a work around for the fact that commitWithin does not seem to work for
 		// the Solr XML delete so we want to commit after delete
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
 		try {
-			solrServer.deleteById(fedoraObject.getObject_id(), 5000);
+			solrClient.deleteById(fedoraObject.getObject_id(), 5000);
 		}
 		catch (IOException e) {
 			LOGGER.debug("Exception committing delete", e);

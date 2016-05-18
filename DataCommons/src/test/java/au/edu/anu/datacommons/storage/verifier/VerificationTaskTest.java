@@ -47,7 +47,7 @@ import au.edu.anu.datacommons.storage.verifier.ResultMessage.Severity;
 public class VerificationTaskTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VerificationTaskTest.class);
 
-	private FileFactory ff;
+	private FileFactory<?> ff;
 	
 	/**
 	 * @throws java.lang.Exception

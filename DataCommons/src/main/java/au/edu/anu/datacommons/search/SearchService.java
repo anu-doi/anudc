@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.search;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -110,7 +111,7 @@ public class SearchService
 			SolrSearchResult resultList = solrSearch.executeSearch(q, offset, limit, filter);
 			response = Response.ok(resultList).build();
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException | IOException e) {
 			LOGGER.error("Exception retrieving results", e);
 			response = Response.status(Status.BAD_REQUEST).build();
 		}
@@ -159,7 +160,7 @@ public class SearchService
 				}
 				model.put("resultSet", solrSearchResult);
 			}
-			catch (SolrServerException e) {
+			catch (SolrServerException | IOException e) {
 				LOGGER.error("Exception querying solr", e);
 			}
 			response = Response.ok(new Viewable(SEARCH_JSP, model)).build();
@@ -203,7 +204,7 @@ public class SearchService
 			SolrSearchResult resultList = solrSearch.executeSearch(q, offset, limit, filter);
 			response = Response.ok(resultList).build();
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException | IOException e) {
 			LOGGER.error("Exception retrieving results", e);
 			response = Response.status(Status.BAD_REQUEST).build();
 		}
@@ -234,7 +235,7 @@ public class SearchService
 				model.put("resultSet", solrSearchResult);
 				return Response.ok(new Viewable(BROWSE_JSP, model)).build();
 			}
-			catch(SolrServerException e) {
+			catch(SolrServerException | IOException e) {
 				LOGGER.error("Exception querying solr", e);
 			}
 		}
@@ -269,7 +270,7 @@ public class SearchService
 				model.put("resultSet", solrSearchResult);
 				return Response.ok(new Viewable(BROWSE_RESULTS_JSP, model)).build();
 			}
-			catch(SolrServerException e) {
+			catch(SolrServerException | IOException e) {
 				LOGGER.error("Exception querying solr", e);
 			}
 		}
@@ -303,7 +304,7 @@ public class SearchService
 					model.put("resultSet", solrSearchResult);
 					return Response.ok(new Viewable(SEARCH_ADVANCED_JSP, model)).build();
 				}
-				catch(SolrServerException e) {
+				catch(SolrServerException | IOException e) {
 					LOGGER.error("Exception querying solr", e);
 				}
 			}

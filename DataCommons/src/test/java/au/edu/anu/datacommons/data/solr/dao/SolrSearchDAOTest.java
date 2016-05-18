@@ -25,6 +25,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import org.apache.solr.client.solrj.SolrServerException;
@@ -70,7 +71,7 @@ public class SolrSearchDAOTest {
 				}
 			}
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException | IOException e) {
 			LOGGER.error("Exception executing solr search", e);
 			fail("Exception executing test");
 		}

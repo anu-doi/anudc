@@ -142,7 +142,8 @@ public abstract class AbstractSolrQuery {
 	 */
 	public void setQuerySortField(SolrQuery solrQuery) {
 		if (sortField != null) {
-			solrQuery.setSortField(sortField, sortOrder);
+//			solrQuery.setSortField(sortField, sortOrder);
+			solrQuery.setSort(sortField, sortOrder);
 		}
 	}
 	

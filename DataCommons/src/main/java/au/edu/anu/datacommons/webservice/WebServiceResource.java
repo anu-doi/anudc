@@ -26,7 +26,6 @@ import static java.text.MessageFormat.format;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -57,8 +56,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
@@ -76,6 +75,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.yourmediashelf.fedora.client.FedoraClientException;
+
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
@@ -83,7 +84,6 @@ import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.SolrUtils;
 import au.edu.anu.datacommons.security.service.FedoraObjectException;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
-import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.controller.StorageController;
 import au.edu.anu.datacommons.storage.temp.TempFileService;
 import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
@@ -94,8 +94,6 @@ import au.edu.anu.datacommons.webservice.bindings.Collection;
 import au.edu.anu.datacommons.webservice.bindings.DcRequest;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
 import au.edu.anu.datacommons.webservice.bindings.Link;
-
-import com.yourmediashelf.fedora.client.FedoraClientException;
 
 /**
  * Provides a REST API endpoints for clients who use XML-based web service to create and update records.
@@ -477,7 +475,7 @@ public class WebServiceResource
 	{
 		String pid = "";
 
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
 		SolrQuery solrQuery = new SolrQuery();
 		solrQuery.setQuery(format("unpublished.externalId:\"{0}\"", SolrUtils.escapeSpecialCharacters(extId)));
 		solrQuery.addFilterQuery(format("unpublished.ownerGroup:\"{0}\"", ownerGroup));
@@ -488,7 +486,7 @@ public class WebServiceResource
 
 		try
 		{
-			QueryResponse queryResponse = solrServer.query(solrQuery);
+			QueryResponse queryResponse = solrClient.query(solrQuery);
 			SolrDocumentList resultList = queryResponse.getResults();
 			LOGGER.debug("{} {}(s) found with external ID {}, belonging to ownerGroup {}.", resultList.getNumFound(), type, extId, ownerGroup);
 			if (resultList.getNumFound() == 0)
@@ -513,7 +511,7 @@ public class WebServiceResource
 						pids.toString()));
 			}
 		}
-		catch (SolrServerException e)
+		catch (SolrServerException | IOException e)
 		{
 			pid = "";
 		}

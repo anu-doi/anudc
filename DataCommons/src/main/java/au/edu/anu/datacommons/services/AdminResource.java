@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.services;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -37,8 +38,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
@@ -48,14 +49,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
+import com.sun.jersey.api.view.Viewable;
+
 import au.edu.anu.datacommons.admin.AdminService;
 import au.edu.anu.datacommons.data.db.model.Domains;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.exception.DataCommonsException;
-
-import com.sun.jersey.api.view.Viewable;
 
 /**
  * AdminResource
@@ -103,7 +104,7 @@ public class AdminResource {
 		int numResults = 1000;
 		
 		Response response = null;
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
 		
 		SolrQuery solrQuery = new SolrQuery();
 		solrQuery.setQuery("published.all:*");
@@ -114,13 +115,13 @@ public class AdminResource {
 		
 		try {
 			SolrDocumentList documentList = new SolrDocumentList();
-			QueryResponse queryResponse = solrServer.query(solrQuery);
+			QueryResponse queryResponse = solrClient.query(solrQuery);
 			SolrDocumentList resultList = queryResponse.getResults();
 			long numFound = resultList.getNumFound();
 			documentList.addAll(resultList);
 			for (int i = numResults; i < numFound; i = i + numResults) {
 				solrQuery.setStart(i);
-				queryResponse = solrServer.query(solrQuery);
+				queryResponse = solrClient.query(solrQuery);
 				resultList = queryResponse.getResults();
 				documentList.addAll(resultList);
 			}
@@ -130,7 +131,7 @@ public class AdminResource {
 			model.put("resultSet", solrSearchResult);
 			response = Response.ok(new Viewable("/sitemap.jsp", model)).build();
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException | IOException e) {
 			LOGGER.error("Error retrieving results for page", e);
 			throw new DataCommonsException(502, "Error retrieving results for page");
 		}

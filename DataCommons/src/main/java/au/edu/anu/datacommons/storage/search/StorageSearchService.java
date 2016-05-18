@@ -23,19 +23,16 @@ package au.edu.anu.datacommons.storage.search;
 
 import static java.text.MessageFormat.format;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.annotation.PreDestroy;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,14 +50,15 @@ import au.edu.anu.datacommons.storage.provider.StorageProvider;
 public class StorageSearchService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StorageSearchService.class);
 
-	HttpSolrServer solrServer;
+//	HttpSolrServer solrServer;
+	HttpSolrClient solrClient;
 
 	public StorageSearchService(String svcUrl) {
 		initSolrServer(svcUrl);
 	}
 
-	public StorageSearchService(HttpSolrServer solrServer) {
-		this.solrServer = solrServer;
+	public StorageSearchService(HttpSolrClient solrClient) {
+		this.solrClient = solrClient;
 	}
 
 	/**
@@ -70,10 +68,10 @@ public class StorageSearchService {
 	 *            URL at which the Solr instance is hosted.
 	 */
 	private void initSolrServer(String svcUrl) {
-		solrServer = new HttpSolrServer(svcUrl);
-		solrServer.setMaxRetries(1);
-		solrServer.setParser(new XMLResponseParser());
-		solrServer.setRequestWriter(new BinaryRequestWriter());
+		solrClient = new HttpSolrClient(svcUrl);
+//		solrClient.setMaxRetries(1);
+		solrClient.setParser(new XMLResponseParser());
+		solrClient.setRequestWriter(new BinaryRequestWriter());
 	}
 
 	/**
@@ -89,7 +87,7 @@ public class StorageSearchService {
 			IOException {
 		StorageSolrDoc doc = createSolrDoc(pid, relPath, storageProvider);
 		submitDoc(doc);
-		solrServer.commit();
+		solrClient.commit();
 	}
 
 	/**
@@ -113,7 +111,7 @@ public class StorageSearchService {
 				LOGGER.warn("Error submitting index document for {}: {}", doc.getId(), e.getMessage());
 			}
 		}
-		solrServer.commit();
+		solrClient.commit();
 	}
 
 	/**
@@ -133,11 +131,11 @@ public class StorageSearchService {
 		for (FileInfo fi : allChildren) {
 			if (fi.getType() == Type.FILE) {
 				String docId = createId(fi.getPid(), fi.getRelFilepath());
-				solrServer.deleteById(docId);
+				solrClient.deleteById(docId);
 				LOGGER.trace("Removed index document for {}.", docId);
 			}
 		}
-		solrServer.commit();
+		solrClient.commit();
 	}
 
 	private StorageSolrDoc createSolrDoc(String pid, String relPath, StorageProvider storageProvider)
@@ -172,10 +170,10 @@ public class StorageSearchService {
 	 */
 	private void submitDoc(StorageSolrDoc doc) throws IOException, SolrServerException {
 		if (doc.getName() != null) {
-			solrServer.addBean(doc);
+			solrClient.addBean(doc);
 			LOGGER.trace("Added index document for {}.", doc.getId());
 		} else {
-			solrServer.deleteById(doc.getId());
+			solrClient.deleteById(doc.getId());
 			LOGGER.trace("Removed index document for {}.", doc.getId());
 		}
 	}
@@ -193,7 +191,12 @@ public class StorageSearchService {
 	 */
 	@PreDestroy
 	public void close() {
-		solrServer.shutdown();
+		try {
+			solrClient.close();
+		}
+		catch (IOException e) {
+			
+		}
 	}
 
 }

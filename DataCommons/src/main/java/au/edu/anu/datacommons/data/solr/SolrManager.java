@@ -21,8 +21,10 @@
 
 package au.edu.anu.datacommons.data.solr;
 
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import java.io.IOException;
+
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +52,8 @@ public class SolrManager {
 	
 	private static final SolrManager solrManager = new SolrManager();
 	
-	protected SolrServer solrServer;
+//	protected SolrServer solrServer;
+	protected SolrClient solrClient;
 	
 	/**
 	 * getInstance
@@ -95,11 +98,18 @@ public class SolrManager {
 	 * 
 	 * @return
 	 */
-	public SolrServer getSolrServer() {
-		if (solrServer == null) {
-			createSolrServer();
+//	public SolrServer getSolrServer() {
+//		if (solrServer == null) {
+//			createSolrServer();
+//		}
+//		return solrServer;
+//	}
+	
+	public SolrClient getSolrClient() {
+		if (solrClient == null) {
+			createSolrClient();
 		}
-		return solrServer;
+		return solrClient;
 	}
 	
 	/**
@@ -114,9 +124,15 @@ public class SolrManager {
 	 * </pre>
 	 *
 	 */
-	protected void createSolrServer() {
+//	protected void createSolrServer() {
+//		String url = GlobalProps.getProperty(GlobalProps.PROP_SEARCH_SOLR);
+//		this.solrServer = new HttpSolrServer(url);
+//		LOGGER.info("Solr Server connection started at " + new java.util.Date());
+//	}
+	
+	protected void createSolrClient() {
 		String url = GlobalProps.getProperty(GlobalProps.PROP_SEARCH_SOLR);
-		this.solrServer = new HttpSolrServer(url);
+		this.solrClient = new HttpSolrClient(url);
 		LOGGER.info("Solr Server connection started at " + new java.util.Date());
 	}
 	
@@ -132,9 +148,17 @@ public class SolrManager {
 	 *
 	 */
 	public void shutdown() {
-		if (solrServer instanceof HttpSolrServer) {
-			((HttpSolrServer)solrServer).shutdown();
+//		if (solrServer instanceof HttpSolrServer) {
+//			((HttpSolrServer)solrServer).shutdown();
+//		}
+		try {
+			if (solrClient != null) {
+				solrClient.close();
+				LOGGER.info("Solr Server connection shutdown at " + new java.util.Date());
+			}
 		}
-		LOGGER.info("Solr Server connection shutdown at " + new java.util.Date());
+		catch (IOException e) {
+			LOGGER.error("Error closing connection to solr");
+		}
 	}
 }

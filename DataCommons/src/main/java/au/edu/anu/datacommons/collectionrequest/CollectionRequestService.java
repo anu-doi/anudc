@@ -50,13 +50,13 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
@@ -71,6 +71,9 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import com.sun.jersey.api.NotFoundException;
+import com.sun.jersey.api.view.Viewable;
 
 import au.edu.anu.datacommons.collectionrequest.CollectionRequestStatus.ReqStatus;
 import au.edu.anu.datacommons.collectionrequest.PageMessages.MessageType;
@@ -93,7 +96,6 @@ import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.SolrUtils;
 import au.edu.anu.datacommons.security.CustomUser;
-import au.edu.anu.datacommons.security.AccessLogRecord.Operation;
 import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
@@ -101,13 +103,8 @@ import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.controller.StorageController;
 import au.edu.anu.datacommons.storage.info.FileInfo;
-import au.edu.anu.datacommons.storage.info.RecordDataSummary;
 import au.edu.anu.datacommons.storage.provider.StorageException;
-import au.edu.anu.datacommons.upload.UploadService;
 import au.edu.anu.datacommons.util.Util;
-
-import com.sun.jersey.api.NotFoundException;
-import com.sun.jersey.api.view.Viewable;
 
 /**
  * CollectionRequestService
@@ -1262,7 +1259,7 @@ public class CollectionRequestService {
 
 	private List<String> getEmails(String pid) {
 		List<String> emailList = new ArrayList<String>();
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
 		SolrQuery solrQuery = new SolrQuery();
 		solrQuery.setQuery(format("id:\"{0}\"", SolrUtils.escapeSpecialCharacters(pid)));
 		solrQuery.addField("id");
@@ -1270,7 +1267,7 @@ public class CollectionRequestService {
 
 		QueryResponse queryResponse;
 		try {
-			queryResponse = solrServer.query(solrQuery);
+			queryResponse = solrClient.query(solrQuery);
 			SolrDocumentList resultList = queryResponse.getResults();
 			if (resultList.getNumFound() == 0)
 				throw new IllegalArgumentException(format("A collection doesn't exist with the Pid {0}", pid));
@@ -1281,7 +1278,7 @@ public class CollectionRequestService {
 			if (resultList.get(0).getFieldValues("unpublished.email") != null)
 				for (Object emailAsObj : resultList.get(0).getFieldValues("unpublished.email"))
 					emailList.add((String) emailAsObj);
-		} catch (SolrServerException e) {
+		} catch (SolrServerException | IOException e) {
 			LOGGER.warn(format("Unable to execute Solr Query to retrieve emails for pid {0}.", pid), e);
 		}
 

@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.publish.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -33,9 +34,9 @@ import javax.annotation.Resource;
 import javax.ws.rs.WebApplicationException;
 import javax.xml.bind.JAXBException;
 
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
@@ -45,6 +46,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import com.yourmediashelf.fedora.client.FedoraClientException;
 
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
@@ -79,8 +82,6 @@ import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
-
-import com.yourmediashelf.fedora.client.FedoraClientException;
 
 /**
  * PublishServiceImpl
@@ -258,7 +259,7 @@ public class PublishServiceImpl implements PublishService {
 	 * @throws SolrServerException
 	 * @see au.edu.anu.datacommons.publish.service.PublishService#getGroupObjects(java.lang.Long, java.lang.Integer)
 	 */
-	public SolrSearchResult getGroupObjects(Long groupId, Integer page) throws SolrServerException {
+	public SolrSearchResult getGroupObjects(Long groupId, Integer page) throws SolrServerException, IOException {
 		return getFedoraObjects(groupId, page);
 	}
 	
@@ -277,7 +278,7 @@ public class PublishServiceImpl implements PublishService {
 	 * @return
 	 * @throws SolrServerException
 	 */
-	private SolrSearchResult getFedoraObjects(Long groupId, Integer page) throws SolrServerException {
+	private SolrSearchResult getFedoraObjects(Long groupId, Integer page) throws SolrServerException, IOException {
 		SolrQuery solrQuery = new SolrQuery();
 		solrQuery.setRows(rows);
 		
@@ -291,10 +292,10 @@ public class PublishServiceImpl implements PublishService {
 		
 		solrQuery.setQuery("*:*");
 		solrQuery.addFilterQuery("unpublished.ownerGroup:" + groupId);
-		solrQuery.setSortField("id", ORDER.asc);
+		solrQuery.setSort("id", ORDER.asc);
 		
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
-		QueryResponse queryResponse = solrServer.query(solrQuery);
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
+		QueryResponse queryResponse = solrClient.query(solrQuery);
 		SolrDocumentList documentList = queryResponse.getResults();
 		SolrSearchResult results = new SolrSearchResult(documentList);
 		
@@ -688,7 +689,7 @@ public class PublishServiceImpl implements PublishService {
 	 * @throws SolrServerException
 	 * @see au.edu.anu.datacommons.publish.service.PublishService#getItemInformation(java.lang.String[])
 	 */
-	public SolrSearchResult getItemInformation(String[] ids) throws SolrServerException {
+	public SolrSearchResult getItemInformation(String[] ids) throws SolrServerException, IOException {
 		SolrQuery solrQuery = new SolrQuery();
 		solrQuery.setRows(rows);
 		
@@ -696,7 +697,7 @@ public class PublishServiceImpl implements PublishService {
 		solrQuery.addField("unpublished.name");
 		
 		solrQuery.setQuery("*:*");
-		solrQuery.setSortField("id", ORDER.asc);
+		solrQuery.setSort("id", ORDER.asc);
 		
 		StringBuilder filterQuery = new StringBuilder();
 		filterQuery.append("(");
@@ -708,8 +709,8 @@ public class PublishServiceImpl implements PublishService {
 		filterQuery.append(")");
 		solrQuery.addFilterQuery(filterQuery.toString());
 		
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
-		QueryResponse queryResponse = solrServer.query(solrQuery);
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
+		QueryResponse queryResponse = solrClient.query(solrQuery);
 		SolrDocumentList documentList = queryResponse.getResults();
 		LOGGER.info("Number of results found: {}", documentList.getNumFound());
 		SolrSearchResult results = new SolrSearchResult(documentList);

@@ -95,7 +95,7 @@ public class AtLeastOneOfValidator implements ConstraintValidator<AtLeastOneOf, 
 				
 				if (fieldValue != null) {
 					if (fieldValue instanceof Collection) {
-						Collection collectionValue = (Collection) fieldValue;
+						Collection<?> collectionValue = (Collection<?>) fieldValue;
 						if(collectionValue.size() > 0) {
 							hasValue = true;
 						}
