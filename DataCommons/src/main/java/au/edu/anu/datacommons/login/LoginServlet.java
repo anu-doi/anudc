@@ -34,9 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.web.PortResolver;
 import org.springframework.security.web.PortResolverImpl;
-import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
-import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
@@ -65,7 +63,7 @@ import au.edu.anu.datacommons.util.Util;
  * </pre>
  * 
  */
-@WebServlet(name = "LoginServlet", urlPatterns = "/login")
+@WebServlet(name = "LoginServlet", urlPatterns = "/login-select")
 public class LoginServlet extends HttpServlet
 {
 	private static final long serialVersionUID = 1L;

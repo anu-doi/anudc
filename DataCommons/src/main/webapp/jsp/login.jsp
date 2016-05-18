@@ -15,14 +15,14 @@
 		<div id="login-error" class="msg-error">${error}</div>
 	</c:if>
 	
-	<form class="anuform" name="frmLogin" method="post" onsubmit="usernameToLowerCase()" action='<c:url value="/j_spring_security_check" />'>
+	<form class="anuform" name="frmLogin" method="post" onsubmit="usernameToLowerCase()" action='<c:url value="/login" />'>
 		<p>
-			<label class="req" for="j_username">Username: </label>
-			<input type="text" class="text" name="j_username" value="" autofocus="autofocus" size="40">
+			<label class="req" for="username">Username: </label>
+			<input type="text" class="text" name="username" value="" autofocus="autofocus" size="40">
 		</p>
 		<p>
 			<label for="j_password">Password: </label>
-			<input type='password' name='j_password' size="40" />
+			<input type='password' name='password' size="40" />
 		</p>
 		<p>
 		<p class="text-right">

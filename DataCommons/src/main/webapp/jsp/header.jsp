@@ -13,11 +13,11 @@
 		<ul>
 		<sec:authorize access="isAnonymous()">
 			<li><a>Welcome Guest</a></li>
-			<li> <a href='<c:url value="/login" />'>Login</a></li>
+			<li> <a href='<c:url value="/login-select" />'>Login</a></li>
 		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
 			<li><a href='<c:url value="/rest/user" />'>Welcome <sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.username" />)</a></li>
-			<li><a href='<c:url value="/j_spring_security_logout" />'>Logout</a></li>
+			<li><a href='<c:url value="logout" />'>Logout</a></li>
 			<li><a href="<c:url value="/rest/user/caslogout" />">CAS Logout</a></li>
 		</sec:authorize>
 		</ul>

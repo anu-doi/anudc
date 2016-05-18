@@ -15,7 +15,7 @@
 	<div id="login-error">${error}</div>
 
 	<label for="loginmethod">Select Login Method</label>
-	<form method="GET" action="<c:url value='/login' />">
+	<form method="GET" action="<c:url value='/login-select' />">
 		<select name="method" id="method" onchange="this.form.submit()">
 			<option value="">Please select a login method</option>
 			<option value="anu">ANU User</option>

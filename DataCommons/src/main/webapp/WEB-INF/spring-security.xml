@@ -27,6 +27,8 @@
 		
 		<security:custom-filter ref="casAuthenticationFilter" after="CAS_FILTER"/>
 		<security:custom-filter position="PRE_AUTH_FILTER" ref="tokenFilter" />
+		
+		<security:csrf disabled="true" />
 	</security:http>
 	
 	<bean id="customAuthenticationEntryPoint" class="au.edu.anu.datacommons.security.CustomAuthenticationEntryPoint" />
