@@ -2,6 +2,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 
+<c:set var="fedoraObject" value="${it.fedoraObject}" />
+
 <html>
 	<head>
 		<link rel="stylesheet" type="text/css" href="<c:url value='/css/rejectItem.css' />" />
@@ -10,7 +12,7 @@
 	</head>
 	<body>
 		<c:if test="${empty it.fedoraObject.reviewReady and empty it.fedoraObject.publishReady}">
-			<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">
+			<sec:authorize access="hasPermission(#fedoraObject, 'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 				<c:url value="/rest/ready/review/${it.fedoraObject.object_id}" var="reviewReadyLink">
 					<c:param name="layout" value="${param.layout}" />
 					<c:param name="tmplt" value="${param.tmplt}" />
@@ -20,10 +22,10 @@
 						<input type="submit" id="reviewReadyButton" name="reviewReadyButton" value="Ready for Review"/>
 					</p>
 				</form>
-			</sec:accesscontrollist>
+			</sec:authorize>
 		</c:if>
 		<c:if test="${not empty it.fedoraObject.reviewReady}">
-			<sec:accesscontrollist hasPermission="REVIEW,ADMINISTRATION" domainObject="${it.fedoraObject}">
+			<sec:authorize access="hasPermission(#fedoraObject, 'REVIEW') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 				<c:url value="/rest/ready/publish/${it.fedoraObject.object_id}" var="publishReadyLink">
 					<c:param name="layout" value="${param.layout}" />
 					<c:param name="tmplt" value="${param.tmplt}" />
@@ -33,10 +35,10 @@
 						<input type="submit" id="publishReadyButton" name="publishReadyButton" value="Ready for Publish"/>
 					</p>
 				</form>
-			</sec:accesscontrollist>
+			</sec:authorize>
 		</c:if>
 		<c:if test="${not empty it.fedoraObject.publishReady}">
-			<sec:accesscontrollist hasPermission="PUBLISH,ADMINISTRATION" domainObject="${it.fedoraObject}">
+			<sec:authorize access="hasPermission(#fedoraObject, 'PUBLISH') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 				<c:url value="/rest/publish/${it.fedoraObject.object_id}" var="publishLink">
 					<c:param name="tmplt" value="${param.tmplt}" />
 					<c:param name="layout" value="${param.layout}" />
@@ -44,10 +46,10 @@
 				<p>
 					<input type="button" id="publishButton" name="publishButton" value="Publish" onclick="window.location='${publishLink}'" />
 				</p>
-			</sec:accesscontrollist>
+			</sec:authorize>
 		</c:if>
 		<c:if test="${not empty it.fedoraObject.reviewReady or not empty it.fedoraObject.publishReady}">
-			<sec:accesscontrollist hasPermission="REVIEW,PUBLISH,ADMINISTRATION" domainObject="${it.fedoraObject}">
+			<sec:authorize access="hasPermission(#fedoraObject, 'REVIEW') or hasPermission(#fedoraObject, 'PUBLISH') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 				<p>
 					<input type="button" id="rejectReasonButton" name="rejectReasonButton" value="Reject"/>
 				</p>
@@ -67,7 +69,7 @@
 					</form>
 				</div>
 				<div id="backgroundPopup"></div>
-			</sec:accesscontrollist>
+			</sec:authorize>
 		</c:if>
 	</body>
 </html>

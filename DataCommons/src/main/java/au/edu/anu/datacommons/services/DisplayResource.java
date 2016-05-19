@@ -141,6 +141,7 @@ public class DisplayResource
 		Map<String, Object> values = fedoraObjectService.getViewPage(fedoraObject, layout, tmplt);
 
 		Viewable viewable = new Viewable((String) values.remove("topage"), values);
+		LOGGER.info("At the end of getItem");
 		return Response.ok(viewable).build();
 	}
 

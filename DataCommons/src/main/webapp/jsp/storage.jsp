@@ -5,6 +5,8 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
+<c:set var="fedoraObject" value="${it.fo}" />
+
 <anu:header id="1998" title="${it.fo.object_id}" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur"
 	respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 
@@ -33,9 +35,9 @@
 			<li><a href="#info">Archive Info</a></li>
 			<li><a href="#extRefs">External References</a></li>
 			<sec:authorize access="isAuthenticated()">
-				<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+				<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 					<li><a href="#uploadFiles">Upload Files</a></li>
-				</sec:accesscontrollist>
+				</sec:authorize>
 			</sec:authorize>
 		</ul>
 	</div>
@@ -76,14 +78,14 @@
 					<!-- Actions -->
 					<div id="div-action-icons" class="right text-right">
 						<sec:authorize access="isAuthenticated()">
-							<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+							<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 								<!-- Create Folder icon -->
 								<img id="action-create-folder" class="clickable-icon" src="<c:url value='/images/folder-new.png' />" title="Create Folder"></img>
 								<!-- Delete Selected Files icon -->
 								<img id="action-del-selected" class="clickable-icon" src="<c:url value='/images/delete_red.png' />" title="Delete Selected Files"></img>
 								<!-- Upload Files -->
 								<img id="action-scroll-upload" class="clickable-icon" src="<c:url value='/images/file-upload.png' />" title="Scroll to upload pane"></img>
-							</sec:accesscontrollist>
+							</sec:authorize>
 						</sec:authorize>
 						
 						<!-- Download selected files as Zip icon -->
@@ -192,21 +194,21 @@
 								
 								<!-- Rename icon -->
 								<sec:authorize access="isAuthenticated()">
-									<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+									<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 										<a href="javascript:void(0);" onclick="renameFile('${relUrl}', '${iFile.relFilepath}')">
 											<img class="clickable-icon" src="<c:url value='/images/rename.png' />" title="Rename ${iFile.filename}" />
 										</a>
-									</sec:accesscontrollist>
+									</sec:authorize>
 								</sec:authorize>
 								
 								<!-- Delete icon -->
 								<sec:authorize access="isAuthenticated()">
-									<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+									<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 										<c:set var="escapedRelUrl" value="${fn:replace(relUrl, '\\'', '\\\\\\'') }" />
 										<a href="javascript:void(0);" onclick="deleteFile('${escapedRelUrl}')">
 											<img class="clickable-icon" src="<c:url value='/images/delete_red.png' />" title="Delete ${iFile.filename}" />
 										</a>
-									</sec:accesscontrollist>
+									</sec:authorize>
 								</sec:authorize>
 								
 								<!-- Expand -->
@@ -259,9 +261,9 @@
 
 	<!-- Drag n Drop -->
 	<sec:authorize access="isAuthenticated()">
-		<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+		<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 			<div id="dragandrophandler" class="w-doublewide"></div>
-		</sec:accesscontrollist>
+		</sec:authorize>
 	</sec:authorize>
 </div>
 
@@ -269,9 +271,9 @@
 	<div class="small w-doublewide">
 		<!-- External references -->
 		<sec:authorize access="isAuthenticated()">
-			<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+			<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 				<button onclick="addExtRef()">Add External Reference</button>
-			</sec:accesscontrollist>
+			</sec:authorize>
 		</sec:authorize>
 		<c:if test="${not empty it.rdi.extRefs}">
 			<ul>
@@ -293,7 +295,8 @@
 				<tr>
 					<th>Public</th>
 					<td><c:out value="${it.isFilesPublic}" />&nbsp;
-						<sec:accesscontrollist hasPermission="PUBLISH,ADMINISTRATION" domainObject="${it.fo}">
+						
+						<sec:authorize access="hasPermission(#fedoraObject,'PUBLISH') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 							<c:choose>
 								<c:when test="${it.fo.embargoDatePassed}">
 									<br/>(Please note that as the embargo lift date has passed to change this value the embargo date will need to be changed/removed and the record republished)
@@ -302,7 +305,7 @@
 									<a href="javascript:void(0);" onclick="toggleIsFilesPublic('${it.fo.object_id}', '${it.isFilesPublic}')">Change</a>
 								</c:otherwise>
 							</c:choose>
-						</sec:accesscontrollist>
+						</sec:authorize>
 						<c:if test="${it.isFilesPublic and it.fo.embargoed}">
 						(But embargoed until <fmt:formatDate value="${it.fo.embargoDate}" pattern="dd MMM yyyy" />)
 						</c:if>
@@ -320,7 +323,7 @@
 </div>
 
 <sec:authorize access="isAuthenticated()">
-	<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fo}">
+	<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 		<div class="doublewide nopadtop" id="uploadFiles" style="display: none;">
 			<p class="msg-info">
 				The Java upload applet below may take a few moments to display. When it does, either drag and drop files from your system into the applet, or click on the <em>Browse</em>
@@ -347,7 +350,7 @@
 				</applet>
 			</form>
 		</div>
-	</sec:accesscontrollist>
+	</sec:authorize>
 </sec:authorize>
 
 

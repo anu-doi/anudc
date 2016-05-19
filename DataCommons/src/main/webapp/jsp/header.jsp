@@ -17,7 +17,7 @@
 		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
 			<li><a href='<c:url value="/rest/user" />'>Welcome <sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.username" />)</a></li>
-			<li><a href='<c:url value="logout" />'>Logout</a></li>
+			<li><a href='<c:url value="/logout" />'>Logout</a></li>
 			<li><a href="<c:url value="/rest/user/caslogout" />">CAS Logout</a></li>
 		</sec:authorize>
 		</ul>

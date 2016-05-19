@@ -33,7 +33,7 @@
 		</fieldset>
 	</form>
 	<div id="peopleList" class="w-doublewide"></div>
-	<sec:authorize ifAnyGranted="ROLE_ADMIN">
+	<sec:authorize access="hasRole('ROLE_ADMIN')">
 		<div id="permissions2" class="w-wide right">
 			<p>
 			Allow publishing to locations:

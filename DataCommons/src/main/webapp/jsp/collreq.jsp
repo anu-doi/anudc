@@ -56,7 +56,8 @@
 					</c:forEach>
 					</p>
 				</c:if>
-				<sec:accesscontrollist hasPermission="REVIEW" domainObject="${it.collReq.fedoraObject}">
+				<c:set var="fedoraObject" value="${it.collReq.fedoraObject}" />
+				<sec:authorize access="hasPermission(#fedoraObject,'REVIEW')">
 					<c:if test="${not empty it.downloadables}">
 						<hr />
 						<p>
@@ -97,7 +98,7 @@
 					<p class="text-right">
 						<input type="submit" value="Change Status" />
 					</p>
-				</sec:accesscontrollist>
+				</sec:authorize>
 			</form>
 			<table id="idStatusHistoryContainter" class="doublewide">
 				<tr>
@@ -166,19 +167,20 @@
 						<th>Status</th>
 					</tr>
 					<c:forEach var="iCollReq" items="${it.collReqs}">
+						<c:set var="iCollReqFedoraObjectObject" value="${iCollReq.fedoraObject}" />
 						<tr>
 							<td><a href="<c:url value='/rest/collreq' />/${iCollReq.id}"><c:out value="${iCollReq.id}" /></a></td>
 							<td><a href="<c:url value='/rest/display/${iCollReq.pid}'><c:param name='layout' value='def:display' /></c:url>"><c:out value="${iCollReq.pid}" /></a></td>
 							<td><fmt:formatDate value="${iCollReq.timestamp}" pattern="dd MMM yyyy" /></td>
 							<td><c:out value="${iCollReq.requestor.username}" /></td>
 							<td><c:if test="${iCollReq.lastStatus.status eq 'ACCEPTED'}">
-									<sec:accesscontrollist hasPermission="REVIEW" domainObject="${iCollReq.fedoraObject}">
+									<sec:authorize access="hasPermission(#iCollReqFedoraObjectObject,'REVIEW')">
 										<a href="<c:url value='/rest/collreq/dropbox/${iCollReq.dropbox.id}' />">
-									</sec:accesscontrollist>
+									</sec:authorize>
 								</c:if> <c:out value="${iCollReq.lastStatus.status}" /> <c:if test="iCollReq.lastStatus.status">
-									<sec:accesscontrollist hasPermission="REVIEW" domainObject="${iCollReq.fedoraObject}">
+									<sec:authorize access="hasPermission(#iCollReqFedoraObjectObject,'REVIEW')">
 										</a>
-									</sec:accesscontrollist>
+									</sec:authorize>
 								</c:if></td>
 						</tr>
 					</c:forEach>

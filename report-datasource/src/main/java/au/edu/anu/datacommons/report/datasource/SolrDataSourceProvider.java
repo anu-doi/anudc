@@ -21,7 +21,14 @@
 
 package au.edu.anu.datacommons.report.datasource;
 
+import java.io.IOException;
 import java.util.ArrayList;
+
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
 
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRDataSourceProvider;
@@ -29,12 +36,6 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.design.JRDesignField;
-
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocumentList;
 
 /**
  * SolrDataSourceProvider
@@ -73,24 +74,29 @@ public class SolrDataSourceProvider implements JRDataSourceProvider {
 		JRDataSource solrDataSource = null;
 		
 		// Note this value is set up for my system only - change to your own solr instance
-		HttpSolrServer solrServer = new HttpSolrServer("http://localhost:8380/solr");
+		HttpSolrClient solrClient = new HttpSolrClient("http://localhost:8983/solr");
 		try {
-			
-			SolrQuery solrQuery = new SolrQuery();
-			solrQuery.addField("id");
-			solrQuery.addField("published.name");
-			solrQuery.setQuery("location.published:ANDS");
-			
-			QueryResponse queryResponse = solrServer.query(solrQuery);
-			SolrDocumentList solrDocumentList = queryResponse.getResults();
-			
-			solrDataSource =  new SolrDataSource(solrDocumentList);
-		} 
-		catch (SolrServerException e) {
-			e.printStackTrace();
+			try {
+				
+				SolrQuery solrQuery = new SolrQuery();
+				solrQuery.addField("id");
+				solrQuery.addField("published.name");
+				solrQuery.setQuery("location.published:ANDS");
+				
+				QueryResponse queryResponse = solrClient.query(solrQuery);
+				SolrDocumentList solrDocumentList = queryResponse.getResults();
+				
+				solrDataSource =  new SolrDataSource(solrDocumentList);
+			} 
+			catch (SolrServerException | IOException e) {
+				e.printStackTrace();
+			}
+			finally {
+				solrClient.close();
+			}
 		}
-		finally {
-			solrServer.shutdown();
+		catch (IOException e) {
+			e.printStackTrace();
 		}
 		return solrDataSource;
 		//return null;

@@ -22,6 +22,11 @@
 		<property name = "roleHierarchy" ref="roleHierarchy"/>
 	</bean>
 	
+	<bean class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler" id="webExpressionHandler">
+		<property name="permissionEvaluator" ref="permissionEvaluator" />
+	</bean>
+	
+	
 	<!-- Declare a custom PermissionEvaluator
 		We'll rely on the standard AclPermissionEvaluator implementation -->
 	<bean class="org.springframework.security.acls.AclPermissionEvaluator" id="permissionEvaluator">

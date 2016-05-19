@@ -21,7 +21,14 @@
 
 package au.edu.anu.datacommons.report.datasource;
 
+import java.io.IOException;
 import java.util.Map;
+
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocumentList;
 
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRDataset;
@@ -29,12 +36,6 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRValueParameter;
 import net.sf.jasperreports.engine.JasperReportsContext;
 import net.sf.jasperreports.engine.query.JRAbstractQueryExecuter;
-
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocumentList;
 
 /**
  * SolrQueryExecuter
@@ -121,15 +122,17 @@ public class SolrQueryExecuter extends JRAbstractQueryExecuter {
 	 * @see net.sf.jasperreports.engine.query.JRQueryExecuter#createDatasource()
 	 */
 	public JRDataSource createDatasource() throws JRException {
-		String solrURL = (String) getParameterValue(SolrQueryExecuterFactory.SOLR_LOCATION);
-		HttpSolrServer solrServer = new HttpSolrServer(solrURL);
 		String statement = getQueryString();
-		
-		SolrQuery solrQuery = new SolrQuery();
+
 		if (statement.length() == 0) {
 			SolrDocumentList solrDocumentList = new SolrDocumentList();
 			return new SolrDataSource(solrDocumentList);
 		}
+		
+		String solrURL = (String) getParameterValue(SolrQueryExecuterFactory.SOLR_LOCATION);
+		HttpSolrClient solrClient = new HttpSolrClient(solrURL);
+		
+		SolrQuery solrQuery = new SolrQuery();
 		String[] statements = statement.split("&");
 		for (String param : statements) {
 			int equalsIndex = param.indexOf("=");
@@ -139,17 +142,21 @@ public class SolrQueryExecuter extends JRAbstractQueryExecuter {
 		}
 		
 		SolrDataSource solrDataSource = null;
-		
 		try {
-			QueryResponse queryResponse = solrServer.query(solrQuery);
-			SolrDocumentList solrDocumentList = queryResponse.getResults();
-			solrDataSource = new SolrDataSource(solrDocumentList);
+			try {
+				QueryResponse queryResponse = solrClient.query(solrQuery);
+				SolrDocumentList solrDocumentList = queryResponse.getResults();
+				solrDataSource = new SolrDataSource(solrDocumentList);
+			}
+			catch (SolrServerException | IOException e) {
+				e.printStackTrace();
+			}
+			finally {
+				solrClient.close();
+			}
 		}
-		catch (SolrServerException e) {
+		catch (IOException e) {
 			e.printStackTrace();
-		}
-		finally {
-			solrServer.shutdown();
 		}
 		
 		return solrDataSource;
