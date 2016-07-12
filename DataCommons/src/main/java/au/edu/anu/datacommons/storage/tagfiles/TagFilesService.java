@@ -389,6 +389,7 @@ public class TagFilesService {
 					if (tagFileEntry.getValue().hasUnsavedChanges()) {
 						StorageProvider storageProvider = providerResolver.getStorageProvider(entry.getKey());
 						storageProvider.writeTagFileStream(entry.getKey(), tagFileEntry.getValue().getFilepath(), tagFileEntry.getValue().serialize());
+						tagFileEntry.getValue().setHasUnsavedChanges(false);
 					}
 				} catch (IOException | StorageException e) {
 					LOGGER.error(e.getMessage(), e);

@@ -85,7 +85,7 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 					if (line.length() > 0) {
 						String parts[] = unserializeKeyValue(line);
 						if (parts != null) {
-							this.put(parts[0], parts[1]);
+							this.put(parts[0], parts[1], false);
 						} else {
 							hasUnsavedChanges = true;
 						}
@@ -135,6 +135,10 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 	
 	@Override
 	public String put(String key, String value) {
+		return put(key, value, true);
+	}
+	
+	private String put(String key, String value, boolean updateChangedFlag) {
 		if (key == null) {
 			throw new NullPointerException(format("Key cannot be null."));
 		} else if (key.length() == 0) {
@@ -146,7 +150,7 @@ public abstract class AbstractKeyValueFile extends LinkedHashMap<String, String>
 		
 		String oldValue;
 		synchronized(this) {
-			if (!this.containsKey(key) || !this.get(key).equals(value)) {
+			if (updateChangedFlag && (!this.containsKey(key) || !this.get(key).equals(value))) {
 				hasUnsavedChanges = true;
 			}
 			oldValue = super.put(key, value);
