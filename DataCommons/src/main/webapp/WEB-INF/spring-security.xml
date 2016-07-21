@@ -18,9 +18,9 @@
 		<security:access-denied-handler error-page="/jsp/accessdenied.jsp" />
 		
 		<security:form-login
-			login-page="/login?method=registered&amp;test=test"
+			login-page="/login-select?method=registered&amp;test=test"
 			authentication-success-handler-ref="authenticationSuccessHandler"
-			authentication-failure-url="/login?error=true&amp;method=registered" />
+			authentication-failure-url="/login-select?error=true&amp;method=registered" />
 		
 		<security:logout
 			logout-success-url="/" />
