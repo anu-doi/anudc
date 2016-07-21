@@ -416,7 +416,8 @@ public class ReportGenerator {
 			for (File jrxmlFile : files) {
 				String outputFilename = String.format("%s.%s", stripExtension(jrxmlFile.getAbsolutePath()), JASPER_COMPILED_EXTENSION);
 				File outputFile = new File(outputFilename);
-				if (!outputFile.exists()) {
+				// compile report if not compiled already
+				if (!outputFile.exists() || outputFile.length() == 0) {
 					try (InputStream is = new BufferedInputStream(new FileInputStream(jrxmlFile));
 							OutputStream os = new BufferedOutputStream(new FileOutputStream(outputFile))) {
 						JasperCompileManager.compileReportToStream(is, os);
