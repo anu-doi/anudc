@@ -21,6 +21,10 @@
 
 package au.edu.anu.datacommons.search;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+
 import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
@@ -33,6 +37,7 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+
 
 /**
  * ExternalPoster
@@ -53,7 +58,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
  * 
  */
 public class ExternalPoster {
-	static final Logger LOGGER = LoggerFactory.getLogger(ExternalPoster.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ExternalPoster.class);
 	
 	private MultivaluedMapImpl parameters;
 	private String url;
@@ -304,6 +309,12 @@ public class ExternalPoster {
 	 */
 	public ClientResponse post(String queryParamName, String query) {
 		WebResource webService = getResource();
+		// Encode the curly braces for the query
+		try {
+			query = urlEncode(query);
+		} catch (UnsupportedEncodingException e) {
+			LOGGER.error("Exception encoding url for query: {}", query, e);
+		}
 		// This is separate so it is not added to the parameters field and thus the parameters can be reused
 		webService = webService.queryParam(queryParamName, query);
 		ClientResponse clientResponse = webService.type(type).accept(acceptType).post(ClientResponse.class);
@@ -328,7 +339,7 @@ public class ExternalPoster {
 		WebResource webService = getResource();
 		webService = webService.queryParams(mv);
 		
-		LOGGER.info("Posting url is: {}", webService.getURI());
+		LOGGER.debug("Posting url is: {}", webService.getURI());
 		ClientResponse clientResponse = webService.type(type).accept(acceptType).post(ClientResponse.class);
 		
 		return clientResponse;
@@ -357,5 +368,10 @@ public class ExternalPoster {
 		}
 		
 		return webService;
+	}
+	
+	private String urlEncode(String str) throws UnsupportedEncodingException {
+		String enc = Charset.defaultCharset().name();
+		return URLEncoder.encode(str, enc);
 	}
 }
