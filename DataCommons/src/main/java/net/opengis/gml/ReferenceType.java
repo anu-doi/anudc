@@ -18,7 +18,7 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * gml:ReferenceType is intended to be used in application schemas directly, if a property element shall use a “by-reference only” encoding.
+ * gml:ReferenceType is intended to be used in application schemas directly, if a property element shall use a by-reference only encoding.
  * 
  * <p>Java class for ReferenceType complex type.
  * 

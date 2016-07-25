@@ -112,9 +112,12 @@ public class AbstractKeyValueFileTest {
 		
 		File file = tempDir.newFile();
 		kvFile = new KeyValueFileImpl(file);
+		assertThat(kvFile.hasUnsavedChanges(), is(false));
 		kvFile.putAll(randMap);
+		assertThat(kvFile.hasUnsavedChanges(), is(true));
 		long start_ns = System.nanoTime();
 		kvFile.write();
+		assertThat(kvFile.hasUnsavedChanges(), is(false));
 		String timeElapsed = String.valueOf((System.nanoTime() - start_ns) / 1000000.0);
 		LOGGER.info("Serialising {} entries took {} millisec", nItems, timeElapsed);
 		
@@ -313,13 +316,40 @@ public class AbstractKeyValueFileTest {
 		assertThat(kvFile.hasUnsavedChanges, is(true));
 		kvFile.write();
 		
-		long nLines = 0;
+		long nLines = 0L;
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
 				nLines++;
 				assertThat(line, isOneOf("K1: V1", "K2: V2"));
 			}
 		}
+	}
+	
+	@Test
+	public void testHasUnsavedChanges() throws Exception {
+		File file = tempDir.newFile();
+		kvFile = new KeyValueFileImpl(file);
+		assertThat(kvFile.hasUnsavedChanges(), is(false));
+		kvFile.put("Key1", "Value1");
+		assertThat(kvFile.hasUnsavedChanges(), is(true));
+		kvFile.put("Key2", "Value2");
+		assertThat(kvFile.hasUnsavedChanges(), is(true));
+		kvFile.write();
+		assertThat(kvFile.hasUnsavedChanges(), is(false));
+		
+		kvFile = new KeyValueFileImpl(file);
+		assertThat(kvFile.hasUnsavedChanges(), is(false));
+		kvFile.put("Key3", "Value3");
+		assertThat(kvFile.hasUnsavedChanges(), is(true));
+		kvFile.write();
+		assertThat(kvFile.hasUnsavedChanges(), is(false));
+		
+		kvFile = new KeyValueFileImpl(file);
+		assertThat(kvFile.hasUnsavedChanges(), is(false));
+		kvFile.put("Key3", "Value3");
+		assertThat(kvFile.hasUnsavedChanges(), is(false));
+		kvFile.put("Key3", "NewValue3");
+		assertThat(kvFile.hasUnsavedChanges(), is(true));
 	}
 	
 	private void logFileContents(File file) throws IOException {
@@ -385,6 +415,7 @@ public class AbstractKeyValueFileTest {
 		
 		public synchronized void write() throws IOException {
 			Files.copy(this.serialize(), this.file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			this.setHasUnsavedChanges(false);
 		}
 	}
 	
@@ -423,6 +454,7 @@ public class AbstractKeyValueFileTest {
 		
 		public synchronized void write() throws IOException {
 			Files.copy(this.serialize(), this.file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			this.setHasUnsavedChanges(false);
 		}
 
 	}
