@@ -21,11 +21,10 @@
 
 package au.edu.anu.datacommons.search;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
-import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +32,8 @@ import org.slf4j.LoggerFactory;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import com.sun.jersey.api.client.WebResource.Builder;
+import com.sun.jersey.core.util.Base64;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 
@@ -60,29 +58,19 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 public class ExternalPoster {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExternalPoster.class);
 	
+	private Client client;
 	private MultivaluedMapImpl parameters;
 	private String url;
 	private String username;
-	private String password;
+	private byte[] password;
 	private String type;
 	private String acceptType;
 	
-	/**
-	 * getParameters
-	 * 
-	 * Gets the parameters to send with the query
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
-	 * </pre>
-	 * 
-	 * @return The parametes that have been set
-	 */
-	public MultivaluedMapImpl getParameters() {
-		return parameters;
+	public void setClient(Client client) {
+		this.client = client;
 	}
 	
+
 	/**
 	 * setParameters
 	 * 
@@ -97,55 +85,6 @@ public class ExternalPoster {
 	 */
 	public void setParameters(MultivaluedMapImpl parameters) {
 		this.parameters = parameters;
-	}
-	
-	/**
-	 * addParameter
-	 * 
-	 * Add a parameter string and value
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
-	 * </pre>
-	 * 
-	 * @param key Key of the parameter to add
-	 * @param value Value of the parameter to add
-	 */
-	public void addParameter(String key, String value) {
-		parameters.add(key, value);
-	}
-	
-	/**
-	 * removeParameter
-	 * 
-	 * Removes the parameter with the specified key
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
-	 * </pre>
-	 * 
-	 * @param key The key of the parameter to remove
-	 */
-	public void removeParameter(String key) {
-		parameters.remove(key);
-	}
-	
-	/**
-	 * getUrl
-	 * 
-	 * The url that the post is applied to
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
-	 * </pre>
-	 * 
-	 * @return The url that the post is applied to
-	 */
-	public String getUrl() {
-		return url;
 	}
 	
 	/**
@@ -165,22 +104,6 @@ public class ExternalPoster {
 	}
 	
 	/**
-	 * getUsername
-	 * 
-	 * Gets the username of the person to query as
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
-	 * </pre>
-	 * 
-	 * @return The username
-	 */
-	public String getUsername() {
-		return username;
-	}
-	
-	/**
 	 * setUsername
 	 * 
 	 * Sets the username of the person to query as
@@ -197,22 +120,6 @@ public class ExternalPoster {
 	}
 	
 	/**
-	 * getPassword
-	 * 
-	 * Gets the password of the person to query as
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
-	 * </pre>
-	 * 
-	 * @return The password
-	 */
-	public String getPassword() {
-		return password;
-	}
-	
-	/**
 	 * getParameters
 	 * 
 	 * Gets the parameters to send with the query
@@ -225,7 +132,7 @@ public class ExternalPoster {
 	 * @param password The password
 	 */
 	public void setPassword(String password) {
-		this.password = password;
+		this.password = password.getBytes(StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -261,22 +168,6 @@ public class ExternalPoster {
 	}
 
 	/**
-	 * getAcceptType
-	 * 
-	 * Gets the expected return type from the post
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		04/05/2012	Genevieve Turner (GT)	Initial
-	 * </pre>
-	 * 
-	 * @return The return type
-	 */
-	public String getAcceptType() {
-		return acceptType;
-	}
-
-	/**
 	 * setAcceptType
 	 * 
 	 * Sets the expected return type from the post
@@ -307,71 +198,40 @@ public class ExternalPoster {
 	 * @param query The query to execute
 	 * @return The response object from the query
 	 */
-	public ClientResponse post(String queryParamName, String query) {
-		WebResource webService = getResource();
-		// Encode the curly braces for the query
-		try {
-			query = urlEncode(query);
-		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("Exception encoding url for query: {}", query, e);
-		}
-		// This is separate so it is not added to the parameters field and thus the parameters can be reused
-		webService = webService.queryParam(queryParamName, query);
-		ClientResponse clientResponse = webService.type(type).accept(acceptType).post(ClientResponse.class);
-		
+	public ClientResponse post(String paramName, String paramValue) {
+		WebResource webService = client.resource(url);
+		MultivaluedMap<String, String> reqBody = createReqBody(paramName, paramValue);
+		Builder webReqBuilder = webService.type(type).accept(acceptType);
+		webReqBuilder = addBasicAuth(webReqBuilder);
+		ClientResponse clientResponse = webReqBuilder.post(ClientResponse.class, reqBody);
 		return clientResponse;
 	}
-	
-	/**
-	 * post
-	 *
-	 * Executes a post given the classes properties and the multivalued map properties
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.3		08/06/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @param mv A multivalued map that contains the posting options
-	 * @return The response from the post
-	 */
-	public ClientResponse post(MultivaluedMapImpl mv) {
-		WebResource webService = getResource();
-		webService = webService.queryParams(mv);
-		
-		LOGGER.debug("Posting url is: {}", webService.getURI());
-		ClientResponse clientResponse = webService.type(type).accept(acceptType).post(ClientResponse.class);
-		
-		return clientResponse;
+
+
+	private Builder addBasicAuth(Builder webReqBuilder) {
+		if (username != null) {
+			final byte[] prefix = (username + ":").getBytes(StandardCharsets.UTF_8);
+	        final byte[] usernamePassword = new byte[prefix.length + password.length];
+	        
+	        System.arraycopy(prefix, 0, usernamePassword, 0, prefix.length);
+	        System.arraycopy(password, 0, usernamePassword, prefix.length, password.length);
+	        String authentication = "Basic " + new String(Base64.encode(usernamePassword), StandardCharsets.US_ASCII);
+	        webReqBuilder = webReqBuilder.header(HttpHeaders.AUTHORIZATION, authentication);
+		}
+		return webReqBuilder;
 	}
-	
-	/**
-	 * getResource
-	 *
-	 * Retrieves the web resource
-	 *
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.3		08/06/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @return The web resource to perform actions on
-	 */
-	private WebResource getResource() {
-		ClientConfig config = new DefaultClientConfig();
-		Client client = Client.create(config);
-		client.addFilter(new HTTPBasicAuthFilter(username, password));
-		
-		WebResource webService = client.resource(UriBuilder.fromUri(url).build());
-		if(parameters != null) {
-			webService = webService.queryParams(parameters);
+
+
+	private MultivaluedMap<String, String> createReqBody(String paramName, String paramValue) {
+		MultivaluedMap<String, String> reqBody;
+		if (parameters != null) {
+			reqBody = new MultivaluedMapImpl(parameters);
+		} else {
+			reqBody = new MultivaluedMapImpl();
 		}
 		
-		return webService;
+		reqBody.add(paramName, paramValue);
+		return reqBody;
 	}
-	
-	private String urlEncode(String str) throws UnsupportedEncodingException {
-		String enc = Charset.defaultCharset().name();
-		return URLEncoder.encode(str, enc);
-	}
+
 }

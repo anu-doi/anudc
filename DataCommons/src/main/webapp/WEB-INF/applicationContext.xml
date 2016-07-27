@@ -24,6 +24,9 @@
 	<bean id="contextApplicationContextProvider" class="au.edu.anu.datacommons.util.ApplicationContextProvider" />
 	
 	<bean id="riSearchService" class="au.edu.anu.datacommons.search.ExternalPoster">
+		<property name="client">
+			<ref bean="client"/>
+		</property>
 		<property name="username" value="${fedora.username}" />
 		<property name="password" value="${fedora.password}" />
 		<property name="url" value="${fedora.baseURI}${fedora.riSearchURI}" />
@@ -41,6 +44,9 @@
 	</bean>
 	
 	<bean id="riSearchJSONService" class="au.edu.anu.datacommons.search.ExternalPoster">
+		<property name="client">
+			<ref bean="client"/>
+		</property>
 		<property name="username" value="${fedora.username}" />
 		<property name="password" value="${fedora.password}" />
 		<property name="url" value="${fedora.baseURI}${fedora.riSearchURI}" />
@@ -58,6 +64,9 @@
 	</bean>
 	
 	<bean id="gsearchUpdateService" class="au.edu.anu.datacommons.search.ExternalPoster">
+		<property name="client">
+			<ref bean="client"/>
+		</property>
 		<property name="username" value="${fedora.username}" />
 		<property name="password" value="${fedora.password}" />
 		<property name="url" value="${gsearch.url}/rest" />
