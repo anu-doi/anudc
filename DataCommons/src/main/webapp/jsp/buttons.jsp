@@ -8,13 +8,15 @@
 
 <anu:content layout="narrow">
 	<jsp:include page="status.jsp" />
-	<anu:box style="solid">
-		<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
-			<sec:authorize access="isAnonymous()">
+	<sec:authorize access="isAnonymous()">
+		<c:if test="${fn:toLowerCase(it.itemType) eq 'collection' and !fedoraObject.filesPublic}">
+			<anu:box style="solid">
 				Please login to request access to this dataset
-			</sec:authorize>
+			</anu:box>
 		</c:if>
-		<sec:authorize access="isAuthenticated()">
+	</sec:authorize>
+	<sec:authorize access="isAuthenticated()">
+		<anu:box style="solid">
 			<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
 				<sec:authorize access="hasRole('ROLE_REGISTERED')">
 					<c:url value="/rest/collreq" var="collReqLink">
@@ -89,8 +91,8 @@
 				<jsp:include page="review_status.jsp" />
 				<jsp:include page="add_reference.jsp" />
 			</sec:authorize>
-		</sec:authorize>
-	</anu:box>
+		</anu:box>
+	</sec:authorize>
 	<jsp:include page="listrelated.jsp" />
 
 	<!-- Bag Summary Begin -->

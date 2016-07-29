@@ -385,6 +385,11 @@ public class FedoraObject {
 	public Boolean isFilesPublic() {
 		return isFilesPublic;
 	}
+	
+	@Transient
+	public Boolean getFilesPublic() {
+		return isFilesPublic;
+	}
 
 	/**
 	 * Sets if files in this record, if any, are public after the record's published.
