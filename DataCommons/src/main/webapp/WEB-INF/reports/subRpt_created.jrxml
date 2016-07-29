@@ -153,6 +153,9 @@ order by ao1.log_date]]>
 				<subreportParameter name="pid">
 					<subreportParameterExpression><![CDATA[$F{pid}]]></subreportParameterExpression>
 				</subreportParameter>
+				<subreportParameter name="SOLR_LOCATION">
+					<subreportParameterExpression><![CDATA[$P{SOLR_LOCATION}]]></subreportParameterExpression>
+				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<subreportExpression><![CDATA[$P{baseURL} + $P{subRpt_name}]]></subreportExpression>
 			</subreport>
