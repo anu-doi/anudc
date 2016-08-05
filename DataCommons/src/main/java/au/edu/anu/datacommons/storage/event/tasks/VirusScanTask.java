@@ -22,7 +22,6 @@
 package au.edu.anu.datacommons.storage.event.tasks;
 
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.concurrent.Semaphore;
 
 import au.edu.anu.datacommons.storage.completer.virusscan.ClamScan;
