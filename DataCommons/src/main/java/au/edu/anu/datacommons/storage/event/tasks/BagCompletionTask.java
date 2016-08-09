@@ -22,7 +22,11 @@
 package au.edu.anu.datacommons.storage.event.tasks;
 
 import static java.text.MessageFormat.format;
+
+import gov.loc.repository.bagit.BagFactory.Version;
 import gov.loc.repository.bagit.Manifest.Algorithm;
+import gov.loc.repository.bagit.impl.AbstractBagConstants;
+import gov.loc.repository.bagit.impl.BagItTxtImpl;
 import gov.loc.repository.bagit.v0_95.impl.BagInfoTxtImpl;
 
 import java.io.IOException;
@@ -47,6 +51,7 @@ import au.edu.anu.datacommons.storage.info.FileInfo;
 import au.edu.anu.datacommons.storage.info.FileInfo.Type;
 import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.tagfiles.BagInfoTagFile;
+import au.edu.anu.datacommons.storage.tagfiles.BagItTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.TagFilesService;
 import au.edu.anu.datacommons.storage.tagfiles.TagManifestMd5TagFile;
 import au.edu.anu.datacommons.util.StopWatch;
@@ -76,6 +81,7 @@ public class BagCompletionTask extends AbstractTagFileTask {
 	protected void processTask() throws Exception {
 		waitForTasks();
 		updateBagInfo();
+		updateBagIt();
 		updateTagManifest();
 	}
 
@@ -128,6 +134,17 @@ public class BagCompletionTask extends AbstractTagFileTask {
 		// Bag-Size
 		tagFilesSvc.addEntry(pid, BagInfoTagFile.class, BagInfoTxtImpl.FIELD_BAG_SIZE,
 				Util.byteCountToDisplaySize(payloadOxum.getOctetCount()));
+	}
+
+	private void updateBagIt() throws IOException {
+		Map<String, String> bagItEntries = tagFilesSvc.getAllEntries(pid, BagItTagFile.class);
+		if (bagItEntries.size() != 2) {
+			// Must clear all entries to ensure insertion order.
+			tagFilesSvc.clearAllEntries(pid, BagItTagFile.class);
+			tagFilesSvc.addEntry(pid, BagItTagFile.class, BagItTxtImpl.VERSION_KEY, Version.V0_97.versionString);
+			tagFilesSvc.addEntry(pid, BagItTagFile.class, BagItTxtImpl.CHARACTER_ENCODING_KEY,
+					AbstractBagConstants.BAG_ENCODING);
+		}
 	}
 
 	/**

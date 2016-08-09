@@ -282,13 +282,11 @@ public class StorageResource extends AbstractStorageResource {
 				VerificationResults results = storageController.verifyIntegrity(pid);
 				model.put("results", results);
 				resp = Response.ok(new Viewable("/verificationresults.jsp", model)).build();
+			} else if (task.equals("complete")) {
+				storageController.fixIntegrity(pid);
+				resp = Response.ok("Done").build();
 			}
-//			} else if (task.equals("complete")) {
-//				dcStorage.recompleteBag(pid);
-//			}
 			
-			// TODO Implement this.
-//			throw new UnsupportedOperationException();
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.serverError().entity(e.getMessage()).build();
