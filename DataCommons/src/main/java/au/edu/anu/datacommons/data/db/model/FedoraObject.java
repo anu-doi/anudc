@@ -422,7 +422,6 @@ public class FedoraObject {
 					SolrDocument doc = documentList.get(0);
 					String embargoDateStr = (String) doc.getFirstValue("published.embargoDate");
 					if (embargoDateStr != null) {
-						LOGGER.info("Embargo date string: {}", embargoDateStr);
 						SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 						embargoDate = sdf.parse(embargoDateStr);
 					}

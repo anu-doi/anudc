@@ -68,7 +68,6 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 	@Override
 	public SolrSearchResult executeSearch(String q, int offset, int limit,
 			String filter) throws SolrServerException, IOException {
-		LOGGER.info("Do basic search");
 		q = SolrUtils.escapeSpecialCharacters(q);
 		
 		Object[] list = {q, offset, limit};
