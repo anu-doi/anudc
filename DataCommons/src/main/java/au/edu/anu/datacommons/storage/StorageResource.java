@@ -72,11 +72,6 @@ import com.sun.jersey.api.view.Viewable;
 public class StorageResource extends AbstractStorageResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StorageResource.class);
 
-	@GET
-	public Response get() {
-		return Response.ok("Test").build();
-	}
-
 	/**
 	 * GET request for a file or a folder. For a file, the response is an octet-stream with the contents of the file.
 	 * For a folder the response is an HTML page with the list of files in the folder.
@@ -285,6 +280,10 @@ public class StorageResource extends AbstractStorageResource {
 			} else if (task.equals("complete")) {
 				storageController.fixIntegrity(pid);
 				resp = Response.ok("Done").build();
+			} else if (task.equals("deindex")) {
+				resp = createDeindexResponse(pid);
+			} else if (task.equals("index")) {
+				resp = createIndexResponse(pid);
 			}
 			
 		} catch (Exception e) {
@@ -430,6 +429,34 @@ public class StorageResource extends AbstractStorageResource {
 		return resp.build();
 	}
 
+	private Response createDeindexResponse(String pid) {
+		ResponseBuilder resp = null;
+		
+		try {
+			storageController.deindexFiles(pid);
+			resp = Response.ok();
+		} catch (IOException | StorageException e) {
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().entity(e.getMessage());
+		}
+		
+		return resp.build();
+	}
+
+	private Response createIndexResponse(String pid) {
+		ResponseBuilder resp = null;
+		
+		try {
+			storageController.indexFiles(pid);
+			resp = Response.ok();
+		} catch (IOException | StorageException e) {
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().entity(e.getMessage());
+		}
+		
+		return resp.build();
+	}
+	
 	private String removeTrailingSlash(String path) {
 		if (path.length() > 0 && path.charAt(path.length() - 1) == '/') {
 			return path.substring(0, path.length() - 1);

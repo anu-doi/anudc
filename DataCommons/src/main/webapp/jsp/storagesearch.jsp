@@ -25,7 +25,7 @@
 	<script type="text/javascript" src="<c:url value='/js/solrjs/CurrentSearchWidget.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/solrjs/init.js' />"></script>
 	<script type="text/javascript">
-		solrUrl = "${it.solrUrl}";
+		solrUrl = "./";
 	</script>
 </anu:header>
 

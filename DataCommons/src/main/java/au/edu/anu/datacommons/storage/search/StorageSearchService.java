@@ -34,6 +34,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.BinaryRequestWriter;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,8 +51,7 @@ import au.edu.anu.datacommons.storage.provider.StorageProvider;
 public class StorageSearchService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StorageSearchService.class);
 
-//	HttpSolrServer solrServer;
-	HttpSolrClient solrClient;
+	private HttpSolrClient solrClient;
 
 	public StorageSearchService(String svcUrl) {
 		initSolrServer(svcUrl);
@@ -68,10 +68,10 @@ public class StorageSearchService {
 	 *            URL at which the Solr instance is hosted.
 	 */
 	private void initSolrServer(String svcUrl) {
-		solrClient = new HttpSolrClient(svcUrl);
+		solrClient = new HttpSolrClient.Builder(svcUrl).build();
 //		solrClient.setMaxRetries(1);
-		solrClient.setParser(new XMLResponseParser());
-		solrClient.setRequestWriter(new BinaryRequestWriter());
+		// solrClient.setParser(new XMLResponseParser());
+		// solrClient.setRequestWriter(new BinaryRequestWriter());
 	}
 
 	/**
@@ -169,12 +169,13 @@ public class StorageSearchService {
 	 * @throws SolrServerException
 	 */
 	private void submitDoc(StorageSolrDoc doc) throws IOException, SolrServerException {
+		UpdateResponse updateResp;
 		if (doc.getName() != null) {
-			solrClient.addBean(doc);
-			LOGGER.trace("Added index document for {}.", doc.getId());
+			updateResp = solrClient.addBean(doc);
+			LOGGER.trace("Added index document for {}. Status:{}", doc.getId(), updateResp.getStatus());
 		} else {
-			solrClient.deleteById(doc.getId());
-			LOGGER.trace("Removed index document for {}.", doc.getId());
+			updateResp = solrClient.deleteById(doc.getId());
+			LOGGER.trace("Removed index document for {}. Status:{}", doc.getId(), updateResp.getStatus());
 		}
 	}
 
@@ -193,9 +194,8 @@ public class StorageSearchService {
 	public void close() {
 		try {
 			solrClient.close();
-		}
-		catch (IOException e) {
-			
+		} catch (Exception e) {
+			LOGGER.warn(e.getMessage(), e);
 		}
 	}
 
