@@ -48,6 +48,7 @@ import au.edu.anu.datacommons.storage.event.tasks.PronomTask;
 import au.edu.anu.datacommons.storage.event.tasks.TimestampTask;
 import au.edu.anu.datacommons.storage.event.tasks.VirusScanTask;
 import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.info.FileInfo.Type;
 import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.tagfiles.AbstractKeyValueFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
@@ -179,16 +180,18 @@ public class CompletionTask implements Callable<Void>{
 	private Map<FileInfo, Future<String>> calcMessageDigests(Set<FileInfo> plFiles) {
 		Map<FileInfo, Future<String>> calcMd = new HashMap<>();
 		for (FileInfo plFile : plFiles) {
-			final Path fPlFile = plFile.getPath();
-			Future<String> mdFuture = threadPoolSvc.submit(new Callable<String>() {
-
-				@Override
-				public String call() throws Exception {
-					return MessageDigestHelper.generateFixity(fPlFile.toFile(), Algorithm.MD5);
-				}
-				
-			});
-			calcMd.put(plFile, mdFuture);
+			if (plFile.getType().equals(Type.FILE)) {
+				final Path fPlFile = plFile.getPath();
+				Future<String> mdFuture = threadPoolSvc.submit(new Callable<String>() {
+	
+					@Override
+					public String call() throws Exception {
+						return MessageDigestHelper.generateFixity(fPlFile.toFile(), Algorithm.MD5);
+					}
+					
+				});
+				calcMd.put(plFile, mdFuture);
+			}
 		}
 		return calcMd;
 	}
@@ -241,20 +244,22 @@ public class CompletionTask implements Callable<Void>{
 	 */
 	private void verifyTagFiles(Set<FileInfo> plFiles) throws IOException {
 		for (FileInfo plFile : plFiles) {
-			String dataRelPath = getDataRelPath(plFile);
-
-			for (Class<? extends AbstractKeyValueFile> clazz : classes) {
-				String valueInTagFile = tagFilesSvc.getEntryValue(pid, clazz, dataRelPath);
-				if (valueInTagFile == null) {
-					LOGGER.info("{}/{} doesn't contain entry for {}.", pid, clazz.getSimpleName(), dataRelPath);
-					if (!dryRun) {
-						AbstractTagFileTask task = createTask(clazz, dataRelPath.replaceFirst("^data/", ""));
-						Future<Void> future = threadPoolSvc.submit(task);
-						// Running each task one at a time so as to not fill up the task queue.
-						try {
-							future.get();
-						} catch (InterruptedException | ExecutionException e) {
-							LOGGER.error(e.getMessage(), e);
+			if (plFile.getType().equals(Type.FILE)) {
+				String dataRelPath = getDataRelPath(plFile);
+	
+				for (Class<? extends AbstractKeyValueFile> clazz : classes) {
+					String valueInTagFile = tagFilesSvc.getEntryValue(pid, clazz, dataRelPath);
+					if (valueInTagFile == null) {
+						LOGGER.info("{}/{} doesn't contain entry for {}.", pid, clazz.getSimpleName(), dataRelPath);
+						if (!dryRun) {
+							AbstractTagFileTask task = createTask(clazz, dataRelPath.replaceFirst("^data/", ""));
+							Future<Void> future = threadPoolSvc.submit(task);
+							// Running each task one at a time so as to not fill up the task queue.
+							try {
+								future.get();
+							} catch (InterruptedException | ExecutionException e) {
+								LOGGER.error(e.getMessage(), e);
+							}
 						}
 					}
 				}
