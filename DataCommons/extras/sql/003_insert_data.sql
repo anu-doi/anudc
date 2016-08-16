@@ -2744,6 +2744,8 @@ insert into question_bank (id, question_text) values (13, 'Please state your enq
 insert into question_bank (id, question_text) values (14, 'Please describe how you intend using this collection');
 insert into question_bank (id, question_text) values (15, 'Please state the country where you live');
 
+select setval('question_bank_id_seq', (SELECT MAX(id) FROM question_bank));
+
 insert into question_map (question_fk, domain_fk, required) values (1,1,'1');
 insert into question_map (question_fk, domain_fk, required) values (2,1,'1');
 insert into question_map (question_fk, domain_fk, required) values (3,1,'1');
@@ -2759,6 +2761,8 @@ insert into question_map (question_fk, domain_fk, required) values (12,3,'1');
 insert into question_map (question_fk, domain_fk, required) values (13,3,'1');
 insert into question_map (question_fk, domain_fk, required) values (14,3,'1');
 insert into question_map (question_fk, domain_fk, required) values (15,3,'1');
+
+select setval('question_map_id_seq', (SELECT MAX(id) FROM question_map));
 
 insert into template_publish_location (template_id, location_id)
 select t.id
