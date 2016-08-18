@@ -89,7 +89,7 @@ function initHandlers() {
 	jQuery("td.col-checkbox > input[type='checkbox'][name='i']").on("click", function(e) {
 		condEnableSelTasks();
 	});
-	jQuery("img.clickable-icon[id^='expand']").on("click", function(e) {
+	jQuery("a[id^='expand']").on("click", function(e) {
 		var idExpandable=this.id.replace(/^expand-/, "filerow-extra-");
 		jQuery("#" + idExpandable).slideToggle();
 	});

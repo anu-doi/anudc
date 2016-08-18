@@ -450,6 +450,9 @@
             options.headers = $.extend({}, options.headers);
             if (options.contentRange) {
                 options.headers['Content-Range'] = options.contentRange;
+            } else {
+            	// add Content-Range header even if the body contains the entire file instead a filepart
+            	options.headers['Content-Range'] = "bytes 0-" + (file.size - 1).toString() + "/" + file.size.toString();
             }
             if (!multipart || options.blob || !this._isInstanceOf('File', file)) {
                 options.headers['Content-Disposition'] = 'attachment; filename="' +

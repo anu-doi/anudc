@@ -113,6 +113,10 @@
 		</property>
 	</bean>
 	
+	<bean id="jQueryFileUploadHandler" class="au.edu.anu.datacommons.storage.jqueryupload.JQueryFileUploadHandler">
+		<constructor-arg value="${upload.uploadDir}" />
+	</bean>
+	
 	<bean id="archiveRootDir" class="java.nio.file.Paths" factory-method="get">
 		<constructor-arg value="${upload.archiveBaseDir}" />
 		<constructor-arg><array /></constructor-arg>

@@ -373,7 +373,6 @@ public class AbstractStorageResource {
 			} else {
 				addAccessLog(Operation.CREATE);
 			}
-			// dcStorage.addFile(pid, ufi, path);
 			storageController.addFile(pid, path, ufi);
 			LOGGER.info("User {} ({}) added file {}/data/{}, Size: {}, MD5: {}", getCurUsername(), getRemoteIp(), pid,
 					path, Util.byteCountToDisplaySize(ufi.getSize()), ufi.getMd5());

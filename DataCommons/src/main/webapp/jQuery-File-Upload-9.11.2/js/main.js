@@ -18,7 +18,34 @@ $(function () {
     $('#fileupload').fileupload({
         // Uncomment the following to send cross-domain cookies:
         //xhrFields: {withCredentials: true},
-        url: 'server/php/'
+        // url: 'server/php/'
+    	maxChunkSize: 1024 * 1024,	// 1 MB
+    	sequentialUploads: true,
+    	// retry delay in milliseconds
+    	maxRetries: 30,
+    	retryTimeout: 500,
+
+    	fail: function(e, data) {
+    		var fu = $(this).data('blueimp-fileupload') || $(this).data('fileupload');
+    		var retries = data.context.data('retries') || 0;
+    		var retry = function () {
+    			data.data = null;
+    			data.submit();
+            };
+            
+            if (data.errorThrown !== 'abort' && data.errorThrown !== 'Unauthorized' &&
+                    data.uploadedBytes < data.files[0].size &&
+                    retries < fu.options.maxRetries) {
+                retries += 1;
+                data.context.data('retries', retries);
+                window.setTimeout(retry, retries * fu.options.retryTimeout);
+                return;
+            }
+            data.context.removeData('retries');
+    		
+    		$.blueimp.fileupload.prototype.options.fail.call(this, e, data);
+    	},
+    	
     });
 
     // Enable iframe cross-domain access via redirect option:
@@ -63,7 +90,7 @@ $(function () {
             //xhrFields: {withCredentials: true},
             url: $('#fileupload').fileupload('option', 'url'),
             dataType: 'json',
-            context: $('#fileupload')[0]
+            context: $('#fileupload')[0],
         }).always(function () {
             $(this).removeClass('fileupload-processing');
         }).done(function (result) {

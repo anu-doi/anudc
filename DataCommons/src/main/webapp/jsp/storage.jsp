@@ -11,6 +11,7 @@
 	respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 
 	<link href="<c:url value='/css/storage.css' />" rel="stylesheet" type="text/css" />
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 	<script type="text/javascript" src="<c:url value='/js/storage.js' />"></script>
 	<script type="text/javascript">
 		jQuery(document).ready(function() {
@@ -32,11 +33,6 @@
 			<li><a href="#files">Files</a></li>
 			<li><a href="#info">Archive Info</a></li>
 			<li><a href="#extRefs">External References</a></li>
-			<sec:authorize access="isAuthenticated()">
-				<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
-					<li><a href="#uploadFiles">Upload Files</a></li>
-				</sec:authorize>
-			</sec:authorize>
 		</ul>
 	</div>
 </anu:content>
@@ -78,21 +74,21 @@
 						<sec:authorize access="isAuthenticated()">
 							<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 								<!-- Create Folder icon -->
-								<img id="action-create-folder" class="clickable-icon" src="<c:url value='/images/folder-new.png' />" title="Create Folder"></img>
+								<a href="javascript:" id="action-create-folder"><i class="material-icons" title="Create new folder">create_new_folder</i></a>
+								<!-- Upload Files icon -->
+								<a href="?upload"><i class="material-icons" title="Upload files">file_upload</i></a>
 								<!-- Delete Selected Files icon -->
-								<img id="action-del-selected" class="clickable-icon" src="<c:url value='/images/delete_red.png' />" title="Delete Selected Files"></img>
-								<!-- Upload Files -->
-								<img id="action-scroll-upload" class="clickable-icon" src="<c:url value='/images/file-upload.png' />" title="Scroll to upload pane"></img>
+								<a href="javascript:" id="action-del-selected"><i class="material-icons" title="Delete selected files">delete</i></a>
 							</sec:authorize>
 						</sec:authorize>
 						
 						<!-- Download selected files as Zip icon -->
-						<img id="action-dl-zip" class="clickable-icon" src="<c:url value='/images/zip.png' />" title="Download selected as Zip"></img>
+						<a id="action-dl-zip" href="javascript:"><i class="material-icons" title="Download selected files">file_download</i></a>
 						
 						<!-- Check bag files icon -->
 						<sec:authorize access="hasRole('ROLE_ADMIN')">
-							<a href="<c:url value='${baseDataUrl}../admin?task=verify' />">
-								<img id="action-verify-files" class="clickable-icon" src="//style.anu.edu.au/_anu/images/icons/web/check.png" title="Verify"></img>
+							<a href="<c:url value='${baseDataUrl}../admin?task=verify' />" id="action-verify-files">
+								<i class="material-icons" title="Verify">playlist_add_check</i>
 							</a>
 						</sec:authorize>
 					</div>
@@ -124,17 +120,14 @@
 							<td class="col-checkbox"><input type="checkbox" name="i" value="${relUrl}" /></td>
 							
 							<!-- Icon and filename as hyperlink -->
-							<td class="col-filename"><a class="nounderline" href="<c:url value='${relUrl}'/>" title="${iFile.relFilepath}">
+							<td class="col-filename">
+								<a class="nounderline" href="<c:url value='${relUrl}'/>" title="${iFile.relFilepath}">
 								<c:choose>
 									<c:when test="${iFile.type == 'DIR'}">
-										<img class="clickable-icon" src="//style.anu.edu.au/_anu/images/icons/web/folder.png"
-												onmouseover="this.src='//style.anu.edu.au/_anu/images/icons/web/folder-over.png'"
-												onmouseout="this.src='//style.anu.edu.au/_anu/images/icons/web/folder.png'" />
+										<i class="material-icons">folder</i>
 									</c:when>
 									<c:when test="${iFile.type == 'FILE'}">
-										<img class="clickable-icon" src="//style.anu.edu.au/_anu/images/icons/web/paper.png"
-												onmouseover="this.src='//style.anu.edu.au/_anu/images/icons/web/paper-over.png'"
-												onmouseout="this.src='//style.anu.edu.au/_anu/images/icons/web/paper.png'" />
+										<i class="material-icons">description</i>
 									</c:when>
 								</c:choose>
 							<c:out value="${iFile.filename}" /></a></td>
@@ -170,8 +163,8 @@
 							<td class="col-action-icons">
 								<!-- Preserved File Icon -->
 								<c:if test="${not empty iFile.presvPath}">
-									<a href="<c:url value='${baseDataUrl}${iFile.presvPath}' />">
-										<img class="clickable-icon" src="<c:url value='/images/ice_icon.png' />" title="Download preserved format" />
+									<a href="<c:url value='${baseDataUrl}${iFile.presvPath}' />" title="Download preserved format">
+										<i class="material-icons">archive</i>
 									</a>
 								</c:if>
 								
@@ -193,8 +186,8 @@
 								<!-- Rename icon -->
 								<sec:authorize access="isAuthenticated()">
 									<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
-										<a href="javascript:void(0);" onclick="renameFile('${relUrl}', '${iFile.relFilepath}')">
-											<img class="clickable-icon" src="<c:url value='/images/rename.png' />" title="Rename ${iFile.filename}" />
+										<a href="javascript:" onclick="renameFile('${relUrl}', '${iFile.relFilepath}')">
+											<i class="material-icons" title="Rename ${iFile.filename}">edit</i>
 										</a>
 									</sec:authorize>
 								</sec:authorize>
@@ -203,14 +196,14 @@
 								<sec:authorize access="isAuthenticated()">
 									<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 										<c:set var="escapedRelUrl" value="${fn:replace(relUrl, '\\'', '\\\\\\'') }" />
-										<a href="javascript:void(0);" onclick="deleteFile('${escapedRelUrl}')">
-											<img class="clickable-icon" src="<c:url value='/images/delete_red.png' />" title="Delete ${iFile.filename}" />
+										<a href="javascript:" onclick="deleteFile('${escapedRelUrl}')">
+											<i class="material-icons" title="Delete ${iFile.filename}">delete</i>
 										</a>
 									</sec:authorize>
 								</sec:authorize>
 								
 								<!-- Expand -->
-								<img class="clickable-icon" id="expand-${stat.count}" src="<c:url value='/images/arrow-right.png' />" />
+								<a href="javascript:" id="expand-${stat.count}"><i class="material-icons">expand_more</i></a>
 							</td>
 						</tr>
 						
@@ -278,7 +271,7 @@
 				<c:forEach var="iEntry" items="${it.rdi.extRefs}">
 					<li class="large">
 						<a href="${iEntry}"><c:out value='${iEntry}' /></a>&nbsp;&nbsp;
-						<img class="clickable-icon" src="<c:url value='/images/delete_red.png' />" onclick="deleteExtRef('${iEntry}');" />
+						<a href="javascript:" onclick="deleteExtRef('${iEntry}');"><i class="material-icons" title="Delete">delete</i></a>
 					</li>
 				</c:forEach>
 			</ul>
@@ -319,37 +312,5 @@
 		</c:when>
 	</c:choose>
 </div>
-
-<sec:authorize access="isAuthenticated()">
-	<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
-		<div class="doublewide nopadtop" id="uploadFiles" style="display: none;">
-			<p class="msg-info">
-				The Java upload applet below may take a few moments to display. When it does, either drag and drop files from your system into the applet, or click on the <em>Browse</em>
-				button to select files from a dialog box.
-			</p>
-			<form class="anuform" name="uploadForm" id="idUploadForm" enctype="multipart/form-data" method="post" action="/">
-				<applet code="wjhk.jupload2.JUploadApplet.class" name="JUpload" archive="<c:url value='/plugins/jupload-5.0.8.jar' />" width="680" height="500" mayscript
-					alt="The java plugin must be installed.">
-					<param name="postURL" value="<c:url value=';jsessionid=${cookie.JSESSIONID.value}?src=jupload' />" />
-					<param name="stringUploadSuccess" value="^SUCCESS$" />
-					<param name="stringUploadError" value="^ERROR: (.*)$" />
-					<param name="stringUploadWarning" value="^WARNING: (.*)$" />
-					<param name="debugLevel" value="1" />
-					<param name="maxChunkSize" value="10485760" />
-					<param name="lang" value="en" />
-					<param name="formdata" value="uploadForm" />
-					<param name="showLogWindow" value="false" />
-					<param name="showStatusBar" value="true" />
-					<param name="sendMD5Sum" value="true" />
-					<param name="readCookieFromNavigator" value="true" />
-					<param name="type" value="application/x-java-applet;version=1.6">
-					<param name="afterUploadURL" value="javascript:location.reload();" />
-					This Java Applet requires Java 1.6 or higher.
-				</applet>
-			</form>
-		</div>
-	</sec:authorize>
-</sec:authorize>
-
 
 <jsp:include page="/jsp/footer.jsp" />
