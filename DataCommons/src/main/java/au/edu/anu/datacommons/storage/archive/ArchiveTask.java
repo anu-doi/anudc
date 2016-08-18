@@ -171,7 +171,9 @@ public class ArchiveTask implements Callable<File> {
 	private void createIfNotExists(File dir) throws IOException {
 		if (!dir.isDirectory()) {
 			if (!dir.mkdirs()) {
-				throw new IOException(format("Unable to create directory {0}.", dir.getAbsolutePath()));
+				if (!dir.isDirectory()) {
+					throw new IOException(format("Unable to create directory {0}.", dir.getAbsolutePath()));
+				}
 			}
 		}
 	}
