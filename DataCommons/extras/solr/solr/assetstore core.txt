@@ -1,10 +1,10 @@
 Create a core:
 	sudo su - solr
-	/opt/solr/bin/solr -c assetstore -d basic_configs
+	/opt/solr/bin/solr create -c assetstore -d basic_configs
 	 
 
 Add the following text to managed-schema file:
-   <!-- Fields for Data Commons -->
+   <!-- BEGIN Fields for Data Commons -->
 
    <field name="name" type="text_en_splitting" indexed="true" stored="true" multiValued="false" />
    <field name="ext" type="string" indexed="true" stored="true" multiValued="false" />
@@ -34,7 +34,7 @@ Add the following text to managed-schema file:
    <!-- field for the QueryParser to use when an explicit fieldname is absent -->
    <defaultSearchField>allText</defaultSearchField>
 
-   <!-- Fields for Data Commons -->
+   <!-- END Fields for Data Commons -->
    
    
 In the file solrconfig.xml:
