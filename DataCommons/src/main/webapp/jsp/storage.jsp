@@ -11,8 +11,6 @@
 	respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 
 	<link href="<c:url value='/css/storage.css' />" rel="stylesheet" type="text/css" />
-	<script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/md5.js"></script>
-	<script src="//crypto-js.googlecode.com/svn/tags/3.1.2/build/components/lib-typedarrays-min.js"></script>
 	<script type="text/javascript" src="<c:url value='/js/storage.js' />"></script>
 	<script type="text/javascript">
 		jQuery(document).ready(function() {
