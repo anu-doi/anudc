@@ -100,4 +100,11 @@ public interface DoiConfig {
 	 * @return Base URI as String.
 	 */
 	public UriBuilder getLandingUri();
+	
+	/**
+	 * Gets the shared secret used for client authentication.
+	 * 
+	 * @return Shared Secret as String
+	 */
+	public String getSharedSecret();
 }
