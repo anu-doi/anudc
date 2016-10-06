@@ -86,7 +86,6 @@ public class UsersDAOImpl extends GenericDAOImpl<Users, Long> implements UsersDA
 			users = (Users) query.getSingleResult();
 		}
 		catch (NoResultException e) {
-			LOGGER.warn("No entity found for username {}", username);
 		}
 		finally {
 			entityManager.close();
