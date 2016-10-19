@@ -28,6 +28,7 @@ import javax.servlet.ServletContextListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.report.schedule.ReportScheduler;
 import au.edu.anu.datacommons.report.schedule.ReportSchedulerManager;
 
@@ -49,21 +50,31 @@ import au.edu.anu.datacommons.report.schedule.ReportSchedulerManager;
  */
 public class ReportAppListener implements ServletContextListener {
 	static final Logger LOGGER = LoggerFactory.getLogger(ReportServiceImpl.class);
+	
+	private final boolean isEnabled;
 
+	public ReportAppListener() {
+		isEnabled = Boolean.parseBoolean(GlobalProps.getProperty("reporting.enabled", "true"));
+	}
+	
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
-		ReportSchedulerManager reportSchedulerManager = ReportSchedulerManager.getInstance();
-		ReportScheduler scheduler = reportSchedulerManager.getReportScheduler();
-		scheduler.cancelAll();
+		if (isEnabled) {
+			ReportSchedulerManager reportSchedulerManager = ReportSchedulerManager.getInstance();
+			ReportScheduler scheduler = reportSchedulerManager.getReportScheduler();
+			scheduler.cancelAll();
+		}
 	}
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
-		ServletContext context = event.getServletContext();
-		ReportGenerator.reloadReports(context);
-		ReportSchedulerManager reportSchedulerManager = ReportSchedulerManager.getInstance();
-		
-		reportSchedulerManager.setServletContext(context);
-		reportSchedulerManager.getReportScheduler().scheduleAll();
+		if (isEnabled) {
+			ServletContext context = event.getServletContext();
+			ReportGenerator.reloadReports(context);
+			ReportSchedulerManager reportSchedulerManager = ReportSchedulerManager.getInstance();
+			
+			reportSchedulerManager.setServletContext(context);
+			reportSchedulerManager.getReportScheduler().scheduleAll();
+		}
 	}
 }
