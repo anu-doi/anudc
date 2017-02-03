@@ -73,7 +73,7 @@ public class ClamScan {
 	}
 
 	private ProcessBuilder generateClamScanProcessBuilder() {
-		return new ProcessBuilder(getClamScanProcPath(), "--no-summary", "-");
+		return new ProcessBuilder(getClamScanProcPath(), "--no-summary", "--max-filesize=500M", "-");
 	}
     
     private String getClamScanProcPath() {
