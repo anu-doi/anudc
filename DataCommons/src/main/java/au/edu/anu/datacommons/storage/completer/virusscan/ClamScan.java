@@ -27,9 +27,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,9 +63,8 @@ public class ClamScan {
 		try (InputStream csStdout = new BufferedInputStream(csProc.getInputStream());
 				OutputStream csStdin = new BufferedOutputStream(csProc.getOutputStream())) {
 			// copy bytes from the stream to be scanned into the process' stdin
-			long nBytesCopied = IOUtils.copyLarge(scanStream, csStdin);
-			// close stdin so the process knows no more bytes are coming
-			IOUtils.closeQuietly(csStdin);
+			// long nBytesCopied = IOUtils.copyLarge(scanStream, csStdin);
+			long nBytesCopied = sizeLimitedCopy(scanStream, csStdin, 512L * FileUtils.ONE_MB);
 			respStr = IOUtils.toString(csStdout, StandardCharsets.UTF_8);
 			// trim response of whitespaces and newlines
 			respStr = respStr.trim();
@@ -71,9 +73,29 @@ public class ClamScan {
 		}
 		return respStr;
 	}
+	
+	private long sizeLimitedCopy(InputStream in, OutputStream out, long maxBytesToCopy) throws IOException {
+		byte[] buffer = new byte[8192];
+		long totalBytesRead = 0L;
+		for (int nBytesRead = in.read(buffer); nBytesRead > -1
+				&& totalBytesRead <= maxBytesToCopy; nBytesRead = in.read(buffer)) {
+			out.write(buffer, 0, nBytesRead);
+			totalBytesRead += nBytesRead;
+		}
+		IOUtils.closeQuietly(in);
+		IOUtils.closeQuietly(out);
+		return totalBytesRead;
+	}
 
 	private ProcessBuilder generateClamScanProcessBuilder() {
-		return new ProcessBuilder(getClamScanProcPath(), "--no-summary", "--max-filesize=500M", "-");
+		List<String> args = new ArrayList<>();
+		args.add(getClamScanProcPath());
+		args.add("--no-summary");
+		if (GlobalProps.getProperty("clamscan.tempdir") != null) {
+			args.add("--tempdir=" + GlobalProps.getProperty("clamscan.tempdir"));
+		}
+		args.add("-");
+		return new ProcessBuilder(args);
 	}
     
     private String getClamScanProcPath() {
