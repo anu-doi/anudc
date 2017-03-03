@@ -92,7 +92,6 @@ public class LoginServlet extends HttpServlet
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		String errorParam = request.getParameter("error");
-		String methodParam = request.getParameter("method");
 		if("true".equals(errorParam)) {
 			request.setAttribute("error", "You have entered an invalid username or password");
 		}
@@ -109,24 +108,9 @@ public class LoginServlet extends HttpServlet
 				}
 			}
 		}
-		RequestDispatcher requestDispatcher = null;
 		
-		if ("anu".equals(methodParam)) {
-			StringBuilder casURL = new StringBuilder();
-			casURL.append(GlobalProps.getProperty(GlobalProps.PROP_CAS_SERVER));
-			casURL.append("/login?service=");
-			casURL.append(GlobalProps.getProperty(GlobalProps.PROP_APP_SERVER));
-			casURL.append(request.getServletContext().getContextPath());
-			casURL.append("/j_spring_cas_security_check");
-			response.sendRedirect(casURL.toString());
-			return;
-		}
-		else if ("registered".equals(methodParam)) {
-			requestDispatcher = request.getRequestDispatcher("jsp/login.jsp");
-		}
-		else {
-			requestDispatcher = request.getRequestDispatcher("jsp/login_select.jsp");
-		}
+		RequestDispatcher requestDispatcher = null;
+		requestDispatcher = request.getRequestDispatcher("jsp/login_select.jsp");
 		requestDispatcher.forward(request, response);
 	}
 }

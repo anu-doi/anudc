@@ -11,19 +11,31 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublenarrow" extraClass="nopadbottom" title="Select Login Method">
-	<div id="login-error">${error}</div>
+<anu:content layout="doublewide" extraClass="nopadbottom" title="Login">
+	<c:if test="${not empty error}">
+		<div id="login-error" class="msg-error">${error}</div>
+	</c:if>
 
-	<label for="loginmethod">Select Login Method</label>
-	<form method="GET" action="<c:url value='/login-select' />">
-		<select name="method" id="method" onchange="this.form.submit()">
-			<option value="">Please select a login method</option>
-			<option value="anu">ANU User</option>
-			<option value="registered">Registered User</option>
-		</select>
+	<form class="anuform labelwide" name="frmLogin" method="post" onsubmit="usernameToLowerCase()" action='<c:url value="/login" />'>
+		<fieldset>
+			<p>
+				<label for="username">Uni ID or Email</label>
+				<input type="text" class="text tfull" name="username" value="" size="60" autofocus="autofocus">
+			</p>
+			<p class="instruction">ANU Uni ID (e.g. u1234567, a123456) or external Email address (e.g. john.smith@gmail.com)</p>
+			<p>
+				<label for="password">Password</label>
+				<input type="password" class="text tfull" name="password" size="60" />
+			</p>
+			<p>
+			<p class="text-right">
+				<input name="submit" type="submit" value="Login" />
+			</p>
+	
+		</fieldset>
 	</form>
-	<br />
-	<a href="<c:url value='/rest/user/new' />">Register</a>
+	<a href="<c:url value='/rest/user/new' />">Register</a>&nbsp;|&nbsp; 
+	<a href="<c:url value='/rest/user/forgotpassword' />">Forgot Password</a>
 
 </anu:content>
 
