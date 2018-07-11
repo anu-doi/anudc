@@ -87,6 +87,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 */
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		LOGGER.info("In loadUserByUsername");
 		username = username.toLowerCase();
 		
 		Set<GrantedAuthority> dbAuthsSet = new HashSet<GrantedAuthority>();
@@ -134,6 +135,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 * @return The custom user
 	 */
 	protected UserDetails createUserDetails(String username, UserDetails userDetails, List<GrantedAuthority> authorities) {
+		LOGGER.info("In createUserDetails");
 		UsersDAO usersDAO = new UsersDAOImpl();
 		Users users = usersDAO.getUserByName(username);
 		CustomUser user = null;
@@ -147,6 +149,9 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 			users = usersDAO.getSingleById(newUser.getId());
 		}
 		user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authorities, users.getId(), users.getDisplayName());
+		
+		LOGGER.info("In createUserDetails returning display name: {}", user.getDisplayName());
+		
 		return user;
 	}
 

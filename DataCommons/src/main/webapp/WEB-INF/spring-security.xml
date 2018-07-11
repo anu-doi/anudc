@@ -33,7 +33,6 @@
 	<bean id="customAuthenticationEntryPoint" class="au.edu.anu.datacommons.security.CustomAuthenticationEntryPoint" />
 	
 	<security:authentication-manager alias="authenticationManager">
-		<!-- <security:authentication-provider ref="casAuthenticationProvider" /> -->
 	 	<security:authentication-provider ref="ldapAuthProvider" />
 		<security:authentication-provider ref="daoAuthenticationProvider" />
 		<security:authentication-provider ref="preauthAuthProvider" />
@@ -72,6 +71,11 @@
 			</bean>
 		</constructor-arg>
 		<property name="userDetailsContextMapper" ref="ldapUserDetailsContextMapper" />
+		<constructor-arg name="authoritiesPopulator">
+			<bean class="org.springframework.security.ldap.authentication.UserDetailsServiceLdapAuthoritiesPopulator">
+				<constructor-arg name="userService" ref="userService"/>
+			</bean>
+		</constructor-arg>
 	</bean>
 	
 	<bean id="ldapUserDetailsContextMapper" class="au.edu.anu.datacommons.security.ldap.ANUUserDetailsContextMapper" />
