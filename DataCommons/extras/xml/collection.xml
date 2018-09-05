@@ -14,7 +14,7 @@
 	<tab name="rights" label="Rights" order="6" />
 	<tab name="management" label="Management" order="8" />
 	<item name="type" label="Type" fieldType="TextField" saveType="single" defaultValue="Collection" readonly="readonly" editPerm="admin" tab="general" />
-	<item name="name" label="Title" fieldType="TextField" saveType="single" maxLength="80" class="required" tab="general">
+	<item name="name" label="Title" fieldType="TextField" saveType="single" maxLength="255" class="required" tab="general">
 		<tooltip>This is the title of the data collection. It needs to be unique, i.e. do not use a title that is identical to an existing publication that is related to and/or underpinned by the data.&#xA;&#xA;Titles that are descriptive of the actual data are best. Try to include key distinctive characteristics that would provide information for potential users to determine if the data might be useful to them. These may include information specific to the entities studied, survey data, observations, images collected, location, time, and temporal or spatial coverage.&#xA;&#xA;Examples:&#xA;Net levels of greenhouse gas emission and sources in the New South Wales Hunter Valley, 1990 - 1998.</tooltip>
 	</item>
 	<item name="abbrName" label="Brief Title" fieldType="TextField" saveType="single" maxLength="255" tab="general">
@@ -52,13 +52,13 @@
 		<option value="en" label="English" />
 		<option value="zh" label="Chinese" />
 	</item>
-	<item name="significanceStatement" label="Significance Statement" fieldType="TextArea" saveType="single" maxLength="4000" tab="description">
+	<item name="significanceStatement" label="Significance Statement" fieldType="TextArea" saveType="single" tab="description">
 		<tooltip>What is significant about this dataset. For example:&#xA;&#xA;The first Australian full talking film.</tooltip>
 	</item>
-	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" maxLength="4000"  tab="description">
+	<item name="briefDesc" label="Brief Description" fieldType="TextArea" saveType="single" tab="description">
 		<tooltip>A brief summary about the data</tooltip>
 	</item>
-	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" maxLength="4000" class="needed"  tab="description">
+	<item name="fullDesc" label="Full Description" fieldType="TextArea" saveType="single" class="needed"  tab="description">
 		<tooltip>The description should be as rich as possible. If applicable, include: the scope; details of what is being studied or recorded; methodologies used, information about any instruments that were used to produce and/or collect the data; relevant standards used; conditions under which the study or research occured or the data was collected, etc&#xA;If there were any problems or other issues with methods used to produce and/or collect the data, please include those as well.</tooltip>
 	</item>
 	<item name="email" label="Contact Email" fieldType="TextFieldMulti" saveType="multiple" class="needed email" tab="people" />
