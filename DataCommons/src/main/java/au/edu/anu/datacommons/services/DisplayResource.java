@@ -61,6 +61,7 @@ import org.springframework.stereotype.Component;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.exception.DataCommonsException;
 import au.edu.anu.datacommons.exception.ValidateException;
+import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.xml.sparql.Result;
@@ -551,6 +552,9 @@ public class DisplayResource
 	{
 		Response resp = null;
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(relPid);
+		
+//		String itemPrefix = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_SAVENAMESPACE);
+		
 		try
 		{
 			if (fedoraObject == null)
@@ -559,10 +563,10 @@ public class DisplayResource
 				throw new IllegalArgumentException("linkType not provided.");
 			if (itemId == null || itemId.length() == 0)
 				throw new IllegalArgumentException("itemId not provided.");
-			String nsPrefix = "info:fedora/";
-			if (!itemId.toLowerCase().startsWith("http://") && !itemId.toLowerCase().startsWith(nsPrefix)) {
-				itemId = MessageFormat.format("{0}{1}", nsPrefix, itemId);
-			}
+//			String nsPrefix = "info:fedora/";
+//			if (itemId.toLowerCase().startsWith(itemPrefix)) {
+//				itemId = MessageFormat.format("{0}{1}", nsPrefix, itemId);
+//			}
 			fedoraObjectService.addLink(fedoraObject, linkType, itemId);
 			resp = Response.ok("OK", MediaType.TEXT_PLAIN_TYPE).build();
 		}

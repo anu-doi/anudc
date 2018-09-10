@@ -235,15 +235,13 @@ public class ANDSValidate implements Validate{
 	private boolean isValidCollection(String pid, Document doc) {
 		// Required Assocation Types
 		// Party
-		// Activity
 		
 		boolean isValid = true;
 		if(!hasAssociatedType(pid, "party", 2)) {
 			isValid = false;
 		}
-		if(!hasAssociatedType(pid, "activity", 3)) {
-			isValid = false;
-		}
+		// Should show in validation but not required
+		hasAssociatedType(pid, "activity", 3);
 		boolean validationErrors = xmlValidate(pid, CollectionCheck.class);
 		/*if (!validationErrors) {
 			isValid = false;

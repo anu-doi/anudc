@@ -34,6 +34,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -50,11 +51,14 @@ import org.springframework.stereotype.Service;
 import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
+import au.edu.anu.datacommons.data.db.dao.ExternalLinkDAO;
+import au.edu.anu.datacommons.data.db.dao.ExternalLinkDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.LinkTypeDAO;
 import au.edu.anu.datacommons.data.db.dao.LinkTypeDAOImpl;
+import au.edu.anu.datacommons.data.db.model.ExternalLinkPattern;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.LinkType;
@@ -66,6 +70,7 @@ import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.doi.DoiClient;
 import au.edu.anu.datacommons.doi.DoiException;
 import au.edu.anu.datacommons.doi.DoiResourceAdapter;
+import au.edu.anu.datacommons.exception.DataCommonsException;
 import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
@@ -509,6 +514,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	@Override
 	public void addLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException {
 		String link = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI);
+		String pidNamespace = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_SAVENAMESPACE);
 		
 		LinkTypeDAO linkTypeDAO = new LinkTypeDAOImpl();
 		LinkType linkTypeRecord = linkTypeDAO.getByCode(linkType);
@@ -516,22 +522,62 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			throw new WebApplicationException(Response.status(400).entity("Invalid relation type").build());
 		}
 		
+		if (itemId.startsWith("info:fedora/")) {
+			String referencePid = itemId.substring(12);
+			FedoraObject referenceItem = getItemByPid(referencePid);
+			if (referenceItem == null) {
+				throw new DataCommonsException(Status.NOT_FOUND, "Unable to find reference object");
+			}
+			addLink(fedoraObject, link + linkTypeRecord.getCode(), link + linkTypeRecord.getReverse(), referenceItem);
+		}
+		else if (itemId.startsWith(pidNamespace)) {
+			FedoraObject referenceItem = getItemByPid(itemId);
+			if (referenceItem == null) {
+				throw new DataCommonsException(Status.NOT_FOUND, "Unable to find reference object");
+			}
+			addLink(fedoraObject, link + linkTypeRecord.getCode(), link + linkTypeRecord.getReverse(), referenceItem);
+		}
+		else {
+			ExternalLinkDAO linkDAO = new ExternalLinkDAOImpl();
+			List<ExternalLinkPattern> patterns = linkDAO.findByReference(itemId);
+			// Check the link belongs to a pattern
+			if (patterns == null || patterns.size() == 0) {
+				throw new DataCommonsException(400, "Invalid external link");
+			}
+			
+			saveLink(fedoraObject, link + linkTypeRecord.getCode(), itemId);
+		}
+	}
+	
+	/**
+	 * Add links
+	 * 
+	 * @param fedoraObject The fedora object to create links for
+	 * @param linkType The link type
+	 * @param reverseLink The reverse of the link type
+	 * @param linkTo The fedora object for opposite relation
+	 * @throws FedoraClientException
+	 */
+	private void addLink(FedoraObject fedoraObject, String linkType, String reverseLink, FedoraObject linkTo) throws FedoraClientException {
+		String fedoraPredicate = "info:fedora/";
+		saveLink(fedoraObject, linkType, fedoraPredicate + linkTo.getObject_id());
+		saveLink(linkTo, reverseLink, fedoraPredicate + fedoraObject.getObject_id());
+	}
+	
+	/**
+	 * Save the link
+	 * 
+	 * @param fedoraObject The object ot save the relation with
+	 * @param linkType The type of relationship
+	 * @param link The link value
+	 * @throws FedoraClientException
+	 */
+	private void saveLink(FedoraObject fedoraObject, String linkType, String link) throws FedoraClientException {
 		FedoraReference reference = new FedoraReference();
-		String referenceType = linkType;
-		String referenceItem = itemId;
-		reference.setPredicate_(link + referenceType);
-		reference.setObject_(referenceItem);
+		reference.setPredicate_(linkType);
+		reference.setObject_(link);
 		reference.setIsLiteral_(Boolean.FALSE);
 		FedoraBroker.addRelationship(fedoraObject.getObject_id(), reference);
-		
-		if (referenceItem.startsWith("info:fedora/")) {
-			String referenceItemID = referenceItem.substring(12);
-			FedoraReference reverseReference = new FedoraReference();
-			reverseReference.setPredicate_(link + linkTypeRecord.getReverse());
-			reverseReference.setObject_("info:fedora/" + fedoraObject.getObject_id());
-			reverseReference.setIsLiteral_(Boolean.FALSE);
-			FedoraBroker.addRelationship(referenceItemID, reverseReference);
-		}
 	}
 	
 	/**
