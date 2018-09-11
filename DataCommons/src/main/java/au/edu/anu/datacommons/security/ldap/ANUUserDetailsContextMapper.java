@@ -80,6 +80,9 @@ public class ANUUserDetailsContextMapper implements
 	@Override
 	public UserDetails mapUserFromContext(DirContextOperations ctx,
 			String username, Collection<? extends GrantedAuthority> authorities) {
+		// Make the username case insensitive
+		username = username.toLowerCase();
+		
 		UsersDAO usersDAO = new UsersDAOImpl();
 		Users users = usersDAO.getUserByName(username);
 		

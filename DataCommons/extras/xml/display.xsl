@@ -16,7 +16,7 @@
 						<table>
 							<xsl:for-each select="template/item">
 								<xsl:variable name="name" select="@name" />
-								<xsl:if test="$mData/data/*[name() = $name]">
+								<xsl:if test="$mData/data/*[name() = $name] and $name != 'uid'">
 									<tr>
 										<th valign="top"><xsl:value-of select="@label" /></th>
 										<td>
@@ -46,7 +46,7 @@
 									</tr>
 								</xsl:if>
 								<xsl:if test="$modifiedData != ''">
-									<xsl:if test="$mModifiedData/data/*[name() = $name]">
+									<xsl:if test="$mModifiedData/data/*[name() = $name] and $name != 'uid'">
 										<tr>			
 											<th valign="top"><xsl:value-of select="@label" /> Modified</th>
 											<td>
