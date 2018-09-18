@@ -425,13 +425,13 @@ public class ANDSValidate implements Validate{
 		//TODO see if there is an easier way to get this information
 		ExternalPoster poster = (ExternalPoster) AppContext.getApplicationContext().getBean("riSearchService");
 		
-		MultivaluedMapImpl parameters = new MultivaluedMapImpl();
-		parameters.add("dt", "on");
-		parameters.add("format", "Sparql");
-		parameters.add("lang", "sparql");
-		parameters.add("limit", "1");
-		parameters.add("type", "tuples");
-		poster.setParameters(parameters);
+//		MultivaluedMapImpl parameters = new MultivaluedMapImpl();
+//		parameters.add("dt", "on");
+//		parameters.add("format", "Sparql");
+//		parameters.add("lang", "sparql");
+//		parameters.add("limit", "1");
+//		parameters.add("type", "tuples");
+//		poster.setParameters(parameters);
 		ClientResponse response = poster.post("query", queryString.toString());
 		Document responseDoc = response.getEntity(Document.class);
 		
