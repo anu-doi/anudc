@@ -72,6 +72,6 @@
 
 	<anu:submenu title="External Links">
 		<li><a href="<c:url value='http://ands.org.au/' />">ANDS</a></li>
-		<li><a href="<c:url value='http://services.ands.org.au/home/orca/rda/' />">Research Data Australia</a></li>
+		<li><a href="<c:url value='https://researchdata.ands.org.au/' />">Research Data Australia</a></li>
 	</anu:submenu>
 </anu:menu>
