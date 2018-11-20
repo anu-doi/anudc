@@ -53,6 +53,8 @@ public interface StorageController {
 	boolean dirExists(String pid, String filepath) throws StorageException;
 
 	FileInfo getFileInfo(String pid, String filepath) throws IOException, StorageException;
+	
+	FileInfo getFileInfo(String pid, String filepath, int depth) throws IOException, StorageException;
 
 	RecordDataSummary getRecordDataSummary(String pid) throws IOException, StorageException;
 

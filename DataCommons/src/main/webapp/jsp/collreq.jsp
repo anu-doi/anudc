@@ -63,7 +63,7 @@
 						<p>
 							<!-- Files for approval -->
 						<ul>
-							<c:forEach var="iFile" items="${it.downloadables.getChildren('name')}">
+							<c:forEach var="iFile" items="${it.downloadables.getChildrenRecursive()}">
 								<c:if test="${iFile.type == 'FILE'}">
 									<li><input type="checkbox" name="file" value="${iFile.relFilepath}"
 											<c:forEach items="${it.collReq.items}" var="iCurItem">
@@ -72,7 +72,7 @@
 									</c:if>
 									</c:forEach> />
 									<c:out value="${iFile.relFilepath} (${iFile.friendlySize})" /></li>
-								</c:if>
+								</c:if> 
 							</c:forEach>
 						</ul>
 						</p>

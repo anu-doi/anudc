@@ -245,7 +245,8 @@ public class CollectionRequestService {
 			FedoraObject fo = fedoraObjectService.getItemByPid(collReq.getPid());
 			if (permissionService.checkPermission(fo, CustomACLPermission.PUBLISH)
 					|| permissionService.checkPermission(fo, CustomACLPermission.REVIEW)) {
-				FileInfo downloadables = storageController.getFileInfo(collReq.getPid(), "");
+				// Should the depth be a variable?
+				FileInfo downloadables = storageController.getFileInfo(collReq.getPid(), "", 5);
 				model.put("downloadables", downloadables);
 			}
 		} catch (Exception e) {

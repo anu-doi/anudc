@@ -231,12 +231,17 @@ public class StorageControllerImpl implements StorageController {
 
 	@Override
 	public FileInfo getFileInfo(String pid, String filepath) throws IOException, StorageException {
+		return getFileInfo(pid, filepath, 1);
+	}
+
+	@Override
+	public FileInfo getFileInfo(String pid, String filepath, int depth) throws IOException, StorageException {
 		// Validation
 		pid = validatePid(pid);
 		filepath = validateRelPath(filepath, true);
 
 		StorageProvider sp = providerResolver.getStorageProvider(pid);
-		FileInfo fileInfo = sp.getDirInfo(pid, filepath, 1);
+		FileInfo fileInfo = sp.getDirInfo(pid, filepath, depth);
 		addMetadata(pid, fileInfo);
 		return fileInfo;
 	}
