@@ -372,33 +372,66 @@
 		<xsl:if test="data/licenceType or data/licence">
 				<rights>
 					<licence>
-						<xsl:if test="data/licenceType/@code">
+						<!-- <xsl:if test="data/licenceType/@code">
 							<xsl:attribute name="type"><xsl:value-of select="data/licenceType/@code"/></xsl:attribute>
-						</xsl:if>
+						</xsl:if> -->
 						<xsl:choose>
 							<xsl:when test="data/licenceType/@code = 'CC-BY'">
+								<xsl:attribute name="type"><xsl:value-of select="data/licenceType/@code"/></xsl:attribute>
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by/3.0/au/deed.en</xsl:attribute>
 							</xsl:when>
+							<xsl:when test="data/licenceType/@code = 'CC-BY-4_0'">
+								<xsl:attribute name="type">CC-BY</xsl:attribute>
+								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by/4.0/</xsl:attribute>
+							</xsl:when>
 							<xsl:when test="data/licenceType/@code = 'CC-BY-SA'">
+								<xsl:attribute name="type"><xsl:value-of select="data/licenceType/@code"/></xsl:attribute>
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-sa/3.0/au/deed.en</xsl:attribute>
 							</xsl:when>
+							<xsl:when test="data/licenceType/@code = 'CC-BY-SA-4_0'">
+								<xsl:attribute name="type">CC-BY-SA</xsl:attribute>
+								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-sa/4.0/</xsl:attribute>
+							</xsl:when>
 							<xsl:when test="data/licenceType/@code = 'CC-BY-ND'">
+								<xsl:attribute name="type"><xsl:value-of select="data/licenceType/@code"/></xsl:attribute>
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nd/3.0/au/deed.en</xsl:attribute>
 							</xsl:when>
+							<xsl:when test="data/licenceType/@code = 'CC-BY-ND-4_0'">
+								<xsl:attribute name="type">CC-BY-ND</xsl:attribute>
+								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nd/4.0/</xsl:attribute>
+							</xsl:when>
 							<xsl:when test="data/licenceType/@code = 'CC-BY-NC'">
+								<xsl:attribute name="type"><xsl:value-of select="data/licenceType/@code"/></xsl:attribute>
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nc/3.0/au/deed.en</xsl:attribute>
 							</xsl:when>
+							<xsl:when test="data/licenceType/@code = 'CC-BY-NC-4_0'">
+								<xsl:attribute name="type">CC-BY-NC</xsl:attribute>
+								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nc/4.0/</xsl:attribute>
+							</xsl:when>
 							<xsl:when test="data/licenceType/@code = 'CC-BY-NC-SA'">
+								<xsl:attribute name="type"><xsl:value-of select="data/licenceType/@code"/></xsl:attribute>
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nc-sa/3.0/au/deed.en</xsl:attribute>
 							</xsl:when>
+							<xsl:when test="data/licenceType/@code = 'CC-BY-NC-SA-4_0'">
+								<xsl:attribute name="type">CC-BY-NC-SA</xsl:attribute>
+								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nc-sa/4.0/</xsl:attribute>
+							</xsl:when>
 							<xsl:when test="data/licenceType/@code = 'CC-BY-NC-ND'">
+								<xsl:attribute name="type"><xsl:value-of select="data/licenceType/@code"/></xsl:attribute>
 								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nc-nd/3.0/au/deed.en</xsl:attribute>
+							</xsl:when>
+							<xsl:when test="data/licenceType/@code = 'CC-BY-NC-ND-4_0'">
+								<xsl:attribute name="type">CC-BY-NC-ND</xsl:attribute>
+								<xsl:attribute name="rightsUri">http://creativecommons.org/licenses/by-nc-nd/4.0/</xsl:attribute>
 							</xsl:when>
 							<xsl:when test="data/licenceType/@code = 'GPL'"> 
 								<xsl:attribute name="rightsUri">http://www.gnu.org/licenses/gpl.html</xsl:attribute>
 							</xsl:when>
 							<xsl:when test="data/licenceType/@code = 'AusGoalRestrictive'">
 								<xsl:attribute name="rightsUri">http://www.ausgoal.gov.au/restrictive-licence-template</xsl:attribute>
+							</xsl:when>
+							<xsl:when test="data/licenceType/@code = 'NoLicence' or data/licenceType/@code = 'Unknown/Other'">
+								<xsl:attribute name="type"><xsl:value-of select="data/licenceType/@code"/></xsl:attribute>
 							</xsl:when>
 						</xsl:choose>
 						<xsl:value-of select="data/licence" />
