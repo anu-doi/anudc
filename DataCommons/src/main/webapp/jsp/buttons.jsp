@@ -18,6 +18,7 @@
 	<sec:authorize access="isAuthenticated()">
 		<anu:box style="solid">
 			<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
+				<c:if test="${it.fedoraObject.filesPublic == false}">
 				<sec:authorize access="hasRole('ROLE_REGISTERED')">
 					<c:url value="/rest/collreq" var="collReqLink">
 						<c:param name="pid" value="${it.fedoraObject.object_id}" />
@@ -26,6 +27,7 @@
 						<input type="button" id="collReqButton" name="colReqButton" value="Request Collection Files" onclick="window.location='${collReqLink}'" />
 					</p>
 				</sec:authorize>
+				</c:if>
 			</c:if>
 			<sec:authorize access="hasRole('ROLE_ANU_USER')">
 				<sec:authorize access="hasPermission(#fedoraObject,'ADMINISTRATION')">
