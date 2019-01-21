@@ -1,0 +1,17 @@
+insert into select_code (select_name, code, description) values
+	('licenceType','CC-BY','CC-BY - Attribution')
+	, ('licenceType','CC-BY-4_0','CC-BY - Attribution (Version 4)')
+	, ('licenceType','CC-BY-SA','CC-BY-SA - Attribution-SharedAlice (Version 3.0)')
+	, ('licenceType','CC-BY-SA-4_0','CC-BY-SA - Attribution-SharedAlice (Version 4.0)')
+	, ('licenceType','CC-BY-ND','CC-BY-ND - Attribution-NoDervis (Version 3.0)')
+	, ('licenceType','CC-BY-ND-4_0','CC-BY-ND - Attribution-NoDervis (Version 4.0)')
+	, ('licenceType','CC-BY-NC','CC-BY-NC - Attribution-NonCommercial (Version 3.0)')
+	, ('licenceType','CC-BY-NC-4_0','CC-BY-NC - Attribution-NonCommercial (Version 4.0)')
+	, ('licenceType','CC-BY-NC-SA','CC-BY-NC-SA - Attribution-NonCommercial-SharedAlike (Version 3.0)')
+	, ('licenceType','CC-BY-NC-SA-4_0','CC-BY-NC-SA - Attribution-NonCommercial-SharedAlike (Version 4.0)')
+	, ('licenceType','CC-BY-NC-ND','CC-BY-NC-ND - Attribution-NonCommercial-NoDervis (Version 3.0)')
+	, ('licenceType','CC-BY-NC-ND-4_0','CC-BY-NC-ND - Attribution-NonCommercial-NoDervis (Version 4.0)')
+	, ('licenceType','GPL','GPL - GNU General Public Licence')
+	, ('licenceType','AusGoalRestrictive','AusGoalRestrictive - AusGoal Restrictive Licence')
+	, ('licenceType','NoLicence','NoLicence - No licence')
+	, ('licenceType','Unknown/Other','Unknown/Other - Unknown licence or record provider defined licence');
