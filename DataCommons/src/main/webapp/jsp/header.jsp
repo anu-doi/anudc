@@ -4,13 +4,11 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<anu:body />
-<anu:banner id="" ssl="true" primaryTitle="ANU Data Commons" secondaryTitle="Information Technology Services" primaryTitleUrl="/" secondaryTitleUrl="/" />
+<c:url value="/" var="homeUrl"/>
 
-<anu:tabnav>
-	<anu:tabmeta>
-	<div class="right right">
-		<ul>
+<anu:banner id="" ssl="true" primaryTitle="ANU Data Commons" secondaryTitle="Library" primaryTitleUrl="${homeUrl}" secondaryTitleUrl="http://anulib.anu.edu.au/">
+	<anu:utilitymenu>
+	
 		<sec:authorize access="isAnonymous()">
 			<li><a>Welcome Guest</a></li>
 			<li> <a href='<c:url value="/login-select" />'>Login</a></li>
@@ -19,12 +17,13 @@
 			<li><a href='<c:url value="/rest/user" />'>Welcome <sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.username" />)</a></li>
 			<li><a href='<c:url value="/logout" />'>Logout</a></li>
 		</sec:authorize>
-		</ul>
-	</div>
-	</anu:tabmeta>
-</anu:tabnav>
+	</anu:utilitymenu>
 
-<anu:menu showSearch="true" id="1108" shortTitle="Public Data" ssl="true">
+</anu:banner>
+
+<anu:body />
+
+<anu:menu showSearch="false" id="1108" shortTitle="Public Data" ssl="true">
 	<anu:submenu title="Data Commons">
 		<li><a href="<c:url value='/' />">Home (Search)</a></li>
 		<li><a href="<c:url value='/rest/search/browse?field=keyword' />">Browse</a></li>

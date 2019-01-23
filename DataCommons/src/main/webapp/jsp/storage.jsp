@@ -7,8 +7,7 @@
 
 <c:set var="fedoraObject" value="${it.fo}" />
 
-<anu:header id="1998" title="${it.fo.object_id}" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur"
-	respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
+<anu:header id="1998" title="${it.fo.object_id}" description="DESCRIPTION" subject="SUBJECT" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au" ssl="true">
 
 	<link href="<c:url value='/css/storage.css' />" rel="stylesheet" type="text/css" />
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">

@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 
-<anu:header id="1998" title="ANU Data Commons - Register" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
+<anu:header id="1998" title="ANU Data Commons - Register" description="description" subject="subject" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au"
 	ssl="true">
 
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/default.css' />" />
