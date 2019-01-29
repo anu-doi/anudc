@@ -1276,9 +1276,16 @@ public class CollectionRequestService {
 			if (resultList.getNumFound() > 1)
 				throw new IllegalArgumentException(format("Multiple collections found with Pid {0}", pid));
 
-			if (resultList.get(0).getFieldValues("unpublished.email") != null)
-				for (Object emailAsObj : resultList.get(0).getFieldValues("unpublished.email"))
+			if (resultList.get(0).getFieldValues("unpublished.email") != null) {
+				Iterator<Object> emailIterator = resultList.get(0).getFieldValues("unpublished.email").iterator();
+				if (emailIterator.hasNext()) {
+					Object emailAsObj = emailIterator.next();
 					emailList.add((String) emailAsObj);
+				}
+//				for (Object emailAsObj : resultList.get(0).getFieldValues("unpublished.email"))
+//					emailList.add((String) emailAsObj);
+				
+			}
 		} catch (SolrServerException | IOException e) {
 			LOGGER.warn(format("Unable to execute Solr Query to retrieve emails for pid {0}.", pid), e);
 		}
