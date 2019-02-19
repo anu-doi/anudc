@@ -33,12 +33,13 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import org.datacite.schema.kernel_2.Resource;
-import org.datacite.schema.kernel_2.Resource.Creators;
-import org.datacite.schema.kernel_2.Resource.Creators.Creator;
-import org.datacite.schema.kernel_2.Resource.Identifier;
-import org.datacite.schema.kernel_2.Resource.Titles;
-import org.datacite.schema.kernel_2.Resource.Titles.Title;
+import org.datacite.schema.kernel_4.Resource;
+import org.datacite.schema.kernel_4.Resource.Creators;
+import org.datacite.schema.kernel_4.Resource.Creators.Creator;
+import org.datacite.schema.kernel_4.Resource.Creators.Creator.CreatorName;
+import org.datacite.schema.kernel_4.Resource.Identifier;
+import org.datacite.schema.kernel_4.Resource.Titles;
+import org.datacite.schema.kernel_4.Resource.Titles.Title;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -122,7 +123,9 @@ public class DoiClientTest extends JerseyTest
 			Resource res = new Resource();
 			Creators creators = new Creators();
 			Creator creator = new Creator();
-			creator.setCreatorName("Creator 1");
+			CreatorName creatorName = new CreatorName();
+			creatorName.setValue("Creator 1");
+			creator.setCreatorName(creatorName);
 			creators.getCreator().add(creator);
 			res.setCreators(creators);
 			
@@ -215,7 +218,9 @@ public class DoiClientTest extends JerseyTest
 		Creators creators = new Creators();
 		metadata.setCreators(creators);
 		Creator creator = new Creator();
-		creator.setCreatorName("Professor John Smith");
+		CreatorName creatorName = new CreatorName();
+		creatorName.setValue("Smith, John");
+		creator.setCreatorName(creatorName);
 
 		metadata.getCreators().getCreator().add(creator);
 

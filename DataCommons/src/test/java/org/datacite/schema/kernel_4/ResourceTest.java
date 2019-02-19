@@ -19,23 +19,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-package org.datacite.schema.kernel_2;
+package org.datacite.schema.kernel_4;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 import java.io.StringWriter;
-import java.util.Collections;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-import org.datacite.schema.kernel_2.Resource.Creators;
-import org.datacite.schema.kernel_2.Resource.Creators.Creator;
-import org.datacite.schema.kernel_2.Resource.Sizes;
-import org.datacite.schema.kernel_2.Resource.Titles;
-import org.datacite.schema.kernel_2.Resource.Titles.Title;
+import org.datacite.schema.kernel_4.NameType;
+import org.datacite.schema.kernel_4.Resource.Creators;
+import org.datacite.schema.kernel_4.Resource.Creators.Creator;
+import org.datacite.schema.kernel_4.Resource.Creators.Creator.CreatorName;
+import org.datacite.schema.kernel_4.Resource.Sizes;
+import org.datacite.schema.kernel_4.Resource.Titles;
+import org.datacite.schema.kernel_4.Resource.Titles.Title;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -43,10 +44,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
-
-import au.edu.anu.datacommons.doi.DoiResponse;
 
 public class ResourceTest
 {
@@ -109,7 +106,10 @@ public class ResourceTest
 		Creators creators = new Creators();
 		metadata.setCreators(creators);
 		Creator creator = new Creator();
-		creator.setCreatorName("Professor John Smith");
+		CreatorName creatorName = new CreatorName();
+		creatorName.setNameType(NameType.PERSONAL);
+		creatorName.setValue("Smith, John");
+		creator.setCreatorName(creatorName);
 		
 		metadata.getCreators().getCreator().add(creator);
 		
@@ -157,7 +157,9 @@ public class ResourceTest
 	
 	private void addCreator(Resource res, String creatorStr) {
 		Creator creator = new Creator();
-		creator.setCreatorName(creatorStr);
+		CreatorName creatorName = new CreatorName();
+		creatorName.setValue(creatorStr);
+		creator.setCreatorName(creatorName);
 		if (res.getCreators() == null)
 			res.setCreators(new Creators());
 		res.getCreators().getCreator().add(creator);
