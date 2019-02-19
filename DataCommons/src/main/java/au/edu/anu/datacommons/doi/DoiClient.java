@@ -41,7 +41,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 
-import org.datacite.schema.kernel_2.Resource;
+import org.datacite.schema.kernel_4.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,7 +170,7 @@ public class DoiClient {
 		try {
 			String url = generateLandingUri(pid).toString();
 			String xml = getMetadataAsStr(metadata);
-
+			
 			LOGGER.trace("Minting url={}, xml={}.", new Object[] { url, xml });
 
 			// Build URI.
@@ -550,7 +550,7 @@ public class DoiClient {
 			resourceMarshaller = resourceContext.createMarshaller();
 			resourceMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 			resourceMarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
-					"http://datacite.org/schema/kernel-2.2 http://schema.datacite.org/meta/kernel-2.2/metadata.xsd");
+					"http://datacite.org/schema/kernel-4 http://schema.datacite.org/meta/kernel-4.1/metadata.xsd");
 		} catch (JAXBException e) {
 			LOGGER.error(e.getMessage(), e);
 			resourceMarshaller = null;

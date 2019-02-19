@@ -960,7 +960,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			//				}
 			//			}
 			
-			org.datacite.schema.kernel_2.Resource doiResource = new DoiResourceAdapter(itemData).createDoiResource();
+			org.datacite.schema.kernel_4.Resource doiResource = new DoiResourceAdapter(itemData).createDoiResource();
 			DoiClient doiClient = new DoiClient();
 			doiClient.mint(pid, doiResource);
 			

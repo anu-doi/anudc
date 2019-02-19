@@ -21,29 +21,30 @@
 
 package au.edu.anu.datacommons.doi;
 
-import static java.text.MessageFormat.format;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import org.datacite.schema.kernel_2.DescriptionType;
-import org.datacite.schema.kernel_2.Resource;
-import org.datacite.schema.kernel_2.Resource.AlternateIdentifiers;
-import org.datacite.schema.kernel_2.Resource.Contributors;
-import org.datacite.schema.kernel_2.Resource.Creators;
-import org.datacite.schema.kernel_2.Resource.Creators.Creator;
-import org.datacite.schema.kernel_2.Resource.Dates;
-import org.datacite.schema.kernel_2.Resource.Descriptions;
-import org.datacite.schema.kernel_2.Resource.Descriptions.Description;
-import org.datacite.schema.kernel_2.Resource.Formats;
-import org.datacite.schema.kernel_2.Resource.Identifier;
-import org.datacite.schema.kernel_2.Resource.RelatedIdentifiers;
-import org.datacite.schema.kernel_2.Resource.ResourceType;
-import org.datacite.schema.kernel_2.Resource.Sizes;
-import org.datacite.schema.kernel_2.Resource.Subjects;
-import org.datacite.schema.kernel_2.Resource.Titles;
-import org.datacite.schema.kernel_2.Resource.Titles.Title;
-import org.datacite.schema.kernel_2.TitleType;
+import org.datacite.schema.kernel_4.DescriptionType;
+import org.datacite.schema.kernel_4.NameType;
+import org.datacite.schema.kernel_4.Resource;
+import org.datacite.schema.kernel_4.Resource.AlternateIdentifiers;
+import org.datacite.schema.kernel_4.Resource.Contributors;
+import org.datacite.schema.kernel_4.Resource.Creators;
+import org.datacite.schema.kernel_4.Resource.Creators.Creator;
+import org.datacite.schema.kernel_4.Resource.Creators.Creator.CreatorName;
+import org.datacite.schema.kernel_4.Resource.Dates;
+import org.datacite.schema.kernel_4.Resource.Descriptions;
+import org.datacite.schema.kernel_4.Resource.Descriptions.Description;
+import org.datacite.schema.kernel_4.Resource.Formats;
+import org.datacite.schema.kernel_4.Resource.Identifier;
+import org.datacite.schema.kernel_4.Resource.RelatedIdentifiers;
+import org.datacite.schema.kernel_4.Resource.ResourceType;
+import org.datacite.schema.kernel_4.Resource.RightsList;
+import org.datacite.schema.kernel_4.Resource.Sizes;
+import org.datacite.schema.kernel_4.Resource.Subjects;
+import org.datacite.schema.kernel_4.Resource.Titles;
+import org.datacite.schema.kernel_4.Resource.Titles.Title;
+import org.datacite.schema.kernel_4.TitleType;
 
 import au.edu.anu.datacommons.xml.data.Data;
 import au.edu.anu.datacommons.xml.data.DataItem;
@@ -98,31 +99,36 @@ public class DoiResourceAdapter {
 		Creators creators = getCreators();
 		if (creators == null) {
 			throw new DoiException(
-					"No creators provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
+					"No creators provided. Creators, titles, collection type, publisher and publication year are required for a DOI to be minted.");
 		}
 		doiResource.setCreators(creators);
 
 		Titles titles = getTitles();
 		if (titles == null) {
 			throw new DoiException(
-					"No titles provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
+					"No titles provided. Creators, titles, collection type, publisher and publication year are required for a DOI to be minted.");
 		}
 		doiResource.setTitles(titles);
 
 		String publisher = getPublisher();
 		if (publisher == null) {
 			throw new DoiException(
-					"No publisher provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
+					"No publisher provided. Creators, titles, collection type, publisher and publication year are required for a DOI to be minted.");
 		}
 		doiResource.setPublisher(publisher);
 
 		String publicationYear = getPublicationYear();
 		if (publicationYear == null) {
 			throw new DoiException(
-					"No publication year provided. Creators, titles, publisher and publication year are required for a DOI to be minted.");
+					"No publication year provided. Creators, collection type, titles, publisher and publication year are required for a DOI to be minted.");
 		}
 		doiResource.setPublicationYear(publicationYear);
 
+		ResourceType resourceType = getResourceType();
+		if (resourceType == null) {
+			throw new DoiException("No resource sub type provided. Creators, collection type, titles, publisher and publication year are required for a DOI to be minted.");
+		}
+		
 		// Optional fields.
 		doiResource.setSubjects(getSubjects());
 		doiResource.setContributors(getContributors());
@@ -135,7 +141,7 @@ public class DoiResourceAdapter {
 		doiResource.setSizes(getSizes());
 		doiResource.setFormats(getFormats());
 		doiResource.setVersion(getVersion());
-		doiResource.setRights(getRights());
+		doiResource.setRightsList(getRights());
 		doiResource.setDescriptions(getDescriptions());
 	}
 
@@ -163,7 +169,25 @@ public class DoiResourceAdapter {
 						creatorSurname = childItem.getValue();
 					}
 				}
-				c.setCreatorName(format("{0} {1}", creatorGiven, creatorSurname));
+				if (creatorGiven != null && creatorSurname != null) {
+					CreatorName creatorName = new CreatorName();
+					creatorName.setNameType(NameType.PERSONAL);
+					String name = creatorSurname + ", " + creatorGiven;
+					creatorName.setValue(name);
+					c.setCreatorName(creatorName);
+				}
+				else if (creatorGiven != null) {
+					CreatorName name = new CreatorName();
+					name.setNameType(NameType.ORGANIZATIONAL);
+					name.setValue(creatorGiven);
+					c.setCreatorName(name);
+				}
+				else if (creatorSurname != null) {
+					CreatorName name = new CreatorName();
+					name.setNameType(NameType.ORGANIZATIONAL);
+					name.setValue(creatorSurname);
+					c.setCreatorName(name);
+				}
 				list.add(c);
 			}
 		}
@@ -257,17 +281,34 @@ public class DoiResourceAdapter {
 	 * @return ResourceType object
 	 */
 	private ResourceType getResourceType() {
+		//TODO fix this so that the correct resource type generals are selected
 		ResourceType resType = null;
 		DataItem subTypeDI = this.sourceData.getFirstElementByName("subType");
 		String subType = subTypeDI.getValue().toLowerCase();
+		String subTypeDescription = subTypeDI.getDescription();
 		if (subType.equals("dataset")) {
 			resType = new ResourceType();
-			resType.setResourceTypeGeneral(org.datacite.schema.kernel_2.ResourceType.DATASET);
-			resType.setContent("Dataset");
+			resType.setResourceTypeGeneral(org.datacite.schema.kernel_4.ResourceType.DATASET);
+			resType.setValue("Dataset");
 		} else if (subType.equals("collection")) {
 			resType = new ResourceType();
-			resType.setResourceTypeGeneral(org.datacite.schema.kernel_2.ResourceType.COLLECTION);
-			resType.setContent("Collection");
+			resType.setResourceTypeGeneral(org.datacite.schema.kernel_4.ResourceType.COLLECTION);
+			resType.setValue("Collection");
+		}
+		else if (subType.equals("software")) {
+			resType = new ResourceType();
+			resType.setResourceTypeGeneral(org.datacite.schema.kernel_4.ResourceType.SOFTWARE);
+			resType.setValue("Software");
+		}
+		else {
+			resType = new ResourceType();
+			resType.setResourceTypeGeneral(org.datacite.schema.kernel_4.ResourceType.OTHER);
+			if (subTypeDescription != null) {
+				resType.setValue(subTypeDescription);
+			}
+			else {
+				resType.setValue(subType);
+			}
 		}
 		return resType;
 	}
@@ -313,7 +354,7 @@ public class DoiResourceAdapter {
 		return null;
 	}
 
-	private String getRights() {
+	private RightsList getRights() {
 		// TODO Implement
 		return null;
 	}
