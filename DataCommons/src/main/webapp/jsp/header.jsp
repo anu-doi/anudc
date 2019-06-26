@@ -10,7 +10,7 @@
 	<anu:utilitymenu>
 	
 		<sec:authorize access="isAnonymous()">
-			<li><a>Welcome Guest</a></li>
+			<li><a href='#'>Welcome Guest</a></li>
 			<li> <a href='<c:url value="/login-select" />'>Login</a></li>
 		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
