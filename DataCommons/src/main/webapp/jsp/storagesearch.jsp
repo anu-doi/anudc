@@ -41,17 +41,17 @@
 			<input type="text" id="query" name="query" autocomplete="off" size="30" />
 		</div>
 
-		<div class="w-narrow margintop nomarginbottom nomarginleft">
+		<div class="w-doublewide margintop nomarginbottom nomarginleft" >
 			<div class="box-header"><h4>Titles</h4></div>
 			<div id="title_str" class="box-solid"></div>
 		</div>
 
-		<div class="w-narrow nomarginbottom">
+		<div class="w-doublewide nomarginbottom">
 			<div class="box-header"><h4>Authors</h4></div>
 			<div id="author_str" class="box-solid"></div>
 		</div>
 		
-		<div class="w-narrow nomarginbottom">
+		<div class="w-doublewide nomarginbottom">
 			<div class="box-header"><h4>File Extensions</h4></div>
 			<div id="ext" class="box-solid"></div>
 		</div>
