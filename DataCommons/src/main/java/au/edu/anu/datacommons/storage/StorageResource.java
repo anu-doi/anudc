@@ -268,23 +268,28 @@ public class StorageResource extends AbstractStorageResource {
 	@POST
 	@Path("data/{path:.*}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+//	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response postForm(@PathParam("pid") String pid, @PathParam("path") String path,
 			@QueryParam("action") String action, @FormParam("i") Set<String> items) {
 		Response resp = null;
-		if (action != null) {
-			if (action.equals("zip") && !items.isEmpty()) {
-				resp = createZipFileResponse(pid, path, items);
-			} else if (action.equals("addExtRef") && !items.isEmpty()) {
+		if ("zip".equals(action)) {
+			resp = createZipFileResponse(pid, path, items);
+		}
+		else if ("filesPublic".equals(action)) {
+			resp = processSetFilesPublicFlag(pid, items.iterator().next());
+		}
+		else if (action != null) {
+			// Check that users have permissions to do these actions
+			fedoraObjectService.getItemByPidWriteAccess(pid);
+			if (action.equals("addExtRef") && !items.isEmpty()) {
 				resp = createAddExtRefResponse(pid, items);
 			} else if (action.equals("delExtRef") && !items.isEmpty()) {
 				resp = createDelExtRefResponse(pid, items);
-			} else if (action.equals("filesPublic") && !items.isEmpty()) {
-				resp = processSetFilesPublicFlag(pid, items.iterator().next());
 			} else if (action.equals("renameFile") && !items.isEmpty()) {
 				resp = createRenameResponse(pid, path, items);
 			}
 		}
+		
 		return resp;
 	}
 
@@ -489,8 +494,11 @@ public class StorageResource extends AbstractStorageResource {
 	 */
 	private Response createZipFileResponse(String pid, String path, Set<String> filepaths) {
 		ResponseBuilder resp;
-		
-		fedoraObjectService.getItemByPidReadAccess(pid);
+
+		FedoraObject fo = fedoraObjectService.getItemByPid(pid);
+		if (!(isPublishedAndPublic(fo))) {
+			fedoraObjectService.getItemByPidReadAccess(pid);
+		}
 		Set<String> pathPrependedFilepaths = new HashSet<String>(filepaths.size());
 		for (String filepath : filepaths) {
 			pathPrependedFilepaths.add(path + filepath);
