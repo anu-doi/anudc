@@ -1,0 +1,7 @@
+Dear Administrator of Data Commons,
+
+The item ${itemName} found at ${itemURL} has been set to the status of Ready for Review.
+
+Regards,
+
+The Australian National University Data Commons Team
