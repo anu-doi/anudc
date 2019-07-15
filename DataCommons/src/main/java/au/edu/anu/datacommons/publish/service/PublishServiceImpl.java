@@ -27,8 +27,11 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Resource;
 import javax.ws.rs.WebApplicationException;
@@ -39,22 +42,29 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.model.Permission;
+import org.springframework.security.acls.model.Sid;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
+import au.edu.anu.datacommons.collectionrequest.Email;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.PublishLocationDAO;
 import au.edu.anu.datacommons.data.db.dao.PublishLocationDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.UsersDAO;
+import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
@@ -63,10 +73,13 @@ import au.edu.anu.datacommons.data.db.model.PublishReady;
 import au.edu.anu.datacommons.data.db.model.ReviewReady;
 import au.edu.anu.datacommons.data.db.model.ReviewReject;
 import au.edu.anu.datacommons.data.db.model.Template;
+import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.SolrUtils;
+import au.edu.anu.datacommons.data.solr.dao.SolrSearchDAO;
+import au.edu.anu.datacommons.data.solr.dao.SolrSearchDAOImpl;
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.exception.DataCommonsException;
 import au.edu.anu.datacommons.exception.ValidateException;
@@ -115,6 +128,9 @@ public class PublishServiceImpl implements PublishService {
 	
 	@Resource(name="permissionService")
 	PermissionService permissionService;
+
+	@Resource(name = "mailSender")
+	JavaMailSenderImpl mailSender;
 	
 	/**
 	 * validateMultiple
@@ -896,6 +912,77 @@ public class PublishServiceImpl implements PublishService {
 		
 		removeReviewReject(fedoraObject);
 		saveAuditReviewLog(fedoraObject, "REVIEW_READY", null);
+		
+		String sendEmail = GlobalProps.getProperty("review.reviewready.email.enabled", "false");
+		if ("true".equals(sendEmail)) {
+			sendReadyEmail(fedoraObject, "ANU Data Commons - Ready for Review", "mailtmpl/readyforreview.txt", CustomACLPermission.REVIEW);
+		}
+	}
+	
+	private void sendReadyEmail(FedoraObject fedoraObject, String subject, String mailTemplate, Permission permission) {
+		try {
+			Set<Sid> recipientSids = permissionService.getSidsByPermissions(fedoraObject, permission);
+			
+			Set<String> recipientEmails = new HashSet<String>();
+			
+			for (Sid sid : recipientSids) {
+				if (sid instanceof PrincipalSid) {
+					PrincipalSid recipientSid = (PrincipalSid) sid;
+					LOGGER.debug("Principal: {}", recipientSid.getPrincipal());
+					UsersDAO usersDAO = new UsersDAOImpl();
+					Users recipient = usersDAO.getUserByName(recipientSid.getPrincipal());
+					LOGGER.debug("Recipient email address: {}", recipient.getEmail());
+					recipientEmails.add(recipient.getEmail());
+				}
+			}
+			
+			if (recipientEmails.size() == 0) {
+				String defaultEmail = GlobalProps.getProperty("review.default.email");
+				if (defaultEmail != null && !defaultEmail.equals("review.default.email")) {
+					LOGGER.debug("Using default email of '{}' to send to review", defaultEmail);
+					recipientEmails.add(defaultEmail);
+				}
+			}
+			
+			if (recipientEmails.size() > 0) {
+				String queryString = "id:\"" + fedoraObject.getObject_id() + "\"";
+				SolrQuery solrQuery = new SolrQuery();
+				solrQuery.setQuery(queryString);
+				solrQuery.addField("id");
+				solrQuery.addField("unpublished.name");
+				
+				SolrSearchDAO solrSearchDAO = new SolrSearchDAOImpl();
+				SolrSearchResult solrSearchResult = solrSearchDAO.executeSearch(solrQuery);
+				SolrDocumentList docList = solrSearchResult.getDocumentList();
+				Iterator<SolrDocument> it = docList.iterator();
+				while (it.hasNext()) {
+					SolrDocument doc = it.next();
+					
+					LOGGER.debug("Record to email ready for review for ID: {}, Name: {}", doc.getFieldValue("id"), doc.getFieldValue("unpublished.name"));
+	
+					String itemURL = GlobalProps.getProperty("app.server") + "/DataCommons/item/" + doc.getFieldValue("id");
+					
+					Map<String, String> varMap = new HashMap<String, String>();
+					varMap.put("itemName", (String)doc.getFieldValue("unpublished.name"));
+					varMap.put("itemURL", itemURL);
+					
+					// Add recipients and send emails
+					Email email = new Email(mailSender);
+					for (String emailAddr : recipientEmails) {
+						email.addRecipient(emailAddr);
+					}
+//					email.addRecipient("genevieve.turner@anu.edu.au");
+					email.setSubject(subject);
+					email.setBody(mailTemplate, varMap);
+					
+					email.send();
+					
+				}
+			}
+		}
+		catch (SolrServerException | IOException e) {
+			LOGGER.error("Exception sending emails", e);
+		}
 	}
 	
 	/**
@@ -933,6 +1020,11 @@ public class PublishServiceImpl implements PublishService {
 		removeReviewReject(fedoraObject);
 		setReviewXML(fedoraObject.getObject_id());
 		saveAuditReviewLog(fedoraObject, "PUBLISH_READY", null);
+		
+		String sendEmail = GlobalProps.getProperty("review.publishready.email.enabled", "false");
+		if ("true".equals(sendEmail)) {
+			sendReadyEmail(fedoraObject, "ANU Data Commons - Ready for Publish", "mailtmpl/readyforpublish.txt", CustomACLPermission.PUBLISH);
+		}
 	}
 	
 	/**

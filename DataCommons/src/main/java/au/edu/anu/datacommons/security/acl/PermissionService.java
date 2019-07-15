@@ -23,8 +23,10 @@ package au.edu.anu.datacommons.security.acl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -659,5 +661,26 @@ public class PermissionService {
 		groupAcl.setOwner(adminSid);
 		groupAcl.setParent(domainAcl);
 		aclService.updateAcl(groupAcl);
+	}
+	
+	public Set<Sid> getSidsByPermissions(FedoraObject fedoraObject, Permission permission) {
+		ObjectIdentity objectOI = new ObjectIdentityImpl(FedoraObject.class, fedoraObject.getId());
+		
+		Set<Sid> sids = new HashSet<Sid>();
+		
+		Acl acl = aclService.readAclById(objectOI);
+		processSids(acl, permission, sids);
+		
+		Acl parentAcl = acl.getParentAcl();
+		processSids(parentAcl, permission, sids);
+		return sids;
+	}
+	
+	private void processSids(Acl acl, Permission permission, Set<Sid> sids) {
+		for (AccessControlEntry entry : acl.getEntries()) {
+			if (entry.getPermission().equals(permission)) {
+				sids.add(entry.getSid());
+			}
+		}
 	}
 }
