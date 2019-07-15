@@ -51,7 +51,7 @@ public interface AdminService {
 	 * 
 	 * @param domainName The name of the domain to create
 	 */
-	public void createDomain(String domainName);
+	public void createOrEditDomain(Long domainId, String domainName);
 	
 	/**
 	 * Get all the groups
@@ -66,5 +66,5 @@ public interface AdminService {
 	 * @param groupName The name of the group to create
 	 * @param domainId The id of the domain to create
 	 */
-	public void createGroup(String groupName, Long domainId);
+	public void createOrEditGroup(Long groupId, String groupName, Long domainId);
 }
