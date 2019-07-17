@@ -32,6 +32,7 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 
 import au.edu.anu.datacommons.properties.GlobalProps;
+import au.edu.anu.datacommons.user.Person;
 
 /**
  * LdapPerson
@@ -47,7 +48,7 @@ import au.edu.anu.datacommons.properties.GlobalProps;
  * 0.1		16/03/2012	Rahul Khanna (RK)	Initial
  * </pre>
  */
-public class LdapPerson {
+public class LdapPerson implements Person {
 	private Map<String, List<String>> attrs;
 
 	/**
@@ -185,6 +186,11 @@ public class LdapPerson {
 	}
 
 	public String getUniId() {
+		return getAttribute(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_UNIID));
+	}
+
+	@Override
+	public String getUsername() {
 		return getAttribute(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_UNIID));
 	}
 }

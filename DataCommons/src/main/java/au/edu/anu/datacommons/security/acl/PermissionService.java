@@ -30,6 +30,7 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.acls.domain.BasePermission;
@@ -53,10 +54,14 @@ import au.edu.anu.datacommons.data.db.dao.AclSidDAO;
 import au.edu.anu.datacommons.data.db.dao.AclSidDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.UsersDAO;
+import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.AclSid;
+import au.edu.anu.datacommons.data.db.model.Authorities;
 import au.edu.anu.datacommons.data.db.model.Domains;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
+import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.util.Util;
 
 /**
@@ -422,6 +427,24 @@ public class PermissionService {
 			}
 		}
 		aclService.updateAcl(groupAcl);
+		addANURoleToRegistered(username);
+	}
+	
+	private void addANURoleToRegistered(String username) {
+		UsersDAO userDAO = new UsersDAOImpl();
+		Users user = userDAO.getUserByName(username);
+		if (user != null && user.getUser_registered() != null) {
+			GenericDAO<Authorities, String> authorityDAO = new GenericDAOImpl<Authorities, String>(Authorities.class);
+			try {
+				Authorities authority = new Authorities();
+				authority.setUsername(username);
+				authority.setAuthority("ROLE_ANU_USER");
+				authorityDAO.create(authority);
+			}
+			catch (Exception e) {
+				// Likely to be a constraint violation exception so ignoring
+			}
+		}
 	}
 	
 	/**

@@ -18,13 +18,22 @@
 		<fieldset>
 			<legend>Search User</legend>
 			<p>
-				<label for="firstname">First Name</label><input id="firstname" name="firstname" type="text" size="50" />
+				<label for="registered-false">ANU User</label><input id="registered-false" type="radio" name="registered" value="false" checked="checked">
 			</p>
 			<p>
-				<label for="lastname">Last Name</label><input id="lastname" name="lastname" type="text" size="50" />
+				<label for="registered-true">Registered User</label><input id="registered-true" type="radio" name="registered" value="true">
 			</p>
 			<p>
-				<label for="uniId">Uni Id</label><input id="uniId" name="uniId" type="text" size="50" />
+				<label for="firstname">First Name</label><input id="firstname" name="firstname" type="text" class="text tfull" />
+			</p>
+			<p>
+				<label for="lastname">Last Name</label><input id="lastname" name="lastname" type="text" class="text tfull" />
+			</p>
+			<p>
+				<label for="uniId">Uni Id</label><input id="uniId" name="uniId" type="text" class="text tfull" class="text tfull" />
+			</p>
+			<p>
+				<label for="email">Email</label><input id="email" name="email" type="text" class="text tfull"/>
 			</p>
 			<p>
 				<input type="submit" id="findPeople" value="Search" class="btn-uni-grad" />
