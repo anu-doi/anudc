@@ -5,7 +5,7 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<anu:header id="1998" title="Collection Request" description="DESCRIPTION" subject="SUBJECT" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au" ssl="true">
+<anu:header id="1998" title="Collection Request" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur" respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 
 	<script type="text/javascript" src="<c:url value='/js/collreq.js' />"></script>
 </anu:header>
@@ -16,6 +16,7 @@
 	<c:when test="${not empty it.collReq}">
 		<!-- Display information about a specific Collection Request. -->
 		<anu:content layout="doublewide" title="Collection Request">
+		bbb
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
@@ -121,32 +122,19 @@
 
 	<c:otherwise>
 		<!-- Form for submitting a Collection Request -->
-		<anu:content layout="doublewide" title="Collection Request">
+		<anu:content layout="full" title="Data collection request">
+		aaa
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
-			<c:if test="${empty param.pid}">
-				<p>To request access to a collection please perform the following steps:</p>
-				<ol>
-					<li>Enter the Identifier of the item you wish to request access to</li>
-					<li>Select to retrieve the request questions</li>
-					<li>Answer the questions that appear on the screen (if any)</li>
-					<li>Click the 'Request Access' button</li>
-				</ol>
-			</c:if>
-			<c:if test="${not empty param.pid}">
-				<p>To request access to a collection please perform the following steps:</p>
-				<ol>
-					<li>Answer the questions that appear on the screen (if any)</li>
-					<li>Click the 'Request Access' button</li>
-				</ol>
-			</c:if>
+			<p>To request access to data collections and review your request activity you must first login using your ANU ID and password or your registered account details.</p>
+			<p>Once logged in, please enter the identifier of the item you wish to access (e.g. anudc:2652) and submit your request.</p>
 			<form name="collReqSubmitForm" class="anuform" method="post" action="<c:url value='/rest/collreq/' />">
 				<p>
 					<label class="req" for="idPid">Item ID</label>
 					<input class="text" type="text" id="idPid" name="pid" value="<c:out value='${param.pid}' />" <c:if test="${not empty param.pid}">readonly="readonly"</c:if> />
 					<c:if test="${empty param.pid}">
-						<input type="button" onclick="ajaxGetPidInfo(document.collReqSubmitForm.pid.value)" value="Retrieve Request Questions" />
+						<input type="button" onclick="ajaxGetPidInfo(document.collReqSubmitForm.pid.value)" value="Submit request" />
 					</c:if>
 				</p>
 				<p id="idQuestionsContainer">
@@ -158,7 +146,7 @@
 			</form>
 			<hr />
 			<div id="reqAction">
-				<table id="idReqStatusTable" class="tbl-row-bdr w-doublewide">
+				<table id="idReqStatusTable" class="tbl-row-bdr w-full">
 					<tr>
 						<th>Request Id</th>
 						<th>Item ID</th>
@@ -193,5 +181,11 @@
 		</script>
 	</c:otherwise>
 </c:choose>
+
+<c:if test="not empty it.approvedrequests">
+	<c:forEach items="${it.approvedrequests}" var="download">
+		xx${download.accessCode}xx
+	</c:forEach>
+</c:if>
 
 <jsp:include page="/jsp/footer.jsp" />

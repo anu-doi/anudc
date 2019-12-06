@@ -4,7 +4,7 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
-<anu:header id="1998" title="Browse results for ${param['field-select']}" description="description" subject="subject" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au"
+<anu:header id="1998" title="Browse results for ${param['field-select']}" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
 	ssl="true">
 
 </anu:header>

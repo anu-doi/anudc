@@ -4,7 +4,8 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 
-<anu:header id="1998" title="Storage Search" description="DESCRIPTION" subject="SUBJECT" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au" ssl="true">
+<anu:header id="1998" title="Storage Search" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur"
+	respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 
 	<link href="<c:url value='/css/ajaxsolr.css' />" rel="stylesheet" type="text/css"></link>
 	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.24/jquery-ui.min.js"></script>
@@ -30,35 +31,17 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="narrow" title="Search">
-	<div class="left">
-		<h4>Current Selection</h4>
-		<ul id="selection"></ul>
-
-		<h4>Search</h4>
-		<span id="search_help">(press ESC to close suggestions)</span>
+<anu:content layout="full">
+<div class="clear box20 bg-uni25 bdr-top-solid bdr-white bdr-medium nomargin nomarginbottom">
+	<div class="bigsearch nopadtop padbottom">
 		<div id="search">
-			<input type="text" id="query" name="query" autocomplete="off" size="30" />
-		</div>
-
-		<div class="w-doublewide margintop nomarginbottom nomarginleft" >
-			<div class="box-header"><h4>Titles</h4></div>
-			<div id="title_str" class="box-solid"></div>
-		</div>
-
-		<div class="w-doublewide nomarginbottom">
-			<div class="box-header"><h4>Authors</h4></div>
-			<div id="author_str" class="box-solid"></div>
-		</div>
-		
-		<div class="w-doublewide nomarginbottom">
-			<div class="box-header"><h4>File Extensions</h4></div>
-			<div id="ext" class="box-solid"></div>
+			<input id="query" class="ui-autocomplete-input" type="text" name="query" autocomplete="off" role="textbox" aria-autocomplete="list" aria-haspopup="true" />
 		</div>
 	</div>
+</div>
 </anu:content>
 
-<anu:content layout="doublenarrow" title="Results">
+<anu:content layout="doublewide" title="Search results">
 	<div id="result">
 		<div id="navigation">
 			<p id="pager-header" class="msg-info"></p>
@@ -66,6 +49,28 @@
 		<div id="docs"></div>
 		<ul id="pager"></ul>
 	</div>
+</anu:content>
+
+<anu:content layout="narrow">
+	<div>
+		<h4>Current Selection</h4>
+		<ul id="selection"></ul>
+	</div>
+
+	<anu:boxheader text="Titles"/>
+	<anu:box style="solid">
+		<div id="title_str"></div>
+	</anu:box>
+	
+	<anu:boxheader text="Authors"/>
+	<anu:box style="solid">
+		<div id="author_str"></div>
+	</anu:box>
+	
+	<anu:boxheader text="File Extensions"/>
+	<anu:box style="solid">
+		<div id="ext"></div>
+	</anu:box>
 </anu:content>
 
 <jsp:include page="/jsp/footer.jsp" />

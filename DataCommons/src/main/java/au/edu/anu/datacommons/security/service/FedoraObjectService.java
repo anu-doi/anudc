@@ -29,11 +29,13 @@ import javax.xml.bind.JAXBException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import au.edu.anu.datacommons.data.db.model.FedoraObject;
-import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
-import au.edu.anu.datacommons.xml.sparql.Result;
-
 import com.yourmediashelf.fedora.client.FedoraClientException;
+
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.storage.info.RecordDataSummary;
+import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
+import au.edu.anu.datacommons.xml.data.Data;
+import au.edu.anu.datacommons.xml.sparql.Result;
 
 /**
  * FedoraObjectService
@@ -96,6 +98,10 @@ public interface FedoraObjectService {
 	 */
 	public Map<String, Object> getViewPage(FedoraObject fedoraObject, String layout, String tmplt);
 	
+	public RecordDataSummary getRecordDataSummary(FedoraObject fedoraObject);
+	
+	public Map<String, Object> getViewObjects(FedoraObject fedoraObject, String tmplt);
+	
 	/**
 	 * getNewPage
 	 * 
@@ -111,6 +117,8 @@ public interface FedoraObjectService {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	public Map<String, Object> getNewPage(String layout, String tmplt);
+	
+	public au.edu.anu.datacommons.data.db.model.Template getTemplateByTemplateId(String templateId) throws FedoraClientException, JAXBException;
 	
 	/**
 	 * saveNew
@@ -352,4 +360,9 @@ public interface FedoraObjectService {
 	FedoraObject getItemByPidWriteAccess(String pid);
 
 	List<FedoraObject> getAllPublishedAndPublic();
+
+//	@PostAuthorize("hasPermission(returnObject, 'WRITE')")
+	Data getEditData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException;
+
+	Data getPublishData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException;
 }

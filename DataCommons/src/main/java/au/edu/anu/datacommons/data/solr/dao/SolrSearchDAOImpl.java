@@ -110,6 +110,12 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 		query.setStart(offset);
 		query.setRows(limit);
 		query.addFacet(facetField, facetSelected);
+		query.setFacetSort("index");
+//		query.setfac
+//		FacetField facet = new FacetField(facetField);
+		
+		
+		
 		return executeSearch(query.getSolrQuery(), true);
 	}
 

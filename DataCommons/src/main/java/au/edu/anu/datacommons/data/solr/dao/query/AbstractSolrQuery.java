@@ -57,6 +57,8 @@ public abstract class AbstractSolrQuery {
 	protected ORDER sortOrder;
 	private List<String> facetFilters = new ArrayList<String>();
 	private Set<String> facetFields = new HashSet<String>();
+	private String facetSort;
+	private Integer facetLimit = -1;
 	
 	/**
 	 * Constructor
@@ -135,6 +137,10 @@ public abstract class AbstractSolrQuery {
 		this.sortOrder = sortOrder;
 	}
 	
+	public void setFacetSort(String facetSort) {
+		this.facetSort = facetSort;
+	}
+	
 	/**
 	 * Set the query sort field
 	 * 
@@ -185,6 +191,8 @@ public abstract class AbstractSolrQuery {
 				solrQuery.addFacetField(facetField);
 			}
 			solrQuery.setFacetMinCount(1);
+			solrQuery.setFacetSort(facetSort);
+			solrQuery.setFacetLimit(facetLimit);
 		}
 	}
 	
@@ -202,6 +210,9 @@ public abstract class AbstractSolrQuery {
 		setQueryRows(solrQuery);
 		setQuerySortField(solrQuery);
 		setQueryFacetFields(solrQuery);
+		
+//		solrQuery.setFacetSort("index");
+//		solrQuery.setFacetSort();
 		
 		return solrQuery;
 	}

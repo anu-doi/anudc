@@ -57,6 +57,8 @@ import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.exception.DataCommonsException;
+import au.edu.anu.datacommons.freemarker.GroupOptions;
+import au.edu.anu.datacommons.freemarker.SelectOptions;
 
 /**
  * AdminResource
@@ -83,6 +85,22 @@ public class AdminResource {
 	
 	@Resource(name = "adminServiceImpl")
 	private AdminService adminService;
+	
+	@GET
+	@Produces(MediaType.TEXT_HTML)
+	public Response getMainAdminPage() {
+		Map<String, Object> values = new HashMap<String, Object>();
+//		values.put("tmplt", template);
+//		values.put("item", fedoraObject);
+//		values.put("data", itemData);
+//		values.put("rdi", rdi);
+//		values.put("links", links);
+//		values.put("options", new SelectOptions());
+//		values.put("groups", new GroupOptions());
+		
+		Viewable viewable = new Viewable("/admin/admin-main.ftl", values);
+		return Response.ok(viewable).build();
+	}
 	
 	/**
 	 * listAllANUPublished
@@ -171,9 +189,8 @@ public class AdminResource {
 	@Path("/domains")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public Response createDomain(@FormParam("domainName") String domainName, @FormParam("domainId") Long domainId) {
-		LOGGER.debug("In domain post. Domain Id: {}, Domain Name: {}", domainId, domainName);
-		adminService.createOrEditDomain(domainId, domainName);
+	public Response createDomain(@FormParam("domainName") String domainName) {
+		adminService.createDomain(domainName);
 		UriBuilder builder = UriBuilder.fromResource(this.getClass()).path("domains");
 		return Response.seeOther(builder.build()).build();
 	}
@@ -219,10 +236,9 @@ public class AdminResource {
 	@Path("/groups")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public Response createGroup(@FormParam("groupName") String groupName, @FormParam("domain") Long domainId
-			, @FormParam("groupId") Long groupId) {
-		LOGGER.debug("In group post. Group Id: {}, Group Name: {}, Domain Id: {}", groupId, groupName, domainId);
-		adminService.createOrEditGroup(groupId, groupName, domainId);
+	public Response createDomain(@FormParam("groupName") String groupName, @FormParam("domain") Long domainId) {
+		LOGGER.info("In group post. Group Name: {}, Domain Id: {}", groupName, domainId);
+		adminService.createGroup(groupName, domainId);
 		UriBuilder builder = UriBuilder.fromResource(this.getClass()).path("groups");
 		return Response.seeOther(builder.build()).build();
 	}

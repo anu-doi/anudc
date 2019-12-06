@@ -228,6 +228,7 @@ public class SearchService
 	public Response doGetbrowseAsHtml(@QueryParam("q") String q, @QueryParam("field") String facetField
 			, @QueryParam("field-select") String facetSelected, @QueryParam("offset") int offset
 			, @QueryParam("limit") int limit, @QueryParam("filter") String filter) {
+		LOGGER.debug("In doGetbrowseAsHtml");
 		if (Util.isNotEmpty(facetField)) {
 			try {
 				SolrSearchResult solrSearchResult = solrSearch.executeSearch(q, facetField, facetSelected, offset, limit, filter);
@@ -263,6 +264,7 @@ public class SearchService
 	public Response doGetBrowseResultsAsHtml(@QueryParam("q") String q, @QueryParam("field") String facetField
 			, @QueryParam("field-select") String facetSelected, @QueryParam("offset") int offset
 			, @QueryParam("limit") int limit, @QueryParam("filter") String filter) {
+		LOGGER.debug("In doGetBrowseResultsAsHtml");
 		if (Util.isNotEmpty(facetField)) {
 			try {
 				SolrSearchResult solrSearchResult = solrSearch.executeSearch(q, facetField, facetSelected, offset, limit, filter);

@@ -23,6 +23,7 @@ package au.edu.anu.datacommons.data.db.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -32,6 +33,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 /**
@@ -54,7 +57,10 @@ public class Template {
 	private String templatePid;
 	private String name;
 	private String description;
-	private List<PublishLocation> publishLocations = new ArrayList<PublishLocation>();;
+	private EntityType entityType;
+	private List<TemplateAttribute> templateAttributes;
+	private List<TemplateTab> templateTabs;
+	private List<PublishLocation> publishLocations = new ArrayList<PublishLocation>();
 	
 	/**
 	 * Get the id
@@ -131,6 +137,34 @@ public class Template {
 	 */
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	@ManyToOne(fetch=FetchType.EAGER)
+	@JoinColumn(name="entity_type_id", referencedColumnName="id")
+	public EntityType getEntityType() {
+		return entityType;
+	}
+
+	public void setEntityType(EntityType entityType) {
+		this.entityType = entityType;
+	}
+
+	@OneToMany(mappedBy="template", cascade=CascadeType.ALL, orphanRemoval=true)
+	public List<TemplateAttribute> getTemplateAttributes() {
+		return templateAttributes;
+	}
+
+	public void setTemplateAttributes(List<TemplateAttribute> templateAttributes) {
+		this.templateAttributes = templateAttributes;
+	}
+
+	@OneToMany(mappedBy="template", cascade=CascadeType.ALL, orphanRemoval=true)
+	public List<TemplateTab> getTemplateTabs() {
+		return templateTabs;
+	}
+
+	public void setTemplateTabs(List<TemplateTab> templateTabs) {
+		this.templateTabs = templateTabs;
 	}
 
 	/**

@@ -58,6 +58,8 @@ import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.LinkTypeDAO;
 import au.edu.anu.datacommons.data.db.dao.LinkTypeDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.TemplateDAO;
+import au.edu.anu.datacommons.data.db.dao.TemplateDAOImpl;
 import au.edu.anu.datacommons.data.db.model.ExternalLinkPattern;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
@@ -75,6 +77,7 @@ import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
+import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.controller.StorageController;
@@ -208,6 +211,27 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	@Override
 	public Map<String, Object> getViewPage(FedoraObject fedoraObject, String layout, String tmplt) {
 		Map<String, Object> values = getPage(layout, tmplt, fedoraObject, false);
+		return values;
+	}
+	
+	public RecordDataSummary getRecordDataSummary(FedoraObject fedoraObject) {
+		try {
+			RecordDataSummary rdi = storageController.getRecordDataSummary(fedoraObject.getObject_id());
+			return rdi;
+		}
+		catch (IOException | StorageException e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+		
+		return null;
+	}
+	
+	public Map<String, Object> getViewObjects(FedoraObject fedoraObject, String tmplt) {
+		if (fedoraObject != null) {
+			
+		}
+		
+		Map<String, Object> values = null;
 		return values;
 	}
 	
@@ -706,6 +730,50 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		return values;
 	}
 	
+
+	public au.edu.anu.datacommons.data.db.model.Template getTemplateByTemplateId(String templateId) throws FedoraClientException, JAXBException {
+//		Template template = 
+		//TODO fix this so it is injected
+		TemplateDAO templateDAO = new TemplateDAOImpl();
+		au.edu.anu.datacommons.data.db.model.Template template = templateDAO.getTemplateByPid(templateId);
+		
+		return template;
+		
+//		ViewTransform viewTransform = new ViewTransform();
+//		return viewTransform.getTemplate(templateId, null);
+	}
+
+	@Override
+	public Data getEditData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException {
+		boolean hasPermission = permissionService.checkPermission(fedoraObject, CustomACLPermission.WRITE);
+		if (!hasPermission) {
+			throw new AccessDeniedException("You do not have permission to edit the object " + fedoraObject.getObject_id());
+		}
+		return getItemData(fedoraObject, Constants.XML_SOURCE);
+	}
+
+	@Override
+	public Data getPublishData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException {
+		return getItemData(fedoraObject, Constants.XML_PUBLISHED);
+	}
+	
+	private Data getItemData(FedoraObject fedoraObject, String source) throws JAXBException, FedoraClientException {
+		JAXBTransform jaxbTransform = new JAXBTransform();
+		InputStream dataStream = getInputStream(fedoraObject.getObject_id(), source);
+		Data data = null;
+		data = (Data) jaxbTransform.unmarshalStream(dataStream, Data.class);
+		return data;
+	}
+	
+	//Note required after getItemData is removed
+	private InputStream getInputStream (String pid, String dsId) throws FedoraClientException {
+		InputStream xslStream = null;
+		if(Util.isNotEmpty(pid)) {
+			xslStream = FedoraBroker.getDatastreamAsStream(pid, dsId);
+		}
+		return xslStream;
+	}
+	
 	/**
 	 * getLinks
 	 * 
@@ -960,7 +1028,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			//				}
 			//			}
 			
-			org.datacite.schema.kernel_4.Resource doiResource = new DoiResourceAdapter(itemData).createDoiResource();
+			org.datacite.schema.kernel_2.Resource doiResource = new DoiResourceAdapter(itemData).createDoiResource();
 			DoiClient doiClient = new DoiClient();
 			doiClient.mint(pid, doiResource);
 			

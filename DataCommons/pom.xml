@@ -18,6 +18,7 @@
 		<spring.version>4.2.6.RELEASE</spring.version>
 		<springsecurity.version>4.1.0.RELEASE</springsecurity.version>
 		<jasperreports.version>4.7.0</jasperreports.version>
+		<freemarker.version>2.3.28</freemarker.version>
 	</properties>
 
 	<repositories>
@@ -71,7 +72,20 @@
 			<groupId>postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<version>9.1-901-1.jdbc4</version>
+		</dependency><!-- 
+		<dependency>
+			<groupId>au.edu.anu.taglib</groupId>
+			<artifactId>anu-taglib</artifactId>
+			<version>1.9.1-SNAPSHOT</version>
+			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>jstl</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.2</version>
+		</dependency>
+		 -->
+		
 		<dependency>
 			<groupId>au.edu.anu.taglib</groupId>
 			<artifactId>anu-taglib</artifactId>
@@ -89,6 +103,7 @@
 			<artifactId>jstl</artifactId>
 			<version>1.2</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>xalan</groupId>
 			<artifactId>xalan</artifactId>
@@ -160,6 +175,22 @@
 		</dependency>
 		<dependency>
 			<groupId>com.sun.jersey.contribs</groupId>
+			<artifactId>jersey-freemarker</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey.contribs</groupId>
+			<artifactId>jersey-freemarker</artifactId>
+			<version>${jersey.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.freemarker</groupId>
+					<artifactId>freemarker</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey.contribs</groupId>
 			<artifactId>jersey-spring</artifactId>
 			<exclusions>
 				<exclusion>
@@ -167,6 +198,11 @@
 					<artifactId>commons-logging</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.freemarker</groupId>
+			<artifactId>freemarker</artifactId>
+			<version>${freemarker.version}</version>
 		</dependency>
 		
 		<dependency>
@@ -237,7 +273,6 @@
 		<dependency>
 			<groupId>au.edu.anu.datacommons</groupId>
 			<artifactId>DcShared</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>gov.loc</groupId>
@@ -300,7 +335,6 @@
 		<dependency>
 			<groupId>au.edu.anu.datacommons</groupId>
 			<artifactId>report-datasource</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
@@ -312,9 +346,6 @@
 			<artifactId>spring-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		
-		
-		
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-core</artifactId>
@@ -534,16 +565,6 @@
 			<!-- Spring Framework -->
 			<dependency>
 				<groupId>org.springframework</groupId>
-				<artifactId>spring-core</artifactId>
-				<version>${spring.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-context</artifactId>
-				<version>${spring.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework</groupId>
 				<artifactId>spring-context-support</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
@@ -555,11 +576,6 @@
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-aop</artifactId>
-				<version>${spring.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-jdbc</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
 			<dependency>

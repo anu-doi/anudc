@@ -173,7 +173,10 @@ public class PublishResource {
 			publishService.publish(fedoraObject, publishers);
 		}
 		
-		UriBuilder uriBuilder = UriBuilder.fromPath("/display").path(item).queryParam("layout", layout);
+		UriBuilder uriBuilder = UriBuilder.fromPath("/display").path(item);
+		if (Util.isNotEmpty(layout)) {
+			uriBuilder = uriBuilder.queryParam("layout", layout);
+		}
 		if (Util.isNotEmpty(tmplt)) {
 			uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
 		}

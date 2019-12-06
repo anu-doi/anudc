@@ -97,4 +97,24 @@ public class SelectCodeDAOImpl extends GenericDAOImpl<SelectCode, SelectCodePK> 
 		
 		return selectCodes;
 	}
+	
+	@Override
+	public List<SelectCode> getOptionsByName(String name) {
+		// TODO Auto-generated method stub
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
+		List<SelectCode> selectCodes = null;
+		try {
+			Query query = entityManager.createQuery("from SelectCode where select_name = :name");
+			query.setParameter("name", name);
+			selectCodes = query.getResultList();
+		}
+		catch (NoResultException e) {
+			LOGGER.warn("No options found");
+		}
+		finally {
+			entityManager.close();
+		}
+		
+		return selectCodes;
+	}
 }

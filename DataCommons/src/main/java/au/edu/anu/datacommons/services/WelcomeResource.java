@@ -85,9 +85,18 @@ public class WelcomeResource {
 					LOGGER.error("Error retrieving list of recently modified collections for {}", auth.getName());
 				}
 			}
+			else {
+				try {
+					SolrSearchResult searchResult = solrSearch.executeSearch("*", 0, 10, "published", "unpublished.lastModified", ORDER.desc);
+					model.put("resultSet", searchResult);
+				} catch (SolrServerException | IOException e) {
+					LOGGER.error("Error retrieving list of recently modified collections for {}", auth.getName());
+				}
+			}
 		} else {
 			LOGGER.error("SolrSearch is null. Resource not injected");
 		}
 		return Response.ok(new Viewable("/welcome.jsp", model)).build();
+//		return Response.ok(new Viewable("/welcome.ftl", model)).build();
 	}
 }

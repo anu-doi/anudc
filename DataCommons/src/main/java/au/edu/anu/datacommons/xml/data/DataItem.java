@@ -26,6 +26,11 @@ import java.util.List;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import au.edu.anu.datacommons.freemarker.SelectOptions;
+
 /**
  * Data
  * 
@@ -42,6 +47,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  */
 @XmlJavaTypeAdapter(DataItemAdapter.class)
 public class DataItem {
+	static final Logger LOGGER = LoggerFactory.getLogger(DataItem.class);
+	
 	private String name_;
 	private String value_;
 	private String description_;
@@ -144,5 +151,15 @@ public class DataItem {
 	 */
 	public void setChildValues(List<DataItem> childValues_) {
 		this.childValues_ = childValues_;
+	}
+	
+	public List<DataItem> getChildElementByName(String elementName) {
+		List<DataItem> elements = new ArrayList<DataItem>();
+		for (DataItem item : childValues_) {
+			if (item.getName().equalsIgnoreCase(elementName)) {
+				elements.add(item);
+			}
+		}
+		return elements;
 	}
 }

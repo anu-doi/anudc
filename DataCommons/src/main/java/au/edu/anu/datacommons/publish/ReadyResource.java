@@ -106,6 +106,7 @@ public class ReadyResource {
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response readyForReview(@PathParam("id") String pid, @QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt) {
+		LOGGER.info("Ready for review: {}, layout: {}, template: {}", pid, layout, tmplt);
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 		publishService.setReadyForReview(fedoraObject);
 		
@@ -286,7 +287,14 @@ public class ReadyResource {
 	 * @return The html response
 	 */
 	private Response buildDisplayResponse(String pid, String layout, String tmplt) {
-		UriBuilder uriBuilder = UriBuilder.fromPath("/display").path(pid).queryParam("layout", layout);
+//		UriBuilder uriBuilder = UriBuilder.fromPath("/display").path(pid).queryParam("layout", layout);
+//		if (Util.isNotEmpty(tmplt)) {
+//			uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
+//		}
+		UriBuilder uriBuilder = UriBuilder.fromPath("/display").path(pid);
+		if (Util.isNotEmpty(layout)) {
+			uriBuilder = uriBuilder.queryParam("layout", layout);
+		}
 		if (Util.isNotEmpty(tmplt)) {
 			uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
 		}

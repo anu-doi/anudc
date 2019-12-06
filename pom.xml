@@ -52,6 +52,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jersey.version>1.19.1</jersey.version>
 		<bagit.version>4.4</bagit.version>
+		<spring.version>4.2.6.RELEASE</spring.version>
+		<springsecurity.version>4.1.0.RELEASE</springsecurity.version>
 	</properties>
 
 	<dependencyManagement>
@@ -131,6 +133,37 @@
 				<groupId>com.sun.jersey</groupId>
 				<artifactId>jersey-client</artifactId>
 				<version>${jersey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>au.edu.anu.datacommons</groupId>
+				<artifactId>DcShared</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>au.edu.anu.datacommons</groupId>
+				<artifactId>report-datasource</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-core</artifactId>
+				<version>${spring.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>commons-logging</groupId>
+						<artifactId>commons-logging</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-jdbc</artifactId>
+				<version>${spring.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

@@ -4,7 +4,7 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<anu:header id="1998" title="TITLE" description="DESCRIPTION" subject="SUBJECT" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au" ssl="true">
+<anu:header id="1998" title="Collection Request" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur" respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
 
 </anu:header>
 
@@ -13,7 +13,7 @@
 <c:choose>
 	<c:when test="${it.dropboxes != null}">
 		<!-- Display list of dropboxes -->
-		<anu:content layout="doublewide" title="Dropboxes">
+		<anu:content layout="full" title="Dropboxes">
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
@@ -49,7 +49,7 @@
 
 	<c:when test="${not empty it.dropbox}">
 		<!-- Display details of a specific dropbox. -->
-		<anu:content layout="doublewide" title="Dropbox Administration">
+		<anu:content layout="full" title="Dropbox Administration">
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
@@ -97,7 +97,7 @@
 	</c:when>
 
 	<c:otherwise>
-		<anu:content layout="doublewide" title="Dropbox">
+		<anu:content layout="full" title="Dropbox">
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
