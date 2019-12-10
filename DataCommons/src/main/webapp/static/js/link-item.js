@@ -1,15 +1,16 @@
+var editMode = false;
 
 jQuery(document).ready(function() {
+	var itemSearchWidth = $("#itemSearch").outerWidth();
+	console.log(itemSearchWidth);
+	var externalLinkWidth = $("#linkExternal").outerWidth();
+	console.log(externalLinkWidth);
+	
 	var options = {
 		url: function(phrase) {
 			return "/DataCommons/rest/list/items";
 		},
-		getValue: function(element) {
-			console.log("In getValue");
-			console.log(element);
-			return element.title;
-		},
-//		getValue: "title",
+		getValue: "title",
 		ajaxSettings: {
 			dataType: "json",
 			method: "GET",
@@ -24,65 +25,25 @@ jQuery(document).ready(function() {
 		list: {
 			match: {
 				enabled: true
+			},
+			onSelectItemEvent: function() {
+				console.log("In on select item event");
+				var selectedItemValue = $("#itemSearch").getSelectedItemData().item;
+				var selectedTitleValue = $("#itemSearch").getSelectedItemData().title;
+				console.log(selectedItemValue);
+				$("#itemIdentifier").html(selectedItemValue);
+				$("#itemId").html(selectedItemValue);
+				$("#itemName").html(selectedTitleValue);
+//				$("#itemName").val();
 			}
 		},
-		requestDelay: 400
+		listLocation: "results",
+		requestDelay: 400,
+		theme: "square"
 	}
 	
 	$("#itemSearch").easyAutocomplete(options);
-	/*$("#itemSearch").searchableOptionList({
-		data: function() {
-			console.log('In data section');
-			console.log($(this));
-			var values = [
-				{"type": "option", "value": "aa", "label": "AA"}
-				,{"type": "option", "value": "bb", "label": "BB"}
-				];
-			return values;
-		}
-	});*/
 	
-	/*$("#itemSearch").autocomplete({
-		source: function (request, response) {
-			jQuery.ajax({
-				url: "/DataCommons/rest/list/items",
-				dataType: "json",
-				data: {
-					title: request.term,
-					type: jQuery("#linkItemType").val()
-				},
-				success: function(data) {
-					response ( jQuery.map(data.results, function(item, i) {
-						return {
-							label: item.title,
-							value: item.item
-						};
-					}));
-				}
-			});
-		},
-		minLength: 2,
-		open: function() {
-			jQuery(this).removeClass("ui-corner-all").addClass("ui-corner-top");
-		},
-		close: function() {
-			jQuery(this).removeClass("ui-corner-top").addClass("ui-corner-all");
-		},
-		select: function(event, ui) {
-			var value = ui.item.value;
-			var result = value.match(/info:fedora\/(.*)/)[1];
-			jQuery("#itemName").text(ui.item.label);
-			jQuery("#itemIdentifier").text(result);
-			jQuery("#itemId").text(ui.item.value);
-			jQuery("#itemSearch").val(ui.item.label);
-			return false;
-		},
-	    focus: function(event, ui) {
-	    	jQuery("#itemSearch").val(ui.item.label);
-	        return false; // Prevent the widget from inserting the value.
-	    }
-	});*/
-
 	$("#linkItemType").change(function() {
 		var cat1 = jQuery("#itemType").val();
 		var cat2 = jQuery("#linkItemType").val();
@@ -187,6 +148,13 @@ function getRelationshipType(relationship) {
 	return relation;
 }
 
+function getPidFromInfo(pid) {
+	var results = pid.match(/info:fedora\/(.*)/);
+	if (results) {
+		return results[1];
+	}
+}
+
 function editLink(item, row) {
 	console.log("In edit link");
 	var title = getItemTitle(item);
@@ -194,30 +162,32 @@ function editLink(item, row) {
 	var relation = getRelationshipType(item.predicate);
 	console.log(relation);
 	
-//	editLinkPopupStatus = disablePopup("#popupEditLink", editLinkPopupStatus);
-//	jQuery("#linkItemType").val(item.type);
-//	jQuery("#linkItemType").trigger('change');
-//	var pid = getPidFromInfo(item.item);
-//	
-//	editMode = 1;
-//	centrePopup("#popupLink");
-//	linkPopupStatus = loadPopup("#popupLink", linkPopupStatus);
-//	
-//	if (pid) {
-//		jQuery("#itemIdentifier").text(pid);
-//		jQuery("#linkExternal").val('');
-//		jQuery("#itemName").text(title);
-//		jQuery("#itemId").text(item.item);
-//	}
-//	else {
-//		jQuery("#itemIdentifier").text('None Selected');
-//		jQuery("#itemName").text('None Selected');
-//		jQuery("#linkExternal").val(item.item);
-//		jQuery("#itemId").val('');
-//	}
-//	jQuery("#previousLinkType").val(relation);
-//	//Because the possible relationship types are returned after this is set this does not work
-//	jQuery("#linkType").val(relation);
+	$("#modalEditLink").modal('hide');
+	$("#linkItemType").val(item.type);
+	$("#linkItemType").trigger('change');
+	
+	var pid = getPidFromInfo(item.item);
+	
+	editMode = 1;
+
+	$("#modalLink").modal('show');
+	console.log('after modal show?');
+	
+	if (pid) {
+		$("#itemIdentifier").text(pid);
+		$("#linkExternal").val('');
+		$("#itemName").text(title);
+		$("#itemId").text(item.item);
+	}
+	else {
+		jQuery("#itemIdentifier").text('None Selected');
+		jQuery("#itemName").text('None Selected');
+		jQuery("#linkExternal").val(item.item);
+		jQuery("#itemId").val('');
+	}
+	jQuery("#previousLinkType").val(relation);
+	//Because the possible relationship types are returned after this is set this does not work
+	jQuery("#linkType").val(relation);
 }
 
 function deleteLink(item, row) {
@@ -251,3 +221,44 @@ function getPid() {
 	var pid = pathArray[pathArray.length - 1];
 	return pid;
 }
+
+//$("#formAddLink").live('submit', function() {
+//	console.log("Submit!");
+//});
+
+$("#formAddLink").submit(function() {
+	console.log("Submit!");
+	var pid = getPid();
+	var urlStr = '';
+	if (editMode == 1) {
+		console.log('In edit mode');
+		urlStr = "/DataCommons/rest/display/editLink/" + pid;
+	}
+	else {
+		console.log('In add mode');
+		urlStr = "/DataCommons/rest/display/addLink/" + pid;
+	}
+	var typeStr = $("#linkType").val();
+	var itemStr = $("#itemId").text();
+	var previousTypeStr = $("#previousLinkType").val();
+	
+	if (itemStr == '' || itemStr == 'None Selected') {
+		itemStr = $("#linkExternal").val();
+	}
+	$.ajax({
+		type: "POST",
+		url: urlStr,
+		data: {
+			linkType: typeStr,
+			itemId: itemStr,
+			removeLinkType: previousTypeStr
+		},
+		success: function() {
+			editMode = false;
+			$("#modalLink").modal('hide');
+		},
+		error: function() {
+			alert('Error Adding Link');
+		}
+	});
+});

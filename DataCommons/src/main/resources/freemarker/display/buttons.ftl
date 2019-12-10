@@ -110,7 +110,7 @@
 						</div>
 						<div class="row">
 							<div class="col-sm">
-								<label for="itemSearch" class="awesomplete" title="Search for an item to link to from ANU Data Commons">Item Search</label>
+								<label for="itemSearch" title="Search for an item to link to from ANU Data Commons">Item Search</label>
 							</div>
 							<div class="col-sm">
 								<input type="text" id="itemSearch" name="itemSearch" />

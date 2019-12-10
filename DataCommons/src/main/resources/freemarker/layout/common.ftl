@@ -7,6 +7,7 @@
 	<link href="/DataCommons/static/css/sol.css" rel="stylesheet" type="text/css" media="screen" />
 	<link href="/DataCommons/static/css/easy-autocomplete.min.css" rel="stylesheet" type="text/css" media="screen" />
 	<link href="/DataCommons/static/css/anu-bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
+	<link href="/DataCommons/static/css/datacommons.css" rel="stylesheet" type="text/css" media="screen" />
 	
 	<script src="/DataCommons/static/js/jquery-3.3.1.min.js" type="text/javascript"></script>
 	<script src="/DataCommons/static/js/sol.js" type="text/javascript"></script>
@@ -47,7 +48,15 @@
 				</div>
 			</form>
 		</div>
+	<#-- To Do -->
+	<#if security??>
+		<#if security.getUsername()??>
+		<div class="pt-3 pb-1 float-right">
+			${security.getUsername()}
+		</div>
+		</#if>
 	</div>
+	</#if>
 </header>
 <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
 	<div class="container">
@@ -60,8 +69,15 @@
 				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/rest/upload/search">Data search</a></li>
 				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/rest/collreq">Data request</a></li>
 				<li class="nav-item"><a class="nav-link text-light" href="https://openresearch.anu.edu.au/contact">Contact</a></li>
-				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/login-select">Login</a></li>
+				<#if security??>
+					<#if security.getUsername()??>
 				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/logout">Logout</a></li>
+					<#else>
+				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/login-select">Login</a></li>
+					</#if>
+				<#else>
+				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/login-select">Login</a></li>
+				</#if>
 				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/rest/admin">Administration</a></li>
 			</ul>
 		</div>

@@ -65,7 +65,12 @@ This item is in the status more work required
 <div class="col-sm-3">
 <#if tmplt.entityType.name == 'collection'>
 <div class="bg-uni25 border-top border-bottom border-primary mb-3">
+	<#assign canEdit=security.checkPermission(2)>
+	<#if canEdit>
 	<p><a href="/DataCommons/rest/records/${item.object_id}/data/" class="text-black">Download data files</a></p>
+	<#else>
+	<p><a href="/DataCommons/rest/collreq?pid=${item.object_id}" class="text-black">Request data files</a></p>
+	</#if>
 	<#if rdi??>
 	<p>Number of files: ${rdi.recordNumFiles}</p>
 	<p>Size: ${rdi.recordFriendlySize}</p>

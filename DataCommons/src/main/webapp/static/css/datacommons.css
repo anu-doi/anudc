@@ -1,3 +1,7 @@
 .colbox {
 	min-height: 250px;
 }
+/** This is to fix a width issue with the autocomplete in the search **/
+#itemSearch {
+	width: 206px;
+}
