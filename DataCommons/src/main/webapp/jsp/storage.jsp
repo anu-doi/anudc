@@ -7,7 +7,7 @@
 
 <c:set var="fedoraObject" value="${it.fo}" />
 
-<anu:header id="1998" title="${it.fo.object_id}" description="DESCRIPTION" subject="SUBJECT" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au" ssl="true">
+<anu:header id="1998" title="${it.name}" description="DESCRIPTION" subject="SUBJECT" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au" ssl="true">
 
 	<link href="<c:url value='/css/storage.css' />" rel="stylesheet" type="text/css" />
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -21,22 +21,23 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" title="Data Files [${it.fo.object_id}]">
+<anu:content layout="full" title="${it.name}">
+	<anu:breadcrumbs>
+		<c:url value="/rest/display/${it.fo.object_id}" var="displayURL">
+			<c:param name="layout">def:display</c:param>
+		</c:url>
+		<anu:crumb title="Display" href='${displayURL}' />
+		<anu:crumb title="Data" />
+	</anu:breadcrumbs>
+
+	<h2>${it.fo.object_id}</h2>
 	<jsp:include page="/jsp/statusmessages.jsp">
 		<jsp:param value="${it}" name="it" />
 	</jsp:include>
 	<img id="loading" src="<c:url value='/images/ajax-loader.gif' />" style="display: none"></img>
-
-	<div id="tabs" class="pagetabs-nav nopadbottom">
-		<ul>
-			<li><a href="#files">Files</a></li>
-			<li><a href="#info">Archive Info</a></li>
-			<li><a href="#extRefs">External References</a></li>
-		</ul>
-	</div>
 </anu:content>
 
-<div class="doublewide nopadtop" id="files" class="list_view">
+<div class="full nopadtop" id="files" class="list_view">
 	<c:choose>
 		<c:when test="${not empty it.rdi}">
 			<p class="msg-info">Record contains approximately ${it.rdi.recordNumFiles} file(s) totalling ${it.rdi.recordFriendlySize}.</p>
@@ -95,7 +96,7 @@
 				
 
 				<div>
-				<table id="tblFiles" class="w-doublewide tbl-row-bdr noborder anu-long-area tbl-files">
+				<table id="tblFiles" class="w-doublewide tbl-row-bdr noborder bdr-top-solid anu-long-area tbl-files">
 					<tr class="anu-sticky-header">
 						<th class="col-checkbox"><input id="selectall" type="checkbox" /></th>
 						<th class="col-filename">Name</th>
@@ -252,33 +253,46 @@
 	<!-- Drag n Drop -->
 	<sec:authorize access="isAuthenticated()">
 		<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
-			<div id="dragandrophandler" class="w-doublewide"></div>
+			<div id="dragandrophandler"></div>
 		</sec:authorize>
 	</sec:authorize>
 </div>
 
-<div class="doublewide nopadtop" id="extRefs" style="display: none;">
-	<div class="small w-doublewide">
-		<!-- External references -->
+<div class="full nopadtop" id="extRefs">
+	<!-- External references -->
+	<sec:authorize access="isAuthenticated()">
+		<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
+			<button onclick="addExtRef()">Add External Reference</button>
+		</sec:authorize>
+	</sec:authorize>
+	
+	<c:if test="${not empty it.rdi.extRefs}">
+	<div class="divline-bold-uni"></div>
+	<table class="tbl-row-bdr fullwidth noborder bdr-top-solid">
+		<tr>
+			<th>External References</th>
+			<th></th>
+		</tr>
+		
+		<c:forEach var="iEntry" items="${it.rdi.extRefs}">
+		<tr>
+		<td>
+			<a href="${iEntry}" class="nounderline"><c:out value='${iEntry}' /></a>&nbsp;&nbsp;
+		</td>
+		<td class="col-action-icons">
 		<sec:authorize access="isAuthenticated()">
 			<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
-				<button onclick="addExtRef()">Add External Reference</button>
+			<a href="javascript:" onclick="deleteExtRef('${iEntry}');"><i class="material-icons" title="Delete">delete</i></a>
 			</sec:authorize>
 		</sec:authorize>
-		<c:if test="${not empty it.rdi.extRefs}">
-			<ul>
-				<c:forEach var="iEntry" items="${it.rdi.extRefs}">
-					<li class="large">
-						<a href="${iEntry}"><c:out value='${iEntry}' /></a>&nbsp;&nbsp;
-						<a href="javascript:" onclick="deleteExtRef('${iEntry}');"><i class="material-icons" title="Delete">delete</i></a>
-					</li>
-				</c:forEach>
-			</ul>
-		</c:if>
-	</div>
+		</td>
+		</tr>
+		</c:forEach>
+	</table>
+	</c:if>
 </div>
 
-<div class="doublewide nopadtop" id="info" style="display: none;">
+<div class="full nopadtop" id="info">
 	<c:choose>
 		<c:when test="${not empty it.rdi}">
 			<table class="small w-doublewide">

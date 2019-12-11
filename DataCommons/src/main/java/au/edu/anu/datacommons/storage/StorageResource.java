@@ -49,6 +49,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +57,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
+
+import com.sun.jersey.api.NotFoundException;
+import com.sun.jersey.api.view.Viewable;
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataBodyPart;
+import com.sun.jersey.multipart.FormDataMultiPart;
+import com.yourmediashelf.fedora.client.FedoraClientException;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.security.AccessLogRecord.Operation;
@@ -68,12 +76,8 @@ import au.edu.anu.datacommons.storage.provider.StorageException;
 import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 import au.edu.anu.datacommons.util.Util;
-
-import com.sun.jersey.api.NotFoundException;
-import com.sun.jersey.api.view.Viewable;
-import com.sun.jersey.core.header.FormDataContentDisposition;
-import com.sun.jersey.multipart.FormDataBodyPart;
-import com.sun.jersey.multipart.FormDataMultiPart;
+import au.edu.anu.datacommons.xml.data.Data;
+import au.edu.anu.datacommons.xml.data.DataItem;
 
 /**
  * Provides REST endpoints to which rest requests related to data storage of a collection record are sent. 
@@ -417,7 +421,32 @@ public class StorageResource extends AbstractStorageResource {
 		}
 
 		Map<String, Object> model = new HashMap<String, Object>();
+		
+		Data data = null;
 		try {
+			data = fedoraObjectService.getPublishData(fo);
+			if (data == null) {
+			}
+		}
+		catch (FedoraClientException | JAXBException e) {
+			
+		}
+		if (data == null) {
+			try {
+				data = fedoraObjectService.getEditData(fo);
+			}
+			catch (FedoraClientException | JAXBException e) {
+				LOGGER.error(e.getMessage(), e);
+				resp = Response.status(Status.NOT_FOUND).entity("Unable to find item with the id " + pid).build();
+//				resp = Response.ok(e.getMessage()).build();
+			}
+		}
+		DataItem dataItem = data.getFirstElementByName("name");
+		String title = dataItem.getValue();
+		model.put("name", title);
+		
+		try {
+			
 			if (path == null || path.length() == 0 || storageController.dirExists(pid, path)) {
 				LOGGER.info("User {} ({}) requested list of files in {}/data/{}", getCurUsername(), getRemoteIp(), pid, path);
 				RecordDataSummary rdi = storageController.getRecordDataSummary(pid);

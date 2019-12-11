@@ -1,5 +1,5 @@
 function documentReady() {
-	initTabs();
+	//initTabs();
 	initPing();
 	initDragDrop();
 	initHandlers();
@@ -8,58 +8,58 @@ function documentReady() {
 	// jQuery("tr.file-row").on("click", selTblRow);
 }
 
-function initTabs() {
-	jQuery("div.pagetabs-nav > ul").each(
-			function() {
-				// For each set of tabs, we want to keep track of
-				// which tab is active and it's associated content
-				var $active, $content, $links = jQuery(this).find("a");
-
-				// If the location.hash matches one of the links, use that as
-				// the active tab.
-				// If no match is found, use the first link as the initial
-				// active tab.
-				$active = jQuery($links
-						.filter('[href="' + location.hash + '"]')[0]
-						|| $links[0]);
-				$active.addClass("pagetabs-select");
-				$content = jQuery($active.attr("href"));
-
-				// Hide the remaining content
-				$links.not($active).each(function() {
-					jQuery(jQuery(this).attr("href")).hide();
-				});
-
-				// Bind the click event handler
-				jQuery(this).on("click", "a", function(e) {
-					// Make the old tab inactive.
-					$active.removeClass("pagetabs-select");
-					$content.hide();
-
-					// Update the variables with the new link and content
-					$active = jQuery(this);
-					$content = jQuery(jQuery(this).attr("href"));
-
-					// Make the tab active.
-					$active.addClass("pagetabs-select");
-					$content.show();
-
-					// Prevent the anchor's default click action
-					e.preventDefault();
-				});
-			});
-	if (window.location.hash == "") {
-		jQuery("div.pagetabs-nav > ul > li > a")[0].click();
-	} else {
-		jQuery(
-				"div.pagetabs-nav > ul > li > a[href=" + window.location.hash
-						+ "]").click();
-	}
-	try {
-		history.replaceState(null, null, window.location.href.split("?")[0]);
-	} catch (err) {		
-	}
-}
+//function initTabs() {
+//	jQuery("div.pagetabs-nav > ul").each(
+//			function() {
+//				// For each set of tabs, we want to keep track of
+//				// which tab is active and it's associated content
+//				var $active, $content, $links = jQuery(this).find("a");
+//
+//				// If the location.hash matches one of the links, use that as
+//				// the active tab.
+//				// If no match is found, use the first link as the initial
+//				// active tab.
+//				$active = jQuery($links
+//						.filter('[href="' + location.hash + '"]')[0]
+//						|| $links[0]);
+//				$active.addClass("pagetabs-select");
+//				$content = jQuery($active.attr("href"));
+//
+//				// Hide the remaining content
+//				$links.not($active).each(function() {
+//					jQuery(jQuery(this).attr("href")).hide();
+//				});
+//
+//				// Bind the click event handler
+//				jQuery(this).on("click", "a", function(e) {
+//					// Make the old tab inactive.
+//					$active.removeClass("pagetabs-select");
+//					$content.hide();
+//
+//					// Update the variables with the new link and content
+//					$active = jQuery(this);
+//					$content = jQuery(jQuery(this).attr("href"));
+//
+//					// Make the tab active.
+//					$active.addClass("pagetabs-select");
+//					$content.show();
+//
+//					// Prevent the anchor's default click action
+//					e.preventDefault();
+//				});
+//			});
+//	if (window.location.hash == "") {
+//		jQuery("div.pagetabs-nav > ul > li > a")[0].click();
+//	} else {
+//		jQuery(
+//				"div.pagetabs-nav > ul > li > a[href=" + window.location.hash
+//						+ "]").click();
+//	}
+//	try {
+//		history.replaceState(null, null, window.location.href.split("?")[0]);
+//	} catch (err) {		
+//	}
+//}
 
 function initPing() {
 	if (jQuery("#uploadFiles").length > 0) {

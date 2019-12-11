@@ -194,8 +194,14 @@ public class DisplayResource
 				
 			}
 			else {
-				values.put("editData", editData);
+//				values.put("editData", editData);
+				
 				values.put("data", publishData);
+				
+//				fedoraObjectService.getDataDifferences(template, editData, publishData);
+				Data differences = fedoraObjectService.getDataDifferences(template, editData, publishData);
+				values.put("differenceData", differences);
+				
 			}
 			RecordDataSummary rdi = fedoraObjectService.getRecordDataSummary(fedoraObject);
 			List<Result> links = fedoraObjectService.getLinks(fedoraObject);

@@ -66,6 +66,7 @@ import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.LinkType;
 import au.edu.anu.datacommons.data.db.model.PublishReady;
 import au.edu.anu.datacommons.data.db.model.ReviewReady;
+import au.edu.anu.datacommons.data.db.model.TemplateAttribute;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.data.solr.SolrManager;
@@ -87,6 +88,7 @@ import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
 import au.edu.anu.datacommons.xml.data.Data;
+import au.edu.anu.datacommons.xml.data.DataItem;
 import au.edu.anu.datacommons.xml.sparql.Result;
 import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
@@ -1088,5 +1090,31 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	public List<FedoraObject> getAllPublishedAndPublic() {
 		FedoraObjectDAOImpl dao = new FedoraObjectDAOImpl();
 		return dao.getAllPublishedAndPublic();
+	}
+	
+	@Override
+	public Data getDataDifferences(au.edu.anu.datacommons.data.db.model.Template template, Data editData, Data publisData) {
+		if (editData == null) {
+			return null;
+		}
+		
+		Data differenceData = new Data();
+		
+		List<TemplateAttribute> templateAttributes = template.getTemplateAttributes();
+		for (TemplateAttribute attr : templateAttributes) {
+			String fieldName = attr.getName();
+			List<DataItem> editValues = editData.getElementByName(fieldName);
+			List<DataItem> publishValues = publisData.getElementByName(fieldName);
+			if (editValues != null && editValues.size() > 0) {
+				if (!editValues.equals(publishValues)) {
+					differenceData.getItems().addAll(editValues);
+				}
+			}
+			else if (publishValues != null && publishValues.size() > 0) {
+				//TODO something when a value has been deleted?
+			}
+		}
+		
+		return differenceData;
 	}
 }

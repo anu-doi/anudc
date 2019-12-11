@@ -35,7 +35,9 @@ import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.storage.info.RecordDataSummary;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
 import au.edu.anu.datacommons.xml.data.Data;
+import au.edu.anu.datacommons.xml.data.DataItem;
 import au.edu.anu.datacommons.xml.sparql.Result;
+import au.edu.anu.datacommons.xml.template.Template;
 
 /**
  * FedoraObjectService
@@ -362,7 +364,9 @@ public interface FedoraObjectService {
 	List<FedoraObject> getAllPublishedAndPublic();
 
 //	@PostAuthorize("hasPermission(returnObject, 'WRITE')")
-	Data getEditData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException;
+	public Data getEditData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException;
 
-	Data getPublishData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException;
+	public Data getPublishData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException;
+	
+	public Data getDataDifferences(au.edu.anu.datacommons.data.db.model.Template template, Data editData, Data publisData);
 }
