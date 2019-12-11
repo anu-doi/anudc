@@ -76,7 +76,6 @@
 			</select>
 			<#break>
 		<#case "Table">
-			<div class="alert alert-danger">Field type '${templateAttribute.fieldType.name}' not found</div>
 			<#if dataValues?has_content>
 			<@renderTableWithRows templateAttribute dataValues/>
 			<#else>
