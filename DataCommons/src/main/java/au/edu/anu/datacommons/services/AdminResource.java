@@ -189,8 +189,9 @@ public class AdminResource {
 	@Path("/domains")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public Response createDomain(@FormParam("domainName") String domainName) {
-		adminService.createDomain(domainName);
+	public Response createDomain(@FormParam("domainName") String domainName, @FormParam("domainId") Long domainId) {
+		LOGGER.debug("In domain post. Domain Id: {}, Domain Name: {}", domainId, domainName);
+		adminService.createOrEditDomain(domainId, domainName);
 		UriBuilder builder = UriBuilder.fromResource(this.getClass()).path("domains");
 		return Response.seeOther(builder.build()).build();
 	}
@@ -236,9 +237,10 @@ public class AdminResource {
 	@Path("/groups")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public Response createDomain(@FormParam("groupName") String groupName, @FormParam("domain") Long domainId) {
-		LOGGER.info("In group post. Group Name: {}, Domain Id: {}", groupName, domainId);
-		adminService.createGroup(groupName, domainId);
+	public Response createGroup(@FormParam("groupName") String groupName, @FormParam("domain") Long domainId
+			, @FormParam("groupId") Long groupId) {
+		LOGGER.debug("In group post. Group Id: {}, Group Name: {}, Domain Id: {}", groupId, groupName, domainId);
+		adminService.createOrEditGroup(groupId, groupName, domainId);
 		UriBuilder builder = UriBuilder.fromResource(this.getClass()).path("groups");
 		return Response.seeOther(builder.build()).build();
 	}

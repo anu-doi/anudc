@@ -64,12 +64,15 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	public void createOrEditDomain(Long domainId, String domainName) {
 		if (domainName == null || "".equals(domainName)) {
+			LOGGER.error("Domain name is empty?");
 			throw new DataCommonsException(400, "No Domain Name specified");
 		}
 		if (null == domainId) {
+			LOGGER.debug("Send to create domain?");
 			createDomain(domainName);
 		}
 		else {
+			LOGGER.debug("Send to edit domain?");
 			editDomain(domainId, domainName);
 		}
 	}

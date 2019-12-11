@@ -5,7 +5,7 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 
-<anu:header id="1998" title="Browse" description="description" subject="subject" respOfficer="University Librarian" respOfficerContact="mailto:libary.web@anu.edu.au"
+<anu:header id="1998" title="Browse" description="description" subject="subject" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au"
 	ssl="true">
 
 </anu:header>

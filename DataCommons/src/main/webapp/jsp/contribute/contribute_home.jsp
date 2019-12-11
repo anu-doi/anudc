@@ -2,7 +2,7 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
-<anu:header id="1998" respOfficerContact="mailto:libary.web@anu.edu.au" respOfficer="University Librarian" subject="" title="Contribute" description="">
+<anu:header id="1998" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au" subject="" title="Contribute" description="">
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />

@@ -3,7 +3,7 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib" %>
 
-<anu:header id="1998" title="Login" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au" ssl="true">
+<anu:header id="1998" title="Login" description="description" subject="subject" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au" ssl="true">
 	<script type="text/javascript" src="<c:url value='/js/global.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/login.js' />"></script>
 </anu:header>
