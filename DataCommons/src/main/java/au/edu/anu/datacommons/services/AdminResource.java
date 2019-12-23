@@ -57,8 +57,6 @@ import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.exception.DataCommonsException;
-import au.edu.anu.datacommons.freemarker.GroupOptions;
-import au.edu.anu.datacommons.freemarker.SelectOptions;
 
 /**
  * AdminResource
@@ -98,7 +96,7 @@ public class AdminResource {
 //		values.put("options", new SelectOptions());
 //		values.put("groups", new GroupOptions());
 		
-		Viewable viewable = new Viewable("/admin/admin-main.ftl", values);
+		Viewable viewable = new Viewable("/admin/admin-main.jsp", values);
 		return Response.ok(viewable).build();
 	}
 	

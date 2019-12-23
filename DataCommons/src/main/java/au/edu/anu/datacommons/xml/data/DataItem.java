@@ -29,8 +29,6 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.datacommons.freemarker.SelectOptions;
-
 /**
  * Data
  * 

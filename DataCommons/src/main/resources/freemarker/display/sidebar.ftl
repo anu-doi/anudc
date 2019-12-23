@@ -29,9 +29,12 @@
 	Status: Unpublished
 	</#if>
 </div>
-<div class="border-top border-bottom border-primary mb-3">
+
+<#if security.getUsername()??>
+<div class="mb-3">
 	<#include "buttons.ftl" />
 </div>
+</#if>
 <div class="border-top border-bottom border-primary mb-3">
 	Related items
 	<ul class="list-unstyled">

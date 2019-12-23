@@ -183,6 +183,7 @@
 </c:choose>
 
 <c:if test="not empty it.approvedrequests">
+bbb
 	<c:forEach items="${it.approvedrequests}" var="download">
 		xx${download.accessCode}xx
 	</c:forEach>

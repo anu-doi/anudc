@@ -21,6 +21,8 @@
 
 package au.edu.anu.datacommons.data.db.dao;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
@@ -30,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import au.edu.anu.datacommons.collectionrequest.Question;
 import au.edu.anu.datacommons.collectionrequest.QuestionMap;
 import au.edu.anu.datacommons.data.db.PersistenceManager;
+import au.edu.anu.datacommons.data.db.model.AclObjectIdentity;
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
 
 /**
  * QuestionMapDAOImpl
@@ -142,5 +146,121 @@ public class QuestionMapDAOImpl extends GenericDAOImpl<QuestionMap, Long> implem
 		}
 		
 		return questionMap;
+	}
+	
+	public List<QuestionMap> getListByPid(String pid) {
+		List<QuestionMap> questions = null;
+		
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
+		Query query = entityManager.createQuery("from QuestionMap where pid = :pid");
+		query.setParameter("pid", pid);
+		try {
+			questions = query.getResultList();
+			if (questions == null || questions.size() == 0) {
+				FedoraObjectDAO fedoraObjectDAO = new FedoraObjectDAOImpl();
+			}
+		}
+		finally {
+			entityManager.close();
+		}
+		
+		return questions;
+	}
+	
+	public List<QuestionMap> getListByItem(FedoraObject fedoraObject) {
+		List<QuestionMap> questions = null;
+		
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
+		Query query = entityManager.createQuery("from QuestionMap where pid = :pid");
+		query.setParameter("pid", fedoraObject.getObject_id());
+		try {
+			questions = query.getResultList();
+			if (questions == null || questions.size() == 0) {
+				questions = getListByParent(entityManager, new Long(3), fedoraObject.getId());
+			}
+			for (QuestionMap question : questions) {
+				question.getQuestion().getQuestionOptions().size();
+			}
+		}
+		finally {
+			entityManager.close();
+		}
+		
+		return questions;
+	}
+	
+	private List<QuestionMap> getListByParent(EntityManager entityManager, Long objectClassId, Long id) {
+		Query aclQuery = entityManager.createQuery("from AclObjectIdentity where object_id_class = :idClass and object_id_identity = :id");
+		aclQuery.setParameter("idClass",  objectClassId);
+		aclQuery.setParameter("id", id);
+		
+		AclObjectIdentity aclObject = (AclObjectIdentity) aclQuery.getSingleResult();
+		
+		List<QuestionMap> questions = null;
+		while ((questions == null || questions.size() == 0) && aclObject.getParent_object() != null) {
+			aclObject = entityManager.find(AclObjectIdentity.class, aclObject.getParent_object());
+			
+			if (aclObject.getObject_id_class().longValue() == 2) {
+				questions = getListByGroup(entityManager, aclObject.getObject_id_identity());
+			}
+			else if (aclObject.getObject_id_class().longValue() == 1){
+				questions = getListByDomain(entityManager, aclObject.getObject_id_identity());
+			}
+		}
+		
+		return questions;
+	}
+	
+	public List<QuestionMap> getListByGroup(Long id) {
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
+		try {
+			List<QuestionMap> questions = getListByGroup(entityManager, id);
+			if (questions == null || questions.size() == 0) {
+				questions = getListByParent(entityManager, new Long(2), id);
+			}
+			for (QuestionMap question : questions) {
+				question.getQuestion().getQuestionOptions().size();
+			}
+			return questions;
+		}
+		finally {
+			entityManager.close();
+		}
+		
+	}
+	
+	private List<QuestionMap> getListByGroup(EntityManager entityManager, Long id) {
+		Query query = entityManager.createQuery("from QuestionMap where group.id = :groupId");
+		query.setParameter("groupId", id);
+		
+		List<QuestionMap> questions = query.getResultList();
+		
+		return questions;
+	}
+	
+	public List<QuestionMap> getListByDomain(Long id) {
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
+		try {
+			List<QuestionMap> questions = getListByDomain(entityManager, id);
+			if (questions == null || questions.size() == 0) {
+				questions = getListByParent(entityManager, new Long(2), id);
+			}
+			for (QuestionMap question : questions) {
+				question.getQuestion().getQuestionOptions().size();
+			}
+			return questions;
+		}
+		finally {
+			entityManager.close();
+		}
+	}
+	
+	private List<QuestionMap> getListByDomain(EntityManager entityManager, Long id) {
+		Query query = entityManager.createQuery("from QuestionMap where domain.id = :domainId");
+		query.setParameter("domainId", id);
+		
+		List<QuestionMap> questions = query.getResultList();
+		
+		return questions;
 	}
 }

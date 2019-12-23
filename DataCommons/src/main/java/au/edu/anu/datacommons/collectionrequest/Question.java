@@ -21,12 +21,17 @@
 
 package au.edu.anu.datacommons.collectionrequest;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * Entity class representing a single question.
@@ -40,6 +45,7 @@ import javax.persistence.Table;
 public class Question {
 	private Long id;
 	private String questionText;
+	private List<QuestionOption> questionOptions;
 
 	protected Question() {
 	}
@@ -60,11 +66,22 @@ public class Question {
 	}
 
 	@Column(name = "question_text", nullable = false, unique = true)
+	@JsonProperty("question")
 	public String getQuestionText() {
 		return questionText;
 	}
 
 	public void setQuestionText(String question) {
 		this.questionText = question;
+	}
+
+	@OneToMany(mappedBy = "question")
+	@JsonProperty("options")
+	public List<QuestionOption> getQuestionOptions() {
+		return questionOptions;
+	}
+
+	public void setQuestionOptions(List<QuestionOption> questionOptions) {
+		this.questionOptions = questionOptions;
 	}
 }

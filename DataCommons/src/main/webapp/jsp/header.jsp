@@ -9,13 +9,8 @@
 <header>
 <anu:banner id="" ssl="true" primaryTitle="Data Commons" secondaryTitle="Library" primaryTitleUrl="${homeUrl}" secondaryTitleUrl="http://anulib.anu.edu.au/">
 	<anu:utilitymenu>
-		<sec:authorize access="isAnonymous()">
-			<li><a href="#">Welcome Guest</a></li>
-			<li> <a href='<c:url value="/login-select" />'>Login</a></li>
-		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
 			<li><a href='<c:url value="/rest/user" />'>Welcome <sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.username" />)</a></li>
-			<li><a href='<c:url value="/logout" />'>Logout</a></li>
 		</sec:authorize>
 	</anu:utilitymenu>
 </anu:banner>
@@ -33,11 +28,10 @@
 		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
 			<li><a href='<c:url value="/logout" />'>Logout</a></li>
-		</sec:authorize>
 		<li>
 			<a id="gw-mega-tab-3" data-mega-menu-rigger="3" href="<c:url value='/rest/admin' />">Administration</a>
 		</li>
-		<li><a href="<c:url value='/rest/search/browse?field=keyword' />">Browse</a></li>
+		</sec:authorize>
 	</anu:topmenulinks>
 </anu:topmenu>
 
