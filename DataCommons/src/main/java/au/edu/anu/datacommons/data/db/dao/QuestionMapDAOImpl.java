@@ -167,7 +167,8 @@ public class QuestionMapDAOImpl extends GenericDAOImpl<QuestionMap, Long> implem
 		return questions;
 	}
 	
-	public List<QuestionMap> getListByItem(FedoraObject fedoraObject) {
+	@Override
+	public List<QuestionMap> getListByItem(FedoraObject fedoraObject, boolean useParent) {
 		List<QuestionMap> questions = null;
 		
 		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
@@ -175,7 +176,8 @@ public class QuestionMapDAOImpl extends GenericDAOImpl<QuestionMap, Long> implem
 		query.setParameter("pid", fedoraObject.getObject_id());
 		try {
 			questions = query.getResultList();
-			if (questions == null || questions.size() == 0) {
+			if (useParent && (questions == null || questions.size() == 0)) {
+				LOGGER.debug("No questions found so far");
 				questions = getListByParent(entityManager, new Long(3), fedoraObject.getId());
 			}
 			for (QuestionMap question : questions) {
@@ -198,6 +200,7 @@ public class QuestionMapDAOImpl extends GenericDAOImpl<QuestionMap, Long> implem
 		
 		List<QuestionMap> questions = null;
 		while ((questions == null || questions.size() == 0) && aclObject.getParent_object() != null) {
+			LOGGER.debug("Object ID: {}, Parent ID: {}", aclObject.getId(), aclObject.getParent_object());
 			aclObject = entityManager.find(AclObjectIdentity.class, aclObject.getParent_object());
 			
 			if (aclObject.getObject_id_class().longValue() == 2) {
@@ -211,11 +214,12 @@ public class QuestionMapDAOImpl extends GenericDAOImpl<QuestionMap, Long> implem
 		return questions;
 	}
 	
-	public List<QuestionMap> getListByGroup(Long id) {
+	@Override
+	public List<QuestionMap> getListByGroup(Long id, boolean useParent) {
 		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		try {
 			List<QuestionMap> questions = getListByGroup(entityManager, id);
-			if (questions == null || questions.size() == 0) {
+			if (useParent && (questions == null || questions.size() == 0)) {
 				questions = getListByParent(entityManager, new Long(2), id);
 			}
 			for (QuestionMap question : questions) {
@@ -238,11 +242,12 @@ public class QuestionMapDAOImpl extends GenericDAOImpl<QuestionMap, Long> implem
 		return questions;
 	}
 	
-	public List<QuestionMap> getListByDomain(Long id) {
+	@Override
+	public List<QuestionMap> getListByDomain(Long id, boolean useParent) {
 		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		try {
 			List<QuestionMap> questions = getListByDomain(entityManager, id);
-			if (questions == null || questions.size() == 0) {
+			if (useParent && (questions == null || questions.size() == 0)) {
 				questions = getListByParent(entityManager, new Long(2), id);
 			}
 			for (QuestionMap question : questions) {

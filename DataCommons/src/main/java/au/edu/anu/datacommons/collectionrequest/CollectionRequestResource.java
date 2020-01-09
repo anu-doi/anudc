@@ -895,16 +895,16 @@ public class CollectionRequestResource {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response doPostQuestionAsHtml(@Context UriInfo uriInfo, @FormParam("submit") String submit,
-			@FormParam("q") String questionText, @FormParam("pid") String pid, @FormParam("qid") Set<Long> qIdSet,
+			@FormParam("q") String questionText, @FormParam("pid") String pid,
 			@FormParam("group") Long groupId, @FormParam("domain") Long domainId,
-			@FormParam("idPidQ") Set<Long> requiredQuestions, @FormParam("optQid") Set<Long> optQidSet) {
-		LOGGER.debug("Number of req q's: {}, Number of opt q's: {}", qIdSet.size(), optQidSet.size());
+			@FormParam("qid") List<Long> questions, @FormParam("required") List<Long> requiredQuestions) {
+		LOGGER.debug("Number of questions: {}", questions.size());
 		Response resp = null;
 		UriBuilder uriBuilder = uriInfo.getBaseUriBuilder().path(CollectionRequestResource.class)
 				.path(CollectionRequestResource.class, "doGetQuestionsAsHtml");
-
-		LOGGER.trace("In doPostQuestionAsHtml. Params submit={}, questionStr={}, pid={}, qid={}.", new Object[] {
-				submit, questionText, pid, qIdSet });
+		
+		LOGGER.debug("In doPostQuestionAsHtml. Params submit={}, questionStr={}, pid={}, qid={}.", new Object[] {
+				submit, questionText, pid, questions });
 
 		if (Util.isNotEmpty(pid))
 			uriBuilder = uriBuilder.queryParam("pid", pid);
@@ -936,11 +936,8 @@ public class CollectionRequestResource {
 			// Assigning questions to a pid.
 			else if (submit.equals("Save")) {
 				try {
-					QuestionDAO questionDAO = new QuestionDAOImpl();
-					QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl();
-					updateQuestions(questionDAO, questionMapDAO, qIdSet, pid, groupId, domainId, Boolean.TRUE);
-					updateQuestions(questionDAO, questionMapDAO, optQidSet, pid, groupId, domainId, Boolean.FALSE);
-
+					requestService.saveQuestions(pid, groupId, domainId, questions, requiredQuestions);
+					
 					uriBuilder = uriBuilder.queryParam("smsg", "Question List updated for this Item.");
 				} catch (Exception e) {
 					LOGGER.error("Unable to update questions for Pid " + pid, e);
@@ -990,7 +987,6 @@ public class CollectionRequestResource {
 		
 		// Get a list of Collection Requests and their details.
 		if (task.equals("listCollReq")) {
-//		else if (task.equals("listCollReq")) {
 			JSONArray reqStatusListJsonArray = new JSONArray();
 
 			try {
@@ -1100,70 +1096,6 @@ public class CollectionRequestResource {
 	}
 
 	/**
-	 * Save the questions to the database
-	 * 
-	 * @param questionDAO
-	 *            The question DAO
-	 * @param questionMapDAO
-	 *            The question map DAO
-	 * @param questions
-	 *            The list of questions to check
-	 * @param pid
-	 *            The pid to assign the values to
-	 * @param groupId
-	 *            The group to assign the questions to
-	 * @param domainId
-	 *            The domain to assign the questions to
-	 * @param required
-	 *            Whether set of questions are required questions or not
-	 */
-	private void updateQuestions(QuestionDAO questionDAO, QuestionMapDAO questionMapDAO, Set<Long> questions,
-			String pid, Long groupId, Long domainId, Boolean required) {
-	
-		List<Question> curQuestions = questionDAO.getQuestionsForObject(pid, groupId, domainId, required);
-		for (Long iUpdatedId : questions) {
-			boolean isAlreadyMapped = false;
-			for (Question iCurQuestion : curQuestions) {
-				if (iCurQuestion.getId() == iUpdatedId.longValue()) {
-					isAlreadyMapped = true;
-					break;
-				}
-			}
-	
-			if (!isAlreadyMapped) {
-				Question question = questionDAO.getSingleById(iUpdatedId);
-				LOGGER.debug("Adding Question '{}' against Pid {}", question.getQuestionText(), pid);
-				QuestionMap qm = null;
-				// Create the question map for the pid, group or domain
-				if (pid != null && pid.trim().length() > 0) {
-					qm = new QuestionMap(pid, question, required);
-				} else if (groupId != null) {
-					GenericDAO<Groups, Long> genericDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
-					Groups group = (Groups) genericDAO.getSingleById(groupId);
-					qm = new QuestionMap(group, question, required);
-				} else if (domainId != null) {
-					GenericDAO<Domains, Long> genericDAO = new GenericDAOImpl<Domains, Long>(Domains.class);
-					Domains domain = (Domains) genericDAO.getSingleById(domainId);
-					qm = new QuestionMap(domain, question, required);
-				}
-				if (qm != null) {
-					questionMapDAO.create(qm);
-				}
-			}
-		}
-	
-		// Check if each question for a pid, group, or domain is provided in the updated list. If not, delete it.
-		for (Question iCurQuestion : curQuestions) {
-			if (!questions.contains(iCurQuestion.getId())) {
-				LOGGER.debug("Mapping of Question ID" + iCurQuestion.getId() + "to be deleted...");
-				QuestionMap questionMap = questionMapDAO.getSingleByObjectAndQuestion(iCurQuestion, pid, groupId,
-						domainId);
-				questionMapDAO.delete(questionMap.getId());
-			}
-		}
-	}
-
-	/**
 	 * getAllQuestions
 	 * 
 	 * Australian National University Data Commons
@@ -1180,27 +1112,6 @@ public class CollectionRequestResource {
 	private List<Question> getAllQuestions() {
 		List<Question> questions = new QuestionDAOImpl().getAll();
 		return questions;
-	}
-
-	private Response processQuestionsJsonResponse(List<Question> reqQuestions, List<Question> optQuestions)
-			throws JSONException {
-		JSONObject questionsJson = new JSONObject();
-
-		JSONObject reqQuestionsJson = new JSONObject();
-		// Add the Id and question (String) for each Question (Object) into a JSONObject.
-		for (Question iQuestion : reqQuestions) {
-			reqQuestionsJson.put(iQuestion.getId().toString(), iQuestion.getQuestionText());
-		}
-		questionsJson.put("required", reqQuestionsJson);
-
-		JSONObject optQuestionsJson = new JSONObject();
-		for (Question iQuestion : optQuestions) {
-			optQuestionsJson.put(iQuestion.getId().toString(), iQuestion.getQuestionText());
-		}
-		questionsJson.put("optional", optQuestionsJson);
-
-		// Convert the JSONObject into a JSON String and include it in the Response object.
-		return Response.ok(questionsJson.toString(), MediaType.APPLICATION_JSON_TYPE).build();
 	}
 
 	private List<String> getEmails(String pid) {

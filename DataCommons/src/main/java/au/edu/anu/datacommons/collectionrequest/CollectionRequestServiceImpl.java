@@ -1,5 +1,6 @@
 package au.edu.anu.datacommons.collectionrequest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -7,6 +8,7 @@ import javax.ws.rs.core.MultivaluedMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -15,15 +17,22 @@ import au.edu.anu.datacommons.data.db.dao.CollectionRequestDAO;
 import au.edu.anu.datacommons.data.db.dao.CollectionRequestDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAO;
 import au.edu.anu.datacommons.data.db.dao.DropboxDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.GenericDAO;
+import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.QuestionDAO;
+import au.edu.anu.datacommons.data.db.dao.QuestionDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.QuestionMapDAO;
 import au.edu.anu.datacommons.data.db.dao.QuestionMapDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.UsersDAO;
 import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
+import au.edu.anu.datacommons.data.db.model.Domains;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.security.CustomUser;
+import au.edu.anu.datacommons.security.acl.CustomACLPermission;
+import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.util.Util;
@@ -37,6 +46,9 @@ public class CollectionRequestServiceImpl implements CollectionRequestService {
 	
 	@Resource(name = "fedoraObjectServiceImpl")
 	FedoraObjectService fedoraObjectService;
+	
+	@Resource(name="permissionService")
+	PermissionService permissionService;
 
 	@Override
 	public List<CollectionRequest> getUserRequests() {
@@ -91,21 +103,24 @@ public class CollectionRequestServiceImpl implements CollectionRequestService {
 	}
 	
 	private CollectionRequestResponse getQuestionsByPid(String pid) {
+		LOGGER.debug("Get questions by pid: {}", pid);
 		QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl();
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
-		List<QuestionMap> questionMaps = questionMapDAO.getListByItem(fedoraObject);
+		List<QuestionMap> questionMaps = questionMapDAO.getListByItem(fedoraObject, true);
 		return new CollectionRequestResponse(questionMaps);
 	}
 	
 	private CollectionRequestResponse getQuestionsByGroup(Long groupId) {
+		LOGGER.debug("Get questions by group: {}", groupId);
 		QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl();
-		List<QuestionMap> questionMaps = questionMapDAO.getListByGroup(groupId);
+		List<QuestionMap> questionMaps = questionMapDAO.getListByGroup(groupId, true);
 		return new CollectionRequestResponse(questionMaps);
 	}
 	
 	private CollectionRequestResponse getQuestionsByDomain(Long domainId) {
+		LOGGER.debug("Get questions by domain: {}", domainId);
 		QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl();
-		List<QuestionMap> questionMaps = questionMapDAO.getListByDomain(domainId);
+		List<QuestionMap> questionMaps = questionMapDAO.getListByDomain(domainId, true);
 		return new CollectionRequestResponse(questionMaps);
 	}
 	
@@ -123,7 +138,7 @@ public class CollectionRequestServiceImpl implements CollectionRequestService {
 		CollectionRequest collectionRequest = new CollectionRequest(fedoraObject.getObject_id(), user, ipAddress, fedoraObject);
 		
 		QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl();
-		List<QuestionMap> questions = questionMapDAO.getListByItem(fedoraObject);
+		List<QuestionMap> questions = questionMapDAO.getListByItem(fedoraObject, true);
 		for (QuestionMap questionMap : questions) {
 			Question question = questionMap.getQuestion();
 			String qId = "q" + question.getId();
@@ -137,5 +152,158 @@ public class CollectionRequestServiceImpl implements CollectionRequestService {
 		}
 		
 		return collectionRequest;
+	}
+
+	@Override
+	public void saveQuestions(String pid, Long groupId, Long domainId, List<Long> qid, List<Long> requiredQuestions) {
+		LOGGER.debug("PID: {}, Group ID: {}, Domain ID: {}, Number of Questions: {}, Number of Required Questions: {}", pid, groupId, domainId, qid.size(), requiredQuestions.size());
+		if (pid != null) {
+			saveObjectQuestions(pid, qid, requiredQuestions);
+		}
+		else if (groupId != null) {
+			saveGroupQuestions(groupId, qid, requiredQuestions);
+		}
+		else if (domainId != null) {
+			saveDomainQuestions(domainId, qid, requiredQuestions);
+		}
+	}
+	
+	public void saveDomainQuestions(Long domainId, List<Long> qid, List<Long> requiredQuestions) {
+		verifyRequestQuestionAccess(Domains.class, domainId);
+		
+		GenericDAO<Domains, Long> domainDAO = new GenericDAOImpl<Domains, Long>(Domains.class);
+		Domains domain = domainDAO.getSingleById(domainId);
+		
+		QuestionDAO questionDAO = new QuestionDAOImpl();
+		List<QuestionMap> questions = new ArrayList<QuestionMap>();
+
+		//TODO add sequence numbers
+		for (int i = 0; i < qid.size(); i++) {
+			Long questionId = qid.get(i);
+			Question question = questionDAO.getSingleById(questionId);
+			Boolean isRequired = requiredQuestions.contains(questionId);
+			LOGGER.debug("Question ID: {}, Required: {}", question.getId(), isRequired);
+			QuestionMap questionMap = new QuestionMap(domain, question, i, isRequired);
+			questions.add(questionMap);
+		}
+
+		QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl();
+		List<QuestionMap> existingQuestions = questionMapDAO.getListByDomain(domain.getId(), false);
+		
+		updateQuestions(questionMapDAO, existingQuestions, questions);
+		
+	}
+	
+	public void saveGroupQuestions(Long groupId, List<Long> qid, List<Long> requiredQuestions) {
+		verifyRequestQuestionAccess(Groups.class, groupId);
+
+		GenericDAO<Groups, Long> groupDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
+		Groups group = groupDAO.getSingleById(groupId);
+
+		QuestionDAO questionDAO = new QuestionDAOImpl();
+		List<QuestionMap> questions = new ArrayList<QuestionMap>();
+
+		for (int i = 0; i < qid.size(); i++) {
+			Long questionId = qid.get(i);
+			Question question = questionDAO.getSingleById(questionId);
+			Boolean isRequired = requiredQuestions.contains(questionId);
+			LOGGER.debug("Question ID: {}, Required: {}", question.getId(), isRequired);
+			QuestionMap questionMap = new QuestionMap(group, question, i, isRequired);
+			questions.add(questionMap);
+		}
+
+		QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl();
+		List<QuestionMap> existingQuestions = questionMapDAO.getListByGroup(group.getId(), false);
+		
+		updateQuestions(questionMapDAO, existingQuestions, questions);
+	}
+	
+	public void saveObjectQuestions(String pid, List<Long> qid, List<Long> requiredQuestions) {
+		LOGGER.debug("Save object questions for {}", pid);
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
+
+		verifyRequestQuestionAccess(FedoraObject.class, fedoraObject.getId());
+		
+		QuestionDAO questionDAO = new QuestionDAOImpl();
+		
+		List<QuestionMap> questions = new ArrayList<QuestionMap>();
+
+		//TODO add sequence numbers
+		for (int i = 0; i < qid.size(); i++) {
+			Long questionId = qid.get(i);
+			Question question = questionDAO.getSingleById(questionId);
+			Boolean isRequired = requiredQuestions.contains(questionId);
+			LOGGER.debug("Question ID: {}, Required: {}", question.getId(), isRequired);
+			QuestionMap questionMap = new QuestionMap(pid, question, i, isRequired);
+			questions.add(questionMap);
+		}
+
+		QuestionMapDAO questionMapDAO = new QuestionMapDAOImpl();
+		List<QuestionMap> existingQuestions = questionMapDAO.getListByItem(fedoraObject, false);
+		
+		updateQuestions(questionMapDAO, existingQuestions, questions);
+	}
+	
+	private void verifyRequestQuestionAccess(Class<?> clazz, Long id) {
+		boolean hasPermission = permissionService.checkPermission(clazz, id, CustomACLPermission.REVIEW);
+		if (!hasPermission) {
+			hasPermission = permissionService.checkPermission(clazz, id, CustomACLPermission.PUBLISH);
+		}
+		if (!hasPermission) {
+			hasPermission = permissionService.checkPermission(clazz, id, CustomACLPermission.ADMINISTRATION);
+		}
+		if (!hasPermission) {
+			throw new AccessDeniedException("You do not have permission to update these questions");
+		}
+	}
+	
+	private void updateQuestions(QuestionMapDAO questionMapDAO, List<QuestionMap> existingQuestions, List<QuestionMap> newQuestions) {
+		LOGGER.debug("In updateQuestions");
+		for (QuestionMap questionMap : newQuestions) {
+			QuestionMap existingQuestion = getExistingQuestion(questionMap, existingQuestions);
+			if (existingQuestion != null) {
+				boolean updateQuestion = false;
+				if (!questionMap.getSeqNum().equals(existingQuestion.getSeqNum())) {
+					existingQuestion.setSeqNum(questionMap.getSeqNum());
+					updateQuestion = true;
+				}
+				if (!questionMap.getRequired().equals(existingQuestion.getRequired())) {
+					existingQuestion.setRequired(questionMap.getRequired());
+					updateQuestion = true;
+				}
+				if (updateQuestion) {
+					LOGGER.debug("Updating existing question, {}", questionMap.getQuestion().getId());
+					questionMapDAO.update(existingQuestion);
+				}
+			}
+			else {
+				LOGGER.debug("Add question map for question quetionMap {}", questionMap.getQuestion().getId());
+				questionMapDAO.create(questionMap);
+			}
+		}
+		for (QuestionMap existingQuestion : existingQuestions) {
+			boolean foundQuestion = false;
+			for (int i = 0; !foundQuestion && i < newQuestions.size(); i++) {
+				QuestionMap newQuestion = newQuestions.get(i);
+				if (existingQuestion.getQuestion().getId().equals(newQuestion.getQuestion().getId())) {
+					foundQuestion = true;
+				}
+			}
+			if (!foundQuestion) {
+				LOGGER.debug("Remove question map: {}", existingQuestion.getId());
+				questionMapDAO.delete(existingQuestion.getId());
+			}
+		}
+	}
+	
+	private QuestionMap getExistingQuestion(QuestionMap currentQuestion, List<QuestionMap> existingQuestions) {
+		for (QuestionMap comparisonQuestion : existingQuestions) {
+			LOGGER.debug("Comparing question {} to {}", comparisonQuestion.getQuestion().getId(), currentQuestion.getQuestion().getId());
+			if (comparisonQuestion.getQuestion().getId().equals(currentQuestion.getQuestion().getId())) {
+				LOGGER.info("Found match, returning comparison question: {}", comparisonQuestion.getId());
+				return comparisonQuestion;
+			}
+		}
+		return null;
 	}
 }

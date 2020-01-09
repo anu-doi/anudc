@@ -79,9 +79,9 @@ public interface QuestionMapDAO extends GenericDAO<QuestionMap, Long> {
 	 */
 	public QuestionMap getSingleByObjectAndQuestion(Question question, String pid, Long groupId, Long domainId);
 	
-	public List<QuestionMap> getListByItem(FedoraObject fedoraObject);
+	public List<QuestionMap> getListByItem(FedoraObject fedoraObject, boolean useParent);
 
-	public List<QuestionMap> getListByGroup(Long id);
+	public List<QuestionMap> getListByGroup(Long id, boolean useParent);
 
-	public List<QuestionMap> getListByDomain(Long id);
+	public List<QuestionMap> getListByDomain(Long id, boolean useParent);
 }

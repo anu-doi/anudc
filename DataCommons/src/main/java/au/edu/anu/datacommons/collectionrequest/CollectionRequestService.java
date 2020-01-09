@@ -17,4 +17,6 @@ public interface CollectionRequestService {
 	public CollectionRequestResponse getQuestions(String task, String pid, Long groupId, Long domainId);
 	
 	public CollectionRequest saveAnswers(FedoraObject fedoraObject, MultivaluedMap<String, String> formParameters, String ipAddress);
+	
+	public void saveQuestions(String pid, Long groupId, Long domainId, List<Long> qid, List<Long> requiredQuestions);
 }

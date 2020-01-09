@@ -58,21 +58,24 @@ public class QuestionMap {
 	protected QuestionMap() {
 	}
 
-	public QuestionMap(String pid, Question question, Boolean required) {
+	public QuestionMap(String pid, Question question, Integer seqNum, Boolean required) {
 		this.pid = pid;
 		this.question = question;
+		this.seqNum = seqNum;
 		this.required = required;
 	}
 
-	public QuestionMap(Groups group, Question question, Boolean required) {
+	public QuestionMap(Groups group, Question question, Integer seqNum, Boolean required) {
 		this.group = group;
 		this.question = question;
+		this.seqNum = seqNum;
 		this.required = required;
 	}
 
-	public QuestionMap(Domains domain, Question question, Boolean required) {
+	public QuestionMap(Domains domain, Question question, Integer seqNum, Boolean required) {
 		this.domain = domain;
 		this.question = question;
+		this.seqNum = seqNum;
 		this.required = required;
 	}
 
