@@ -5,3 +5,18 @@
 #itemSearch {
 	width: 206px;
 }
+ul.list-dash {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+ul.list-dash > li {
+	margin-left: 10px;
+}
+ul.list-dash > li:before {
+	content: "- ";
+	margin-left: -10px;
+}
+.link-underline a {
+	text-decoration: underline;
+}

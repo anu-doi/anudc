@@ -149,11 +149,6 @@ public class DisplayResource
 	public Response getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item)
 	{
 		LOGGER.info("User {} ({}) requested record page of {}", getCurUsername(), request.getRemoteAddr(), item);
-//		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
-//		Map<String, Object> values = fedoraObjectService.getViewPage(fedoraObject, layout, tmplt);
-//
-//		Viewable viewable = new Viewable((String) values.remove("topage"), values);
-//		LOGGER.info(msg);
 
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 		if (fedoraObject == null) {
@@ -164,7 +159,6 @@ public class DisplayResource
 			
 			template.getTemplateAttributes().sort(new TemplateAttributeSortByDisplay());
 			
-//			Data itemData = fedoraObjectService.getItemData(fedoraObject);
 			Data editData = null;
 			Data publishData = null;
 			try {
@@ -173,14 +167,12 @@ public class DisplayResource
 			}
 			catch (Exception e) {
 				LOGGER.error("Exception retrieving edit data", e);
-//				LOGGER.error("Exception retrieving edit data: {}", e.getMessage());
 			}
 			try {
 				publishData = fedoraObjectService.getPublishData(fedoraObject);
 				LOGGER.info("publish data should not be null");
 			}
 			catch (Exception e) {
-//				LOGGER.error("Exception retrieving publish data", e);
 				LOGGER.error("Exception retrieving publish data: {}", e.getMessage());
 			}
 			if (editData == null && publishData == null) {
@@ -194,11 +186,7 @@ public class DisplayResource
 				
 			}
 			else {
-//				values.put("editData", editData);
-				
 				values.put("data", publishData);
-				
-//				fedoraObjectService.getDataDifferences(template, editData, publishData);
 				Data differences = fedoraObjectService.getDataDifferences(template, editData, publishData);
 				values.put("differenceData", differences);
 				
@@ -208,12 +196,10 @@ public class DisplayResource
 			
 			values.put("tmplt", template);
 			values.put("item", fedoraObject);
-//			values.put("data", itemData);
 			values.put("rdi", rdi);
 			values.put("links", links);
 			values.put("options", new SelectOptions());
 			values.put("groups", new GroupOptions());
-//			values.put("security",new SecurityCheck());
 			values.put("security",new SecurityCheck(fedoraObject));
 			
 			Viewable viewable = new Viewable("/display/display.ftl", values);
@@ -252,6 +238,7 @@ public class DisplayResource
 		LOGGER.info("In GET method for new");
 		try {
 			Template template = fedoraObjectService.getTemplateByTemplateId(tmplt);
+			Data data = fedoraObjectService.getInitialData(template);
 			
 			Collections.sort(template.getTemplateAttributes(), new TemplateAttributeSortByTab());
 			template.getTemplateTabs().sort(new TemplateTabSortByTabOrder());
@@ -260,6 +247,7 @@ public class DisplayResource
 			values.put("tmplt", template);
 			values.put("options", new SelectOptions());
 			values.put("groups", new GroupOptions());
+			values.put("data", data);
 			Viewable viewable = new Viewable("/form/new.ftl", values);
 			return Response.ok(viewable).build();
 		}
@@ -267,21 +255,6 @@ public class DisplayResource
 			LOGGER.error("Exception retrieving template", e);
 			return Response.serverError().build();
 		}
-		
-//		if (layout == null || layout.length() == 0) {
-//			layout = "def:new";
-//		}
-//		if (tmplt == null || tmplt.length() == 0) {
-//			tmplt = mapTemplateFromType(type);
-//		}
-//		
-//		Map<String, Object> values = fedoraObjectService.getNewPage(layout, tmplt);
-//		if (Util.isNotEmpty(error))
-//		{
-//			values.put("error", "Error saving item");
-//		}
-//		Viewable viewable = new Viewable((String) values.remove("topage"), values);
-//		return Response.ok(viewable).build();
 	}
 
 	/**
@@ -483,20 +456,6 @@ public class DisplayResource
 			LOGGER.error("Exception retrieving template", e);
 			return Response.serverError().build();
 		}
-		
-//		Map<String, Object> values = null;
-//		if ("full".equals(style)) {
-//			values = fedoraObjectService.getEditPage(fedoraObject, "def:new", tmplt, true);
-//			values.remove("sidepage");
-//		}
-//		else {
-//			values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt, false);
-//		}
-//		
-//		//Map<String, Object> values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt);
-//		Viewable viewable = new Viewable((String) values.remove("topage"), values);
-
-//		return Response.ok(viewable).build();
 	}
 
 	/**
@@ -548,7 +507,6 @@ public class DisplayResource
 		{
 			uriBuilder = UriBuilder.fromPath("/display/edit").path(pid);
 			
-//			uriBuilder = UriBuilder.fromPath("/display/edit").path(pid).queryParam("layout", layout);
 			if (Util.isNotEmpty(tmplt))
 			{
 				uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
@@ -842,19 +800,5 @@ public class DisplayResource
 
 	private String getCurUsername() {
 		return SecurityContextHolder.getContext().getAuthentication().getName();
-	}
-
-	private String mapTemplateFromType(String type) {
-		String template = null;
-		String[] types = {"Collection", "Activity", "Service", "Party", "Person"};
-		
-		for (int i = 0; i < types.length; i++) {
-			if (types[i].equals(type)) {
-				template = "tmplt:" + String.valueOf(i + 1);
-				break;
-			}
-		}
-		
-		return template;
 	}
 }

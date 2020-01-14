@@ -10,7 +10,7 @@
 <anu:banner id="" ssl="true" primaryTitle="Data Commons" secondaryTitle="Library" primaryTitleUrl="${homeUrl}" secondaryTitleUrl="http://anulib.anu.edu.au/">
 	<anu:utilitymenu>
 		<sec:authorize access="isAuthenticated()">
-			<li><a href='<c:url value="/rest/user" />'>Welcome <sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.username" />)</a></li>
+			<li><a href='<c:url value="/rest/user" />'><sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.username" />)</a></li>
 		</sec:authorize>
 	</anu:utilitymenu>
 </anu:banner>

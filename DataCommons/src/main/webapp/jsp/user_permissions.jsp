@@ -12,7 +12,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" title="Update User Permissions">
+<anu:content layout="full" title="Update User Permissions" extraClass="nopadbottom">
 	<p id="message"></p>
 	<form id="form" class="anuform" onsubmit="return false;">
 		<fieldset>
@@ -40,9 +40,38 @@
 			<p>
 		</fieldset>
 	</form>
-	<div id="peopleList" class="w-doublewide"></div>
+	<div id="peopleList" class=""></div>
+</anu:content>
+<anu:content layout="two-third">
+	<div id="updateGroups">
+		<p>Allowable groups to modify permissions for:</p>
+		<p>
+			<select id="groups" size="10" style="width: 100%">
+				<c:forEach items="${it.groups}" var="group">
+					<option value="${group.id}">${group.group_name} [${group.id}]</option>
+				</c:forEach>
+			</select>
+		</p>
+	</div>
+	<div id="permissions">
+		<ul class="nobullet bdr-solid">
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="1" />READ</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="2" />WRITE</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="8" />DELETE</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="16" />ADMINISTRATION</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="32" />REVIEW</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="64" />PUBLISH</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="128" />PUBLISH MULTIPLE</li>
+			<li><input type="checkbox" name="group_perm" class="chk_perm" value="256" />ASSIGN PERMISSIONS</li>
+		</ul>
+		<p>
+			<input type="button" name="updatePerm" id="updatePerm" value="Update" />
+		</p>
+	</div>
+</anu:content>
+<anu:content layout="one-third">
 	<sec:authorize access="hasRole('ROLE_ADMIN')">
-		<div id="permissions2" class="w-wide right">
+		<div id="permissions2" class="">
 			<p>
 			Allow publishing to locations:
 			<ul class="nobullet bdr-solid">
@@ -61,31 +90,7 @@
 			</p>
 		</div>
 	</sec:authorize>
-	<div id="updateGroups" class="w-wide">
-		<p>Allowable groups to modify permissions for:</p>
-		<p>
-			<select id="groups" size="10" style="width: 100%">
-				<c:forEach items="${it.groups}" var="group">
-					<option value="${group.id}">${group.group_name} [${group.id}]</option>
-				</c:forEach>
-			</select>
-		</p>
-	</div>
-	<div id="permissions" class="w-wide">
-		<ul class="nobullet bdr-solid">
-			<li><input type="checkbox" name="group_perm" class="chk_perm" value="1" />READ</li>
-			<li><input type="checkbox" name="group_perm" class="chk_perm" value="2" />WRITE</li>
-			<li><input type="checkbox" name="group_perm" class="chk_perm" value="8" />DELETE</li>
-			<li><input type="checkbox" name="group_perm" class="chk_perm" value="16" />ADMINISTRATION</li>
-			<li><input type="checkbox" name="group_perm" class="chk_perm" value="32" />REVIEW</li>
-			<li><input type="checkbox" name="group_perm" class="chk_perm" value="64" />PUBLISH</li>
-			<li><input type="checkbox" name="group_perm" class="chk_perm" value="128" />PUBLISH MULTIPLE</li>
-			<li><input type="checkbox" name="group_perm" class="chk_perm" value="256" />ASSIGN PERMISSIONS</li>
-		</ul>
-		<p>
-			<input type="button" name="updatePerm" id="updatePerm" value="Update" />
-		</p>
-	</div>
+
 </anu:content>
 
 <jsp:include page="/jsp/footer.jsp" />

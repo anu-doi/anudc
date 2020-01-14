@@ -14,7 +14,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide">
+<anu:content layout="full">
 	<h1>Domains</h1>
 	<h2>Create Domain</h2>
 	<p>

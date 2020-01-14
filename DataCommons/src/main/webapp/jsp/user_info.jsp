@@ -13,7 +13,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublenarrow" title="User Information">
+<anu:content layout="doublewide" title="User Information">
 	<div>
 		<table width="100%">
 			<tr>

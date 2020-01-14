@@ -51,21 +51,25 @@
 	<#-- To Do -->
 	<#if security??>
 		<#if security.getUsername()??>
-		<div class="pt-3 pb-1 float-right">
-			${security.getUsername()}
+		<div id="bnr-low" class="float-right mb-3">
+			<nav class="navbar navbar-expand navbar-dark">
+			<ul class="navbar-nav">
+				<li class="nav-item"><a href="/DataCommons/rest/user" class="nav-link">${security.getUsername()}</a></li>
+			</ul>
+			</nav>
 		</div>
 		</#if>
 	</div>
 	</#if>
 </header>
-<nav class="navbar navbar-expand-sm navbar-dark bg-dark">
+<nav class="navbar navbar-expand-sm navbar-dark bg-black">
 	<div class="container">
 	<div class="anu-width">
 		<div class="collapse navbar-collapse">
 			<ul class="navbar-nav mr-auto">
 				<li><a class="nav-link nav-brand" href="/DataCommons"><image src="//style.anu.edu.au/_anu/4/images/buttons/home-white-over.png" alt="Home"/></a></li>
 				<li class="nav-item"><a class="nav-link text-light" href="#">About</a></li>
-				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/rest/list/template">Contribute</a></li>
+				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/rest/contribute">Contribute</a></li>
 				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/rest/upload/search">Data search</a></li>
 				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/rest/collreq">Data request</a></li>
 				<li class="nav-item"><a class="nav-link text-light" href="https://openresearch.anu.edu.au/contact">Contact</a></li>

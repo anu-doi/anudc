@@ -25,7 +25,7 @@
 		<#if attr.tooltip??>
 			<div><small id="${attr.name}.tooltip">${attr.tooltip}</small></div>
 		</#if>
-		<@c.renderField attr/>
+		<@c.renderField attr data.getElementByName(attr.name)/>
 	</div>
 </#list>
 </div>

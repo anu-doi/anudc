@@ -17,7 +17,7 @@
 				</#if>
 				<div><button type="button" class="btn btn-primary btn-add">+</button></div>
 			<#else>
-				<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip"<#if templateAttribute.required> required</#if> <#if dataValues?has_content>value="${dataValues?first.value}"</#if>/>
+				<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip"<#if templateAttribute.required> required</#if> <#if dataValues?has_content>value="${dataValues?first.value}"</#if> <#if templateAttribute.name == "type">disabled</#if>/>
 			</#if>
 			<#break>
 		<#case "TextArea">

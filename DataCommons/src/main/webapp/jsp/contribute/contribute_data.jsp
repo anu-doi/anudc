@@ -13,7 +13,7 @@
 
 <anu:content layout="one-third">
 <div class="marginbottom">
-<a class="btn-action" href="<c:url value='/rest/list/template' />">Contribute your data</a>
+<a class="btn-action" href="<c:url value='/rest/display/new?layout=def:new&tmplt=tmplt:1' />">Contribute your data</a>
 </div>
 <div class="marginbottom">
 <a class="btn-action" href="<c:url value='/rest/extmetadata' />">Import your data</a>

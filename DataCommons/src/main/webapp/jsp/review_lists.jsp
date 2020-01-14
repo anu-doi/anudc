@@ -10,7 +10,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" title="Review Lists Available">
+<anu:content layout="full" title="Review Lists Available">
 	<fmt:bundle basename='global'>
 		<fmt:message var="rejectedTitle" key="review.rejected.title" />
 		<fmt:message var="reviewReadyTitle" key="review.reviewready.title" />

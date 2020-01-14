@@ -14,7 +14,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide">
+<anu:content layout="full">
 	<h1>Groups</h1>
 	<h2>Create Group</h2>
 	<p>

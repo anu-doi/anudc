@@ -17,6 +17,10 @@
 <jsp:include page="../header.jsp" />
 
 <anu:content layout="full" title="Administration">
+<h2>Miscellaneous</h2>
+<ul>
+	<li><a href='<c:url value="/rest/list/template" />'>Templates</a></li>
+</ul>
 <h2>Review Functions</h2>
 <ul>
 	<li><a href='<c:url value="/rest/ready/list/rejected" />'>More Work Required</a></li>

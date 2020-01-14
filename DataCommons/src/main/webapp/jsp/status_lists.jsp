@@ -9,12 +9,13 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" title="${it.title }">
+<anu:content layout="full" title="${it.title }">
 	Records:<br />
+	<ul class="nobullet noindent">
 	<c:forEach items="${it.resultList}" var="result">
-		<a href='<c:url value="/rest/display/${result.fields.id.value}?layout=def:display" />'>${result.fields.name.value}</a>
-		<br />
+		<li><a href='<c:url value="/rest/display/${result.fields.id.value}?layout=def:display" />'>${result.fields.name.value}</a></li>
 	</c:forEach>
+	</ul>
 </anu:content>
 
 <jsp:include page="/jsp/footer.jsp" />

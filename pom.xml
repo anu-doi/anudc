@@ -52,8 +52,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jersey.version>1.19.1</jersey.version>
 		<bagit.version>4.4</bagit.version>
-		<spring.version>4.2.6.RELEASE</spring.version>
-		<springsecurity.version>4.1.0.RELEASE</springsecurity.version>
+		<spring.version>4.3.25.RELEASE</spring.version>
+		<springsecurity.version>4.1.5.RELEASE</springsecurity.version>
 	</properties>
 
 	<dependencyManagement>

@@ -49,7 +49,7 @@
 	<c:if test="${it.resultSet != null and it.resultSet.numFound > 0}">
 		<hr/>
 		<h2>Recent Submissions</h2>
-		<ul>
+		<ul class="noindent">
 		<c:forEach items="${it.resultSet.documentList}" var="row">
 			<li class="media marginbottom">
 				<div class="media-body">

@@ -1117,4 +1117,14 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		
 		return differenceData;
 	}
+
+	public Data getInitialData(au.edu.anu.datacommons.data.db.model.Template template) {
+		String templateName = template.getEntityType().getName();
+		Data data = new Data();
+		DataItem dataItem = new DataItem();
+		dataItem.setName("type");
+		dataItem.setValue(templateName);
+		data.getItems().add(dataItem);
+		return data;
+	}
 }

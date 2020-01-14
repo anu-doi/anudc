@@ -32,12 +32,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.Template;
 import au.edu.anu.datacommons.storage.info.RecordDataSummary;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
 import au.edu.anu.datacommons.xml.data.Data;
-import au.edu.anu.datacommons.xml.data.DataItem;
 import au.edu.anu.datacommons.xml.sparql.Result;
-import au.edu.anu.datacommons.xml.template.Template;
 
 /**
  * FedoraObjectService
@@ -368,5 +367,7 @@ public interface FedoraObjectService {
 
 	public Data getPublishData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException;
 	
-	public Data getDataDifferences(au.edu.anu.datacommons.data.db.model.Template template, Data editData, Data publisData);
+	public Data getDataDifferences(Template template, Data editData, Data publisData);
+	
+	public Data getInitialData(Template template);
 }
