@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.security.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -139,7 +140,7 @@ public interface FedoraObjectService {
 	 * @throws JAXBException 
 	 * @throws FedoraClientException 
 	 */
-	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException;
+	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException, IOException;
 	
 	/**
 	 * saveNew
@@ -158,7 +159,7 @@ public interface FedoraObjectService {
 	 * @throws FedoraClientException
 	 * @throws JAXBException
 	 */
-	public FedoraObject saveNew(FedoraItem item, Long rid) throws FedoraClientException, JAXBException;
+	public FedoraObject saveNew(FedoraItem item, Long rid) throws FedoraClientException, JAXBException, IOException;
 	
 	/**
 	 * getEditPage
@@ -178,6 +179,7 @@ public interface FedoraObjectService {
 	 * @param editMode Whether the returned information contains does or does not contained published information (false for only the unpublished information to be returned)
 	 * @return Returns the viewable for the jsp file to pick up
 	 */
+	@Deprecated
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
 	public Map<String, Object> getEditPage(FedoraObject fedoraObject, String layout, String tmplt, boolean editMode);
 
@@ -197,6 +199,7 @@ public interface FedoraObjectService {
 	 * @param fieldName
 	 * @return
 	 */
+	@Deprecated
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
 	public String getEditItem(FedoraObject fedoraObject, String layout, String tmplt, String fieldName);
 
@@ -220,7 +223,7 @@ public interface FedoraObjectService {
 	 * @throws FedoraClientException 
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
-	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String tmplt, Map<String, List<String>> form, Long rid);
+	public void saveEdit(FedoraObject fedoraObject, String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException, IOException;
 	
 	/**
 	 * saveEdit
@@ -239,7 +242,7 @@ public interface FedoraObjectService {
 	 * @throws FedoraClientException
 	 * @throws JAXBException
 	 */
-	public FedoraObject saveEdit(FedoraItem item, Long rid) throws FedoraClientException, JAXBException;
+	public FedoraObject saveEdit(FedoraItem item, Long rid) throws FedoraClientException, JAXBException, IOException;
 	
 	/**
 	 * delete

@@ -93,6 +93,7 @@ import au.edu.anu.datacommons.xml.sparql.Result;
 import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.JAXBTransform;
+import au.edu.anu.datacommons.xml.transform.SaveTransform;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
 
 /**
@@ -281,11 +282,8 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @throws FedoraClientException 
 	 */
 	@Override
-	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException
+	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException, IOException
 	{
-		FedoraObject fedoraObject = null;
-		ViewTransform viewTransform = new ViewTransform();
-		
 		List<String> messages = new ArrayList<String>();
 		if (form.get("ownerGroup") == null || form.get("ownerGroup").size() == 0 || form.get("ownerGroup").get(0).trim().equals("")) {
 			messages.add("No Group Affiliation");
@@ -317,7 +315,9 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			throw new ValidateException(messages);
 		}
 		
-		fedoraObject = viewTransform.saveData(tmplt, null, form, rid);
+		au.edu.anu.datacommons.data.db.model.Template template = getTemplateByTemplateId(tmplt);
+		SaveTransform saveTransform = new SaveTransform();
+		FedoraObject fedoraObject = saveTransform.saveData(template, null, form, rid);
 		permissionService.saveObjectPermissions(fedoraObject);
 		
 		return fedoraObject;
@@ -340,7 +340,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @throws FedoraClientException 
 	 */
 	@Override
-	public FedoraObject saveNew(FedoraItem item, Long rid) throws FedoraClientException, JAXBException
+	public FedoraObject saveNew(FedoraItem item, Long rid) throws FedoraClientException, JAXBException, IOException
 	{
 		FedoraObject fedoraObject = null;
 		fedoraObject = this.saveNew(item.getTemplate(), item.generateDataMap(), rid);
@@ -365,6 +365,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @return
 	 */
 	@Override
+	@Deprecated
 	public String getEditItem(FedoraObject fedoraObject, String layout, String tmplt, String fieldName) {
 		String fields = "";
 		ViewTransform viewTransform = new ViewTransform();
@@ -395,6 +396,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@Override
+	@Deprecated
 	public Map<String, Object> getEditPage(FedoraObject fedoraObject, String layout, String tmplt, boolean editMode) {
 		Map<String, Object> values = getPage(layout, tmplt, fedoraObject, editMode);
 		try {
@@ -438,34 +440,22 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@Override
-	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String tmplt, 
-			Map<String, List<String>> form, Long rid) {
-		Map<String, Object> values = new HashMap<String, Object>();
-		ViewTransform viewTransform = new ViewTransform();
-		try {
-			if (form.containsKey("ownerGroup")) {
-				//TODO Update this so that an error is thrown if the user does not have permissions to update the group
-				if (!permissionService.hasSetGroupPermissionsForObject(fedoraObject)) {
-					form.remove("ownerGroup");
-				}
-			}
-			fedoraObject = viewTransform.saveData(tmplt, fedoraObject, form, rid);
-			removeReviewReady(fedoraObject);
-			removePublishReady(fedoraObject);
-			if (form.containsKey("ownerGroup")) {
-				permissionService.saveObjectPermissions(fedoraObject);
+	public void saveEdit(FedoraObject fedoraObject, String tmplt, 
+			Map<String, List<String>> form, Long rid) throws JAXBException, FedoraClientException, IOException {
+		SaveTransform saveTransform = new SaveTransform();
+		if (form.containsKey("ownerGroup")) {
+			//TODO Update this so that an error is thrown if the user does not have permissions to update the group
+			if (!permissionService.hasSetGroupPermissionsForObject(fedoraObject)) {
+				form.remove("ownerGroup");
 			}
 		}
-		catch (JAXBException e) {
-			LOGGER.error("Exception transforming jaxb", e);
-			values.put("error", "true");
+		au.edu.anu.datacommons.data.db.model.Template template = getTemplateByTemplateId(fedoraObject.getTmplt_id());
+		fedoraObject = saveTransform.saveData(template, fedoraObject, form, rid);
+		removeReviewReady(fedoraObject);
+		removePublishReady(fedoraObject);
+		if (form.containsKey("ownerGroup")) {
+			permissionService.saveObjectPermissions(fedoraObject);
 		}
-		catch (FedoraClientException e) {
-			LOGGER.error("Exception creating/retrieving objects", e);
-			values.put("error", "true");
-		}
-		
-		return values;
 	}
 	
 	/**
@@ -488,11 +478,14 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#saveEdit(au.edu.anu.datacommons.webservice.bindings.FedoraItem, java.lang.Long)
 	 */
 	@Override
-	public FedoraObject saveEdit(FedoraItem item, Long rid) throws FedoraClientException, JAXBException
+	public FedoraObject saveEdit(FedoraItem item, Long rid) throws FedoraClientException, JAXBException, IOException
 	{
-		ViewTransform viewTransform = new ViewTransform();
+//		ViewTransform viewTransform = new ViewTransform();
 		FedoraObject fo = this.getItemByPid(item.getPid());
-		fo = viewTransform.saveData(item.getTemplate(), fo, item.generateDataMap(), rid);
+//		fo = viewTransform.saveData(item.getTemplate(), fo, item.generateDataMap(), rid);
+		SaveTransform saveTransform = new SaveTransform();
+		au.edu.anu.datacommons.data.db.model.Template template = getTemplateByTemplateId(item.getTemplate());
+		fo = saveTransform.saveData(template, fo, item.generateDataMap(), rid);
 		return fo;
 	}
 	
@@ -677,6 +670,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param editMode Indicates whether published information should be returned or not
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
+	@Deprecated
 	private Map<String, Object> getPage(String layout, String template, FedoraObject fedoraObject, boolean editMode) {
 		boolean hasPermission = false;
 		if (fedoraObject == null) {
@@ -740,9 +734,6 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		au.edu.anu.datacommons.data.db.model.Template template = templateDAO.getTemplateByPid(templateId);
 		
 		return template;
-		
-//		ViewTransform viewTransform = new ViewTransform();
-//		return viewTransform.getTemplate(templateId, null);
 	}
 
 	@Override
@@ -1040,7 +1031,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			form.put("doi", Arrays.asList(mintedDoi));
 			saveEdit(fedoraObject, tmplt, form, rid);
 		}
-		catch (FedoraClientException e)
+		catch (FedoraClientException | IOException e)
 		{
 			throw new FedoraObjectException(e.getMessage(), e);
 		}

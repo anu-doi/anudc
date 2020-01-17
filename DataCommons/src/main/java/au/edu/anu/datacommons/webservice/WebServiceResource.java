@@ -368,7 +368,7 @@ public class WebServiceResource
 		return fo;
 	}
 
-	private Element createItem(FedoraItem item, Document doc, Long rid) throws FedoraClientException, JAXBException
+	private Element createItem(FedoraItem item, Document doc, Long rid) throws FedoraClientException, JAXBException, IOException
 	{
 		FedoraObject fo = fedoraObjectService.saveNew(item, rid);
 		String pidCreated = fo.getObject_id();
@@ -407,7 +407,7 @@ public class WebServiceResource
 		return el;
 	}
 
-	private Element updateItem(FedoraItem item, Document doc, Long rid) throws FedoraClientException, JAXBException
+	private Element updateItem(FedoraItem item, Document doc, Long rid) throws FedoraClientException, JAXBException, IOException
 	{
 		getFedoraObjectWriteAccess(item.getPid());
 		FedoraObject fo = fedoraObjectService.saveEdit(item, rid);

@@ -76,13 +76,13 @@
 				<#if security??>
 					<#if security.getUsername()??>
 				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/logout">Logout</a></li>
+				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/rest/admin">Administration</a></li>
 					<#else>
 				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/login-select">Login</a></li>
 					</#if>
 				<#else>
 				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/login-select">Login</a></li>
 				</#if>
-				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/rest/admin">Administration</a></li>
 			</ul>
 		</div>
 	</div>

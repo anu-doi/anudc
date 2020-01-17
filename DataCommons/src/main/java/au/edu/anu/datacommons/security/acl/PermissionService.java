@@ -30,7 +30,6 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
-import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.acls.domain.BasePermission;

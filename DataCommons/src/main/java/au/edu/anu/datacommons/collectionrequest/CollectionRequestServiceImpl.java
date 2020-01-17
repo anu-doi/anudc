@@ -176,8 +176,7 @@ public class CollectionRequestServiceImpl implements CollectionRequestService {
 		
 		QuestionDAO questionDAO = new QuestionDAOImpl();
 		List<QuestionMap> questions = new ArrayList<QuestionMap>();
-
-		//TODO add sequence numbers
+		
 		for (int i = 0; i < qid.size(); i++) {
 			Long questionId = qid.get(i);
 			Question question = questionDAO.getSingleById(questionId);
@@ -227,8 +226,7 @@ public class CollectionRequestServiceImpl implements CollectionRequestService {
 		QuestionDAO questionDAO = new QuestionDAOImpl();
 		
 		List<QuestionMap> questions = new ArrayList<QuestionMap>();
-
-		//TODO add sequence numbers
+		
 		for (int i = 0; i < qid.size(); i++) {
 			Long questionId = qid.get(i);
 			Question question = questionDAO.getSingleById(questionId);

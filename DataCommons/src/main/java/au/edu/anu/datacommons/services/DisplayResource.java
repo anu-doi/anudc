@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.services;
 
+import java.io.IOException;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.Collections;
@@ -163,25 +164,21 @@ public class DisplayResource
 			Data publishData = null;
 			try {
 				editData = fedoraObjectService.getEditData(fedoraObject);
-				LOGGER.info("Edit data should not be null?");
 			}
 			catch (Exception e) {
 				LOGGER.error("Exception retrieving edit data", e);
 			}
 			try {
 				publishData = fedoraObjectService.getPublishData(fedoraObject);
-				LOGGER.info("publish data should not be null");
 			}
 			catch (Exception e) {
 				LOGGER.error("Exception retrieving publish data: {}", e.getMessage());
 			}
 			if (editData == null && publishData == null) {
-				LOGGER.info("Both edit and publish data are null?");
 				throw new AccessDeniedException("You do not have access to this resource");
 			}
 			Map<String, Object> values = new HashMap<String, Object>();
 			if (publishData == null) {
-				LOGGER.error("Publish data is null");
 				values.put("data", editData);
 				
 			}
@@ -303,12 +300,7 @@ public class DisplayResource
 			UriBuilder redirUri = UriBuilder.fromPath("/display").path(fedoraObject.getObject_id()).queryParam("layout", layout).queryParam("tmplt", tmplt);
 			resp = Response.seeOther(redirUri.build()).build();
 		}
-		catch (FedoraClientException e)
-		{
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
-		}
-		catch (JAXBException e)
+		catch (FedoraClientException | JAXBException | IOException e)
 		{
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -359,10 +351,7 @@ public class DisplayResource
 			URI createdUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(DisplayResource.class)
 					.path(DisplayResource.class, "getItem").build(fedoraObject.getObject_id());
 			resp = Response.created(createdUri).entity(fedoraObject.getObject_id()).build();
-		} catch (FedoraClientException e) {
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
-		} catch (JAXBException e) {
+		} catch (FedoraClientException | JAXBException | IOException e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -397,6 +386,7 @@ public class DisplayResource
 	@Path("/edit/{item}/{fieldName}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Produces(MediaType.TEXT_PLAIN)
+	@Deprecated
 	public String getEditItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item,
 			@PathParam("fieldName") String fieldName)
 	{
@@ -497,15 +487,9 @@ public class DisplayResource
 
 		LOGGER.info("User {} edited record {}", getCurUsername(), pid);
 		
-		Map<String, Object> values = fedoraObjectService.saveEdit(fedoraObject, tmplt, form, null);
-		UriBuilder uriBuilder = null;
-		if (values.containsKey("error"))
-		{
-			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-		}
-		else
-		{
-			uriBuilder = UriBuilder.fromPath("/display/edit").path(pid);
+		try {
+			fedoraObjectService.saveEdit(fedoraObject, tmplt, form, null);
+			UriBuilder uriBuilder = UriBuilder.fromPath("/display/edit").path(pid);
 			
 			if (Util.isNotEmpty(tmplt))
 			{
@@ -514,8 +498,11 @@ public class DisplayResource
 			if (Util.isNotEmpty(style)) {
 				uriBuilder = uriBuilder.queryParam("style", style);
 			}
+			return Response.seeOther(uriBuilder.build()).build();
 		}
-		return Response.seeOther(uriBuilder.build()).build();
+		catch (JAXBException | FedoraClientException | IOException e) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
 	}
 	
 	/**

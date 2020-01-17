@@ -116,6 +116,7 @@ import com.yourmediashelf.fedora.generated.access.DatastreamType;
  * </pre>
  * 
  */
+@Deprecated
 public class ViewTransform
 {
 	static final Logger LOGGER = LoggerFactory.getLogger(ViewTransform.class);
