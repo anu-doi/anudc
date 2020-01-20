@@ -156,6 +156,7 @@ function getLinks() {
 				row.append(jQuery('<td></td>').text(title));
 				var relation = getRelationshipType(item.predicate);
 				row.append(jQuery('<td></td>').text(relation));
+				var deleteEditCell = jQuery("<td></td>").attr("class","icon-col-width");
 				var editImg = jQuery('<img/>', {
 					src: '//style.anu.edu.au/_anu/images/icons/silk/pencil.png',
 					title: 'Edit relationship ' + title,
@@ -163,7 +164,7 @@ function getLinks() {
 						editLink(item, this);
 					}
 				});
-				row.append(jQuery('<td></td>').html(editImg));
+				deleteEditCell.append(editImg);
 				
 				var deleteImg = jQuery('<img/>', {
 					src: '//style.anu.edu.au/_anu/images/icons/silk/cross.png',
@@ -172,7 +173,8 @@ function getLinks() {
 						deleteLink(item, this);
 					}
 				});
-				row.append(jQuery('<td></td>').html(deleteImg));
+				deleteEditCell.append(deleteImg);
+				row.append(deleteEditCell);
 				table.append(row);
 			});
 			jQuery('#editLinkContent').html(table);

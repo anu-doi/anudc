@@ -78,10 +78,13 @@
 #editLinkContent {
 	height: 350px;
 	overflow-y: auto;
-	width: width: 400px;
+	width: 400px;
 }
 
 #editLinkContent table {
 	border-collapse: collapse;
 	width: 383px;
+}
+.icon-col-width {
+	width: 12%;
 }
