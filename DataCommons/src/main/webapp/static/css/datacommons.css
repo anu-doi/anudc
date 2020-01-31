@@ -20,3 +20,7 @@ ul.list-dash > li:before {
 .link-underline a {
 	text-decoration: underline;
 }
+label.required::after {
+	content: ' *';
+	color: red;
+}

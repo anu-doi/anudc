@@ -88,27 +88,26 @@
 </#macro>
 
 <#macro renderTable templateAttribute>
-	
-	<div class="row">
+	<div class="form-row">
 	<#list templateAttribute.columns as column>
-		<div class="col-sm">${column.label}</div>
+		<div class="col">${column.label}</div>
 	</#list>
-	<div class="col-auto"></div>
+	<div class="col-1"></div>
 	</div>
-	<div class="form-row input-group">
+	<div class="form-row input-group table-group">
 	
 	<#list templateAttribute.columns as column>
 		<#switch column.fieldType.name>
 			<#case "TextField">
-				<div class="col"><input type="input" class="form-control" name="${column.name}" aria-label="${column.label}" value=""/></div>
+				<div class="col"><input type="input" class="form-control" name="${column.name}" aria-label="${column.label}" placeholder="${column.label}" title="${column.label}" value=""/></div>
 				<#break>
 			<#case "TextArea">
-				<div class="col"><textarea type="input" class="form-control" name="${column.name}" aria-label="${column.label}" value=""></textarea></div>
+				<div class="col"><textarea type="input" class="form-control" name="${column.name}" aria-label="${column.label}" placeholder="${column.label}" title="${column.label}" value=""></textarea></div>
 				<#break>
 			<#case "ComboBox">
 				<div class="col">
 				<#assign comboOptions=options(column.selectCode)>
-				<select class="form-control" name="${column.name}">
+				<select class="form-control" name="${column.name} title="${column.label}"">
 					<option value="">-- No Value Selected --</option>
 				<#list comboOptions as value>
 					<option value="${value.id.code}">${value.description}</option>
@@ -117,13 +116,13 @@
 				</div>
 				<#break>
 			<#case "Date">
-				<div class="col"><input type="text" pattern="[0-9]{4}(-[0-9]{2}(-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)?)?)?" class="form-control" name="${column.name}" aria-label="${column.label}" value=""/></div>
+				<div class="col"><input type="text" pattern="[0-9]{4}(-[0-9]{2}(-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)?)?)?" class="form-control" name="${column.name}" aria-label="${column.label}" placeholder="${column.label}" title="${column.label}" value=""/></div>
 				<#break>
 			<#default>
 				<div class="col alert alert-danger">Field type '${column.fieldType.name}' not found</div>
 		</#switch>
 	</#list>
-	<div class="col-auto"><button class="btn btn-danger btn-remove" type="button">-</button></div>
+	<div class="col-1"><button class="btn btn-danger btn-remove" type="button">-</button></div>
 	</div>
 	<div>
 		<button class="btn btn-primary btn-add" type="button">+</button>
@@ -131,32 +130,28 @@
 </#macro>
 
 <#macro renderTableWithRows templateAttribute dataValues={}>
-	<div>Has rows!!!!</div>
-	
-	
 	<div class="row">
 	<#list templateAttribute.columns as column>
 		<div class="col-sm">${column.label}</div>
 	</#list>
-	<div class="col-auto"></div>
+	<div class="col-1"></div>
 	</div>
 	<#list dataValues as val>
 	<div class="form-row input-group">
 	
 	<#list templateAttribute.columns as column>
 		<#assign childValue=val.getChildElementByName('${column.name}') >
-		<#-- <div><#if childValue?has_content>${childValue?first.value}</#if></div> -->
 		<#switch column.fieldType.name>
 			<#case "TextField">
-				<div class="col"><input type="input" class="form-control" name="${column.name}" aria-label="${column.label}" value="<#if childValue?has_content>${childValue?first.value}</#if>"/></div>
+				<div class="col"><input type="input" class="form-control" name="${column.name}" aria-label="${column.label}" title="${column.label}" value="<#if childValue?has_content>${childValue?first.value}</#if>"/></div>
 				<#break>
 			<#case "TextArea">
-				<div class="col"><textarea type="input" class="form-control" name="${column.name}" aria-label="${column.label}"><#if childValue?has_content>${childValue?first.value}</#if></textarea></div>
+				<div class="col"><textarea type="input" class="form-control" name="${column.name}" aria-label="${column.label}" title="${column.label}"><#if childValue?has_content>${childValue?first.value}</#if></textarea></div>
 				<#break>
 			<#case "ComboBox">
 				<div class="col">
 				<#assign comboOptions=options(column.selectCode)>
-				<select class="form-control" name="${column.name}">
+				<select class="form-control" name="${column.name}" title="${column.label}">
 					<option value="">-- No Value Selected --</option>
 				<#list comboOptions as value>
 					<option value="${value.id.code}" <#if childValue?has_content && value.id.code = childValue?first.value>selected="selected"</#if>>${value.description}</option>
@@ -165,13 +160,13 @@
 				</div>
 				<#break>
 			<#case "Date">
-				<div class="col"><input type="text" pattern="[0-9]{4}(-[0-9]{2}(-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)?)?)?" class="form-control" name="${column.name}" aria-label="${column.label}" value="<#if childValue?has_content>${childValue?first.value}</#if>"/></div>
+				<div class="col"><input type="text" pattern="[0-9]{4}(-[0-9]{2}(-[0-9]{2}(T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)?)?)?" class="form-control" name="${column.name}" aria-label="${column.label}" placeholder="${column.label}" title="${column.label}" value="<#if childValue?has_content>${childValue?first.value}</#if>"/></div>
 				<#break>
 			<#default>
 				<div class="col alert alert-danger">Field type '${column.fieldType.name}' not found</div>
 		</#switch>
 	</#list>
-	<div class="col-auto"><button class="btn btn-danger btn-remove" type="button">-</button></div>
+	<div class="col-1"><button class="btn btn-danger btn-remove" type="button">-</button></div>
 	</div>
 	</#list>
 	<div>

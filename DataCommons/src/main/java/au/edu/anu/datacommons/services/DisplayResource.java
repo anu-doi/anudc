@@ -245,6 +245,7 @@ public class DisplayResource
 			values.put("options", new SelectOptions());
 			values.put("groups", new GroupOptions());
 			values.put("data", data);
+			values.put("security",new SecurityCheck());
 			Viewable viewable = new Viewable("/form/new.ftl", values);
 			return Response.ok(viewable).build();
 		}
@@ -422,7 +423,7 @@ public class DisplayResource
 	@Produces(MediaType.TEXT_HTML)
 	public Response editItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("style") String style, @PathParam("item") String item)
 	{
-		LOGGER.info("In editItem get");
+		LOGGER.debug("In editItem get");
 		try {
 			FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
 			
@@ -439,6 +440,7 @@ public class DisplayResource
 			values.put("data", itemData);
 			values.put("options", new SelectOptions());
 			values.put("groups", new GroupOptions());
+			values.put("security",new SecurityCheck(fedoraObject));
 			Viewable viewable = new Viewable("/form/edit.ftl", values);
 			return Response.ok(viewable).build();
 		}
@@ -481,7 +483,7 @@ public class DisplayResource
 			@QueryParam("style") String style, @PathParam("item") String pid,
 			@Context HttpServletRequest request)
 	{
-		LOGGER.info("In editChangeItem post");
+		LOGGER.debug("In editChangeItem post");
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 

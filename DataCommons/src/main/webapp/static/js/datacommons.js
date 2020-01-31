@@ -16,8 +16,25 @@ $(document).ready(function(){
 		var lastRow = $(this).closest(".form-group").find(".input-group:last");
 		clonedRow.insertAfter(lastRow);
 	});
-	$(".btn-remove").click(function() {
+//	$(".btn-remove").click(function() {
+//		console.log("Remove button clicked");
+//		
+//		if ($(this).closest(".form-group").find(".input-group").length > 1) {
+//			console.log("More than one row found");
+//			console.log($(this).closest(".input-group").find("input").val());
+//			$(this).closest(".input-group").remove();
+//		}
+//		else {
+//			console.log("Only one row found");
+//			var thisRow = $(this).closest(".input-group");
+//			thisRow.find("input:input").val('');
+//			thisRow.find("select option:first-child").attr("selected", "selected");
+//			thisRow.find("textarea").val('');
+//		}
+//	});
+	$(".form-group").on('click','.btn-remove',function() {
 		console.log("Remove button clicked");
+		console.log("Number of rows: " + $(this).closest(".form-group").find(".input-group").length);
 		
 		if ($(this).closest(".form-group").find(".input-group").length > 1) {
 			console.log("More than one row found");

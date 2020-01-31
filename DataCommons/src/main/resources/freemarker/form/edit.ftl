@@ -22,7 +22,7 @@
 </#if>
 	<#-- <div>${attr.name} - ${attr.label} - ${attr.fieldType.name} - Tab ${attr.tab.name}</div> -->
 	<div class="form-group">
-		<label class="font-weight-bold" for="${attr.name}">${attr.label}</label>
+		<label class="font-weight-bold<#if attr.required> required</#if>" for="${attr.name}">${attr.label}</label>
 		<#if attr.tooltip??>
 			<div><small id="${attr.name}.tooltip">${attr.tooltip}</small></div>
 		</#if>

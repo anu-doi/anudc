@@ -68,7 +68,7 @@
 		<div class="collapse navbar-collapse">
 			<ul class="navbar-nav mr-auto">
 				<li><a class="nav-link nav-brand" href="/DataCommons"><image src="//style.anu.edu.au/_anu/4/images/buttons/home-white-over.png" alt="Home"/></a></li>
-				<li class="nav-item"><a class="nav-link text-light" href="#">About</a></li>
+				<li class="nav-item"><a class="nav-link text-light" href="https://openresearch.anu.edu.au/about-open-research-anu">About</a></li>
 				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/rest/contribute">Contribute</a></li>
 				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/rest/upload/search">Data search</a></li>
 				<li class="nav-item"><a class="nav-link text-light" href="/DataCommons/rest/collreq">Data request</a></li>

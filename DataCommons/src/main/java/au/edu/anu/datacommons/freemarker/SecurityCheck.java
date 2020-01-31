@@ -19,19 +19,24 @@ public class SecurityCheck {
 	
 	FedoraObject fedoraObject;
 	
+	public SecurityCheck() {
+		this.fedoraObject = null;
+	}
+	
 	public SecurityCheck(FedoraObject fedoraObject) {
 		this.fedoraObject = fedoraObject;
 	}
 	
 	public Boolean checkPermission(Integer access) {
 		Boolean isPermitted = Boolean.FALSE;
-		ApplicationContext appCtx = AppContext.getApplicationContext();
-		PermissionService service = (PermissionService) appCtx.getBean("permissionService");
-		
-		Permission permission = getPermission(access);
-		
-		isPermitted = service.checkPermission(fedoraObject, permission);
-		
+		if (fedoraObject != null) {
+			ApplicationContext appCtx = AppContext.getApplicationContext();
+			PermissionService service = (PermissionService) appCtx.getBean("permissionService");
+			
+			Permission permission = getPermission(access);
+			
+			isPermitted = service.checkPermission(fedoraObject, permission);
+		}
 		return isPermitted;
 	}
 	
@@ -49,12 +54,13 @@ public class SecurityCheck {
 	}
 	
 	private Permission getPermission(int access) {
-		List<Permission> permissions = CustomACLPermission.getPermissionList();
-		Permission checkPermission = null;
-		for (Permission perm : permissions) {
-			perm.getMask();
-			if (perm.getMask() == access) {
-				return perm;
+		if (fedoraObject != null) {
+			List<Permission> permissions = CustomACLPermission.getPermissionList();
+			for (Permission perm : permissions) {
+				perm.getMask();
+				if (perm.getMask() == access) {
+					return perm;
+				}
 			}
 		}
 		return null;

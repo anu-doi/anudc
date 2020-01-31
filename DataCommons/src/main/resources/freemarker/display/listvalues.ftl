@@ -10,7 +10,7 @@
 				<label class="font-weight-bold">${column.label}</label>
 				<#list element.childValues as childVal>
 					<#if childVal.name == column.name>
-						${childVal.value}
+						<#if column.extra?has_content && column.extra?contains("link")><a href="${childVal.value}" class="text-link"></#if>${childVal.value}<#if column.extra?has_content && column.extra?contains("link")></a></#if>
 					</#if>
 				</#list>
 				</div>
@@ -20,7 +20,7 @@
 			<#assign group=groups(element.value)>
 			${group.group_name}
 		<#else>
-			${element.value}<#if element?has_next>; </#if>
+			<#if attr.extra?has_content && attr.extra?contains("link")><a href="${element.value}" class="text-link"></#if>${element.value}<#if attr.extra?has_content && attr.extra?contains("link")></a></#if><#if element?has_next>; </#if>
 		</#if>
 	</#list>
 </#macro>
