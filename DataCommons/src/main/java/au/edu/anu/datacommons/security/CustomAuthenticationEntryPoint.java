@@ -87,7 +87,8 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 		}
 		else
 		{
-			response.sendRedirect(request.getServletContext().getContextPath() + "/login");
+			response.sendRedirect(request.getServletContext().getContextPath() + "/login-select");
+//			response.sendRedirect(request.getServletContext().getContextPath() + "/login");
 		}
 	}
 

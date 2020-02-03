@@ -15,7 +15,8 @@
 		<security:intercept-url pattern="/jsp/pambu/pambuadmin.jsp" access="hasRole('ROLE_ADMIN')"/>
 		<security:intercept-url pattern="/**" access="permitAll" />
 		
-		<security:access-denied-handler error-page="/jsp/accessdenied.jsp" />
+		<security:access-denied-handler error-page="/rest/access-denied" />
+		<!-- <security:access-denied-handler error-page="/jsp/accessdenied.jsp" /> -->
 		
 		<security:form-login
 			login-page="/login-select?method=registered&amp;test=test"

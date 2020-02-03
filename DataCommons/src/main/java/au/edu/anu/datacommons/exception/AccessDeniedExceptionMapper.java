@@ -46,7 +46,8 @@ import com.sun.jersey.api.view.Viewable;
  * @author Rahul Khanna
  *
  */
-@Provider
+//Disable by commenting out the @Provider
+//@Provider
 public class AccessDeniedExceptionMapper implements ExceptionMapper<AccessDeniedException> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AccessDeniedExceptionMapper.class);
 	
@@ -71,7 +72,7 @@ public class AccessDeniedExceptionMapper implements ExceptionMapper<AccessDenied
 				resp = Response.status(Status.UNAUTHORIZED).entity(viewable).build();
 			}
 			else {
-				resp = Response.status(Status.UNAUTHORIZED).entity(new Viewable("/login_select.jsp")).build();
+				resp = Response.status(Status.UNAUTHORIZED).entity(new Viewable("/login.jsp")).build();
 			}
 		} else {
 			resp = Response.status(Status.UNAUTHORIZED).entity(exception.getMessage()).build();
