@@ -7,6 +7,7 @@
 <anu:header id="1998" title="Storage Search" description="DESCRIPTION" subject="SUBJECT" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au" ssl="true">
 
 	<link href="<c:url value='/css/ajaxsolr.css' />" rel="stylesheet" type="text/css"></link>
+	<link href="<c:url value='/css/default.css' />" rel="stylesheet" type="text/css"></link>
 	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.24/jquery-ui.min.js"></script>
 	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.24/themes/smoothness/jquery-ui.css">
 	<script type="text/javascript" src="<c:url value='/js/solrjs/Core.js' />"></script>
@@ -26,6 +27,7 @@
 	<script type="text/javascript">
 		solrUrl = "./";
 	</script>
+	<script type="text/javascript" src="<c:url value='/js/storage-search.js' />"></script>
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
@@ -37,6 +39,7 @@
 			<input id="query" class="ui-autocomplete-input" type="text" name="query" autocomplete="off" role="textbox" aria-autocomplete="list" aria-haspopup="true" />
 		</div>
 	</div>
+	<div>Include: <input id="show-titles" name="show-titles" type="checkbox" data-section="title-section" class="show-section" checked /> Titles <input id="show-authors" name="show-authors" type="checkbox" data-section="author-section" class="show-section" checked /> Authors <input id="show-extension" name="show-extension" type="checkbox" data-section="extension-section" class="show-section" checked /> File extensions</div>
 </div>
 </anu:content>
 
@@ -56,20 +59,26 @@
 		<ul id="selection"></ul>
 	</div>
 
+	<div id="title-section">
 	<anu:boxheader text="Titles"/>
 	<anu:box style="solid">
 		<div id="title_str"></div>
 	</anu:box>
+	</div>
 	
+	<div id="author-section">
 	<anu:boxheader text="Authors"/>
 	<anu:box style="solid">
 		<div id="author_str"></div>
 	</anu:box>
+	</div>
 	
+	<div id="extension-section">
 	<anu:boxheader text="File Extensions"/>
 	<anu:box style="solid">
 		<div id="ext"></div>
 	</anu:box>
+	</div>
 </anu:content>
 
 <jsp:include page="/jsp/footer.jsp" />
