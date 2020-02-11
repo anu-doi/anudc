@@ -5,13 +5,13 @@
 				<#if dataValues?has_content>
 					<#list dataValues as val>
 					<div class="input-group">
-					<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip" value="${val.value}" />
+					<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip" value="${val.value}"<#if templateAttribute.required> required</#if> />
 					<div class="input-group-append"><button type="button" class="btn btn-danger btn-remove">-</button></div>
 					</div>
 					</#list>
 				<#else>
 					<div class="input-group">
-					<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip" />
+					<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip"<#if templateAttribute.required> required</#if> />
 					<div class="input-group-append"><button type="button" class="btn btn-danger btn-remove">-</button></div>
 					</div>
 				</#if>
@@ -43,13 +43,13 @@
 		<#case "RadioButton">
 			<#assign radioOptions=options(templateAttribute.selectCode)>
 			<#list radioOptions as value>
-				<div><input value="${value.id.code}" name="${templateAttribute.name}" type="radio" aria-label="${value.description}" <#if dataValues?has_content && dataValues?first.value == value.id.code>checked</#if>> ${value.description}</div>
+				<div><input value="${value.id.code}" name="${templateAttribute.name}" type="radio"<#if templateAttribute.required> required</#if> aria-label="${value.description}" <#if dataValues?has_content && dataValues?first.value == value.id.code>checked</#if>> ${value.description}</div>
 			</#list>
 			<#break>
 		<#case "ComboBox">
 			<#assign comboOptions=options(templateAttribute.selectCode)>
 			<#if templateAttribute.multiValued>
-				<select id="${templateAttribute.name}" name="${templateAttribute.name}" multiple="multiple">
+				<select id="${templateAttribute.name}" name="${templateAttribute.name}" multiple="multiple"<#if templateAttribute.required> required</#if>>
 				<#list comboOptions as value>
 					<option value="${value.id.code}" <#if dataValues?has_content><#list dataValues as dataItem><#if dataItem.value == value.id.code>selected</#if></#list></#if>>${value.description}</option>
 				</#list>

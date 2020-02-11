@@ -1,7 +1,7 @@
 <#import "../layout/common.ftl" as l/>
 <#import "controls.ftl" as c />
 <@l.page title="Edit ${data.getFirstElementByName('name').value}">
-<form method="post">
+<form id="form" method="post">
 <div class="float-right">
 	<a href="/DataCommons/rest/display/${item.object_id}?layout=def:display" class="btn btn-primary">Return to Display</a>
 	<input class="btn btn-primary" type="submit" value="Submit"/>
@@ -31,4 +31,5 @@
 </#list>
 </div>
 </form>
+<script src="/DataCommons/static/js/jquery.validate.min.js" type="text/javascript"></script>
 </@l.page>

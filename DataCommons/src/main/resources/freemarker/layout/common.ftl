@@ -10,6 +10,7 @@
 	<link href="/DataCommons/static/css/datacommons.css" rel="stylesheet" type="text/css" media="screen" />
 	
 	<script src="/DataCommons/static/js/jquery-3.3.1.min.js" type="text/javascript"></script>
+	<script src="/DataCommons/static/js/jquery.validate.min.js" type="text/javascript"></script>
 	<script src="/DataCommons/static/js/sol.js" type="text/javascript"></script>
 	<script src="/DataCommons/static/js/bootstrap.min.js" type="text/javascript"></script>
 	<script src="/DataCommons/static/js/datacommons.js" type="text/javascript"></script>

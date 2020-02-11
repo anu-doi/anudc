@@ -24,3 +24,10 @@ label.required::after {
 	content: ' *';
 	color: red;
 }
+.error {
+	color: red;
+}
+.field-error::after {
+	content: " *";
+	color: red;
+}

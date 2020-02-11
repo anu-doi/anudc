@@ -1,7 +1,7 @@
 <#import "../layout/common.ftl" as l/>
 <#import "controls.ftl" as c />
 <@l.page title="New ${tmplt.name}">
-<form method="post">
+<form id="form" method="post">
 <div class="float-right">
 	<input class="btn btn-primary" type="submit" value="Submit"/>
 </div>
@@ -21,7 +21,7 @@
 </#if>
 	<#-- <div>${attr.name} - ${attr.label} - ${attr.fieldType.name} - Tab ${attr.tab.name}</div> -->
 	<div class="form-group">
-		<label class="font-weight-bold" for="${attr.name}">${attr.label}</label>
+		<label class="font-weight-bold<#if attr.required> required</#if>" for="${attr.name}">${attr.label}</label>
 		<#if attr.tooltip??>
 			<div><small id="${attr.name}.tooltip">${attr.tooltip}</small></div>
 		</#if>
