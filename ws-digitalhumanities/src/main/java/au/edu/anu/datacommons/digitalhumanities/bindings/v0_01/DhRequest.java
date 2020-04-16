@@ -53,7 +53,7 @@ public class DhRequest implements Processable
 	{
 		try
 		{
-			constants = new PropertiesFile(new File(Config.DIR, "ws-digitalhumanities/constants.properties"));
+			constants = new PropertiesFile(new File(Config.getAppHome(), "config/ws-digitalhumanities/constants.properties"));
 		}
 		catch (IOException e)
 		{

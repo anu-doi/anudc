@@ -61,8 +61,8 @@ public class DhResource extends AbstractResource
 	{
 		try
 		{
-			genericWsProps = new PropertiesFile(new File(Config.DIR, "ws-digitalhumanities/genericws.properties"));
-			packageLookup = new PropertiesFile(new File(Config.DIR, "ws-digitalhumanities/wslookup.properties"));
+			genericWsProps = new PropertiesFile(new File(Config.getAppHome(), "config/ws-digitalhumanities/genericws.properties"));
+			packageLookup = new PropertiesFile(new File(Config.getAppHome(), "config/ws-digitalhumanities/wslookup.properties"));
 		}
 		catch (IOException e)
 		{

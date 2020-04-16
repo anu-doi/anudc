@@ -55,8 +55,8 @@
 
 <anu:content layout="narrow">
 	<div>
-		<h4>Current Selection</h4>
-		<ul id="selection"></ul>
+		<h4>Current search options</h4>
+		<ul id="selection" class="nobullet"></ul>
 	</div>
 
 	<div id="title-section">

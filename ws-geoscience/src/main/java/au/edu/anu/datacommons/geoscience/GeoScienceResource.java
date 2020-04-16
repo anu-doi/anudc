@@ -61,8 +61,8 @@ public class GeoScienceResource extends AbstractResource
 	{
 		try
 		{
-			genericWsProps = new PropertiesFile(new File(Config.DIR, "ws-geoscience/genericws.properties"));
-			packageLookup = new PropertiesFile(new File(Config.DIR, "ws-geoscience/wslookup.properties"));
+			genericWsProps = new PropertiesFile(new File(Config.getAppHome(), "config/ws-geoscience/genericws.properties"));
+			packageLookup = new PropertiesFile(new File(Config.getAppHome(), "config/ws-geoscience/wslookup.properties"));
 		}
 		catch (IOException e)
 		{

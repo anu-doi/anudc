@@ -22,7 +22,7 @@
 		<li><a href="<c:url value='/rest/contribute' />">Contribute</a></li>
 		<li><a href='<c:url value="/rest/upload/search"/>'>Data search</a></li>
 		<li><a href='<c:url value="/rest/collreq"/>'>Data request</a></li>
-		<li><a href="https://openresearch.anu.edu.au/contact">Contact</a></li>
+		<li><a href='<c:url value="/rest/contact"/>'>Contact</a></li>
 		<sec:authorize access="isAnonymous()">
 			<li> <a href='<c:url value="/login-select" />'>Login</a></li>
 		</sec:authorize>

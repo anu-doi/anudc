@@ -54,9 +54,11 @@ import com.sun.jersey.api.view.Viewable;
 import au.edu.anu.datacommons.admin.AdminService;
 import au.edu.anu.datacommons.data.db.model.Domains;
 import au.edu.anu.datacommons.data.db.model.Groups;
+import au.edu.anu.datacommons.data.db.model.Template;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.exception.DataCommonsException;
+import au.edu.anu.datacommons.security.service.TemplateService;
 
 /**
  * AdminResource
@@ -84,10 +86,15 @@ public class AdminResource {
 	@Resource(name = "adminServiceImpl")
 	private AdminService adminService;
 	
+	@Resource
+	TemplateService templateService;
+	
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public Response getMainAdminPage() {
 		Map<String, Object> values = new HashMap<String, Object>();
+		List<Template> templates = templateService.getTemplates();
+		values.put("templates", templates);
 //		values.put("tmplt", template);
 //		values.put("item", fedoraObject);
 //		values.put("data", itemData);

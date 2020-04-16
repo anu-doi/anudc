@@ -85,7 +85,7 @@ public class GatewayResource
 	{
 		try
 		{
-			redirProps = new PropertiesFile(new File(Config.DIR, "ws-gateway/redir.properties"));
+			redirProps = new PropertiesFile(new File(Config.getAppHome(), "config/ws-gateway/redir.properties"));
 		}
 		catch (IOException e)
 		{

@@ -10,7 +10,8 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide">
+<anu:content layout="doublewide" title="Contribute your research data">
+	<div>Choose the appropriate form for the type of metadata you are contributing<br/><br/></div>
 	<div id="divSearchResults">
 		<c:if test="${it.resultSet != null}">
 			<hr />
