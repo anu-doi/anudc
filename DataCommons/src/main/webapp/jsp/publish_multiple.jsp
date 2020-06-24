@@ -13,7 +13,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" title="Publish Multiple Records">
+<anu:content layout="doublewide" title="Publish multiple records">
 	<c:choose>
 		<c:when test="${not empty it.groups}">
 			<form id="groupForm" method="GET" action=""> 

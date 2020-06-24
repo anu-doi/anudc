@@ -13,7 +13,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" title="Validate Multiple Records">
+<anu:content layout="doublewide" title="Validate multiple records">
 	<c:choose>
 		<c:when test="${not empty it.groups}">
 			<c:if test="${it.errorMsg}">

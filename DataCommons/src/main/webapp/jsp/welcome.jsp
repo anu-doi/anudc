@@ -20,9 +20,9 @@
 <anu:content layout="one-third">
 	<div class="div1 box bg-grey10 colbox">
 		<div>
-			<img alt="Contirbute your research data" src='<c:url value="/static/image/contribute.jpg"/>' />
+			<img alt="Contribute your research data" src='<c:url value="/static/image/contribute.jpg"/>' />
 			<div>
-				<h2><a class="nounderline" href='<c:url value="/rest/list/template"/>'>Contribute your research data</a></h2>
+				<h2><a class="nounderline" href='<c:url value="/rest/contribute/data"/>'>Contribute your research data</a></h2>
 			</div>
 		</div>
 	</div>
@@ -31,7 +31,7 @@
 <anu:content layout="one-third">
 	<div class="div1 box bg-grey10 colbox">
 		<div>
-			<img alt="Contirbute your research data" src='<c:url value="/static/image/data-search.jpg"/>' />
+			<img alt="Data search" src='<c:url value="/static/image/data-search.jpg"/>' />
 			<div>
 				<h2><a class="nounderline" href='<c:url value="/rest/upload/search"/>'>Data search</a></h2>
 			</div>
@@ -41,7 +41,9 @@
 
 <anu:content layout="one-third">
 	<div class="div1 box bg-grey10 colbox">
-		<div><h2><a class="nounderline" href="https://anulib.anu.edu.au/research-learn/research-data-management">Research data management</a></h2></div>
+	<img alt="Research data management" src='<c:url value="/static/image/homepage-research-data-management.jpg"/>' />
+		<div><h2><a class="nounderline" href="https://anulib.anu.edu.au/research-learn/research-data-management">Research data management
+		<img alt="External link" src='<c:url value="https://style.anu.edu.au/_anu/images/icons/web/link.png"/>' /></a></h2></div>
 	</div>
 </anu:content>
 

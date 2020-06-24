@@ -4,7 +4,6 @@
 
 <anu:header id="1998" title="${it.title}" description="description" subject="subject" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au"
 	ssl="true">
-
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />

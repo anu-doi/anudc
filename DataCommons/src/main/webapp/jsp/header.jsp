@@ -18,7 +18,7 @@
 <anu:topmenu>
 	<anu:topmenulinks>
 		<li><a class="tabs-home" href="<c:url value='/' />">Home</a></li>
-		<li><a href="#">About</a></li>
+		<li><a href="<c:url value='/rest/about' />">About</a></li>
 		<li><a href="<c:url value='/rest/contribute' />">Contribute</a></li>
 		<li><a href='<c:url value="/rest/upload/search"/>'>Data search</a></li>
 		<li><a href='<c:url value="/rest/collreq"/>'>Data request</a></li>

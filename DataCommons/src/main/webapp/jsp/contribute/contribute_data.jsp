@@ -7,8 +7,8 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="two-third" title="Contribute your data">
-<div>To contribute your research data collection you must first <a href="#">Login</a> using your ANU ID and password or your registered account details.</div>
+<anu:content layout="two-third" title="Contribute your research data">
+<div>To contribute your research data collection you must first <a href='<c:url value="/login-select" />'>Login</a> using your ANU ID and password or your registered account details.</div>
 </anu:content>
 
 <anu:content layout="one-third">

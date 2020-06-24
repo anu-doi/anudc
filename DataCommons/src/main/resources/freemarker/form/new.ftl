@@ -1,5 +1,6 @@
 <#import "../layout/common.ftl" as l/>
 <#import "controls.ftl" as c />
+
 <@l.page title="New ${tmplt.name}">
 <form id="form" method="post">
 <div class="float-right">
