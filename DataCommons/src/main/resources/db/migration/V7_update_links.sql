@@ -33,6 +33,9 @@ SET tooltip = replace(tooltip, '<a href="http://www.loc.gov/catdir/cpso/lcco/" c
 UPDATE template_attribute 
 SET tooltip = replace(tooltip, 'http://www.gnu.org/copyleft/gpl.html', '<a target="_blank" rel="noopener noreferrer" href="http://www.gnu.org/copyleft/gpl.html" class="text-link">http://www.gnu.org/copyleft/gpl.html</a>');
 
+UPDATE template_attribute 
+SET tooltip = replace(tooltip, 'http://creativecommons.org.au/licences', '<a target="_blank" rel="noopener noreferrer" href="http://creativecommons.org.au/licences" class="text-link">http://creativecommons.org.au/licences</a>');
+
 --fixing typo
 UPDATE template_attribute 
 SET tooltip = replace(tooltip, '<strong>General Public Licenc</strong>', '<strong>General Public Licence</strong>');
