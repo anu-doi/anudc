@@ -1028,7 +1028,22 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			String mintedDoi = doiClient.getDoiResponse().getDoi();
 			FedoraObject fedoraObject = getItemByPid(pid);
 			Map<String, List<String>> form = new HashMap<String, List<String>>();
+			
+			Data data = getEditData(fedoraObject);
+			for (DataItem dataItem : data.getItems()) {
+				String name = dataItem.getName();
+				if (form.get(name) != null) {
+					form.get(name).add(dataItem.getValue());
+				}
+				else {
+					List<String> values = new ArrayList<String>();
+					values.add(dataItem.getValue());
+					form.put(name, values);
+				}
+			}
+			
 			form.put("doi", Arrays.asList(mintedDoi));
+			
 			saveEdit(fedoraObject, tmplt, form, rid);
 		}
 		catch (FedoraClientException | IOException e)

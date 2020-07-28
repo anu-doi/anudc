@@ -147,7 +147,7 @@ public class DisplayResource
 	@GET
 	@Path("{item}")
 	@Produces(MediaType.TEXT_HTML)
-	public Response getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item)
+	public Response getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item, @QueryParam("emsg") String errorMessage)
 	{
 		LOGGER.info("User {} ({}) requested record page of {}", getCurUsername(), request.getRemoteAddr(), item);
 
@@ -198,6 +198,7 @@ public class DisplayResource
 			values.put("options", new SelectOptions());
 			values.put("groups", new GroupOptions());
 			values.put("security",new SecurityCheck(fedoraObject));
+			values.put("errormessage", errorMessage);
 			
 			Viewable viewable = new Viewable("/display/display.ftl", values);
 			return Response.ok(viewable).build();

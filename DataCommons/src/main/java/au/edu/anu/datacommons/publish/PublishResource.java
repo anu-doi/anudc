@@ -190,7 +190,10 @@ public class PublishResource {
 	public Response generateDoi(@PathParam("pid") String pid, @QueryParam("tmplt") String tmplt, @Context UriInfo uriInfo)
 	{
 		Response resp = null;
-		UriBuilder redirUri = UriBuilder.fromPath("/display").path(pid).queryParam("layout", "def:display").queryParam("tmplt", tmplt);
+		UriBuilder redirUri = UriBuilder.fromPath("/display").path(pid).queryParam("layout", "def:display");
+		if (Util.isNotEmpty(tmplt)) {
+			redirUri = redirUri.queryParam("tmplt", tmplt);
+		}
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 		if (!permissionService.checkPermission(fedoraObject, CustomACLPermission.PUBLISH)) {
 			throw new AccessDeniedException(format("User does not have Publish permissions for {0}.", pid));

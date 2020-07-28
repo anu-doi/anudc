@@ -125,7 +125,6 @@ public class SaveTransform {
 		
 		return fedoraObject;
 	}
-	
 	private FedoraObject updateData(Template template, FedoraObject fedoraObject, Data data, Long rid) throws IOException, JAXBException, FedoraClientException {
 		setName(data);
 		Map<String, Object> properties = new HashMap<String, Object>();
@@ -158,10 +157,6 @@ public class SaveTransform {
 		
 		return fedoraObject;
 	}
-	
-//	private DublinCore getDublinCore(Data data) {
-//		DublinCore
-//	}
 	
 	/**
 	 * Generate the table items
@@ -264,8 +259,6 @@ public class SaveTransform {
 		return null;
 	}
 	
-//	private 
-	
 	private String getData(FedoraObject fedoraObject) throws FedoraClientException, IOException {
 		if (fedoraObject != null) {
 			InputStream dataStream = getInputStream(fedoraObject.getObject_id(), Constants.XML_SOURCE);
@@ -311,8 +304,6 @@ public class SaveTransform {
 	
 	private String generateDublinCore(JAXBTransform jaxbTransform, Data data) throws JAXBException {
 		DublinCore dublinCore = new DublinCore();
-		
-//		DublinCoreConstants.getFieldName(propertyName);
 		
 		for (DataItem item : data.getItems()) {
 			String dublinCoreLocalpart = DublinCoreConstants.getFieldName(item.getName());

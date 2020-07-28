@@ -16,6 +16,11 @@ This item is in the status ready for publish
 This item is in the status more work required
 </div>
 </#if>
+<#if errormessage??>
+<div class="container alert alert-danger" role="alert">
+	${errormessage}
+</div>
+</#if>
 <div class="container mb-3">
 <div class="row">
 <div class="col-9">
