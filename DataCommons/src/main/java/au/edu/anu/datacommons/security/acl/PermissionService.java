@@ -23,8 +23,10 @@ package au.edu.anu.datacommons.security.acl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -51,10 +53,14 @@ import au.edu.anu.datacommons.data.db.dao.AclSidDAO;
 import au.edu.anu.datacommons.data.db.dao.AclSidDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.UsersDAO;
+import au.edu.anu.datacommons.data.db.dao.UsersDAOImpl;
 import au.edu.anu.datacommons.data.db.model.AclSid;
+import au.edu.anu.datacommons.data.db.model.Authorities;
 import au.edu.anu.datacommons.data.db.model.Domains;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
+import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.util.Util;
 
 /**
@@ -188,7 +194,7 @@ public class PermissionService {
 		Sid sid = new PrincipalSid(authentication.getName());
 		sidList.add(sid);
 		
-		Iterator<GrantedAuthority> it = authentication.getAuthorities().iterator();
+		Iterator<? extends GrantedAuthority> it = authentication.getAuthorities().iterator();
 		while (it.hasNext()) {
 			GrantedAuthority auth = it.next();
 			Sid authSid = new GrantedAuthoritySid(auth.getAuthority());
@@ -356,7 +362,7 @@ public class PermissionService {
 		Sid sid = new PrincipalSid(authentication.getName());
 		sidList.add(sid);
 		
-		Iterator<GrantedAuthority> it = authentication.getAuthorities().iterator();
+		Iterator<? extends GrantedAuthority> it = authentication.getAuthorities().iterator();
 		while (it.hasNext()) {
 			GrantedAuthority auth = it.next();
 			Sid authSid = new GrantedAuthoritySid(auth.getAuthority());
@@ -420,6 +426,24 @@ public class PermissionService {
 			}
 		}
 		aclService.updateAcl(groupAcl);
+		addANURoleToRegistered(username);
+	}
+	
+	private void addANURoleToRegistered(String username) {
+		UsersDAO userDAO = new UsersDAOImpl();
+		Users user = userDAO.getUserByName(username);
+		if (user != null && user.getUser_registered() != null) {
+			GenericDAO<Authorities, String> authorityDAO = new GenericDAOImpl<Authorities, String>(Authorities.class);
+			try {
+				Authorities authority = new Authorities();
+				authority.setUsername(username);
+				authority.setAuthority("ROLE_ANU_USER");
+				authorityDAO.create(authority);
+			}
+			catch (Exception e) {
+				// Likely to be a constraint violation exception so ignoring
+			}
+		}
 	}
 	
 	/**
@@ -659,5 +683,26 @@ public class PermissionService {
 		groupAcl.setOwner(adminSid);
 		groupAcl.setParent(domainAcl);
 		aclService.updateAcl(groupAcl);
+	}
+	
+	public Set<Sid> getSidsByPermissions(FedoraObject fedoraObject, Permission permission) {
+		ObjectIdentity objectOI = new ObjectIdentityImpl(FedoraObject.class, fedoraObject.getId());
+		
+		Set<Sid> sids = new HashSet<Sid>();
+		
+		Acl acl = aclService.readAclById(objectOI);
+		processSids(acl, permission, sids);
+		
+		Acl parentAcl = acl.getParentAcl();
+		processSids(parentAcl, permission, sids);
+		return sids;
+	}
+	
+	private void processSids(Acl acl, Permission permission, Set<Sid> sids) {
+		for (AccessControlEntry entry : acl.getEntries()) {
+			if (entry.getPermission().equals(permission)) {
+				sids.add(entry.getSid());
+			}
+		}
 	}
 }

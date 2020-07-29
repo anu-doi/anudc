@@ -73,6 +73,7 @@ import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
 import au.edu.anu.datacommons.util.Util;
 
 import com.sun.jersey.api.NotFoundException;
+import com.sun.jersey.api.client.Client;
 
 /**
  * Provides common methods for parsing HTTP requests and structuring HTTP responses for Storage-related requests.
@@ -101,6 +102,9 @@ public class AbstractStorageResource {
 
 	@Autowired
 	protected TempFileService tmpFileSvc;
+	
+	@Autowired
+	protected Client client;
 
 	protected AccessLogRecordDAOImpl accessLogDao = new AccessLogRecordDAOImpl();
 
@@ -369,7 +373,6 @@ public class AbstractStorageResource {
 			} else {
 				addAccessLog(Operation.CREATE);
 			}
-			// dcStorage.addFile(pid, ufi, path);
 			storageController.addFile(pid, path, ufi);
 			LOGGER.info("User {} ({}) added file {}/data/{}, Size: {}, MD5: {}", getCurUsername(), getRemoteIp(), pid,
 					path, Util.byteCountToDisplaySize(ufi.getSize()), ufi.getMd5());

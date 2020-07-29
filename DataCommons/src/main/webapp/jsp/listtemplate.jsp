@@ -3,14 +3,15 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<anu:header id="1998" title="Create New Item" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
+<anu:header id="1998" title="Create New Item" description="description" subject="subject" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au"
 	ssl="true">
 
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide">
+<anu:content layout="doublewide" title="Contribute your research data">
+	<div>Choose the appropriate form for the type of metadata you are contributing<br/><br/></div>
 	<div id="divSearchResults">
 		<c:if test="${it.resultSet != null}">
 			<hr />

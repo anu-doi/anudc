@@ -32,6 +32,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import org.codehaus.jackson.annotate.JsonManagedReference;
+
 import au.edu.anu.datacommons.data.db.model.Domains;
 import au.edu.anu.datacommons.data.db.model.Groups;
 
@@ -51,25 +53,29 @@ public class QuestionMap {
 	private Groups group;
 	private Domains domain;
 	private Boolean required;
+	private Integer seqNum;
 
 	protected QuestionMap() {
 	}
 
-	public QuestionMap(String pid, Question question, Boolean required) {
+	public QuestionMap(String pid, Question question, Integer seqNum, Boolean required) {
 		this.pid = pid;
 		this.question = question;
+		this.seqNum = seqNum;
 		this.required = required;
 	}
 
-	public QuestionMap(Groups group, Question question, Boolean required) {
+	public QuestionMap(Groups group, Question question, Integer seqNum, Boolean required) {
 		this.group = group;
 		this.question = question;
+		this.seqNum = seqNum;
 		this.required = required;
 	}
 
-	public QuestionMap(Domains domain, Question question, Boolean required) {
+	public QuestionMap(Domains domain, Question question, Integer seqNum, Boolean required) {
 		this.domain = domain;
 		this.question = question;
+		this.seqNum = seqNum;
 		this.required = required;
 	}
 
@@ -95,6 +101,7 @@ public class QuestionMap {
 
 	@OneToOne
 	@JoinColumn(name = "question_fk")
+	@JsonManagedReference
 	public Question getQuestion() {
 		return question;
 	}
@@ -204,6 +211,15 @@ public class QuestionMap {
 	 */
 	public void setRequired(Boolean required) {
 		this.required = required;
+	}
+
+	@Column(name="seq_num")
+	public Integer getSeqNum() {
+		return seqNum;
+	}
+
+	public void setSeqNum(Integer seqNum) {
+		this.seqNum = seqNum;
 	}
 
 }

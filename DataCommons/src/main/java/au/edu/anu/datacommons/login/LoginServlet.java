@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.web.PortResolver;
 import org.springframework.security.web.PortResolverImpl;
-import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.savedrequest.SavedRequest;
 
@@ -64,7 +63,7 @@ import au.edu.anu.datacommons.util.Util;
  * </pre>
  * 
  */
-@WebServlet(name = "LoginServlet", urlPatterns = "/login")
+@WebServlet(name = "LoginServlet", urlPatterns = "/login-select")
 public class LoginServlet extends HttpServlet
 {
 	private static final long serialVersionUID = 1L;
@@ -93,41 +92,40 @@ public class LoginServlet extends HttpServlet
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
 	{
 		String errorParam = request.getParameter("error");
-		String methodParam = request.getParameter("method");
 		if("true".equals(errorParam)) {
 			request.setAttribute("error", "You have entered an invalid username or password");
 		}
 		else {
 			request.removeAttribute("error");
-			SavedRequest savedRequest = (SavedRequest) request.getSession().getAttribute(WebAttributes.SAVED_REQUEST);
+			SavedRequest savedRequest = (SavedRequest) request.getSession().getAttribute("SPRING_SECURITY_SAVED_REQUEST");
 			if (savedRequest == null) {
 				String referer = request.getHeader("Referer");
 				if (Util.isNotEmpty(referer)) {
 					LOGGER.trace("Referer on login page is: {}", referer);
 					PortResolver portResolver = new PortResolverImpl();
 					DefaultSavedRequest savedRequestToSet = new DefaultSavedRequest (request, portResolver);
-					request.getSession().setAttribute(WebAttributes.SAVED_REQUEST, savedRequestToSet);
+					request.getSession().setAttribute("SPRING_SECURITY_SAVED_REQUEST", savedRequestToSet);
 				}
 			}
 		}
-		RequestDispatcher requestDispatcher = null;
 		
-		if ("anu".equals(methodParam)) {
-			StringBuilder casURL = new StringBuilder();
-			casURL.append(GlobalProps.getProperty(GlobalProps.PROP_CAS_SERVER));
-			casURL.append("/login?service=");
-			casURL.append(GlobalProps.getProperty(GlobalProps.PROP_APP_SERVER));
-			casURL.append(request.getServletContext().getContextPath());
-			casURL.append("/j_spring_cas_security_check");
-			response.sendRedirect(casURL.toString());
-			return;
-		}
-		else if ("registered".equals(methodParam)) {
+		RequestDispatcher requestDispatcher = null;
+//		if ("anu".equals(methodParam)) {
+//			StringBuilder casURL = new StringBuilder();
+//			casURL.append(GlobalProps.getProperty(GlobalProps.PROP_CAS_SERVER));
+//			casURL.append("/login?service=");
+//			casURL.append(GlobalProps.getProperty(GlobalProps.PROP_APP_SERVER));
+//			casURL.append(request.getServletContext().getContextPath());
+//			casURL.append("/j_spring_cas_security_check");
+//			response.sendRedirect(casURL.toString());
+//			return;
+//		}
+//		else if ("registered".equals(methodParam)) {
 			requestDispatcher = request.getRequestDispatcher("jsp/login.jsp");
-		}
-		else {
-			requestDispatcher = request.getRequestDispatcher("jsp/login_select.jsp");
-		}
+//		}
+//		else {
+//			requestDispatcher = request.getRequestDispatcher("jsp/login_select.jsp");
+//		}
 		requestDispatcher.forward(request, response);
 	}
 }

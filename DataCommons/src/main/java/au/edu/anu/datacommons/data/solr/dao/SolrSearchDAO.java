@@ -20,6 +20,7 @@
  ******************************************************************************/
 package au.edu.anu.datacommons.data.solr.dao;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.solr.client.solrj.SolrQuery;
@@ -53,7 +54,7 @@ public interface SolrSearchDAO {
 	 * @return The search results
 	 * @throws SolrServerException
 	 */
-	public SolrSearchResult executeSearch(String q, int offset, int limit, String filter) throws SolrServerException;
+	public SolrSearchResult executeSearch(String q, int offset, int limit, String filter) throws SolrServerException, IOException;
 	
 	/**
 	 * Execute a search against Solr with a specific sort order
@@ -67,7 +68,7 @@ public interface SolrSearchDAO {
 	 * @return The search results
 	 * @throws SolrServerException
 	 */
-	public SolrSearchResult executeSearch(String q, int offset, int limit, String filter, String sortField, ORDER sortOrder) throws SolrServerException;
+	public SolrSearchResult executeSearch(String q, int offset, int limit, String filter, String sortField, ORDER sortOrder) throws SolrServerException, IOException;
 	
 	/**
 	 * Execute a search against Solr with facets
@@ -81,7 +82,7 @@ public interface SolrSearchDAO {
 	 * @return The search results
 	 * @throws SolrServerException
 	 */
-	public SolrSearchResult executeSearch(String q, String facetField, String facetSelected, int offset, int limit, String filter) throws SolrServerException;
+	public SolrSearchResult executeSearch(String q, String facetField, String facetSelected, int offset, int limit, String filter) throws SolrServerException, IOException;
 
 	/**
 	 * Execute a search against solr with the given search terms
@@ -93,7 +94,7 @@ public interface SolrSearchDAO {
 	 * @return THe search results
 	 * @throws SolrServerException
 	 */
-	public SolrSearchResult executeSearch(List<SearchTerm> terms, int offset, int limit, String filter) throws SolrServerException;
+	public SolrSearchResult executeSearch(List<SearchTerm> terms, int offset, int limit, String filter) throws SolrServerException, IOException;
 	
 	/**
 	 * Execute a search against solr with the provided query
@@ -102,5 +103,5 @@ public interface SolrSearchDAO {
 	 * @return The search results
 	 * @throws SolrServerException
 	 */
-	public SolrSearchResult executeSearch(SolrQuery solrQuery) throws SolrServerException;
+	public SolrSearchResult executeSearch(SolrQuery solrQuery) throws SolrServerException, IOException;
 }

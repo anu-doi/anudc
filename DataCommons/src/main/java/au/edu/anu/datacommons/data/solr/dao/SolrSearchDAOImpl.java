@@ -20,13 +20,14 @@
  ******************************************************************************/
 package au.edu.anu.datacommons.data.solr.dao;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
@@ -66,8 +67,7 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 
 	@Override
 	public SolrSearchResult executeSearch(String q, int offset, int limit,
-			String filter) throws SolrServerException {
-		LOGGER.info("Do basic search");
+			String filter) throws SolrServerException, IOException {
 		q = SolrUtils.escapeSpecialCharacters(q);
 		
 		Object[] list = {q, offset, limit};
@@ -81,7 +81,7 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 
 	@Override
 	public SolrSearchResult executeSearch(String q, int offset, int limit,
-			String filter, String sortField, ORDER sortOrder) throws SolrServerException {
+			String filter, String sortField, ORDER sortOrder) throws SolrServerException, IOException {
 		q = SolrUtils.escapeSpecialCharacters(q);
 		
 		Object[] list = {filter, q, offset, limit, sortField, sortOrder};
@@ -98,7 +98,7 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 	
 	@Override
 	public SolrSearchResult executeSearch(String q, String facetField, String facetSelected, int offset, int limit, String filter) 
-			throws SolrServerException {
+			throws SolrServerException, IOException {
 		if (q != null && !"".equals(q)) {
 			q = SolrUtils.escapeSpecialCharacters(q);
 		}
@@ -110,12 +110,18 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 		query.setStart(offset);
 		query.setRows(limit);
 		query.addFacet(facetField, facetSelected);
+		query.setFacetSort("index");
+//		query.setfac
+//		FacetField facet = new FacetField(facetField);
+		
+		
+		
 		return executeSearch(query.getSolrQuery(), true);
 	}
 
 	@Override
 	public SolrSearchResult executeSearch(List<SearchTerm> terms, int offset,
-			int limit, String filter) throws SolrServerException {
+			int limit, String filter) throws SolrServerException, IOException {
 		AbstractSolrQuery query = getQueryTerms(terms, filter);
 		query.setStart(offset);
 		query.setRows(limit);
@@ -124,7 +130,7 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 	}
 	
 	@Override
-	public SolrSearchResult executeSearch(SolrQuery solrQuery) throws SolrServerException {
+	public SolrSearchResult executeSearch(SolrQuery solrQuery) throws SolrServerException, IOException {
 		return executeSearch(solrQuery, false);
 	}
 	
@@ -136,10 +142,10 @@ public class SolrSearchDAOImpl implements SolrSearchDAO {
 	 * @return The search result
 	 * @throws SolrServerException
 	 */
-	private SolrSearchResult executeSearch(SolrQuery solrQuery, boolean hasFacet) throws SolrServerException {
+	private SolrSearchResult executeSearch(SolrQuery solrQuery, boolean hasFacet) throws SolrServerException, IOException {
 		LOGGER.debug("Query to send to Solr: {}", solrQuery.toString());
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
-		QueryResponse queryResponse = solrServer.query(solrQuery);
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
+		QueryResponse queryResponse = solrClient.query(solrQuery);
 		if (hasFacet) {
 			return new SolrSearchResult(queryResponse.getResults(), queryResponse.getFacetFields());
 		}

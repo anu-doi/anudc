@@ -4,7 +4,7 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 
-<anu:header id="1998" title="ANU Data Commons - User Information" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
+<anu:header id="1998" title="ANU Data Commons - User Information" description="description" subject="subject" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au"
 	ssl="true">
 
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/default.css' />" />
@@ -13,36 +13,46 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublenarrow" title="Update User Information">
+<anu:content layout="doublewide" title="Update User Information">
 	<c:if test="${not empty it.error}">
 		<anu:message type="error">${it.error}</anu:message><br/>
 	</c:if>
 	<form id="form" class="anuform" method="POST">
+		<p>
 		<label for="password" class="req">Password</label>
 		<input type="password" id="password" name="password" class="required "/>
-		<br/>
+		</p>
+		<p>
 		<label for="firstname" class="req">First Name</label>
 		<input type="text" id="firstname" name="firstname" class="required" value="${it.user.user_registered.given_name}"/>
-		<br/>
+		</p>
+		<p>
 		<label for="lastname" class="req">Last Name</label>
 		<input type="text" id="lastname" name="lastname" class="required" value="${it.user.user_registered.last_name}"/>
-		<br/>
+		</p>
+		<p>
 		<label for="newpassword">New Password</label>
 		<input type="password" id="newpassword" name="newpassword"/>
-		<br/>
+		</p>
+		<p>
 		<label for="newpassword2">Repeat New Password</label>
 		<input type="password" id="newpassword2" name="newpassword2"/>
-		<br/>
+		</p>
+		<p>
 		<label for="institution" class="req">Institutional Affiliation</label>
 		<input type="text" id="institution" name="institution" class="required" value="${it.user.user_registered.institution}"/>
-		<br/>
+		</p>
+		<p>
 		<label for="phone">Phone</label>
 		<input type="text" id="phone" name="phone" value="${it.user.user_registered.phone}"/>
-		<br/>
+		</p>
+		<p>
 		<label for="address">Address</label>
 		<textarea id="address" name="address">${it.user.user_registered.address}</textarea>
-		<br/>
+		</p>
+		<p>
 		<input type="submit" value="Submit" />
+		</p>
 	</form>
 </anu:content>
 

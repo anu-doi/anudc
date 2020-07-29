@@ -41,19 +41,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRExporterParameter;
-import net.sf.jasperreports.engine.JRParameter;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperRunManager;
-import net.sf.jasperreports.engine.export.JRHtmlExporter;
-import net.sf.jasperreports.engine.export.JRHtmlExporterParameter;
-import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
-
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
@@ -73,6 +62,16 @@ import au.edu.anu.datacommons.data.solr.SolrUtils;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.util.ExtensionFileFilter;
 import au.edu.anu.datacommons.util.Util;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRExporterParameter;
+import net.sf.jasperreports.engine.JRParameter;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperRunManager;
+import net.sf.jasperreports.engine.export.JRHtmlExporter;
+import net.sf.jasperreports.engine.export.JRHtmlExporterParameter;
+import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
 
 /**
  * ReportGenerator
@@ -417,7 +416,8 @@ public class ReportGenerator {
 			for (File jrxmlFile : files) {
 				String outputFilename = String.format("%s.%s", stripExtension(jrxmlFile.getAbsolutePath()), JASPER_COMPILED_EXTENSION);
 				File outputFile = new File(outputFilename);
-				if (!outputFile.exists()) {
+				// compile report if not compiled already
+				if (!outputFile.exists() || outputFile.length() == 0) {
 					try (InputStream is = new BufferedInputStream(new FileInputStream(jrxmlFile));
 							OutputStream os = new BufferedOutputStream(new FileOutputStream(outputFile))) {
 						JasperCompileManager.compileReportToStream(is, os);
@@ -468,7 +468,7 @@ public class ReportGenerator {
 	 * @return The name of the object
 	 */
 	private String getReportName(String pid) {
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
 		
 		String escapedPid = SolrUtils.escapeSpecialCharacters(pid);
 		SolrQuery solrQuery = new SolrQuery();
@@ -477,14 +477,14 @@ public class ReportGenerator {
 		solrQuery.addField("unpublished.name");
 		String name = null;
 		try {
-			QueryResponse queryResponse = solrServer.query(solrQuery);
+			QueryResponse queryResponse = solrClient.query(solrQuery);
 			SolrDocumentList resultList = queryResponse.getResults();
 			if (resultList.getNumFound() > 0) {
 				SolrDocument doc = resultList.get(0);
 				name = (String) doc.getFirstValue("unpublished.name");
 			}
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException | IOException e) {
 			LOGGER.error("Error executing query", e);
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
 		}

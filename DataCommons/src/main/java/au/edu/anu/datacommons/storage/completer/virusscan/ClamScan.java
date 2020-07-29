@@ -21,15 +21,18 @@
 
 package au.edu.anu.datacommons.storage.completer.virusscan;
 
-import java.io.DataOutputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,189 +40,69 @@ import org.slf4j.LoggerFactory;
 import au.edu.anu.datacommons.properties.GlobalProps;
 
 /**
- * This class provides methods to can a file for viruses.
- * 
  * @author Rahul Khanna
- * 
+ *
  */
 public class ClamScan {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClamScan.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ClamScan.class);
 
-    public static final int CHUNK_SIZE = 2048;
-    private static final byte[] INSTREAM = "zINSTREAM\0".getBytes();
-    private static final byte[] PING = "zPING\0".getBytes();
-    private static final byte[] STATS = "nSTATS\n".getBytes();
-    private static final byte[] SCAN = "zSCAN\n".getBytes();
-    
-	/**
-	 * Sends a STATS request to the ClamAV service.
-	 * 
-	 * @return Response from service as String
-	 * @throws IOException 
-	 */
-    public String stats() throws IOException {
-    	String stats = null;
-    	try (Socket socket = createSocket()) {
-    		sendCommand(socket, STATS);
-    		stats = readResponse(socket);
-		}
-        return stats;
-    }
-    
-	/**
-	 * Sends a Ping request to the ClamAV service to ensure it's up and running.
-	 * 
-	 * @return true, if successful, false otherwise
-	 * @throws IOException
-	 */
-    public boolean ping() throws IOException {
-    	boolean pingResponse = false;
-    	try (Socket socket = createSocket()) {
-    		sendCommand(socket, PING);
-    		if (readResponse(socket).equals("PONG")) {
-    			pingResponse = true;
-    		}
-		}
-        return pingResponse;
+    private static final String CONFIG_CLAMSCAN_PATH = "clamscan.path";
+    private static final String CONFIG_CLAMSCAN_TIMEOUT = "clamscan.timeout";
+
+	public String scan(InputStream scanStream) throws IOException, InterruptedException {
+		Objects.requireNonNull(scanStream);
+		String respStr = execClamScan(scanStream);
+    	return respStr;
     }
 
-	/**
-	 * Scans a specified file for viruses
-	 * 
-	 * @param filepath
-	 *            File to scan
-	 * @return Scan result as String
-	 * @throws IOException
-	 */
-    public String scan(Path filepath) throws IOException {
-    	String scanResult = null;
-    	
-    	try (Socket socket = createSocket()) {
-			sendCommand(socket, SCAN);
-			sendCommand(socket, filepath.toString().getBytes(StandardCharsets.UTF_8));
-			sendCommand(socket, "\0".getBytes());
-			
-			scanResult = readResponse(socket);
-			LOGGER.debug("ClamAV Daemon response for {}: [{}]", filepath.toString(), scanResult);
-		}
-    	
-    	return scanResult;
-    }
-    
-	/**
-	 * Scans a specified stream for viruses
-	 * 
-	 * @param scanStream
-	 *            Stream to scan
-	 * @return Scan result as String
-	 * @throws IOException
-	 */
-    public String scan(InputStream scanStream) throws IOException {
-    	String scanResult = null;
-    	
-    	try (Socket socket = createSocket()) {
-			sendCommand(socket, INSTREAM);
-			sendStream(socket, scanStream);
-			
-			scanResult = readResponse(socket);
-			LOGGER.debug("ClamAV response for stream: [{}]", scanResult);
-		} finally {
-			IOUtils.closeQuietly(scanStream);
-		}
-    	
-    	return scanResult;
-    }
-    
-	/**
-	 * Creates a socket to the ClamAV server.
-	 * 
-	 * @return Open socket as Socket
-	 * @throws UnknownHostException
-	 * @throws IOException
-	 */
-    private Socket createSocket() throws UnknownHostException, IOException {
-    	return new Socket(getHost(), getPort());
-    }
-    
-	/**
-	 * Sends a command to the ClamAV daemon.
-	 * 
-	 * @param socket
-	 *            Socket to the ClamAV daemon
-	 * @param cmd
-	 *            Command to send
-	 * @throws IOException
-	 */
-    private void sendCommand(Socket socket, byte[] cmd) throws IOException {
-    	socket.getOutputStream().write(cmd);
-    	socket.getOutputStream().flush();
-    }
-    
-	/**
-	 * Sends the contents of the specified InputStream to the ClamAV daemon.
-	 * 
-	 * @param socket
-	 *            Socket to the ClamAV daemon
-	 * @param is
-	 *            InputStream to send
-	 * @throws IOException
-	 */
-    private void sendStream(Socket socket, InputStream is) throws IOException {
-    	DataOutputStream socketOs = new DataOutputStream(socket.getOutputStream());
-    	byte[] sendBuffer = new byte[CHUNK_SIZE];
-		for (int nBytesRead = is.read(sendBuffer); nBytesRead != -1; nBytesRead = is.read(sendBuffer)) {
-			if (nBytesRead > 0) {
-				socketOs.writeInt(nBytesRead);
-				socketOs.write(sendBuffer, 0, nBytesRead);
-			}
-		}
-		socketOs.writeInt(0);
-		socketOs.flush();
-    }
-    
-	/**
-	 * Reads a response from the socket.
-	 * 
-	 * @param socket
-	 *            Socket to the ClamAV daemon
-	 * 
-	 * @return Response from ClamAV daemon as String
-	 * @throws IOException
-	 */
-    private String readResponse(Socket socket) throws IOException {
-    	InputStreamReader socketIs = new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8);
-    	StringBuilder resultBuilder = new StringBuilder();
-		char[] rcvBuffer = new char[CHUNK_SIZE];
-		for (int nCharsRead = socketIs.read(rcvBuffer); nCharsRead != -1; nCharsRead = socketIs.read(rcvBuffer)) {
-			resultBuilder.append(rcvBuffer, 0, nCharsRead);
-		}
-		return resultBuilder.toString().trim();
-    }
+	private String execClamScan(InputStream scanStream) throws IOException, InterruptedException {
+		String respStr;
 
-    /**
-	 * Gets the host.
-	 * 
-	 * @return the host
-	 */
-    public String getHost() {
-        return GlobalProps.getClamScanHost();
-    }
+		ProcessBuilder pb = generateClamScanProcessBuilder();
+		Process csProc = pb.start();
+		try (InputStream csStdout = new BufferedInputStream(csProc.getInputStream());
+				OutputStream csStdin = new BufferedOutputStream(csProc.getOutputStream())) {
+			// copy bytes from the stream to be scanned into the process' stdin
+			// long nBytesCopied = IOUtils.copyLarge(scanStream, csStdin);
+			long nBytesCopied = sizeLimitedCopy(scanStream, csStdin, 512L * FileUtils.ONE_MB);
+			respStr = IOUtils.toString(csStdout, StandardCharsets.UTF_8);
+			// trim response of whitespaces and newlines
+			respStr = respStr.trim();
+			csProc.waitFor(getClamScanTimeout(), TimeUnit.SECONDS);
+			LOGGER.debug("ClamScan scanned streamSize={} bytes;result={}", nBytesCopied, respStr);
+		}
+		return respStr;
+	}
+	
+	private long sizeLimitedCopy(InputStream in, OutputStream out, long maxBytesToCopy) throws IOException {
+		byte[] buffer = new byte[8192];
+		long totalBytesRead = 0L;
+		for (int nBytesRead = in.read(buffer); nBytesRead > -1
+				&& totalBytesRead <= maxBytesToCopy; nBytesRead = in.read(buffer)) {
+			out.write(buffer, 0, nBytesRead);
+			totalBytesRead += nBytesRead;
+		}
+		IOUtils.closeQuietly(in);
+		IOUtils.closeQuietly(out);
+		return totalBytesRead;
+	}
 
-    /**
-	 * Gets the port.
-	 * 
-	 * @return the port
-	 */
-    public int getPort() {
-        return GlobalProps.getClamScanPort();
+	private ProcessBuilder generateClamScanProcessBuilder() {
+		List<String> args = new ArrayList<>();
+		args.add(getClamScanProcPath());
+		args.add("--no-summary");
+		if (GlobalProps.getProperty("clamscan.tempdir") != null) {
+			args.add("--tempdir=" + GlobalProps.getProperty("clamscan.tempdir"));
+		}
+		args.add("-");
+		return new ProcessBuilder(args);
+	}
+    
+    private String getClamScanProcPath() {
+    	return GlobalProps.getProperty(CONFIG_CLAMSCAN_PATH);
     }
-
-    /**
-	 * Gets the timeout.
-	 * 
-	 * @return the timeout
-	 */
-    public int getTimeoutMillis() {
-        return GlobalProps.getClamScanTimeout();
+    
+    private long getClamScanTimeout() {
+    	return GlobalProps.getPropertyAsLong(CONFIG_CLAMSCAN_TIMEOUT, 120L);
     }
 }

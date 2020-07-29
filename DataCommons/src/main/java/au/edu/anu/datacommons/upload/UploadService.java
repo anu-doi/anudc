@@ -23,7 +23,9 @@ package au.edu.anu.datacommons.upload;
 
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -32,8 +34,12 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.UriBuilder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +51,8 @@ import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.storage.AbstractStorageResource;
 
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.view.Viewable;
 
 /**
@@ -135,6 +143,38 @@ public class UploadService extends AbstractStorageResource {
 		return resp;
 	}
 
+	@GET
+	@Path("select")
+	public Response doGetSolrReq() {
+		Response resp = null;
+		
+		MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+		
+		UriBuilder solrCoreUrl = UriBuilder.fromPath(GlobalProps.getProperty("storage.search.url")).path("select");
+		WebResource resource = client.resource(solrCoreUrl.build());
+		// add http request headers
+		MultivaluedMap<String,String> requestHeaders = httpHeaders.getRequestHeaders();
+		for (Entry<String, List<String>> header : requestHeaders.entrySet()) {
+			for (String headerVal : header.getValue()) {
+				resource.header(header.getKey(), headerVal);
+			}
+		}
+		// add query params
+		resource = resource.queryParams(queryParams);
+		ClientResponse respFromSolr = resource.get(ClientResponse.class);
+		
+		// create a response object with data from response received from solr 
+		ResponseBuilder respBuilder = Response.status(respFromSolr.getStatus());
+		respBuilder = respBuilder.tag(respFromSolr.getEntityTag());
+		respBuilder = respBuilder.lastModified(respFromSolr.getLastModified());
+		respBuilder = respBuilder.entity(respFromSolr.getEntityInputStream());
+		respBuilder = respBuilder.type(respFromSolr.getType());
+		resp = respBuilder.build();
+		
+		return resp;
+	}
+	
+
 	/**
 	 * Removes the payload directory prefix from a filepath. For example, "data/somedir/abc.txt" returns
 	 * "somedir/abc.txt"
@@ -150,4 +190,5 @@ public class UploadService extends AbstractStorageResource {
 		}
 		return filepath;
 	}
+	
 }

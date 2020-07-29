@@ -1,10 +1,11 @@
 <%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 
-<anu:header id="1998" title="Browse" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
+<anu:header id="1998" title="Browse" description="description" subject="subject" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au"
 	ssl="true">
 
 </anu:header>
@@ -55,9 +56,14 @@
 	</sec:authorize>
 	<hr/>
 	<c:if test="${it.resultSet != null}">
+		<c:set var="previousChar" value=""/>
 		<c:forEach items="${it.resultSet.facetFields}" var="facetField">
 			<p>
 				<c:forEach items="${facetField.values}" var="facetCount">
+					<c:set var="firstChar" value="${fn:substring(facetCount.name, 0, 1)}" />
+					<c:if test="${previousChar ne firstChar}">
+						<h2>${firstChar}</h2>
+					</c:if>
 					<c:url value="/rest/search/browse/results" var="facetURL">
 						<c:param name="field" value="${facetField.name}"/>
 						<c:param name="field-select" value='"${facetCount.name}"' />
@@ -65,6 +71,7 @@
 						<c:param name="filter" value="${param.filter}" />
 					</c:url>
 					<a href="${facetURL}">${facetCount.name} (${facetCount.count})</a><br/>
+					<c:set var="previousChar" value="${firstChar}"/>
 				</c:forEach>
 			</p>
 		</c:forEach>

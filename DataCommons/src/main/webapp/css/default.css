@@ -38,3 +38,6 @@ label.error {
 #updateGroups {
 	display: none;
 }
+.hidden {
+	display: none;
+}

@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.SavedRequest;
 
@@ -75,14 +74,18 @@ public class CustomSuccessHandler extends
 	 */
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) 
 			throws IOException, ServletException {
-		Object savedObject = request.getSession().getAttribute(WebAttributes.SAVED_REQUEST);
+		Object savedObject = request.getSession().getAttribute("SPRING_SECURITY_SAVED_REQUEST");
 		if (savedObject instanceof SavedRequest) {
 			SavedRequest savedRequest = (SavedRequest) savedObject;
 			List<String> referer = savedRequest.getHeaderValues("Referer");
-			if (referer.size() > 0) {
-				referer.get(0);
-				getRedirectStrategy().sendRedirect(request, response, referer.get(0));
-				return;
+			String redirectUrl = savedRequest.getRedirectUrl();
+			//Check if the requested url is the login page, in which case we want to use the referrer.  Otherwise use the default behaviour
+			if (redirectUrl.contains("/login-select")) {
+				if (referer.size() > 0) {
+					referer.get(0);
+					getRedirectStrategy().sendRedirect(request, response, referer.get(0));
+					return;
+				}
 			}
 		}
 		super.onAuthenticationSuccess(request, response, authentication);

@@ -21,8 +21,11 @@
 
 package au.edu.anu.datacommons.data.db.dao;
 
+import java.util.List;
+
 import au.edu.anu.datacommons.collectionrequest.Question;
 import au.edu.anu.datacommons.collectionrequest.QuestionMap;
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
 
 /**
  * QuestionMapDAO
@@ -75,4 +78,10 @@ public interface QuestionMapDAO extends GenericDAO<QuestionMap, Long> {
 	 * @return The question map for the given information
 	 */
 	public QuestionMap getSingleByObjectAndQuestion(Question question, String pid, Long groupId, Long domainId);
+	
+	public List<QuestionMap> getListByItem(FedoraObject fedoraObject, boolean useParent);
+
+	public List<QuestionMap> getListByGroup(Long id, boolean useParent);
+
+	public List<QuestionMap> getListByDomain(Long id, boolean useParent);
 }

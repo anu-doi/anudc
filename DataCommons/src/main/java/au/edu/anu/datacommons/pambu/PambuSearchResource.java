@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.pambu;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -38,9 +39,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
@@ -49,12 +50,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.sun.jersey.api.view.Viewable;
+
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.util.Util;
-
-import com.sun.jersey.api.view.Viewable;
 
 /**
  * PambuSearchService
@@ -175,16 +176,16 @@ public class PambuSearchResource {
 		// Set the values to be returned
 		setPAMBUReturnFields(output, solrQuery);
 		
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
 		try {
-			QueryResponse queryResponse = solrServer.query(solrQuery);
+			QueryResponse queryResponse = solrClient.query(solrQuery);
 			SolrDocumentList resultList = queryResponse.getResults();
 			LOGGER.debug("Number of results: {}",resultList.getNumFound());
 			
 			SolrSearchResult solrSearchResult = new SolrSearchResult(resultList);
 			model.put("resultSet", solrSearchResult);
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException | IOException e) {
 			LOGGER.error("Exception querying solr", e);
 		}
 		response = Response.ok(new Viewable("/pambu/pambu.jsp", model)).build();
@@ -357,13 +358,13 @@ public class PambuSearchResource {
 	 */
 	private void setPAMBUSortFields(String value, SolrQuery solrQuery) {
 		if ("sortVal".equals(value)) {
-			solrQuery.addSortField("published.sortVal", ORDER.asc);
+			solrQuery.addSort("published.sortVal", ORDER.asc);
 		}
 		else if ("author".equals(value)) {
-			solrQuery.addSortField("published.combinedAuthors", ORDER.asc);
+			solrQuery.addSort("published.combinedAuthors", ORDER.asc);
 		}
 		else if ("date".equals(value)) {
-			solrQuery.addSortField("published.combinedDates", ORDER.asc);
+			solrQuery.addSort("published.combinedDates", ORDER.asc);
 		}
 	}
 	
@@ -409,10 +410,10 @@ public class PambuSearchResource {
 		// may need to change this to the serial number and then adjust createLinks accordingly
 		solrQuery.addField("published.externalId");
 		
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
 		
 		try {
-			QueryResponse queryResponse = solrServer.query(solrQuery);
+			QueryResponse queryResponse = solrClient.query(solrQuery);
 			SolrDocumentList resultList = queryResponse.getResults();
 			long numFound = resultList.getNumFound();
 			linksPage.append(createLinks(resultList, context));
@@ -420,12 +421,12 @@ public class PambuSearchResource {
 				LOGGER.info("Start: {}", i);
 				
 				solrQuery.setStart(i);
-				queryResponse = solrServer.query(solrQuery);
+				queryResponse = solrClient.query(solrQuery);
 				resultList = queryResponse.getResults();
 				linksPage.append(createLinks(resultList, context));
 			}
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException |IOException e) {
 			LOGGER.error("Exception querying solr", e);
 		}
 

@@ -56,4 +56,12 @@ public interface ExternalLinkDAO extends GenericDAO<ExternalLinkPattern, Long> {
 	 * @return The patterns associated with the object type
 	 */
 	public List<ExternalLinkPattern> getByObjectType(String objectType);
+	
+	/**
+	 * Find patterns that match the reference.
+	 * 
+	 * @param reference The value to find pattersn for
+	 * @return A list of matching patterns
+	 */
+	public List<ExternalLinkPattern> findByReference(String reference);
 }

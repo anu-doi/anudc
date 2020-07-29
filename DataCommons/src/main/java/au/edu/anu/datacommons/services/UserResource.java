@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Resource;
-import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -58,9 +57,11 @@ import org.springframework.security.acls.model.Permission;
 import org.springframework.security.authentication.dao.SaltSource;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import com.sun.jersey.api.view.Viewable;
 
 import au.edu.anu.datacommons.collectionrequest.Email;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
@@ -78,8 +79,6 @@ import au.edu.anu.datacommons.data.db.model.UserRequestPassword;
 import au.edu.anu.datacommons.data.db.model.Users;
 import au.edu.anu.datacommons.exception.DataCommonsException;
 import au.edu.anu.datacommons.exception.ValidateException;
-import au.edu.anu.datacommons.ldap.LdapPerson;
-import au.edu.anu.datacommons.ldap.LdapRequest;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.publish.service.PublishService;
 import au.edu.anu.datacommons.security.CustomUser;
@@ -87,9 +86,9 @@ import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.GroupService;
 import au.edu.anu.datacommons.security.service.TemplateService;
+import au.edu.anu.datacommons.security.service.UserService;
+import au.edu.anu.datacommons.user.Person;
 import au.edu.anu.datacommons.util.Util;
-
-import com.sun.jersey.api.view.Viewable;
 
 /**
  * 
@@ -129,6 +128,9 @@ public class UserResource {
 
 	@Resource(name = "permissionService")
 	PermissionService permissionService;
+
+	@Resource(name = "userServiceImpl")
+	UserService userService;
 
 	@Resource(name = "saltSource")
 	SaltSource saltSource;
@@ -335,8 +337,8 @@ public class UserResource {
 			
 			permissionService.saveUserPermissionsForGroup(groupId, username, groupPermissions);
 		}
-		Collection<GrantedAuthority> grantedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
-		if (grantedAuthorities.contains(new GrantedAuthorityImpl("ROLE_ADMIN"))) {
+		Collection<? extends GrantedAuthority> grantedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+		if (grantedAuthorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
 			if (templates != null) {
 				List<Template> templateObjects = templateService.getTemplatesForUser(username);
 				List<Long> existingTemplateIds = new ArrayList<Long>();
@@ -381,72 +383,22 @@ public class UserResource {
 	@Path("find")
 	@Produces(MediaType.APPLICATION_JSON)
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ANU_USER')")
-	public List<LdapPerson> findUser(@QueryParam("firstname") String firstname,
-			@QueryParam("lastname") String lastname, @QueryParam("uniId") String uniId) {
-
+	public List<? extends Person> findUser(@QueryParam("firstname") String firstname,
+			@QueryParam("lastname") String lastname, @QueryParam("uniId") String uniId,
+			@QueryParam("registered") Boolean registered, @QueryParam("email") String email) {
+		
 		List<Groups> groups = groupService.getAllowModifyGroups();
 		if (groups.size() == 0) {
-			LOGGER.error("{} does not have permissions search ldap for other users", SecurityContextHolder.getContext()
+			LOGGER.error("{} does not have permissions search for other users", SecurityContextHolder.getContext()
 					.getAuthentication().getName());
 			throw new DataCommonsException(Status.UNAUTHORIZED, "You do not have permissions to search ldap");
 		}
-
-		LdapRequest ldapRequest = new LdapRequest();
-		boolean hasInfo = false;
-		StringBuilder sb = new StringBuilder();
-		sb.append("(&");
-		if (Util.isNotEmpty(firstname)) {
-			sb.append(addLdapVariable(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_GIVENNAME), firstname));
-			hasInfo = true;
-		}
-		if (Util.isNotEmpty(lastname)) {
-			sb.append(addLdapVariable(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_FAMILYNAME), lastname));
-			hasInfo = true;
-		}
-		if (Util.isNotEmpty(uniId)) {
-			sb.append(addLdapVariable(GlobalProps.getProperty(GlobalProps.PROP_LDAPATTR_UNIID), uniId));
-			hasInfo = true;
-		}
-		sb.append(")");
-		if (!hasInfo) {
-			throw new ValidateException("A given name, surname or university id is required for the search");
-		}
-		ldapRequest.setQuery(sb.toString());
-		List<LdapPerson> people = null;
-		try {
-			people = ldapRequest.search();
-			LOGGER.trace("Query [fn={}, ln={}, uid={}]. Results: {}", firstname, lastname, uniId, people.size());
-		} catch (NamingException e) {
-			LOGGER.error("Error querying ldap", e);
-		}
+		
+		List<Person> people = userService.findPeople(registered, firstname, lastname, uniId, email);
+		
 		return people;
 	}
 
-	/**
-	 * addLdapVariable
-	 * 
-	 * Add a ldap variable
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		20/08/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @param variable
-	 *            The variable to add
-	 * @param value
-	 *            The value to add
-	 * @return The string to add to the ldap search
-	 */
-	private String addLdapVariable(String variable, String value) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("(");
-		sb.append(variable);
-		sb.append("=");
-		sb.append(value);
-		sb.append(")");
-		return sb.toString();
-	}
 
 	/**
 	 * updateUser
@@ -642,7 +594,7 @@ public class UserResource {
 		user.setUsername(emailAddr);
 
 		List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-		authorities.add(new GrantedAuthorityImpl("ROLE_REGISTERED"));
+		authorities.add(new SimpleGrantedAuthority("ROLE_REGISTERED"));
 		String encodedPassword = getEncodedPassword(password, password2, user);
 
 		user.setPassword(encodedPassword);

@@ -127,6 +127,36 @@ public final class GlobalProps {
 	public static String getProperty(String key) {
 		return globalProperties.getProperty(key);
 	}
+	
+	public static int getPropertyAsInt(String key, int defaultValue) {
+		String val = globalProperties.getProperty(key);
+		int valAsInt;
+		if (val == null) {
+			valAsInt = defaultValue;
+		} else {
+			try {
+				valAsInt = Integer.parseInt(val);
+			} catch (NumberFormatException e) {
+				valAsInt = defaultValue;
+			}
+		}
+		return valAsInt;
+	}
+
+	public static long getPropertyAsLong(String key, long defaultValue) {
+		String val = globalProperties.getProperty(key);
+		long valAsLong;
+		if (val == null) {
+			valAsLong = defaultValue;
+		} else {
+			try {
+				valAsLong = Long.parseLong(val);
+			} catch (NumberFormatException e) {
+				valAsLong = defaultValue;
+			}
+		}
+		return valAsLong;
+	}
 
 	/**
 	 * @see Properties.getProperty()

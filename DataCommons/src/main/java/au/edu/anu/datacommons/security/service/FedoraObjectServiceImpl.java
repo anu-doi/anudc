@@ -34,12 +34,13 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,26 +48,37 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import com.sun.jersey.api.client.ClientResponse;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+
+import au.edu.anu.datacommons.data.db.dao.ExternalLinkDAO;
+import au.edu.anu.datacommons.data.db.dao.ExternalLinkDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
 import au.edu.anu.datacommons.data.db.dao.GenericDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.LinkTypeDAO;
 import au.edu.anu.datacommons.data.db.dao.LinkTypeDAOImpl;
+import au.edu.anu.datacommons.data.db.dao.TemplateDAO;
+import au.edu.anu.datacommons.data.db.dao.TemplateDAOImpl;
+import au.edu.anu.datacommons.data.db.model.ExternalLinkPattern;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.LinkType;
 import au.edu.anu.datacommons.data.db.model.PublishReady;
 import au.edu.anu.datacommons.data.db.model.ReviewReady;
+import au.edu.anu.datacommons.data.db.model.TemplateAttribute;
 import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.data.fedora.FedoraReference;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.doi.DoiClient;
 import au.edu.anu.datacommons.doi.DoiException;
 import au.edu.anu.datacommons.doi.DoiResourceAdapter;
+import au.edu.anu.datacommons.exception.DataCommonsException;
 import au.edu.anu.datacommons.exception.ValidateException;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
+import au.edu.anu.datacommons.security.acl.CustomACLPermission;
 import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.storage.DcStorage;
 import au.edu.anu.datacommons.storage.controller.StorageController;
@@ -76,14 +88,13 @@ import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.util.Util;
 import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
 import au.edu.anu.datacommons.xml.data.Data;
+import au.edu.anu.datacommons.xml.data.DataItem;
 import au.edu.anu.datacommons.xml.sparql.Result;
 import au.edu.anu.datacommons.xml.sparql.Sparql;
 import au.edu.anu.datacommons.xml.template.Template;
 import au.edu.anu.datacommons.xml.transform.JAXBTransform;
+import au.edu.anu.datacommons.xml.transform.SaveTransform;
 import au.edu.anu.datacommons.xml.transform.ViewTransform;
-
-import com.sun.jersey.api.client.ClientResponse;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 
 /**
  * FedoraObjectServiceImpl
@@ -206,6 +217,27 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		return values;
 	}
 	
+	public RecordDataSummary getRecordDataSummary(FedoraObject fedoraObject) {
+		try {
+			RecordDataSummary rdi = storageController.getRecordDataSummary(fedoraObject.getObject_id());
+			return rdi;
+		}
+		catch (IOException | StorageException e) {
+			LOGGER.error(e.getMessage(), e);
+		}
+		
+		return null;
+	}
+	
+	public Map<String, Object> getViewObjects(FedoraObject fedoraObject, String tmplt) {
+		if (fedoraObject != null) {
+			
+		}
+		
+		Map<String, Object> values = null;
+		return values;
+	}
+	
 	/**
 	 * getNewPage
 	 * 
@@ -250,11 +282,8 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @throws FedoraClientException 
 	 */
 	@Override
-	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException
+	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException, IOException
 	{
-		FedoraObject fedoraObject = null;
-		ViewTransform viewTransform = new ViewTransform();
-		
 		List<String> messages = new ArrayList<String>();
 		if (form.get("ownerGroup") == null || form.get("ownerGroup").size() == 0 || form.get("ownerGroup").get(0).trim().equals("")) {
 			messages.add("No Group Affiliation");
@@ -286,7 +315,9 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			throw new ValidateException(messages);
 		}
 		
-		fedoraObject = viewTransform.saveData(tmplt, null, form, rid);
+		au.edu.anu.datacommons.data.db.model.Template template = getTemplateByTemplateId(tmplt);
+		SaveTransform saveTransform = new SaveTransform();
+		FedoraObject fedoraObject = saveTransform.saveData(template, null, form, rid);
 		permissionService.saveObjectPermissions(fedoraObject);
 		
 		return fedoraObject;
@@ -309,7 +340,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @throws FedoraClientException 
 	 */
 	@Override
-	public FedoraObject saveNew(FedoraItem item, Long rid) throws FedoraClientException, JAXBException
+	public FedoraObject saveNew(FedoraItem item, Long rid) throws FedoraClientException, JAXBException, IOException
 	{
 		FedoraObject fedoraObject = null;
 		fedoraObject = this.saveNew(item.getTemplate(), item.generateDataMap(), rid);
@@ -334,6 +365,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @return
 	 */
 	@Override
+	@Deprecated
 	public String getEditItem(FedoraObject fedoraObject, String layout, String tmplt, String fieldName) {
 		String fields = "";
 		ViewTransform viewTransform = new ViewTransform();
@@ -364,6 +396,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@Override
+	@Deprecated
 	public Map<String, Object> getEditPage(FedoraObject fedoraObject, String layout, String tmplt, boolean editMode) {
 		Map<String, Object> values = getPage(layout, tmplt, fedoraObject, editMode);
 		try {
@@ -407,34 +440,22 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	@Override
-	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String tmplt, 
-			Map<String, List<String>> form, Long rid) {
-		Map<String, Object> values = new HashMap<String, Object>();
-		ViewTransform viewTransform = new ViewTransform();
-		try {
-			if (form.containsKey("ownerGroup")) {
-				//TODO Update this so that an error is thrown if the user does not have permissions to update the group
-				if (!permissionService.hasSetGroupPermissionsForObject(fedoraObject)) {
-					form.remove("ownerGroup");
-				}
-			}
-			fedoraObject = viewTransform.saveData(tmplt, fedoraObject, form, rid);
-			removeReviewReady(fedoraObject);
-			removePublishReady(fedoraObject);
-			if (form.containsKey("ownerGroup")) {
-				permissionService.saveObjectPermissions(fedoraObject);
+	public void saveEdit(FedoraObject fedoraObject, String tmplt, 
+			Map<String, List<String>> form, Long rid) throws JAXBException, FedoraClientException, IOException {
+		SaveTransform saveTransform = new SaveTransform();
+		if (form.containsKey("ownerGroup")) {
+			//TODO Update this so that an error is thrown if the user does not have permissions to update the group
+			if (!permissionService.hasSetGroupPermissionsForObject(fedoraObject)) {
+				form.remove("ownerGroup");
 			}
 		}
-		catch (JAXBException e) {
-			LOGGER.error("Exception transforming jaxb", e);
-			values.put("error", "true");
+		au.edu.anu.datacommons.data.db.model.Template template = getTemplateByTemplateId(fedoraObject.getTmplt_id());
+		fedoraObject = saveTransform.saveData(template, fedoraObject, form, rid);
+		removeReviewReady(fedoraObject);
+		removePublishReady(fedoraObject);
+		if (form.containsKey("ownerGroup")) {
+			permissionService.saveObjectPermissions(fedoraObject);
 		}
-		catch (FedoraClientException e) {
-			LOGGER.error("Exception creating/retrieving objects", e);
-			values.put("error", "true");
-		}
-		
-		return values;
 	}
 	
 	/**
@@ -457,11 +478,14 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @see au.edu.anu.datacommons.security.service.FedoraObjectService#saveEdit(au.edu.anu.datacommons.webservice.bindings.FedoraItem, java.lang.Long)
 	 */
 	@Override
-	public FedoraObject saveEdit(FedoraItem item, Long rid) throws FedoraClientException, JAXBException
+	public FedoraObject saveEdit(FedoraItem item, Long rid) throws FedoraClientException, JAXBException, IOException
 	{
-		ViewTransform viewTransform = new ViewTransform();
+//		ViewTransform viewTransform = new ViewTransform();
 		FedoraObject fo = this.getItemByPid(item.getPid());
-		fo = viewTransform.saveData(item.getTemplate(), fo, item.generateDataMap(), rid);
+//		fo = viewTransform.saveData(item.getTemplate(), fo, item.generateDataMap(), rid);
+		SaveTransform saveTransform = new SaveTransform();
+		au.edu.anu.datacommons.data.db.model.Template template = getTemplateByTemplateId(item.getTemplate());
+		fo = saveTransform.saveData(template, fo, item.generateDataMap(), rid);
 		return fo;
 	}
 	
@@ -478,9 +502,9 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		FedoraBroker.updateObjectState(fedoraObject.getObject_id(), "D");
 		// Add this as a work around for the fact that commitWithin does not seem to work for
 		// the Solr XML delete so we want to commit after delete
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
 		try {
-			solrServer.deleteById(fedoraObject.getObject_id(), 5000);
+			solrClient.deleteById(fedoraObject.getObject_id(), 5000);
 		}
 		catch (IOException e) {
 			LOGGER.debug("Exception committing delete", e);
@@ -509,6 +533,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	@Override
 	public void addLink(FedoraObject fedoraObject, String linkType, String itemId) throws FedoraClientException {
 		String link = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RELATEDURI);
+		String pidNamespace = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_SAVENAMESPACE);
 		
 		LinkTypeDAO linkTypeDAO = new LinkTypeDAOImpl();
 		LinkType linkTypeRecord = linkTypeDAO.getByCode(linkType);
@@ -516,22 +541,62 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			throw new WebApplicationException(Response.status(400).entity("Invalid relation type").build());
 		}
 		
+		if (itemId.startsWith("info:fedora/")) {
+			String referencePid = itemId.substring(12);
+			FedoraObject referenceItem = getItemByPid(referencePid);
+			if (referenceItem == null) {
+				throw new DataCommonsException(Status.NOT_FOUND, "Unable to find reference object");
+			}
+			addLink(fedoraObject, link + linkTypeRecord.getCode(), link + linkTypeRecord.getReverse(), referenceItem);
+		}
+		else if (itemId.startsWith(pidNamespace)) {
+			FedoraObject referenceItem = getItemByPid(itemId);
+			if (referenceItem == null) {
+				throw new DataCommonsException(Status.NOT_FOUND, "Unable to find reference object");
+			}
+			addLink(fedoraObject, link + linkTypeRecord.getCode(), link + linkTypeRecord.getReverse(), referenceItem);
+		}
+		else {
+			ExternalLinkDAO linkDAO = new ExternalLinkDAOImpl();
+			List<ExternalLinkPattern> patterns = linkDAO.findByReference(itemId);
+			// Check the link belongs to a pattern
+			if (patterns == null || patterns.size() == 0) {
+				throw new DataCommonsException(400, "Invalid external link");
+			}
+			
+			saveLink(fedoraObject, link + linkTypeRecord.getCode(), itemId);
+		}
+	}
+	
+	/**
+	 * Add links
+	 * 
+	 * @param fedoraObject The fedora object to create links for
+	 * @param linkType The link type
+	 * @param reverseLink The reverse of the link type
+	 * @param linkTo The fedora object for opposite relation
+	 * @throws FedoraClientException
+	 */
+	private void addLink(FedoraObject fedoraObject, String linkType, String reverseLink, FedoraObject linkTo) throws FedoraClientException {
+		String fedoraPredicate = "info:fedora/";
+		saveLink(fedoraObject, linkType, fedoraPredicate + linkTo.getObject_id());
+		saveLink(linkTo, reverseLink, fedoraPredicate + fedoraObject.getObject_id());
+	}
+	
+	/**
+	 * Save the link
+	 * 
+	 * @param fedoraObject The object ot save the relation with
+	 * @param linkType The type of relationship
+	 * @param link The link value
+	 * @throws FedoraClientException
+	 */
+	private void saveLink(FedoraObject fedoraObject, String linkType, String link) throws FedoraClientException {
 		FedoraReference reference = new FedoraReference();
-		String referenceType = linkType;
-		String referenceItem = itemId;
-		reference.setPredicate_(link + referenceType);
-		reference.setObject_(referenceItem);
+		reference.setPredicate_(linkType);
+		reference.setObject_(link);
 		reference.setIsLiteral_(Boolean.FALSE);
 		FedoraBroker.addRelationship(fedoraObject.getObject_id(), reference);
-		
-		if (referenceItem.startsWith("info:fedora/")) {
-			String referenceItemID = referenceItem.substring(12);
-			FedoraReference reverseReference = new FedoraReference();
-			reverseReference.setPredicate_(link + linkTypeRecord.getReverse());
-			reverseReference.setObject_("info:fedora/" + fedoraObject.getObject_id());
-			reverseReference.setIsLiteral_(Boolean.FALSE);
-			FedoraBroker.addRelationship(referenceItemID, reverseReference);
-		}
 	}
 	
 	/**
@@ -605,6 +670,7 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	 * @param editMode Indicates whether published information should be returned or not
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
+	@Deprecated
 	private Map<String, Object> getPage(String layout, String template, FedoraObject fedoraObject, boolean editMode) {
 		boolean hasPermission = false;
 		if (fedoraObject == null) {
@@ -658,6 +724,47 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		}
 		
 		return values;
+	}
+	
+
+	public au.edu.anu.datacommons.data.db.model.Template getTemplateByTemplateId(String templateId) throws FedoraClientException, JAXBException {
+//		Template template = 
+		//TODO fix this so it is injected
+		TemplateDAO templateDAO = new TemplateDAOImpl();
+		au.edu.anu.datacommons.data.db.model.Template template = templateDAO.getTemplateByPid(templateId);
+		
+		return template;
+	}
+
+	@Override
+	public Data getEditData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException {
+		boolean hasPermission = permissionService.checkPermission(fedoraObject, CustomACLPermission.WRITE);
+		if (!hasPermission) {
+			throw new AccessDeniedException("You do not have permission to edit the object " + fedoraObject.getObject_id());
+		}
+		return getItemData(fedoraObject, Constants.XML_SOURCE);
+	}
+
+	@Override
+	public Data getPublishData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException {
+		return getItemData(fedoraObject, Constants.XML_PUBLISHED);
+	}
+	
+	private Data getItemData(FedoraObject fedoraObject, String source) throws JAXBException, FedoraClientException {
+		JAXBTransform jaxbTransform = new JAXBTransform();
+		InputStream dataStream = getInputStream(fedoraObject.getObject_id(), source);
+		Data data = null;
+		data = (Data) jaxbTransform.unmarshalStream(dataStream, Data.class);
+		return data;
+	}
+	
+	//Note required after getItemData is removed
+	private InputStream getInputStream (String pid, String dsId) throws FedoraClientException {
+		InputStream xslStream = null;
+		if(Util.isNotEmpty(pid)) {
+			xslStream = FedoraBroker.getDatastreamAsStream(pid, dsId);
+		}
+		return xslStream;
 	}
 	
 	/**
@@ -914,17 +1021,32 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			//				}
 			//			}
 			
-			org.datacite.schema.kernel_2.Resource doiResource = new DoiResourceAdapter(itemData).createDoiResource();
+			org.datacite.schema.kernel_4.Resource doiResource = new DoiResourceAdapter(itemData).createDoiResource();
 			DoiClient doiClient = new DoiClient();
 			doiClient.mint(pid, doiResource);
 			
 			String mintedDoi = doiClient.getDoiResponse().getDoi();
 			FedoraObject fedoraObject = getItemByPid(pid);
 			Map<String, List<String>> form = new HashMap<String, List<String>>();
+			
+			Data data = getEditData(fedoraObject);
+			for (DataItem dataItem : data.getItems()) {
+				String name = dataItem.getName();
+				if (form.get(name) != null) {
+					form.get(name).add(dataItem.getValue());
+				}
+				else {
+					List<String> values = new ArrayList<String>();
+					values.add(dataItem.getValue());
+					form.put(name, values);
+				}
+			}
+			
 			form.put("doi", Arrays.asList(mintedDoi));
+			
 			saveEdit(fedoraObject, tmplt, form, rid);
 		}
-		catch (FedoraClientException e)
+		catch (FedoraClientException | IOException e)
 		{
 			throw new FedoraObjectException(e.getMessage(), e);
 		}
@@ -974,5 +1096,41 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 	public List<FedoraObject> getAllPublishedAndPublic() {
 		FedoraObjectDAOImpl dao = new FedoraObjectDAOImpl();
 		return dao.getAllPublishedAndPublic();
+	}
+	
+	@Override
+	public Data getDataDifferences(au.edu.anu.datacommons.data.db.model.Template template, Data editData, Data publisData) {
+		if (editData == null) {
+			return null;
+		}
+		
+		Data differenceData = new Data();
+		
+		List<TemplateAttribute> templateAttributes = template.getTemplateAttributes();
+		for (TemplateAttribute attr : templateAttributes) {
+			String fieldName = attr.getName();
+			List<DataItem> editValues = editData.getElementByName(fieldName);
+			List<DataItem> publishValues = publisData.getElementByName(fieldName);
+			if (editValues != null && editValues.size() > 0) {
+				if (!editValues.equals(publishValues)) {
+					differenceData.getItems().addAll(editValues);
+				}
+			}
+			else if (publishValues != null && publishValues.size() > 0) {
+				//TODO something when a value has been deleted?
+			}
+		}
+		
+		return differenceData;
+	}
+
+	public Data getInitialData(au.edu.anu.datacommons.data.db.model.Template template) {
+		String templateName = template.getEntityType().getName();
+		Data data = new Data();
+		DataItem dataItem = new DataItem();
+		dataItem.setName("type");
+		dataItem.setValue(templateName);
+		data.getItems().add(dataItem);
+		return data;
 	}
 }

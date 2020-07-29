@@ -387,8 +387,12 @@ public class TagFilesService {
 			for (Entry<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFileEntry : tagFiles.entrySet()) {
 				try {
 					if (tagFileEntry.getValue().hasUnsavedChanges()) {
-						StorageProvider storageProvider = providerResolver.getStorageProvider(entry.getKey());
-						storageProvider.writeTagFileStream(entry.getKey(), tagFileEntry.getValue().getFilepath(), tagFileEntry.getValue().serialize());
+						String pid = entry.getKey();
+						String tagFilepath = tagFileEntry.getValue().getFilepath();
+						
+						StorageProvider storageProvider = providerResolver.getStorageProvider(pid);
+						storageProvider.writeTagFileStream(pid, tagFilepath, tagFileEntry.getValue().serialize());
+						LOGGER.debug("Saved {}/{}", pid, tagFilepath);
 						tagFileEntry.getValue().setHasUnsavedChanges(false);
 					}
 				} catch (IOException | StorageException e) {

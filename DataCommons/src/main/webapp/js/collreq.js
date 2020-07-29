@@ -1,3 +1,10 @@
+
+
+jQuery(document).ready(function()
+{
+	jQuery("#questionTable > tbody").sortable();
+});
+
 /**
  * ajaxGetPidInfo
  * 
@@ -28,18 +35,46 @@ function ajaxGetPidInfo(pid)
 	jQuery.getJSON("/DataCommons/rest/collreq/json?task=listPidQuestions&pid=" + pid, function(qList)
 	{
 		jQuery("#idQuestionsContainer").empty();
-		jQuery.each(qList.required, function(id, question)
-		{
-			var pQuestion = jQuery("<p></p>");
-			pQuestion.append(jQuery("<label class='req'></label>").text(question));
-			pQuestion.append(jQuery("<textarea class='required' rows='5' cols='50' maxlength='255'></textarea>").attr("name", "q" + id));
-			jQuery("#idQuestionsContainer").append(pQuestion);
-		});
-		jQuery.each(qList.optional, function(id, question)
-		{
-			var pQuestion = jQuery("<p></p>");
-			pQuestion.append(jQuery("<label></label>").text(question));
-			pQuestion.append(jQuery("<textarea rows='5' cols='50' maxlength='255'></textarea>").attr("name", "q" + id));
+		jQuery.each(qList.question, function(id, question) {
+			console.log(question);
+
+			var pQuestion = jQuery("<div></div>");
+			var labelDiv = jQuery("<div></div>");
+			var label = jQuery("<label></label>").text(question.question);
+			if (question.required) {
+				label.attr("class", "req");
+			}
+			labelDiv.append(label);
+			pQuestion.append(labelDiv);
+
+			if (question.options.length > 0) {
+				jQuery.each(question.options, function (id, value) {
+					console.log(value);
+					var optionDiv = jQuery("<div></div>");
+					var radioButton = jQuery("<input type='radio'>").attr("name", "q"+question.id).attr("value", value);
+
+					if (question.required) {
+						radioButton.attr("class", "required");
+					}
+					optionDiv.append(radioButton);
+					var radioButtonLabel = value;
+					optionDiv.append(radioButtonLabel);
+					pQuestion.append(optionDiv);
+				});
+				pQuestion.append(jQuery("<div>"))
+			} else {
+				var textField = jQuery("<textarea rows='5' cols='50' maxlength='255'></textarea>").attr("name", "q" + question.id);
+				if (question.required) {
+					textField.attr("class", "required fullwidth");
+				}
+				else {
+					textField.attr("class", "fullwidth");
+				}
+				var answerDiv = jQuery("<div></div>");
+				answerDiv.append(textField);
+				pQuestion.append(answerDiv);
+			}
+			
 			jQuery("#idQuestionsContainer").append(pQuestion);
 		});
 	});
@@ -103,15 +138,25 @@ function ajaxGetGroupQuestions() {
  */
 function getQuestions(task) {
 	jQuery.getJSON("/DataCommons/rest/collreq/json", {task: task, pid: jQuery("#pid").val(), group: jQuery("#group").val(), }, function(data) {
-		jQuery("#idPidQ").empty();
-		jQuery("#idOptQ").empty();
-		
-		jQuery.each(data.required, function(key, val) {
-			jQuery("<option></option>").attr("value", key).attr("title", val).text(val).appendTo("#idPidQ");
-		});
-		
-		jQuery.each(data.optional, function(key, val) {
-			jQuery("<option></option>").attr("value", key).attr("title", val).text(val).appendTo("#idOptQ");
+		jQuery("#questionTable > tbody").empty();
+		jQuery.each(data.question, function(key, val) {
+			addRow(val.id, val.question, val.required);
+//			var tableBody = jQuery("#questionTable > tbody");
+//			var tableRow = jQuery("<tr></tr>");
+//			
+//			var idField = jQuery("<input type='text' />").attr("value", val.id).attr("name","qid");
+//			
+//			var questionColumn = jQuery("<td></td>").text(val.question);
+//			questionColumn.append(idField);
+////			questionColumn.append("")
+//			tableRow.append(questionColumn);
+//			
+//			var requiredColumn = jQuery("<td></td>");
+//			var requiredCheckbox = jQuery("<input type='checkbox' name='required'/>").attr('checked',val.required);
+//			requiredColumn.append(requiredCheckbox);
+//			tableRow.append(requiredColumn);
+//			
+//			tableBody.append(tableRow);
 		});
 	});
 }
@@ -133,31 +178,68 @@ function addQuestions(field) {
 	var options = jQuery("#idQuestionBank :selected");
 	
 	// Add each question selected in the question bank to the list of questions for the Pid.
+	var tableBody = jQuery("#questionTable > tbody");
 	for (var i = 0; i < options.length; i++)
 	{
 		// Check if the option's already in the list.  If yes, don't add, else add
 		if (jQuery("#idOptQ > option[value='" + options[i].value + "']").length == 0 && jQuery("#idPidQ > option[value='" + options[i].value + "']").length == 0)
 		{
-			var addedOption = jQuery("<option></option>").attr("value", options[i].value).attr("title", jQuery.trim(jQuery(options[i]).text())).text(jQuery.trim(jQuery(options[i]).text()));
-			jQuery(field).append(addedOption);
+//			var addedOption = jQuery("<option></option>").attr("value", options[i].value).attr("title", jQuery.trim(jQuery(options[i]).text())).text(jQuery.trim(jQuery(options[i]).text()));
+//			jQuery(field).append(addedOption);
+		}
+		console.log(jQuery("#idQuestionBank > input[value='"+qid+"']").length);
+		if (jQuery("#idQuestionBank > input[value='"+qid+"']").length == 0) {
+			console.log('Already in list');
+			var qid = options.attr('value');
+			var question = options.text();
+			addRow(qid, question, false);
 		}
 	}
 }
 
-/**
- * removeQuestions
- * 
- * This method removes questions from the given question list
- * 
- * <pre>
- * Version	Date		Developer				Description
- * 0.1		05/04/2013	Genevieve Turner (GT)	Initial - Replaces addRemovePidQuestions
- * </pre>
- * 
- * @param field The field to remove questions from
- */
-function removeQuestions(field) {
-	jQuery(field + " :selected").remove();
+function addRow(qid, question, required) {
+	var tableBody = jQuery("#questionTable > tbody");
+	var tableRow = jQuery("<tr></tr>");
+	
+	var idField = jQuery("<input />", {
+		type: 'hidden',
+		value: qid,
+		name: 'qid'
+	});
+	
+	var questionColumn = jQuery("<td></td>").text(question);
+	questionColumn.append(idField);
+	tableRow.append(questionColumn);
+	
+	var requiredColumn = jQuery("<td></td>");
+	var requiredCheckbox = jQuery("<input />", {
+		type: 'checkbox',
+		name: 'required',
+		checked: required,
+		value: qid
+	});
+	
+	requiredColumn.append(requiredCheckbox);
+	tableRow.append(requiredColumn);
+	
+	var deleteColumn = jQuery("<td></td>");
+	
+	var deleteImg = jQuery("<img/>", {
+		src: '//style.anu.edu.au/_anu/images/icons/silk/cross.png',
+		title: 'Remove question ' + question,
+		click: function(e) {
+			removeRow(this);
+		}
+	});
+	
+	deleteColumn.append(deleteImg);
+	tableRow.append(deleteColumn);
+	
+	tableBody.append(tableRow);
+}
+
+function removeRow(question) {
+	jQuery(question).closest("tr").remove();
 }
 
 /**

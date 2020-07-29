@@ -27,6 +27,9 @@
 	<item fieldType="TextField" label="Abbreviated Surname" name="abbrLastName" saveType="single" tab="general" />
 	<item fieldType="TextField" label="Abbreviated Suffixes" name="abbrSuffix" saveType="single" tab="general" />
 	<item fieldType="TextField" label="Uni ID" name="uid" saveType="single" tab="general"/>
+	<item fieldType="TextField" label="ORCID" name="orcid" saveType="single" tab="general">
+		<tooltip>Please include the individuals ORCID if it exists.</tooltip>
+	</item>
 	<item fieldType="TextField" label="NLA Identifier" name="nlaIdentifier" saveType="single" tab="general">
 		<tooltip>Please include the individuals National Library of Australia Identifier if it exists.  You can find these at the Trove website http://trove.nla.gov.au/</tooltip>
 	</item>

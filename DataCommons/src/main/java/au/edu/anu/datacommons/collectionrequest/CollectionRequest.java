@@ -21,8 +21,10 @@
 
 package au.edu.anu.datacommons.collectionrequest;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -79,7 +81,7 @@ public class CollectionRequest
 	private Set<CollectionRequestStatus> statusHistory = new HashSet<CollectionRequestStatus>();
 	private Date timestamp;
 	private Set<CollectionRequestItem> items = new HashSet<CollectionRequestItem>();
-	private Set<CollectionRequestAnswer> answers = new HashSet<CollectionRequestAnswer>();
+	private List<CollectionRequestAnswer> answers = new ArrayList<CollectionRequestAnswer>();
 	private CollectionDropbox dropbox;
 	private FedoraObject fedoraObject;
 
@@ -182,12 +184,12 @@ public class CollectionRequest
 
 	@OneToMany(cascade = CascadeType.ALL)
 	@JoinColumn(name = "request_fk")
-	public Set<CollectionRequestAnswer> getAnswers()
+	public List<CollectionRequestAnswer> getAnswers()
 	{
 		return answers;
 	}
 
-	public void setAnswers(Set<CollectionRequestAnswer> answers)
+	public void setAnswers(List<CollectionRequestAnswer> answers)
 	{
 		this.answers = answers;
 	}

@@ -126,7 +126,7 @@ public class EmbargoEmailer implements Runnable {
 				}
 			}
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException | IOException e) {
 			LOGGER.error("Exception querying solr for EmbargoEmailer", e);
 		}
 	}

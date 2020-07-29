@@ -2,14 +2,13 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:security="http://www.springframework.org/schema/security"
-	xmlns:p="http://www.springframework.org/schema/p"
 	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+	http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
 	http://www.springframework.org/schema/security
-	http://www.springframework.org/schema/security/spring-security-3.0.xsd
+	http://www.springframework.org/schema/security/spring-security-4.1.xsd
 	http://www.springframework.org/schema/jdbc
-	http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd">
+	http://www.springframework.org/schema/jdbc/spring-jdbc-4.2.xsd">
 	
 	<!-- Enables Method Security and Expression-based access control -->
 	<security:global-method-security pre-post-annotations="enabled">
@@ -22,6 +21,11 @@
 		<property name="permissionEvaluator" ref="permissionEvaluator" />
 		<property name = "roleHierarchy" ref="roleHierarchy"/>
 	</bean>
+	
+	<bean class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler" id="webExpressionHandler">
+		<property name="permissionEvaluator" ref="permissionEvaluator" />
+	</bean>
+	
 	
 	<!-- Declare a custom PermissionEvaluator
 		We'll rely on the standard AclPermissionEvaluator implementation -->
@@ -50,10 +54,28 @@
 	<bean id="aclCache" class="org.springframework.security.acls.domain.EhCacheBasedAclCache">
 		<constructor-arg>
 			<bean class="org.springframework.cache.ehcache.EhCacheFactoryBean">
-				<property name="cacheManager">
-			<bean class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"/>
+			<property name="cacheManager">
+				<bean class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"/>
 			</property>
-				<property name="cacheName" value="aclCache"/>
+			<property name="cacheName" value="aclCache"/>
+			</bean>
+		</constructor-arg>
+		<constructor-arg>
+			<bean class="org.springframework.security.acls.domain.DefaultPermissionGrantingStrategy">
+				<constructor-arg>
+					<bean class="org.springframework.security.acls.domain.ConsoleAuditLogger"/>
+				</constructor-arg>
+			</bean>
+		</constructor-arg>
+		<constructor-arg>
+			<bean class="org.springframework.security.acls.domain.AclAuthorizationStrategyImpl">
+				<constructor-arg>
+					<list>
+						<bean class="org.springframework.security.core.authority.SimpleGrantedAuthority">
+							<constructor-arg value="ROLE_ACL_ADMIN"/>
+						</bean>
+					</list>
+				</constructor-arg>
 			</bean>
 		</constructor-arg>
 	</bean>
@@ -62,13 +84,13 @@
 	<bean id="aclAuthorizationStrategy" class="org.springframework.security.acls.domain.AclAuthorizationStrategyImpl">
 		<constructor-arg>
 			<list>
-				<bean class="org.springframework.security.core.authority.GrantedAuthorityImpl">
+				<bean class="org.springframework.security.core.authority.SimpleGrantedAuthority">
 					<constructor-arg value="ROLE_ADMIN"/>
 				</bean>
-				<bean class="org.springframework.security.core.authority.GrantedAuthorityImpl">
+				<bean class="org.springframework.security.core.authority.SimpleGrantedAuthority">
 					<constructor-arg value="ROLE_ADMIN"/>
 				</bean>
-				<bean class="org.springframework.security.core.authority.GrantedAuthorityImpl">
+				<bean class="org.springframework.security.core.authority.SimpleGrantedAuthority">
 					<constructor-arg value="ROLE_ADMIN"/>
 				</bean>
 			</list>

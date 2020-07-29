@@ -5,14 +5,14 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<anu:header id="1998" title="Import" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur" respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
+<anu:header id="1998" title="Import" description="DESCRIPTION" subject="SUBJECT" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au" ssl="true">
 
 	<script type="text/javascript" src="<c:url value='/js/collreq.js' />"></script>
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" title="Import">
+<anu:content layout="full" title="Import your data">
 	<!-- Create a form for each metadata provider. -->
 	<c:forEach var="iProvider" items="${it.providers}">
 		<form class="anuform">
@@ -22,7 +22,7 @@
 					<c:forEach var="iParam" items="${iProvider.requiredParams}">
 						<p>
 							<label><c:out value="${iParam.friendlyName}" /></label>
-							<input type="text" size="60" name="${iParam.name}">
+							<input type="text" class="text tfull" size="60" name="${iParam.name}">
 						</p>
 					</c:forEach>
 				<input type="hidden" name="provider" value="${iProvider.fqClassName}">

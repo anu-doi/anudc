@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 
@@ -79,17 +79,16 @@ public class ANUUserDetailsContextMapper implements
 	 */
 	@Override
 	public UserDetails mapUserFromContext(DirContextOperations ctx,
-			String username, Collection<GrantedAuthority> authorities) {
-		//TODO Retrieve authorities from the database
-		List<GrantedAuthority> authoritiesList = new ArrayList<GrantedAuthority>(authorities);
-		addCustomAuthorities(username, authoritiesList);
+			String username, Collection<? extends GrantedAuthority> authorities) {
+		// Make the username case insensitive
+		username = username.toLowerCase();
 		
 		UsersDAO usersDAO = new UsersDAOImpl();
 		Users users = usersDAO.getUserByName(username);
 		
 		CustomUser user = null;
 		if (users != null) {
-			user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authoritiesList, users.getId(), users.getDisplayName());
+			user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authorities, users.getId(), users.getDisplayName());
 		}
 		else {
 			Users newUser = new Users();
@@ -100,7 +99,7 @@ public class ANUUserDetailsContextMapper implements
 			usersDAO.create(newUser);
 
 			LOGGER.info("New User displayName: {})", newUser.getDisplayName());
-			user = new CustomUser(newUser.getUsername(), newUser.getPassword(), true, true, true, true, authoritiesList, newUser.getId(), newUser.getDisplayName());
+			user = new CustomUser(newUser.getUsername(), newUser.getPassword(), true, true, true, true, authorities, newUser.getId(), newUser.getDisplayName());
 		}
 		LOGGER.info("Setting user details?");
 		return user;
@@ -123,24 +122,5 @@ public class ANUUserDetailsContextMapper implements
 	@Override
 	public void mapUserToContext(UserDetails user, DirContextAdapter ctx) {
 		// Not implemented
-	}
-
-	/**
-	 * addCustomAuthorities
-	 *
-	 * Adds custom authorities to the logged in user.  Currently these include 'ROLE_ANU_USER'
-	 * and 'ROLE_REGISTERED'
-	 * 
-	 * <pre>
-	 * Version	Date		Developer				Description
-	 * 0.1		11/07/2012	Genevieve Turner(GT)	Initial
-	 * </pre>
-	 * 
-	 * @param username The username of the person logging in
-	 * @param authorities A list of the users authorities
-	 */
-	private void addCustomAuthorities(String username, List<GrantedAuthority> authorities) {
-		authorities.add(new GrantedAuthorityImpl("ROLE_ANU_USER"));
-		authorities.add(new GrantedAuthorityImpl("ROLE_REGISTERED"));
 	}
 }

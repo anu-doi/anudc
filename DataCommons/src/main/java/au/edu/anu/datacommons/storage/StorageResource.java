@@ -25,7 +25,9 @@ import static java.text.MessageFormat.format;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,28 +38,46 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.JAXBException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
-import au.edu.anu.datacommons.data.db.model.FedoraObject;
-import au.edu.anu.datacommons.storage.info.FileInfo;
-import au.edu.anu.datacommons.storage.info.RecordDataSummary;
-import au.edu.anu.datacommons.storage.provider.StorageException;
-
 import com.sun.jersey.api.NotFoundException;
 import com.sun.jersey.api.view.Viewable;
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataBodyPart;
+import com.sun.jersey.multipart.FormDataMultiPart;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.security.AccessLogRecord.Operation;
+import au.edu.anu.datacommons.storage.datafile.StagedDataFile;
+import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.info.RecordDataSummary;
+import au.edu.anu.datacommons.storage.jqueryupload.JQueryFileUploadHandler;
+import au.edu.anu.datacommons.storage.jqueryupload.JQueryFileUploadResponse;
+import au.edu.anu.datacommons.storage.provider.StorageException;
+import au.edu.anu.datacommons.storage.temp.UploadedFileInfo;
+import au.edu.anu.datacommons.storage.verifier.VerificationResults;
+import au.edu.anu.datacommons.util.Util;
+import au.edu.anu.datacommons.xml.data.Data;
+import au.edu.anu.datacommons.xml.data.DataItem;
 
 /**
  * Provides REST endpoints to which rest requests related to data storage of a collection record are sent. 
@@ -70,11 +90,11 @@ import com.sun.jersey.api.view.Viewable;
 @Scope("request")
 public class StorageResource extends AbstractStorageResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StorageResource.class);
-
-	@GET
-	public Response get() {
-		return Response.ok("Test").build();
-	}
+	
+	private static final String FILES_FORM_FIELD = "files";
+	
+	@Autowired
+	private JQueryFileUploadHandler uploadHandler;
 
 	/**
 	 * GET request for a file or a folder. For a file, the response is an octet-stream with the contents of the file.
@@ -89,8 +109,12 @@ public class StorageResource extends AbstractStorageResource {
 	@GET
 	@Path("data/{path:.*}")
 	@Produces({ "text/html; qs=1.1", MediaType.WILDCARD })
-	public Response getFileOrDirAsHtml(@PathParam("pid") String pid, @PathParam("path") String path) {
-		return createFileOrDirResponse(pid, path, "/storage.jsp");
+	public Response getFileOrDirAsHtml(@PathParam("pid") String pid, @PathParam("path") String path, @QueryParam(value = "upload") String upload) {
+		if (upload != null) {
+			return createUploadFilesResponse(pid, path, "/storageupload.jsp");
+		} else {
+			return createFileOrDirResponse(pid, path, "/storage.jsp");
+		}
 	}
 
 	/**
@@ -127,7 +151,8 @@ public class StorageResource extends AbstractStorageResource {
 	 */
 	@POST
 	@Path("data/{path:.*}")
-	@Consumes({ MediaType.APPLICATION_OCTET_STREAM, MediaType.MULTIPART_FORM_DATA })
+	// @Consumes({ MediaType.APPLICATION_OCTET_STREAM, MediaType.MULTIPART_FORM_DATA })
+	@Consumes({ MediaType.APPLICATION_OCTET_STREAM })
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response postUploadFile(@PathParam("pid") String pid, @PathParam("path") String path,
 			@QueryParam("src") String src, InputStream is) {
@@ -147,6 +172,72 @@ public class StorageResource extends AbstractStorageResource {
 		}
 		return resp;
 	}
+	
+	@POST
+	@Path("data/{path:.*}")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+	public Response postFile(@PathParam("pid") String pid, @PathParam("path") String path,
+			@HeaderParam("Content-Range") String contentRange,
+			@HeaderParam(HttpHeaders.CONTENT_LENGTH) Long contentLength, FormDataMultiPart form) {
+		Response resp = null;
+		Map<String, List<JQueryFileUploadResponse>> respEntity = new HashMap<>();
+
+		FormDataBodyPart field = form.getField(FILES_FORM_FIELD);
+
+		FormDataContentDisposition contentDisposition = field.getFormDataContentDisposition();
+		String fileName = contentDisposition.getFileName();
+
+		JQueryFileUploadResponse fileResp = null;
+
+		String id = request.getSession().getId();
+		try (InputStream fileStream = field.getEntityAs(InputStream.class)) {
+			boolean isComplete;
+			if (contentRange == null) {
+				// request contains entire file
+				uploadHandler.processFile(fileStream, id, fileName, contentLength);
+				fileResp = uploadHandler.generateResponse(id, fileName);
+				isComplete = true;
+			} else {
+				// request contains file part
+				uploadHandler.processFilePart(fileStream, id, fileName, contentRange);
+				fileResp = uploadHandler.generateResponse(id, fileName);
+				isComplete = uploadHandler.isFileComplete(id, fileName, contentRange);
+				LOGGER.info("user={};ip={};partfile={}/data/{}{};range={}", getCurUsername(),
+						getRemoteIp(), pid, path, fileName, contentRange);
+			}
+
+			if (isComplete) {
+				if (storageController.fileExists(pid, path)) {
+					addAccessLog(Operation.UPDATE);
+				} else {
+					addAccessLog(Operation.CREATE);
+				}
+
+				java.nio.file.Path stagedFile = uploadHandler.getTarget(id, fileName);
+				StagedDataFile ufi = new UploadedFileInfo(stagedFile, Files.size(stagedFile), null);
+				String filepath;
+				if (path == null || path.length() == 0) {
+					filepath = String.format("%s", fileName);
+				} else {
+					filepath = String.format("%s/%s", path, fileName);
+				}
+				storageController.addFile(pid, filepath, ufi);
+				LOGGER.info("User {} ({}) added file {}/data/{}, Size: {}", getCurUsername(), getRemoteIp(), pid, path,
+						Util.byteCountToDisplaySize(ufi.getSize()));
+			}
+			resp = Response.status(Status.OK).entity(respEntity).build();
+		} catch (Exception e) {
+			fileResp = uploadHandler.generateResponse(id, fileName, e);
+			resp = Response.status(Status.INTERNAL_SERVER_ERROR).entity(respEntity).build();
+			LOGGER.error(e.getMessage(), e);
+		}
+
+		respEntity.put(FILES_FORM_FIELD, Arrays.asList(fileResp));
+		return resp;
+	}
+
 	
 	/**
 	 * Accepts POST requests for:
@@ -181,23 +272,28 @@ public class StorageResource extends AbstractStorageResource {
 	@POST
 	@Path("data/{path:.*}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	@PreAuthorize("hasRole('ROLE_ANU_USER')")
+//	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	public Response postForm(@PathParam("pid") String pid, @PathParam("path") String path,
 			@QueryParam("action") String action, @FormParam("i") Set<String> items) {
 		Response resp = null;
-		if (action != null) {
-			if (action.equals("zip") && !items.isEmpty()) {
-				resp = createZipFileResponse(pid, path, items);
-			} else if (action.equals("addExtRef") && !items.isEmpty()) {
+		if ("zip".equals(action)) {
+			resp = createZipFileResponse(pid, path, items);
+		}
+		else if ("filesPublic".equals(action)) {
+			resp = processSetFilesPublicFlag(pid, items.iterator().next());
+		}
+		else if (action != null) {
+			// Check that users have permissions to do these actions
+			fedoraObjectService.getItemByPidWriteAccess(pid);
+			if (action.equals("addExtRef") && !items.isEmpty()) {
 				resp = createAddExtRefResponse(pid, items);
 			} else if (action.equals("delExtRef") && !items.isEmpty()) {
 				resp = createDelExtRefResponse(pid, items);
-			} else if (action.equals("filesPublic") && !items.isEmpty()) {
-				resp = processSetFilesPublicFlag(pid, items.iterator().next());
 			} else if (action.equals("renameFile") && !items.isEmpty()) {
 				resp = createRenameResponse(pid, path, items);
 			}
 		}
+		
 		return resp;
 	}
 
@@ -277,16 +373,19 @@ public class StorageResource extends AbstractStorageResource {
 		}
 
 		try {
-//			if (task.equals("verify")) {
-//				VerificationResults results = dcStorage.verifyBag(pid);
-//				model.put("results", results);
-//				resp = Response.ok(new Viewable("/verificationresults.jsp", model)).build();
-//			} else if (task.equals("complete")) {
-//				dcStorage.recompleteBag(pid);
-//			}
+			if (task.equals("verify")) {
+				VerificationResults results = storageController.verifyIntegrity(pid);
+				model.put("results", results);
+				resp = Response.ok(new Viewable("/verificationresults.jsp", model)).build();
+			} else if (task.equals("complete")) {
+				storageController.fixIntegrity(pid);
+				resp = Response.ok("Done").build();
+			} else if (task.equals("deindex")) {
+				resp = createDeindexResponse(pid);
+			} else if (task.equals("index")) {
+				resp = createIndexResponse(pid);
+			}
 			
-			// TODO Implement this.
-			throw new UnsupportedOperationException();
 		} catch (Exception e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.serverError().entity(e.getMessage()).build();
@@ -322,7 +421,32 @@ public class StorageResource extends AbstractStorageResource {
 		}
 
 		Map<String, Object> model = new HashMap<String, Object>();
+		
+		Data data = null;
 		try {
+			data = fedoraObjectService.getPublishData(fo);
+			if (data == null) {
+			}
+		}
+		catch (FedoraClientException | JAXBException e) {
+			
+		}
+		if (data == null) {
+			try {
+				data = fedoraObjectService.getEditData(fo);
+			}
+			catch (FedoraClientException | JAXBException e) {
+				LOGGER.error(e.getMessage(), e);
+				resp = Response.status(Status.NOT_FOUND).entity("Unable to find item with the id " + pid).build();
+//				resp = Response.ok(e.getMessage()).build();
+			}
+		}
+		DataItem dataItem = data.getFirstElementByName("name");
+		String title = dataItem.getValue();
+		model.put("name", title);
+		
+		try {
+			
 			if (path == null || path.length() == 0 || storageController.dirExists(pid, path)) {
 				LOGGER.info("User {} ({}) requested list of files in {}/data/{}", getCurUsername(), getRemoteIp(), pid, path);
 				RecordDataSummary rdi = storageController.getRecordDataSummary(pid);
@@ -331,16 +455,11 @@ public class StorageResource extends AbstractStorageResource {
 					fileInfo = storageController.getFileInfo(pid, path);
 				}
 				
-				List<FileInfo> parents = new ArrayList<FileInfo>();
-				for (FileInfo parent = fileInfo; parent != null && parent.getParent() != null; parent = parent.getParent()) {
-					parents.add(0, parent);
-				}
-				
 				if (template != null) {
 					model.put("fo", fo);
 					model.put("rdi", rdi);
 					model.put("fileInfo", fileInfo);
-					model.put("parents", parents);
+					model.put("parents", getParents(fileInfo));
 					model.put("path", path);
 					model.put("isFilesPublic", fo.isFilesPublic().toString());
 					resp = Response.ok(new Viewable(template, model)).build();
@@ -360,6 +479,36 @@ public class StorageResource extends AbstractStorageResource {
 		return resp;
 	}
 
+	private List<FileInfo> getParents(FileInfo fileInfo) {
+		List<FileInfo> parents = new ArrayList<FileInfo>();
+		for (FileInfo parent = fileInfo; parent != null && parent.getParent() != null; parent = parent.getParent()) {
+			parents.add(0, parent);
+		}
+		return parents;
+	}
+
+	private Response createUploadFilesResponse(String pid, String path, String template) {
+		Response resp;
+		
+		FedoraObject fo = fedoraObjectService.getItemByPidWriteAccess(pid);
+		if (fo == null) {
+			throw new NotFoundException(uriInfo.getAbsolutePath());
+		}
+
+		try {
+			Map<String, Object> model = new HashMap<String, Object>();
+			model.put("fo", fo);
+			model.put("parents", getParents(storageController.getFileInfo(pid, path)));
+			resp = Response.ok(new Viewable(template, model)).build();
+		} catch (IOException | StorageException e) {
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().entity(e.getMessage()).build();
+		}
+		
+		
+		return resp;
+	}
+
 	/**
 	 * Creates an HTTP response with an octetstream body comprising of a Zip stream of one or more files in a specified
 	 * collection record.
@@ -374,8 +523,11 @@ public class StorageResource extends AbstractStorageResource {
 	 */
 	private Response createZipFileResponse(String pid, String path, Set<String> filepaths) {
 		ResponseBuilder resp;
-		
-		fedoraObjectService.getItemByPidReadAccess(pid);
+
+		FedoraObject fo = fedoraObjectService.getItemByPid(pid);
+		if (!(isPublishedAndPublic(fo))) {
+			fedoraObjectService.getItemByPidReadAccess(pid);
+		}
 		Set<String> pathPrependedFilepaths = new HashSet<String>(filepaths.size());
 		for (String filepath : filepaths) {
 			pathPrependedFilepaths.add(path + filepath);
@@ -430,6 +582,34 @@ public class StorageResource extends AbstractStorageResource {
 		return resp.build();
 	}
 
+	private Response createDeindexResponse(String pid) {
+		ResponseBuilder resp = null;
+		
+		try {
+			storageController.deindexFiles(pid);
+			resp = Response.ok();
+		} catch (IOException | StorageException e) {
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().entity(e.getMessage());
+		}
+		
+		return resp.build();
+	}
+
+	private Response createIndexResponse(String pid) {
+		ResponseBuilder resp = null;
+		
+		try {
+			storageController.indexFiles(pid);
+			resp = Response.ok();
+		} catch (IOException | StorageException e) {
+			LOGGER.error(e.getMessage(), e);
+			resp = Response.serverError().entity(e.getMessage());
+		}
+		
+		return resp.build();
+	}
+	
 	private String removeTrailingSlash(String path) {
 		if (path.length() > 0 && path.charAt(path.length() - 1) == '/') {
 			return path.substring(0, path.length() - 1);

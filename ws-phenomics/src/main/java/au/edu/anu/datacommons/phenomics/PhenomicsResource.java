@@ -49,8 +49,8 @@ public class PhenomicsResource extends AbstractResource
 	{
 		try
 		{
-			genericWsProps = new PropertiesFile(new File(Config.DIR, "ws-phenomics/genericws.properties"));
-			packageLookup = new PropertiesFile(new File(Config.DIR, "ws-phenomics/wslookup.properties"));
+			genericWsProps = new PropertiesFile(new File(Config.getAppHome(), "config/ws-phenomics/genericws.properties"));
+			packageLookup = new PropertiesFile(new File(Config.getAppHome(), "config/ws-phenomics/wslookup.properties"));
 		}
 		catch (IOException e)
 		{

@@ -3,7 +3,7 @@
 	<xsl:param name="key" />
 	<xsl:param name="external" />
 	<xsl:variable name="anukey">http://anu.edu.au/</xsl:variable>
-	<xsl:variable name="anuidentifier">https://datacommons.anu.edu.au:8443/DataCommons/item/</xsl:variable>
+	<xsl:variable name="anuidentifier">https://datacommons.anu.edu.au/DataCommons/item/</xsl:variable>
 	<xsl:template match="/">
 		<oai_dc:dc xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
 			<dc:title><xsl:value-of select="data/name" /></dc:title>

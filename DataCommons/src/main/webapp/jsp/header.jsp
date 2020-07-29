@@ -4,75 +4,37 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<anu:body />
-<anu:banner id="" ssl="true" primaryTitle="ANU Data Commons" secondaryTitle="Information Technology Services" primaryTitleUrl="/" secondaryTitleUrl="/" />
+<c:url value="/" var="homeUrl" />
 
-<anu:tabnav>
-	<anu:tabmeta>
-	<div class="right right">
-		<ul>
+<header>
+<anu:banner id="" ssl="true" primaryTitle="Data Commons" secondaryTitle="Library" primaryTitleUrl="${homeUrl}" secondaryTitleUrl="http://anulib.anu.edu.au/">
+	<anu:utilitymenu>
+		<sec:authorize access="isAuthenticated()">
+			<li><a href='<c:url value="/rest/user" />'><sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.username" />)</a></li>
+		</sec:authorize>
+	</anu:utilitymenu>
+</anu:banner>
+
+<anu:topmenu>
+	<anu:topmenulinks>
+		<li><a class="tabs-home" href="<c:url value='/' />">Home</a></li>
+		<li><a href="<c:url value='/rest/about' />">About</a></li>
+		<li><a href="<c:url value='/rest/contribute' />">Contribute</a></li>
+		<li><a href='<c:url value="/rest/upload/search"/>'>Data search</a></li>
+		<li><a href='<c:url value="/rest/collreq"/>'>Data request</a></li>
+		<li><a href='<c:url value="/rest/contact"/>'>Contact</a></li>
 		<sec:authorize access="isAnonymous()">
-			<li><a>Welcome Guest</a></li>
-			<li> <a href='<c:url value="/login" />'>Login</a></li>
+			<li> <a href='<c:url value="/login-select" />'>Login</a></li>
 		</sec:authorize>
 		<sec:authorize access="isAuthenticated()">
-			<li><a href='<c:url value="/rest/user" />'>Welcome <sec:authentication property="principal.displayName" /> (<sec:authentication property="principal.username" />)</a></li>
-			<li><a href='<c:url value="/j_spring_security_logout" />'>Logout</a></li>
-			<li><a href="<c:url value="/rest/user/caslogout" />">CAS Logout</a></li>
+			<li><a href='<c:url value="/logout" />'>Logout</a></li>
+		<li>
+			<a id="gw-mega-tab-3" data-mega-menu-rigger="3" href="<c:url value='/rest/admin' />">Administration</a>
+		</li>
 		</sec:authorize>
-		</ul>
-	</div>
-	</anu:tabmeta>
-</anu:tabnav>
+	</anu:topmenulinks>
+</anu:topmenu>
 
-<anu:menu showSearch="true" id="1108" shortTitle="Public Data" ssl="true">
-	<anu:submenu title="Data Commons">
-		<li><a href="<c:url value='/' />">Home (Search)</a></li>
-		<li><a href="<c:url value='/rest/search/browse?field=keyword' />">Browse</a></li>
-		<li><a href="<c:url value='/rest/upload/search' />">Data Search</a>
-		<sec:authorize access="hasRole('ROLE_REGISTERED')">
-			<li><a href="<c:url value='/rest/collreq' />">Collection Request</a>
-				<ul>
-					<li><a href="<c:url value='/rest/collreq/dropbox' />">Dropboxes</a></li>
-				</ul></li>
-		</sec:authorize>
-		<sec:authorize access="hasRole('ROLE_ANU_USER')">
-			<li><a href="<c:url value='/rest/list/template' />">New</a></li>
-			<li><a href="<c:url value='/rest/extmetadata' />">Import</a></li>
-			<fmt:bundle basename='global'>
-				<fmt:message var="rejectedTitle" key="review.rejected.title" />
-				<fmt:message var="reviewReadyTitle" key="review.reviewready.title" />
-				<fmt:message var="publishReadyTitle" key="review.publishready.title" />
-			</fmt:bundle>
-			<li><a href="<c:url value='/jsp/review_lists.jsp' />">Review</a>
-				<ul>
-					<li><a href="<c:url value='/rest/ready/list/rejected' />">${rejectedTitle}</a></li>
-					<li><a href="<c:url value='/rest/ready/list/review' />">${reviewReadyTitle}</a></li>
-					<li><a href="<c:url value='/rest/ready/list/publish' />">${publishReadyTitle}</a></li>
-				</ul>
-			</li>
-			<li><a href="<c:url value='/jsp/publish_validate.jsp' />">Validate/Publish</a>
-				<ul>
-					<li><a href='<c:url value="/rest/publish/validate/multiple" />'>Validate Multiple Records</a></li>
-					<li><a href='<c:url value="/rest/publish/multiple" />'>Publish Multiple Records</a></li>
-				</ul>
-			</li>
-		</sec:authorize>
-		<li><a href="<c:url value='/rest/admin/anupublished' />">Site Map</a></li>
-	</anu:submenu>
-	<sec:authorize access="hasRole('ROLE_ADMIN')">
-		<anu:submenu title="Admin">
-			<li><a href="<c:url value='/rest/admin/domains' />">Domain Administration</a></li>
-			<li><a href="<c:url value='/rest/admin/groups' />">Group Administration</a></li>
-			<li><a href="<c:url value='/rest/user/permissions' />">User Administration</a></li>
-			<li><a href="<c:url value='/rest/search/admin' />">Update Index</a></li>
-			<li><a href="<c:url value='/rest/reload' />">Reload</a></li>
-			<li><a href="<c:url value='/rest/report' />">Report</a></li>
-		</anu:submenu>
-	</sec:authorize>
+</header>
 
-	<anu:submenu title="External Links">
-		<li><a href="<c:url value='http://ands.org.au/' />">ANDS</a></li>
-		<li><a href="<c:url value='http://services.ands.org.au/home/orca/rda/' />">Research Data Australia</a></li>
-	</anu:submenu>
-</anu:menu>
+<anu:body />

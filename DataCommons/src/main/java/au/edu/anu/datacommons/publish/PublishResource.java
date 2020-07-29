@@ -21,8 +21,9 @@
 
 package au.edu.anu.datacommons.publish;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import com.sun.jersey.api.view.Viewable;
+
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
 import au.edu.anu.datacommons.data.db.model.PublishLocation;
@@ -63,8 +66,6 @@ import au.edu.anu.datacommons.security.acl.PermissionService;
 import au.edu.anu.datacommons.security.service.FedoraObjectService;
 import au.edu.anu.datacommons.services.ListResource;
 import au.edu.anu.datacommons.util.Util;
-
-import com.sun.jersey.api.view.Viewable;
 
 /**
  * FedoraObjectService
@@ -172,7 +173,10 @@ public class PublishResource {
 			publishService.publish(fedoraObject, publishers);
 		}
 		
-		UriBuilder uriBuilder = UriBuilder.fromPath("/display").path(item).queryParam("layout", layout);
+		UriBuilder uriBuilder = UriBuilder.fromPath("/display").path(item);
+		if (Util.isNotEmpty(layout)) {
+			uriBuilder = uriBuilder.queryParam("layout", layout);
+		}
 		if (Util.isNotEmpty(tmplt)) {
 			uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
 		}
@@ -186,7 +190,10 @@ public class PublishResource {
 	public Response generateDoi(@PathParam("pid") String pid, @QueryParam("tmplt") String tmplt, @Context UriInfo uriInfo)
 	{
 		Response resp = null;
-		UriBuilder redirUri = UriBuilder.fromPath("/display").path(pid).queryParam("layout", "def:display").queryParam("tmplt", tmplt);
+		UriBuilder redirUri = UriBuilder.fromPath("/display").path(pid).queryParam("layout", "def:display");
+		if (Util.isNotEmpty(tmplt)) {
+			redirUri = redirUri.queryParam("tmplt", tmplt);
+		}
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 		if (!permissionService.checkPermission(fedoraObject, CustomACLPermission.PUBLISH)) {
 			throw new AccessDeniedException(format("User does not have Publish permissions for {0}.", pid));
@@ -312,7 +319,7 @@ public class PublishResource {
 				SolrSearchResult results = publishService.getGroupObjects(groupId, page);
 				model.put("results", results);
 			}
-			catch (SolrServerException e) {
+			catch (SolrServerException | IOException e) {
 				LOGGER.error("Exception querying solr", e);
 			}
 		}
@@ -362,7 +369,7 @@ public class PublishResource {
 			SolrSearchResult information = publishService.getItemInformation(ids);
 			model.put("information", information);
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException | IOException e) {
 			LOGGER.error("Error searching solr", e);
 		}
 		
@@ -400,7 +407,7 @@ public class PublishResource {
 				SolrSearchResult results = publishService.getGroupObjects(groupId, page);
 				model.put("results", results);
 			}
-			catch (SolrServerException e) {
+			catch (SolrServerException | IOException e) {
 				LOGGER.error("Exception querying solr", e);
 			}
 		}
@@ -446,7 +453,7 @@ public class PublishResource {
 			SolrSearchResult information = publishService.getItemInformation(ids);
 			model.put("information", information);
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException | IOException e) {
 			LOGGER.error("Error searching solr", e);
 		}
 		

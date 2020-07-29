@@ -21,10 +21,13 @@
 
 package au.edu.anu.datacommons.data.db.dao;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,11 +89,59 @@ public class UsersDAOImpl extends GenericDAOImpl<Users, Long> implements UsersDA
 			users = (Users) query.getSingleResult();
 		}
 		catch (NoResultException e) {
-			LOGGER.warn("No entity found for username {}", username);
 		}
 		finally {
 			entityManager.close();
 		}
+		return users;
+	}
+	
+	public List<Users> findRegisteredUsers(String givenName, String surname, String email) {
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
+		
+		StringBuilder queryString = new StringBuilder();
+		queryString.append("select u From Users u join u.user_registered ur where ");
+		boolean addAnd = false;
+		if (givenName != null && givenName.trim().length() > 0) {
+			queryString.append("lower(ur.given_name) = :givenName ");
+			addAnd = true;
+		}
+		if (surname != null && surname.trim().length() > 0) {
+			if (addAnd) {
+				queryString.append("AND ");
+			}
+			queryString.append("lower(ur.last_name) = :familyName ");
+			addAnd = true;
+		}
+		if (email != null && email.trim().length() > 0) {
+			if (addAnd) {
+				queryString.append("AND ");
+			}
+			queryString.append("lower(u.username) = :email");
+		}
+		LOGGER.info("Query is: {}", queryString.toString());
+		List<Users> users = null;
+		try {
+			Query query = entityManager.createQuery(queryString.toString());
+			if (givenName != null && givenName.trim().length() > 0) {
+				query.setParameter("givenName", givenName.toLowerCase());
+			}
+			if (surname != null && surname.trim().length() > 0) {
+				query.setParameter("familyName", surname.toLowerCase());
+			}
+			if (email != null && email.trim().length() > 0) {
+				query.setParameter("email", email.toLowerCase());
+			}
+			
+			users = (List<Users>) query.getResultList();
+		}
+		catch (NoResultException e) {
+			
+		}
+		finally {
+			entityManager.close();
+		}
+		
 		return users;
 	}
 

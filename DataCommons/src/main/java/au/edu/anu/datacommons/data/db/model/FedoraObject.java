@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.data.db.model;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -384,6 +385,11 @@ public class FedoraObject {
 	public Boolean isFilesPublic() {
 		return isFilesPublic;
 	}
+	
+	@Transient
+	public Boolean getFilesPublic() {
+		return isFilesPublic;
+	}
 
 	/**
 	 * Sets if files in this record, if any, are public after the record's published.
@@ -416,13 +422,12 @@ public class FedoraObject {
 					SolrDocument doc = documentList.get(0);
 					String embargoDateStr = (String) doc.getFirstValue("published.embargoDate");
 					if (embargoDateStr != null) {
-						LOGGER.info("Embargo date string: {}", embargoDateStr);
 						SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 						embargoDate = sdf.parse(embargoDateStr);
 					}
 				}
 			}
-			catch (SolrServerException | ParseException e) {
+			catch (SolrServerException | ParseException | IOException e) {
 				LOGGER.info("Exception retrieving embargo date: {}", e);
 			}
 		}

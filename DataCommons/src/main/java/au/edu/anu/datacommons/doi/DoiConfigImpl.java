@@ -112,4 +112,9 @@ public class DoiConfigImpl implements DoiConfig {
 	public UriBuilder getLandingUri() {
 		return UriBuilder.fromPath(props.getProperty("doi.landingUri"));
 	}
+
+	@Override
+	public String getSharedSecret() {
+		return props.getProperty("doi.sharedSecret");
+	}
 }

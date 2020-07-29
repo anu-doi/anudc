@@ -75,6 +75,7 @@ public class ExternalLinkDAOImpl extends GenericDAOImpl<ExternalLinkPattern, Lon
 	 * @return The patterns associated with the object type
 	 * @see au.edu.anu.datacommons.data.db.dao.ExternalLinkDAO#getByObjectType(java.lang.String)
 	 */
+	@SuppressWarnings("unchecked")
 	public List<ExternalLinkPattern> getByObjectType(String objectType) {
 		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
 		List<ExternalLinkPattern> patterns = null;
@@ -89,6 +90,23 @@ public class ExternalLinkDAOImpl extends GenericDAOImpl<ExternalLinkPattern, Lon
 			entityManager.close();
 		}
 		
+		return patterns;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<ExternalLinkPattern> findByReference(String reference) {
+		EntityManager entityManager = PersistenceManager.getEntityManagerFactory().createEntityManager();
+		List<ExternalLinkPattern> patterns = null;
+		
+		try {
+			Query query = entityManager.createQuery("from ExternalLinkPattern where :reference like concat(pattern, '%')");
+			query.setParameter("reference", reference);
+			
+			patterns = query.getResultList();
+		}
+		finally {
+			entityManager.close();
+		}
 		return patterns;
 	}
 }

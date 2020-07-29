@@ -4,7 +4,7 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
-<anu:header id="1998" title="Advanced Search" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
+<anu:header id="1998" title="Advanced Search" description="description" subject="subject" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au"
 	ssl="true">
 
 	<script type="text/javascript" src="<c:url value='/js/global.js' />"></script>
@@ -12,7 +12,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" title="Advanced Search">
+<anu:content layout="full" title="Advanced Search">
 	<c:set var="maxCharacters" value="200" />
 	<div id="divAdvancedSearch">
 		<jsp:include page="/jsp/searchbox_advanced.jsp" />

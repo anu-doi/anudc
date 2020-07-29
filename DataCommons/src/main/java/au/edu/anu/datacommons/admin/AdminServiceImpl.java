@@ -24,6 +24,8 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import au.edu.anu.datacommons.data.db.dao.GenericDAO;
@@ -48,6 +50,7 @@ import au.edu.anu.datacommons.security.acl.PermissionService;
  */
 @Service("adminServiceImpl")
 public class AdminServiceImpl implements AdminService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AdminServiceImpl.class);
 	
 	@Resource(name="permissionService")
 	PermissionService permissionService;
@@ -59,10 +62,23 @@ public class AdminServiceImpl implements AdminService {
 	}
 	
 	@Override
-	public void createDomain(String domainName) {
+	public void createOrEditDomain(Long domainId, String domainName) {
 		if (domainName == null || "".equals(domainName)) {
+			LOGGER.error("Domain name is empty?");
 			throw new DataCommonsException(400, "No Domain Name specified");
 		}
+		if (null == domainId) {
+			LOGGER.debug("Send to create domain?");
+			createDomain(domainName);
+		}
+		else {
+			LOGGER.debug("Send to edit domain?");
+			editDomain(domainId, domainName);
+		}
+	}
+	
+	private void createDomain(String domainName) {
+		LOGGER.debug("Create domain: '{}'", domainName);
 		Domains domain = new Domains();
 		domain.setDomain_name(domainName);
 		
@@ -72,16 +88,34 @@ public class AdminServiceImpl implements AdminService {
 		permissionService.initializeDomainPermissions(domain);
 	}
 	
+	private void editDomain(Long domainId, String domainName) {
+		LOGGER.debug("Edit domain '{}' to '{}'", domainId, domainName);
+		GenericDAO<Domains, Long> domainsDAO = new GenericDAOImpl<Domains, Long>(Domains.class);
+		Domains domain = domainsDAO.getSingleById(domainId);
+		domain.setDomain_name(domainName);
+		domainsDAO.update(domain);
+	}
+	
 	public List<Groups> getGroups() {
 		GenericDAO<Groups, Long> groupsDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
 		return groupsDAO.getAll();
 	}
 
 	@Override
-	public void createGroup(String groupName, Long domainId) {
+	public void createOrEditGroup(Long groupId, String groupName, Long domainId) {
 		if (groupName == null || "".equals(groupName)) {
 			throw new DataCommonsException(400, "No group name specified");
 		}
+		if (null == groupId) {
+			createGroup(groupName, domainId);
+		}
+		else {
+			editGroup(groupId, groupName);
+		}
+	}
+	
+	public void createGroup(String groupName, Long domainId) {
+		LOGGER.debug("Create group '{}' with domain '{}'", groupName, domainId);
 		if (domainId == null) {
 			throw new DataCommonsException(400, "No associated domain specified");
 		}
@@ -98,5 +132,13 @@ public class AdminServiceImpl implements AdminService {
 		group = groupsDAO.create(group);
 		
 		permissionService.initializeGroupPermissions(group, domain);
+	}
+	
+	public void editGroup(Long groupId, String groupName) {
+		LOGGER.debug("Edit group '{}' to '{}'");
+		GenericDAO<Groups, Long> groupsDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
+		Groups group = groupsDAO.getSingleById(groupId);
+		group.setGroup_name(groupName);
+		groupsDAO.update(group);
 	}
 }

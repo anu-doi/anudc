@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.security.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -29,11 +30,14 @@ import javax.xml.bind.JAXBException;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import au.edu.anu.datacommons.data.db.model.FedoraObject;
-import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
-import au.edu.anu.datacommons.xml.sparql.Result;
-
 import com.yourmediashelf.fedora.client.FedoraClientException;
+
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.Template;
+import au.edu.anu.datacommons.storage.info.RecordDataSummary;
+import au.edu.anu.datacommons.webservice.bindings.FedoraItem;
+import au.edu.anu.datacommons.xml.data.Data;
+import au.edu.anu.datacommons.xml.sparql.Result;
 
 /**
  * FedoraObjectService
@@ -96,6 +100,10 @@ public interface FedoraObjectService {
 	 */
 	public Map<String, Object> getViewPage(FedoraObject fedoraObject, String layout, String tmplt);
 	
+	public RecordDataSummary getRecordDataSummary(FedoraObject fedoraObject);
+	
+	public Map<String, Object> getViewObjects(FedoraObject fedoraObject, String tmplt);
+	
 	/**
 	 * getNewPage
 	 * 
@@ -111,6 +119,8 @@ public interface FedoraObjectService {
 	 * @return Returns the viewable for the jsp file to pick up.
 	 */
 	public Map<String, Object> getNewPage(String layout, String tmplt);
+	
+	public au.edu.anu.datacommons.data.db.model.Template getTemplateByTemplateId(String templateId) throws FedoraClientException, JAXBException;
 	
 	/**
 	 * saveNew
@@ -130,7 +140,7 @@ public interface FedoraObjectService {
 	 * @throws JAXBException 
 	 * @throws FedoraClientException 
 	 */
-	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException;
+	public FedoraObject saveNew(String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException, IOException;
 	
 	/**
 	 * saveNew
@@ -149,7 +159,7 @@ public interface FedoraObjectService {
 	 * @throws FedoraClientException
 	 * @throws JAXBException
 	 */
-	public FedoraObject saveNew(FedoraItem item, Long rid) throws FedoraClientException, JAXBException;
+	public FedoraObject saveNew(FedoraItem item, Long rid) throws FedoraClientException, JAXBException, IOException;
 	
 	/**
 	 * getEditPage
@@ -169,6 +179,7 @@ public interface FedoraObjectService {
 	 * @param editMode Whether the returned information contains does or does not contained published information (false for only the unpublished information to be returned)
 	 * @return Returns the viewable for the jsp file to pick up
 	 */
+	@Deprecated
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
 	public Map<String, Object> getEditPage(FedoraObject fedoraObject, String layout, String tmplt, boolean editMode);
 
@@ -188,6 +199,7 @@ public interface FedoraObjectService {
 	 * @param fieldName
 	 * @return
 	 */
+	@Deprecated
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
 	public String getEditItem(FedoraObject fedoraObject, String layout, String tmplt, String fieldName);
 
@@ -211,7 +223,7 @@ public interface FedoraObjectService {
 	 * @throws FedoraClientException 
 	 */
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasPermission(#fedoraObject, 'WRITE')")
-	public Map<String, Object> saveEdit(FedoraObject fedoraObject, String tmplt, Map<String, List<String>> form, Long rid);
+	public void saveEdit(FedoraObject fedoraObject, String tmplt, Map<String, List<String>> form, Long rid) throws FedoraClientException, JAXBException, IOException;
 	
 	/**
 	 * saveEdit
@@ -230,7 +242,7 @@ public interface FedoraObjectService {
 	 * @throws FedoraClientException
 	 * @throws JAXBException
 	 */
-	public FedoraObject saveEdit(FedoraItem item, Long rid) throws FedoraClientException, JAXBException;
+	public FedoraObject saveEdit(FedoraItem item, Long rid) throws FedoraClientException, JAXBException, IOException;
 	
 	/**
 	 * delete
@@ -352,4 +364,13 @@ public interface FedoraObjectService {
 	FedoraObject getItemByPidWriteAccess(String pid);
 
 	List<FedoraObject> getAllPublishedAndPublic();
+
+//	@PostAuthorize("hasPermission(returnObject, 'WRITE')")
+	public Data getEditData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException;
+
+	public Data getPublishData(FedoraObject fedoraObject) throws JAXBException, FedoraClientException;
+	
+	public Data getDataDifferences(Template template, Data editData, Data publisData);
+	
+	public Data getInitialData(Template template);
 }

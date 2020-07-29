@@ -21,8 +21,11 @@
 
 package au.edu.anu.datacommons.services;
 
+import java.io.IOException;
 import java.net.URI;
 import java.text.MessageFormat;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -54,20 +57,30 @@ import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import au.edu.anu.datacommons.data.db.model.FedoraObject;
-import au.edu.anu.datacommons.exception.DataCommonsException;
-import au.edu.anu.datacommons.exception.ValidateException;
-import au.edu.anu.datacommons.security.service.FedoraObjectService;
-import au.edu.anu.datacommons.util.Util;
-import au.edu.anu.datacommons.xml.sparql.Result;
-import au.edu.anu.datacommons.xml.sparql.ResultItem;
-
 import com.sun.jersey.api.view.Viewable;
 import com.yourmediashelf.fedora.client.FedoraClientException;
+
+import au.edu.anu.datacommons.comparator.TemplateAttributeSortByDisplay;
+import au.edu.anu.datacommons.comparator.TemplateAttributeSortByTab;
+import au.edu.anu.datacommons.comparator.TemplateTabSortByTabOrder;
+import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.data.db.model.Template;
+import au.edu.anu.datacommons.exception.DataCommonsException;
+import au.edu.anu.datacommons.exception.ValidateException;
+import au.edu.anu.datacommons.freemarker.GroupOptions;
+import au.edu.anu.datacommons.freemarker.SecurityCheck;
+import au.edu.anu.datacommons.freemarker.SelectOptions;
+import au.edu.anu.datacommons.security.service.FedoraObjectService;
+import au.edu.anu.datacommons.storage.info.RecordDataSummary;
+import au.edu.anu.datacommons.util.Util;
+import au.edu.anu.datacommons.xml.data.Data;
+import au.edu.anu.datacommons.xml.sparql.Result;
+import au.edu.anu.datacommons.xml.sparql.ResultItem;
 
 /**
  * DisplayResource
@@ -134,14 +147,66 @@ public class DisplayResource
 	@GET
 	@Path("{item}")
 	@Produces(MediaType.TEXT_HTML)
-	public Response getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item)
+	public Response getItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item, @QueryParam("emsg") String errorMessage)
 	{
 		LOGGER.info("User {} ({}) requested record page of {}", getCurUsername(), request.getRemoteAddr(), item);
-		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
-		Map<String, Object> values = fedoraObjectService.getViewPage(fedoraObject, layout, tmplt);
 
-		Viewable viewable = new Viewable((String) values.remove("topage"), values);
-		return Response.ok(viewable).build();
+		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
+		if (fedoraObject == null) {
+			return Response.status(Status.NOT_FOUND).entity("Item not found").build();
+		}
+		try {
+			Template template = fedoraObjectService.getTemplateByTemplateId(fedoraObject.getTmplt_id());
+			
+			template.getTemplateAttributes().sort(new TemplateAttributeSortByDisplay());
+			
+			Data editData = null;
+			Data publishData = null;
+			try {
+				editData = fedoraObjectService.getEditData(fedoraObject);
+			}
+			catch (Exception e) {
+				LOGGER.error("Exception retrieving edit data", e);
+			}
+			try {
+				publishData = fedoraObjectService.getPublishData(fedoraObject);
+			}
+			catch (Exception e) {
+				LOGGER.error("Exception retrieving publish data: {}", e.getMessage());
+			}
+			if (editData == null && publishData == null) {
+				throw new AccessDeniedException("You do not have access to this resource");
+			}
+			Map<String, Object> values = new HashMap<String, Object>();
+			if (publishData == null) {
+				values.put("data", editData);
+				
+			}
+			else {
+				values.put("data", publishData);
+				Data differences = fedoraObjectService.getDataDifferences(template, editData, publishData);
+				values.put("differenceData", differences);
+				
+			}
+			RecordDataSummary rdi = fedoraObjectService.getRecordDataSummary(fedoraObject);
+			List<Result> links = fedoraObjectService.getLinks(fedoraObject);
+			
+			values.put("tmplt", template);
+			values.put("item", fedoraObject);
+			values.put("rdi", rdi);
+			values.put("links", links);
+			values.put("options", new SelectOptions());
+			values.put("groups", new GroupOptions());
+			values.put("security",new SecurityCheck(fedoraObject));
+			values.put("errormessage", errorMessage);
+			
+			Viewable viewable = new Viewable("/display/display.ftl", values);
+			return Response.ok(viewable).build();
+		}
+		catch (JAXBException | FedoraClientException e) {
+			LOGGER.error("Exception retrieing template", e);
+		}
+		return Response.serverError().build();
 	}
 
 	/**
@@ -168,20 +233,27 @@ public class DisplayResource
 	public Response newItemPage(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item,
 			@QueryParam("error") String error, @QueryParam("type") String type)
 	{
-		if (layout == null || layout.length() == 0) {
-			layout = "def:new";
+		LOGGER.info("In GET method for new");
+		try {
+			Template template = fedoraObjectService.getTemplateByTemplateId(tmplt);
+			Data data = fedoraObjectService.getInitialData(template);
+			
+			Collections.sort(template.getTemplateAttributes(), new TemplateAttributeSortByTab());
+			template.getTemplateTabs().sort(new TemplateTabSortByTabOrder());
+			
+			Map<String, Object> values = new HashMap<String, Object>();
+			values.put("tmplt", template);
+			values.put("options", new SelectOptions());
+			values.put("groups", new GroupOptions());
+			values.put("data", data);
+			values.put("security",new SecurityCheck());
+			Viewable viewable = new Viewable("/form/new.ftl", values);
+			return Response.ok(viewable).build();
 		}
-		if (tmplt == null || tmplt.length() == 0) {
-			tmplt = mapTemplateFromType(type);
+		catch (JAXBException | FedoraClientException e) {
+			LOGGER.error("Exception retrieving template", e);
+			return Response.serverError().build();
 		}
-		
-		Map<String, Object> values = fedoraObjectService.getNewPage(layout, tmplt);
-		if (Util.isNotEmpty(error))
-		{
-			values.put("error", "Error saving item");
-		}
-		Viewable viewable = new Viewable((String) values.remove("topage"), values);
-		return Response.ok(viewable).build();
 	}
 
 	/**
@@ -218,6 +290,7 @@ public class DisplayResource
 	public Response postItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("item") String item,
 			@Context HttpServletRequest request)
 	{
+		LOGGER.info("In post method for new");
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		FedoraObject fedoraObject;
 		Response resp;
@@ -229,12 +302,7 @@ public class DisplayResource
 			UriBuilder redirUri = UriBuilder.fromPath("/display").path(fedoraObject.getObject_id()).queryParam("layout", layout).queryParam("tmplt", tmplt);
 			resp = Response.seeOther(redirUri.build()).build();
 		}
-		catch (FedoraClientException e)
-		{
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
-		}
-		catch (JAXBException e)
+		catch (FedoraClientException | JAXBException | IOException e)
 		{
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -273,6 +341,8 @@ public class DisplayResource
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response postItemAsText(@Context UriInfo uriInfo, @QueryParam("layout") String layout,
 			@QueryParam("tmplt") String tmplt, @Context HttpServletRequest request) {
+		LOGGER.info("In POST method for new");
+		
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		FedoraObject fedoraObject;
 		Response resp = null;
@@ -283,10 +353,7 @@ public class DisplayResource
 			URI createdUri = UriBuilder.fromUri(uriInfo.getBaseUri()).path(DisplayResource.class)
 					.path(DisplayResource.class, "getItem").build(fedoraObject.getObject_id());
 			resp = Response.created(createdUri).entity(fedoraObject.getObject_id()).build();
-		} catch (FedoraClientException e) {
-			LOGGER.error(e.getMessage(), e);
-			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
-		} catch (JAXBException e) {
+		} catch (FedoraClientException | JAXBException | IOException e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.status(Status.INTERNAL_SERVER_ERROR).build();
 		}
@@ -321,6 +388,7 @@ public class DisplayResource
 	@Path("/edit/{item}/{fieldName}")
 	@PreAuthorize("hasRole('ROLE_ANU_USER')")
 	@Produces(MediaType.TEXT_PLAIN)
+	@Deprecated
 	public String getEditItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @PathParam("item") String item,
 			@PathParam("fieldName") String fieldName)
 	{
@@ -356,20 +424,31 @@ public class DisplayResource
 	@Produces(MediaType.TEXT_HTML)
 	public Response editItem(@QueryParam("layout") String layout, @QueryParam("tmplt") String tmplt, @QueryParam("style") String style, @PathParam("item") String item)
 	{
-		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
-		Map<String, Object> values = null;
-		if ("full".equals(style)) {
-			values = fedoraObjectService.getEditPage(fedoraObject, "def:new", tmplt, true);
-			values.remove("sidepage");
+		LOGGER.debug("In editItem get");
+		try {
+			FedoraObject fedoraObject = fedoraObjectService.getItemByPid(item);
+			
+			Template template = fedoraObjectService.getTemplateByTemplateId(fedoraObject.getTmplt_id());
+			
+			template.getTemplateAttributes().sort(new TemplateAttributeSortByTab());
+			template.getTemplateTabs().sort(new TemplateTabSortByTabOrder());
+			
+			Data itemData = fedoraObjectService.getEditData(fedoraObject);
+			
+			Map<String, Object> values = new HashMap<String, Object>();
+			values.put("tmplt", template);
+			values.put("item", fedoraObject);
+			values.put("data", itemData);
+			values.put("options", new SelectOptions());
+			values.put("groups", new GroupOptions());
+			values.put("security",new SecurityCheck(fedoraObject));
+			Viewable viewable = new Viewable("/form/edit.ftl", values);
+			return Response.ok(viewable).build();
 		}
-		else {
-			values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt, false);
+		catch (JAXBException | FedoraClientException e) {
+			LOGGER.error("Exception retrieving template", e);
+			return Response.serverError().build();
 		}
-		
-		//Map<String, Object> values = fedoraObjectService.getEditPage(fedoraObject, layout, tmplt);
-		Viewable viewable = new Viewable((String) values.remove("topage"), values);
-
-		return Response.ok(viewable).build();
 	}
 
 	/**
@@ -405,20 +484,16 @@ public class DisplayResource
 			@QueryParam("style") String style, @PathParam("item") String pid,
 			@Context HttpServletRequest request)
 	{
+		LOGGER.debug("In editChangeItem post");
 		Map<String, List<String>> form = Util.convertArrayValueToList(request.getParameterMap());
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(pid);
 
 		LOGGER.info("User {} edited record {}", getCurUsername(), pid);
 		
-		Map<String, Object> values = fedoraObjectService.saveEdit(fedoraObject, tmplt, form, null);
-		UriBuilder uriBuilder = null;
-		if (values.containsKey("error"))
-		{
-			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-		}
-		else
-		{
-			uriBuilder = UriBuilder.fromPath("/display/edit").path(pid).queryParam("layout", layout);
+		try {
+			fedoraObjectService.saveEdit(fedoraObject, tmplt, form, null);
+			UriBuilder uriBuilder = UriBuilder.fromPath("/display/edit").path(pid);
+			
 			if (Util.isNotEmpty(tmplt))
 			{
 				uriBuilder = uriBuilder.queryParam("tmplt", tmplt);
@@ -426,8 +501,11 @@ public class DisplayResource
 			if (Util.isNotEmpty(style)) {
 				uriBuilder = uriBuilder.queryParam("style", style);
 			}
+			return Response.seeOther(uriBuilder.build()).build();
 		}
-		return Response.seeOther(uriBuilder.build()).build();
+		catch (JAXBException | FedoraClientException | IOException e) {
+			return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		}
 	}
 	
 	/**
@@ -551,6 +629,9 @@ public class DisplayResource
 	{
 		Response resp = null;
 		FedoraObject fedoraObject = fedoraObjectService.getItemByPid(relPid);
+		
+//		String itemPrefix = GlobalProps.getProperty(GlobalProps.PROP_FEDORA_SAVENAMESPACE);
+		
 		try
 		{
 			if (fedoraObject == null)
@@ -559,10 +640,10 @@ public class DisplayResource
 				throw new IllegalArgumentException("linkType not provided.");
 			if (itemId == null || itemId.length() == 0)
 				throw new IllegalArgumentException("itemId not provided.");
-			String nsPrefix = "info:fedora/";
-			if (!itemId.toLowerCase().startsWith("http://") && !itemId.toLowerCase().startsWith(nsPrefix)) {
-				itemId = MessageFormat.format("{0}{1}", nsPrefix, itemId);
-			}
+//			String nsPrefix = "info:fedora/";
+//			if (itemId.toLowerCase().startsWith(itemPrefix)) {
+//				itemId = MessageFormat.format("{0}{1}", nsPrefix, itemId);
+//			}
 			fedoraObjectService.addLink(fedoraObject, linkType, itemId);
 			resp = Response.ok("OK", MediaType.TEXT_PLAIN_TYPE).build();
 		}
@@ -709,19 +790,5 @@ public class DisplayResource
 
 	private String getCurUsername() {
 		return SecurityContextHolder.getContext().getAuthentication().getName();
-	}
-
-	private String mapTemplateFromType(String type) {
-		String template = null;
-		String[] types = {"Collection", "Activity", "Service", "Party", "Person"};
-		
-		for (int i = 0; i < types.length; i++) {
-			if (types[i].equals(type)) {
-				template = "tmplt:" + String.valueOf(i + 1);
-				break;
-			}
-		}
-		
-		return template;
 	}
 }

@@ -86,6 +86,8 @@ public class ValidateExceptionMapper implements ExceptionMapper<ValidateExceptio
 			model.put("messages", e.getMessages());
 			Viewable viewable = new Viewable("/error.jsp", model);
 			resp = Response.status(Status.BAD_REQUEST).entity(viewable).build();
+		} else if (headers.getAcceptableMediaTypes().contains(MediaType.APPLICATION_JSON_TYPE)) {
+			resp = Response.status(Status.BAD_REQUEST).entity(e.getMessages()).build();
 		} else {
 			resp = Response.status(Status.BAD_REQUEST).entity(convertListToString(e.getMessages())).build();
 		}

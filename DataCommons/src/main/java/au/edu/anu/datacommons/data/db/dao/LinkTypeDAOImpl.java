@@ -85,7 +85,7 @@ public class LinkTypeDAOImpl extends GenericDAOImpl<LinkType, Long> implements
 			linkType = (LinkType) query.getSingleResult();
 		}
 		catch (NoResultException e) {
-			LOGGER.debug("No entity found for {}", code);
+			LOGGER.debug("No entity found for '{}'", code);
 		}
 		finally {
 			entityManager.close();

@@ -26,6 +26,9 @@ import java.util.List;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Data
  * 
@@ -42,6 +45,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  */
 @XmlJavaTypeAdapter(DataItemAdapter.class)
 public class DataItem {
+	static final Logger LOGGER = LoggerFactory.getLogger(DataItem.class);
+	
 	private String name_;
 	private String value_;
 	private String description_;
@@ -144,5 +149,58 @@ public class DataItem {
 	 */
 	public void setChildValues(List<DataItem> childValues_) {
 		this.childValues_ = childValues_;
+	}
+	
+	public List<DataItem> getChildElementByName(String elementName) {
+		List<DataItem> elements = new ArrayList<DataItem>();
+		for (DataItem item : childValues_) {
+			if (item.getName().equalsIgnoreCase(elementName)) {
+				elements.add(item);
+			}
+		}
+		return elements;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((childValues_ == null) ? 0 : childValues_.hashCode());
+		result = prime * result + ((description_ == null) ? 0 : description_.hashCode());
+		result = prime * result + ((name_ == null) ? 0 : name_.hashCode());
+		result = prime * result + ((value_ == null) ? 0 : value_.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		DataItem other = (DataItem) obj;
+		if (childValues_ == null) {
+			if (other.childValues_ != null)
+				return false;
+		} else if (!childValues_.equals(other.childValues_))
+			return false;
+		if (description_ == null) {
+			if (other.description_ != null)
+				return false;
+		} else if (!description_.equals(other.description_))
+			return false;
+		if (name_ == null) {
+			if (other.name_ != null)
+				return false;
+		} else if (!name_.equals(other.name_))
+			return false;
+		if (value_ == null) {
+			if (other.value_ != null)
+				return false;
+		} else if (!value_.equals(other.value_))
+			return false;
+		return true;
 	}
 }

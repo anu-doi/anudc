@@ -57,4 +57,6 @@ public interface SelectCodeDAO  extends GenericDAO<SelectCode, SelectCodePK> {
 	 * @return
 	 */
 	List<SelectCode> getOptionsByNames(List<String> names);
+	
+	List<SelectCode> getOptionsByName(String name);
 }

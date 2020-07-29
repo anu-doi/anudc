@@ -1,0 +1,45 @@
+Create a core:
+	sudo su - solr
+	/opt/solr/bin/solr create -c assetstore -d basic_configs
+	 
+
+Add the following text to managed-schema file:
+   <!-- BEGIN Fields for Data Commons -->
+
+   <field name="name" type="text_en_splitting" indexed="true" stored="true" multiValued="false" />
+   <field name="ext" type="string" indexed="true" stored="true" multiValued="false" />
+   <field name="size" type="long" indexed="true" stored="true" multiValued="false" />
+   <field name="last_modified" type="date" indexed="true" stored="true" />
+
+   <field name="mime_type" type="string" indexed="true" stored="true" />
+
+   <field name="title" type="text_en_splitting" indexed="true" stored="true" multiValued="false" />
+   <field name="title_str" type="string" indexed="true" stored="false" multiValued="false" />
+   <field name="author" type="text_en_splitting" indexed="true" stored="true" multiValued="true" />
+   <field name="author_str" type="string" indexed="true" stored="false" multiValued="true" />
+
+   <dynamicField name="metadata_*" type="text_ws" indexed="true" stored="true" multiValued="true" />
+
+   <field name="content" type="text_en_splitting" indexed="true" stored="true" multiValued="false" />
+
+   <field name="allText" type="text_en_splitting" indexed="true" stored="false" multiValued="true" />
+
+   <copyField source="author" dest="author_str" />
+   <copyField source="title" dest="title_str" />
+
+   <copyField source="name" dest="allText"/>
+   <copyField source="author" dest="allText"/>
+   <copyField source="content" dest="allText"/>
+
+   <!-- field for the QueryParser to use when an explicit fieldname is absent -->
+   <defaultSearchField>allText</defaultSearchField>
+
+   <!-- END Fields for Data Commons -->
+   
+   
+In the file solrconfig.xml:
+search for:
+	<str name="df">text</str>
+replace with:
+	<str name="df">allText</str>
+	

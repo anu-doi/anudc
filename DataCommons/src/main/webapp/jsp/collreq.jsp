@@ -5,7 +5,7 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<anu:header id="1998" title="Collection Request" description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur" respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
+<anu:header id="1998" title="Data Request" description="DESCRIPTION" subject="SUBJECT" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au" ssl="true">
 
 	<script type="text/javascript" src="<c:url value='/js/collreq.js' />"></script>
 </anu:header>
@@ -15,7 +15,8 @@
 <c:choose>
 	<c:when test="${not empty it.collReq}">
 		<!-- Display information about a specific Collection Request. -->
-		<anu:content layout="doublewide" title="Collection Request">
+		<anu:content layout="doublewide" title="Data Request">
+		bbb
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
@@ -56,13 +57,14 @@
 					</c:forEach>
 					</p>
 				</c:if>
-				<sec:accesscontrollist hasPermission="REVIEW" domainObject="${it.collReq.fedoraObject}">
+				<c:set var="fedoraObject" value="${it.collReq.fedoraObject}" />
+				<sec:authorize access="hasPermission(#fedoraObject,'REVIEW')">
 					<c:if test="${not empty it.downloadables}">
 						<hr />
 						<p>
 							<!-- Files for approval -->
 						<ul>
-							<c:forEach var="iFile" items="${it.downloadables.getChildren('name')}">
+							<c:forEach var="iFile" items="${it.downloadables.getChildrenRecursive()}">
 								<c:if test="${iFile.type == 'FILE'}">
 									<li><input type="checkbox" name="file" value="${iFile.relFilepath}"
 											<c:forEach items="${it.collReq.items}" var="iCurItem">
@@ -71,7 +73,7 @@
 									</c:if>
 									</c:forEach> />
 									<c:out value="${iFile.relFilepath} (${iFile.friendlySize})" /></li>
-								</c:if>
+								</c:if> 
 							</c:forEach>
 						</ul>
 						</p>
@@ -97,7 +99,7 @@
 					<p class="text-right">
 						<input type="submit" value="Change Status" />
 					</p>
-				</sec:accesscontrollist>
+				</sec:authorize>
 			</form>
 			<table id="idStatusHistoryContainter" class="doublewide">
 				<tr>
@@ -120,32 +122,19 @@
 
 	<c:otherwise>
 		<!-- Form for submitting a Collection Request -->
-		<anu:content layout="doublewide" title="Collection Request">
+		<anu:content layout="full" title="Data request">
+		aaa
 			<jsp:include page="/jsp/statusmessages.jsp">
 				<jsp:param value="${it}" name="it" />
 			</jsp:include>
-			<c:if test="${empty param.pid}">
-				<p>To request access to a collection please perform the following steps:</p>
-				<ol>
-					<li>Enter the Identifier of the item you wish to request access to</li>
-					<li>Select to retrieve the request questions</li>
-					<li>Answer the questions that appear on the screen (if any)</li>
-					<li>Click the 'Request Access' button</li>
-				</ol>
-			</c:if>
-			<c:if test="${not empty param.pid}">
-				<p>To request access to a collection please perform the following steps:</p>
-				<ol>
-					<li>Answer the questions that appear on the screen (if any)</li>
-					<li>Click the 'Request Access' button</li>
-				</ol>
-			</c:if>
+			<p>To request access to data collections and review your request activity you must first login using your ANU ID and password or your registered account details.</p>
+			<p>Once logged in, please enter the identifier of the item you wish to access (e.g. anudc:2652) and submit your request.</p>
 			<form name="collReqSubmitForm" class="anuform" method="post" action="<c:url value='/rest/collreq/' />">
 				<p>
 					<label class="req" for="idPid">Item ID</label>
 					<input class="text" type="text" id="idPid" name="pid" value="<c:out value='${param.pid}' />" <c:if test="${not empty param.pid}">readonly="readonly"</c:if> />
 					<c:if test="${empty param.pid}">
-						<input type="button" onclick="ajaxGetPidInfo(document.collReqSubmitForm.pid.value)" value="Retrieve Request Questions" />
+						<input type="button" onclick="ajaxGetPidInfo(document.collReqSubmitForm.pid.value)" value="Submit request" />
 					</c:if>
 				</p>
 				<p id="idQuestionsContainer">
@@ -157,7 +146,7 @@
 			</form>
 			<hr />
 			<div id="reqAction">
-				<table id="idReqStatusTable" class="tbl-row-bdr w-doublewide">
+				<table id="idReqStatusTable" class="tbl-row-bdr w-full">
 					<tr>
 						<th>Request Id</th>
 						<th>Item ID</th>
@@ -166,19 +155,20 @@
 						<th>Status</th>
 					</tr>
 					<c:forEach var="iCollReq" items="${it.collReqs}">
+						<c:set var="iCollReqFedoraObjectObject" value="${iCollReq.fedoraObject}" />
 						<tr>
 							<td><a href="<c:url value='/rest/collreq' />/${iCollReq.id}"><c:out value="${iCollReq.id}" /></a></td>
 							<td><a href="<c:url value='/rest/display/${iCollReq.pid}'><c:param name='layout' value='def:display' /></c:url>"><c:out value="${iCollReq.pid}" /></a></td>
 							<td><fmt:formatDate value="${iCollReq.timestamp}" pattern="dd MMM yyyy" /></td>
 							<td><c:out value="${iCollReq.requestor.username}" /></td>
 							<td><c:if test="${iCollReq.lastStatus.status eq 'ACCEPTED'}">
-									<sec:accesscontrollist hasPermission="REVIEW" domainObject="${iCollReq.fedoraObject}">
+									<sec:authorize access="hasPermission(#iCollReqFedoraObjectObject,'REVIEW')">
 										<a href="<c:url value='/rest/collreq/dropbox/${iCollReq.dropbox.id}' />">
-									</sec:accesscontrollist>
+									</sec:authorize>
 								</c:if> <c:out value="${iCollReq.lastStatus.status}" /> <c:if test="iCollReq.lastStatus.status">
-									<sec:accesscontrollist hasPermission="REVIEW" domainObject="${iCollReq.fedoraObject}">
+									<sec:authorize access="hasPermission(#iCollReqFedoraObjectObject,'REVIEW')">
 										</a>
-									</sec:accesscontrollist>
+									</sec:authorize>
 								</c:if></td>
 						</tr>
 					</c:forEach>
@@ -191,5 +181,12 @@
 		</script>
 	</c:otherwise>
 </c:choose>
+
+<c:if test="not empty it.approvedrequests">
+bbb
+	<c:forEach items="${it.approvedrequests}" var="download">
+		xx${download.accessCode}xx
+	</c:forEach>
+</c:if>
 
 <jsp:include page="/jsp/footer.jsp" />

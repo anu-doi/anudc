@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.security;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
@@ -75,7 +76,8 @@ public class CustomUser extends User {
 	 */
 	public CustomUser (String username, String password, boolean enabled,
 			boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked,
-			List<GrantedAuthority> authorities, long id, String displayName) throws IllegalArgumentException {
+			Collection<? extends GrantedAuthority> authorities, long id, String displayName) throws IllegalArgumentException {
+//			List<GrantedAuthority> authorities, long id, String displayName) throws IllegalArgumentException {
 		super(username, password, enabled, accountNonExpired, credentialsNonExpired,
 				accountNonLocked, authorities);
 		this.id = id;

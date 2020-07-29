@@ -53,6 +53,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.yourmediashelf.fedora.client.FedoraClientException;
+
 import au.edu.anu.datacommons.ands.check.ActivityCheck;
 import au.edu.anu.datacommons.ands.check.CollectionCheck;
 import au.edu.anu.datacommons.ands.check.PartyCheck;
@@ -65,12 +69,9 @@ import au.edu.anu.datacommons.data.fedora.FedoraBroker;
 import au.edu.anu.datacommons.properties.GlobalProps;
 import au.edu.anu.datacommons.search.ExternalPoster;
 import au.edu.anu.datacommons.search.SparqlQuery;
+import au.edu.anu.datacommons.util.AppContext;
 import au.edu.anu.datacommons.util.Constants;
 import au.edu.anu.datacommons.xml.transform.JAXBTransform;
-
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 
 /**
  * ANDSValidate
@@ -234,15 +235,13 @@ public class ANDSValidate implements Validate{
 	private boolean isValidCollection(String pid, Document doc) {
 		// Required Assocation Types
 		// Party
-		// Activity
 		
 		boolean isValid = true;
 		if(!hasAssociatedType(pid, "party", 2)) {
 			isValid = false;
 		}
-		if(!hasAssociatedType(pid, "activity", 3)) {
-			isValid = false;
-		}
+		// Should show in validation but not required
+		hasAssociatedType(pid, "activity", 3);
 		boolean validationErrors = xmlValidate(pid, CollectionCheck.class);
 		/*if (!validationErrors) {
 			isValid = false;
@@ -424,19 +423,15 @@ public class ANDSValidate implements Validate{
 		LOGGER.debug("Validation relation Sparql query string: {}", queryString);
 		
 		//TODO see if there is an easier way to get this information
-		ExternalPoster poster = new ExternalPoster();
-		poster.setUrl(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_URI) + GlobalProps.getProperty(GlobalProps.PROP_FEDORA_RISEARCHURL));
-		poster.setUsername(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_USERNAME));
-		poster.setPassword(GlobalProps.getProperty(GlobalProps.PROP_FEDORA_PASSWORD));
-		poster.setType(MediaType.APPLICATION_FORM_URLENCODED);
-		poster.setAcceptType(MediaType.TEXT_XML);
-		MultivaluedMapImpl parameters = new MultivaluedMapImpl();
-		parameters.add("dt", "on");
-		parameters.add("format", "Sparql");
-		parameters.add("lang", "sparql");
-		parameters.add("limit", "1");
-		parameters.add("type", "tuples");
-		poster.setParameters(parameters);
+		ExternalPoster poster = (ExternalPoster) AppContext.getApplicationContext().getBean("riSearchService");
+		
+//		MultivaluedMapImpl parameters = new MultivaluedMapImpl();
+//		parameters.add("dt", "on");
+//		parameters.add("format", "Sparql");
+//		parameters.add("lang", "sparql");
+//		parameters.add("limit", "1");
+//		parameters.add("type", "tuples");
+//		poster.setParameters(parameters);
 		ClientResponse response = poster.post("query", queryString.toString());
 		Document responseDoc = response.getEntity(Document.class);
 		
@@ -467,7 +462,7 @@ public class ANDSValidate implements Validate{
 	 * @param clazz The class type to validate
 	 * @return Whether the xml is valid
 	 */
-	private boolean xmlValidate(String pid, Class clazz) {
+	private boolean xmlValidate(String pid, Class<?> clazz) {
 		boolean isValid = false;
 		try {
 			InputStream xmlStream = FedoraBroker.getDatastreamAsStream(pid, Constants.XML_SOURCE);

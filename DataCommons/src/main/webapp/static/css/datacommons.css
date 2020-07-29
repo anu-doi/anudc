@@ -1,0 +1,33 @@
+.colbox {
+	min-height: 250px;
+}
+/** This is to fix a width issue with the autocomplete in the search **/
+#itemSearch {
+	width: 206px;
+}
+ul.list-dash {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+ul.list-dash > li {
+	margin-left: 10px;
+}
+ul.list-dash > li:before {
+	content: "- ";
+	margin-left: -10px;
+}
+.link-underline a {
+	text-decoration: underline;
+}
+label.required::after {
+	content: ' *';
+	color: red;
+}
+.error {
+	color: red;
+}
+.field-error::after {
+	content: " *";
+	color: red;
+}

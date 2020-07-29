@@ -71,19 +71,24 @@
 
 							template : function(doc) {
 								var snippet = '';
-								if (doc.content.length > 0) {
-									if (doc.content.length > 300) {
-										snippet += doc.content.substring(0, 300);
-										snippet += '<span style="display:none;">'
-											+ doc.content.substring(300, 1000);
-										snippet += '</span> <a href="#" class="more">more</a>';
-									} else {
-										snippet += doc.content;
-									}
-								} else {
+								if (typeof doc.content === 'undefined') {
 									snippet += 'Binary file. Extension: ' + doc.ext + ', Mime Type: ' + doc.mime_type;
 								}
-
+								else {
+									if (doc.content.length > 0) {
+										if (doc.content.length > 300) {
+											snippet += doc.content.substring(0, 300);
+											snippet += '<span style="display:none;">'
+												+ doc.content.substring(300, 1000);
+											snippet += '</span> <a href="#" class="more">more</a>';
+										} else {
+											snippet += doc.content;
+										}
+									} else {
+										snippet += 'Binary file. Extension: ' + doc.ext + ', Mime Type: ' + doc.mime_type;
+									}
+								}
+								
 								var fileUrl = "../records/" + doc.id.replace("/", "/data/");
 								var output = '<div><h4><a href=\'' + fileUrl + '\'>' + doc.name + '.' + doc.ext  + '</a></h4>';
 								output += "<p class='text-grey'>" + snippet + '</p></div>';

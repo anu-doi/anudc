@@ -112,6 +112,9 @@ public class QuestionDAOImpl extends GenericDAOImpl<Question, Long> implements
 			else {
 				questions = filterQuestionRequirement(results, required);
 			}
+			for (Question question : questions) {
+				question.getQuestionOptions().size();
+			}
 		}
 		finally {
 			entityManager.close();

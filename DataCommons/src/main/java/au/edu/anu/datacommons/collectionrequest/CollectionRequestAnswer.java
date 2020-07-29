@@ -46,6 +46,7 @@ public class CollectionRequestAnswer
 	private CollectionRequest collectionRequest;
 	private Question question;
 	private String answer;
+	private Integer answerOrder;
 
 	public CollectionRequestAnswer()
 	{
@@ -55,6 +56,13 @@ public class CollectionRequestAnswer
 	{
 		this.question = question;
 		this.answer = answer;
+	}
+
+	public CollectionRequestAnswer(Question question, String answer, Integer order)
+	{
+		this.question = question;
+		this.answer = answer;
+		this.answerOrder = order;
 	}
 
 	@Id
@@ -105,5 +113,14 @@ public class CollectionRequestAnswer
 	public void setAnswer(String answer)
 	{
 		this.answer = answer;
+	}
+
+	@Column(name="answer_order")
+	public Integer getAnswerOrder() {
+		return answerOrder;
+	}
+
+	public void setAnswerOrder(Integer answerOrder) {
+		this.answerOrder = answerOrder;
 	}
 }

@@ -196,11 +196,21 @@ public class PublishLocation {
 	@Override
 	public int hashCode() {
 		int result = 17;
-		result = 37 * result + getId().hashCode();
-		result = 37 * result + getCode().hashCode();
-		result = 37 * result + getName().hashCode();
-		result = 37 * result + getExecute_class().hashCode();
-		result = 37 * result + getRequires().hashCode();
+		if (getId() != null) {
+			result = 37 * result + getId().hashCode();
+		}
+		if (getCode() != null) {
+			result = 37 * result + getCode().hashCode();
+		}
+		if (getName() != null) {
+			result = 37 * result + getName().hashCode();
+		}
+		if (getExecute_class() != null) {
+			result = 37 * result + getExecute_class().hashCode();
+		}
+		if (getRequires() != null) {
+			result = 37 * result + getRequires().hashCode();
+		}
 		return result;
 	}
 	

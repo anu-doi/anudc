@@ -3,7 +3,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<anu:header id="1998" title="Validate Multiple Records" description="description" subject="subject" respOfficer="Doug Moncur" respOfficerContact="mailto:doug.moncur@anu.edu.au"
+<anu:header id="1998" title="Validate Multiple Records" description="description" subject="subject" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au"
 	ssl="true">
 
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/default.css' />" />
@@ -13,7 +13,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" title="Validate Multiple Records">
+<anu:content layout="doublewide" title="Validate multiple records">
 	<c:choose>
 		<c:when test="${not empty it.groups}">
 			<c:if test="${it.errorMsg}">

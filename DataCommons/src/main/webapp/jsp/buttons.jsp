@@ -4,16 +4,21 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 
+<c:set var="fedoraObject" value="${it.fedoraObject}" />
+
 <anu:content layout="narrow">
 	<jsp:include page="status.jsp" />
-	<anu:box style="solid">
-		<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
-			<sec:authorize access="isAnonymous()">
+	<sec:authorize access="isAnonymous()">
+		<c:if test="${fn:toLowerCase(it.itemType) eq 'collection' and !fedoraObject.filesPublic}">
+			<anu:box style="solid">
 				Please login to request access to this dataset
-			</sec:authorize>
+			</anu:box>
 		</c:if>
-		<sec:authorize access="isAuthenticated()">
+	</sec:authorize>
+	<sec:authorize access="isAuthenticated()">
+		<anu:box style="solid">
 			<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
+				<c:if test="${it.fedoraObject.filesPublic == false}">
 				<sec:authorize access="hasRole('ROLE_REGISTERED')">
 					<c:url value="/rest/collreq" var="collReqLink">
 						<c:param name="pid" value="${it.fedoraObject.object_id}" />
@@ -22,25 +27,26 @@
 						<input type="button" id="collReqButton" name="colReqButton" value="Request Collection Files" onclick="window.location='${collReqLink}'" />
 					</p>
 				</sec:authorize>
+				</c:if>
 			</c:if>
 			<sec:authorize access="hasRole('ROLE_ANU_USER')">
-				<sec:accesscontrollist hasPermission="ADMINISTRATION" domainObject="${it.fedoraObject}">
+				<sec:authorize access="hasPermission(#fedoraObject,'ADMINISTRATION')">
 					<c:url value="/rest/report/single" var="reportLink">
 						<c:param name="pid" value="${it.fedoraObject.object_id}" />
 					</c:url>
 					<p>
 						<input type="button" id="reportButton" name="reportButton" value="Get Report" onclick="window.location='${reportLink}'" />
 					</p>
-				</sec:accesscontrollist>
-				<sec:accesscontrollist hasPermission="DELETE,ADMINISTRATION" domainObject="${it.fedoraObject}">
+				</sec:authorize>
+				<sec:authorize access="hasPermission(#fedoraObject,'DELETE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 					<c:url value="/rest/display/delete/${it.fedoraObject.object_id}" var="deleteLink" />
 					<p>
 						<form>
 							<button formmethod="post" formaction="${deleteLink}" onclick="return confirmDelete();">Delete</button>
 						</form>
 					</p>
-				</sec:accesscontrollist>
-				<sec:accesscontrollist hasPermission="WRITE,ADMINISTRATION" domainObject="${it.fedoraObject}">
+				</sec:authorize>
+				<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 					<c:set var="editBaseURL" value="/rest/display/edit/${it.fedoraObject.object_id}" />
 					<c:url value="${editBaseURL}" var="editLink">
 						<c:param name="tmplt" value="${param.tmplt}" />
@@ -57,9 +63,9 @@
 					<p>
 						<input type="button" id="fullEditButton" name="fullEditButton" value="Edit Whole Metadata" onclick="window.location='${fullEditLink}'" />
 					</p>
-				</sec:accesscontrollist>
+				</sec:authorize>
 				<c:if test="${fn:toLowerCase(it.itemType) eq 'collection'}">
-					<sec:accesscontrollist hasPermission="REVIEW,PUBLISH,ADMINISTRATION" domainObject="${it.fedoraObject}">
+					<sec:authorize access="hasPermission(#fedoraObject,'REVIEW') or hasPermission(#fedoraObject,'PUBLISH') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 						<c:url value="/rest/collreq/question" var="questionLink">
 							<c:param name="pid" value="${it.fedoraObject.object_id}" />
 						</c:url>
@@ -75,20 +81,20 @@
 							<input type="button" id="mintDoi" name="mintDoi" value="Mint DOI"
 								onclick="if (confirm('This will mint a Digital Object Identifier for this collection. Are you sure?')) window.location='${mintDoiLink}'" />
 						</p>
-					</sec:accesscontrollist>
+					</sec:authorize>
 				</c:if>
-				<sec:accesscontrollist hasPermission="WRITE,REVIEW,PUBLISH,ADMINISTRATION" domainObject="${it.fedoraObject}">
+				<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'REVIEW') or hasPermission(#fedoraObject,'PUBLISH') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 					<c:url value="/rest/publish/validate/${it.fedoraObject.object_id}" var="validateLink">
 					</c:url>
 					<p>
 						<input type="button" id="validateButton" name="validateButton" value="Validation Check" onclick="window.location='${validateLink}'" />
 					</p>
-				</sec:accesscontrollist>
+				</sec:authorize>
 				<jsp:include page="review_status.jsp" />
 				<jsp:include page="add_reference.jsp" />
 			</sec:authorize>
-		</sec:authorize>
-	</anu:box>
+		</anu:box>
+	</sec:authorize>
 	<jsp:include page="listrelated.jsp" />
 
 	<!-- Bag Summary Begin -->

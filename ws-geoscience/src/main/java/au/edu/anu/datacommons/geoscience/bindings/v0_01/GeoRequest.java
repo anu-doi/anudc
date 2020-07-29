@@ -53,7 +53,7 @@ public class GeoRequest implements Processable
 	{
 		try
 		{
-			constants = new PropertiesFile(new File(Config.DIR, "ws-geoscience/constants.properties"));
+			constants = new PropertiesFile(new File(Config.getAppHome(), "config/ws-geoscience/constants.properties"));
 		}
 		catch (IOException e)
 		{

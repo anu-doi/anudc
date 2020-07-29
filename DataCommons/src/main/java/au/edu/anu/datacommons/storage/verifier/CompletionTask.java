@@ -21,10 +21,6 @@
 
 package au.edu.anu.datacommons.storage.verifier;
 
-import gov.loc.repository.bagit.Manifest.Algorithm;
-import gov.loc.repository.bagit.utilities.FilenameHelper;
-import gov.loc.repository.bagit.utilities.MessageDigestHelper;
-
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -44,15 +40,15 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.datacommons.storage.DcStorage;
-import au.edu.anu.datacommons.storage.event.StorageEventListener;
-import au.edu.anu.datacommons.storage.event.StorageEventListener.EventTime;
 import au.edu.anu.datacommons.storage.event.tasks.AbstractTagFileTask;
+import au.edu.anu.datacommons.storage.event.tasks.BagCompletionTask;
 import au.edu.anu.datacommons.storage.event.tasks.MetadataTask;
 import au.edu.anu.datacommons.storage.event.tasks.PreservationTask;
 import au.edu.anu.datacommons.storage.event.tasks.PronomTask;
 import au.edu.anu.datacommons.storage.event.tasks.TimestampTask;
 import au.edu.anu.datacommons.storage.event.tasks.VirusScanTask;
+import au.edu.anu.datacommons.storage.info.FileInfo;
+import au.edu.anu.datacommons.storage.info.FileInfo.Type;
 import au.edu.anu.datacommons.storage.provider.StorageProvider;
 import au.edu.anu.datacommons.storage.tagfiles.AbstractKeyValueFile;
 import au.edu.anu.datacommons.storage.tagfiles.FileMetadataTagFile;
@@ -64,6 +60,9 @@ import au.edu.anu.datacommons.storage.tagfiles.TimestampsTagFile;
 import au.edu.anu.datacommons.storage.tagfiles.VirusScanTagFile;
 import au.edu.anu.datacommons.tasks.ThreadPoolService;
 import au.edu.anu.datacommons.util.StopWatch;
+import gov.loc.repository.bagit.Manifest.Algorithm;
+import gov.loc.repository.bagit.utilities.FilenameHelper;
+import gov.loc.repository.bagit.utilities.MessageDigestHelper;
 
 /**
  * Task class that completes a bag as per the BagIt specification. Occassionally after making changes to files in a
@@ -77,12 +76,9 @@ public class CompletionTask implements Callable<Void>{
 	private static final Logger LOGGER = LoggerFactory.getLogger(CompletionTask.class);
 
 	private String pid;
-	private Path bagDir;
-	private StorageProvider storageProvider;
+	private StorageProvider sp;
 	private TagFilesService tagFilesSvc;
-	private StorageEventListener eventListener;
 	private ThreadPoolService threadPoolSvc;
-	private DcStorage dcStorage;
 	
 	List<Class<? extends AbstractKeyValueFile>> classes;
 	
@@ -105,14 +101,11 @@ public class CompletionTask implements Callable<Void>{
 	 * @param dcStorage
 	 *            DcStorage class
 	 */
-	public CompletionTask(String pid, StorageProvider storageProvider, TagFilesService tagFilesSvc, StorageEventListener eventListener,
-			ThreadPoolService threadPoolSvc, DcStorage dcStorage) {
+	public CompletionTask(String pid, StorageProvider storageProvider, TagFilesService tagFilesSvc, ThreadPoolService threadPoolSvc) {
 		this.pid = pid;
-		this.storageProvider = storageProvider;
+		this.sp = storageProvider;
 		this.tagFilesSvc = tagFilesSvc;
-		this.eventListener = eventListener;
 		this.threadPoolSvc = threadPoolSvc;
-		this.dcStorage = dcStorage;
 		initTagFileClasses();
 	}
 	
@@ -140,47 +133,28 @@ public class CompletionTask implements Callable<Void>{
 
 	@Override
 	public Void call() throws Exception {
-//		StopWatch sw = new StopWatch();
-//		sw.start();
-//		LOGGER.info("Completing tag files for {}...", pid);
+		StopWatch sw = new StopWatch();
+		sw.start();
+		LOGGER.info("Completing tag files for {}...", pid);
 //		if (!dryRun) {
 //			eventListener.notify(EventTime.PRE, EventType.TAGFILE_UPDATE, pid, bagDir, null, null);
 //		}
-//		Set<Path> plFiles = listFilesInDir(getPayloadDir());
-//		checkArtifacts(plFiles);
-//		verifyMessageDigests(plFiles);
-//		verifyTagFiles(plFiles);
+		FileInfo dirInfo = sp.getDirInfo(pid, "", Integer.MAX_VALUE);
+		Set<FileInfo> plFiles = new HashSet<>();
+		plFiles = dirInfo.getChildrenRecursive();
+		
+		verifyMessageDigests(plFiles);
+		verifyTagFiles(plFiles);
 //		if (!dryRun) {
 //			eventListener.notify(EventTime.POST, EventType.TAGFILE_UPDATE, pid, bagDir, null, null);
 //		}
-//		sw.stop();
-//		LOGGER.info("Tag files completed for {}. Time taken {}", pid, sw.getTimeElapsedFormatted());
-//		return null;
-		
-		// TODO Implement
-		throw new UnsupportedOperationException();
+		BagCompletionTask bcTask = new BagCompletionTask(pid, sp, null, tagFilesSvc, null);
+		bcTask.call();
+		sw.stop();
+		LOGGER.info("Tag files completed for {}. Time taken {}", pid, sw.getTimeElapsedFormatted());
+		return null;
 	}
 	
-	/**
-	 * Checks for presence of following artifacts from old storage formats: <li>
-	 * <ul>
-	 * Files in metadata/ directory which previously stored file metadata. Now it is serialised to JSON and stored in
-	 * file-metadata.txt</li>
-	 * 
-	 * @param plFiles
-	 *            Payload files within the bag
-	 * @throws IOException
-	 */
-	private void checkArtifacts(Set<Path> plFiles) throws IOException {
-		Path metadataDir = bagDir.resolve("metadata/");
-		if (Files.isDirectory(metadataDir)) {
-			try {
-				FileUtils.deleteDirectory(metadataDir.toFile());
-			} catch (IOException e) {
-				LOGGER.error("Unable to delete {}: {}", metadataDir.toString(), e.getMessage());
-			}
-		}
-	}
 
 	/**
 	 * Verifies the message digests stored in a manifest match file's contents.
@@ -189,8 +163,8 @@ public class CompletionTask implements Callable<Void>{
 	 *            Payload files within the bag
 	 * @throws IOException
 	 */
-	private void verifyMessageDigests(Set<Path> plFiles) throws IOException {
-		Map<Path, Future<String>> calcMd = calcMessageDigests(plFiles);
+	private void verifyMessageDigests(Set<FileInfo> plFiles) throws IOException {
+		Map<FileInfo, Future<String>> calcMd = calcMessageDigests(plFiles);
 		compareMessageDigests(calcMd);
 	}
 
@@ -203,19 +177,21 @@ public class CompletionTask implements Callable<Void>{
 	 *         and <code>Future<String></code>
 	 * 
 	 */
-	private Map<Path, Future<String>> calcMessageDigests(Set<Path> plFiles) {
-		Map<Path, Future<String>> calcMd = new HashMap<>();
-		for (Path plFile : plFiles) {
-			final Path fPlFile = plFile;
-			Future<String> mdFuture = threadPoolSvc.submit(new Callable<String>() {
-
-				@Override
-				public String call() throws Exception {
-					return MessageDigestHelper.generateFixity(fPlFile.toFile(), Algorithm.MD5);
-				}
-				
-			});
-			calcMd.put(plFile, mdFuture);
+	private Map<FileInfo, Future<String>> calcMessageDigests(Set<FileInfo> plFiles) {
+		Map<FileInfo, Future<String>> calcMd = new HashMap<>();
+		for (FileInfo plFile : plFiles) {
+			if (plFile.getType().equals(Type.FILE)) {
+				final Path fPlFile = plFile.getPath();
+				Future<String> mdFuture = threadPoolSvc.submit(new Callable<String>() {
+	
+					@Override
+					public String call() throws Exception {
+						return MessageDigestHelper.generateFixity(fPlFile.toFile(), Algorithm.MD5);
+					}
+					
+				});
+				calcMd.put(plFile, mdFuture);
+			}
 		}
 		return calcMd;
 	}
@@ -227,9 +203,9 @@ public class CompletionTask implements Callable<Void>{
 	 *            Calculated Message Digests
 	 * @throws IOException
 	 */
-	private void compareMessageDigests(Map<Path, Future<String>> calcMd) throws IOException {
+	private void compareMessageDigests(Map<FileInfo, Future<String>> calcMd) throws IOException {
 		// Check that each payload file's calculated MD5 exists in the manifest tag file. Add it if it doesn't.
-		for (Entry<Path, Future<String>> calcMdEntry : calcMd.entrySet()) {
+		for (Entry<FileInfo, Future<String>> calcMdEntry : calcMd.entrySet()) {
 			try {
 				String dataRelPath = getDataRelPath(calcMdEntry.getKey());
 				String md5 = calcMdEntry.getValue().get();
@@ -266,22 +242,24 @@ public class CompletionTask implements Callable<Void>{
 	 *            Payload files against which tag file entries will be verified.
 	 * @throws IOException
 	 */
-	private void verifyTagFiles(Set<Path> plFiles) throws IOException {
-		for (Path plFile : plFiles) {
-			String dataRelPath = getDataRelPath(plFile);
-
-			for (Class<? extends AbstractKeyValueFile> clazz : classes) {
-				String valueInTagFile = tagFilesSvc.getEntryValue(pid, clazz, dataRelPath);
-				if (valueInTagFile == null) {
-					LOGGER.info("{}/{} doesn't contain entry for {}.", pid, clazz.getSimpleName(), dataRelPath);
-					if (!dryRun) {
-						AbstractTagFileTask task = createTask(clazz, dataRelPath.replaceFirst("^data/", ""));
-						Future<Void> future = threadPoolSvc.submit(task);
-						// Running each task one at a time so as to not fill up the task queue.
-						try {
-							future.get();
-						} catch (InterruptedException | ExecutionException e) {
-							LOGGER.error(e.getMessage(), e);
+	private void verifyTagFiles(Set<FileInfo> plFiles) throws IOException {
+		for (FileInfo plFile : plFiles) {
+			if (plFile.getType().equals(Type.FILE)) {
+				String dataRelPath = getDataRelPath(plFile);
+	
+				for (Class<? extends AbstractKeyValueFile> clazz : classes) {
+					String valueInTagFile = tagFilesSvc.getEntryValue(pid, clazz, dataRelPath);
+					if (valueInTagFile == null) {
+						LOGGER.info("{}/{} doesn't contain entry for {}.", pid, clazz.getSimpleName(), dataRelPath);
+						if (!dryRun) {
+							AbstractTagFileTask task = createTask(clazz, dataRelPath.replaceFirst("^data/", ""));
+							Future<Void> future = threadPoolSvc.submit(task);
+							// Running each task one at a time so as to not fill up the task queue.
+							try {
+								future.get();
+							} catch (InterruptedException | ExecutionException e) {
+								LOGGER.error(e.getMessage(), e);
+							}
 						}
 					}
 				}
@@ -305,15 +283,15 @@ public class CompletionTask implements Callable<Void>{
 	private AbstractTagFileTask createTask(Class<? extends AbstractKeyValueFile> clazz, String relPath) {
 		AbstractTagFileTask task = null;
 		if (clazz == FileMetadataTagFile.class) {
-			task = new MetadataTask(pid, storageProvider, relPath, tagFilesSvc);
+			task = new MetadataTask(pid, sp, relPath, tagFilesSvc);
 		} else if (clazz == PronomFormatsTagFile.class) {
-			task = new PronomTask(pid, storageProvider, relPath, tagFilesSvc);
+			task = new PronomTask(pid, sp, relPath, tagFilesSvc);
 		} else if (clazz == TimestampsTagFile.class) {
-			task = new TimestampTask(pid, storageProvider, relPath, tagFilesSvc);
+			task = new TimestampTask(pid, sp, relPath, tagFilesSvc);
 		} else if (clazz == VirusScanTagFile.class) {
-			task = new VirusScanTask(pid, storageProvider, relPath, tagFilesSvc);
+			task = new VirusScanTask(pid, sp, relPath, tagFilesSvc);
 		} else if (clazz == PreservationMapTagFile.class) {
-			task = new PreservationTask(pid, storageProvider, relPath, tagFilesSvc, null);
+			task = new PreservationTask(pid, sp, relPath, tagFilesSvc, null);
 		} else {
 			throw new IllegalArgumentException(clazz.getSimpleName());
 		}
@@ -329,11 +307,11 @@ public class CompletionTask implements Callable<Void>{
 	 *            Tag file to from extra keys from
 	 * @throws IOException
 	 */
-	private void removeExtraKeys(Set<Path> plFiles, Class<? extends AbstractKeyValueFile> clazz) throws IOException {
+	private void removeExtraKeys(Set<FileInfo> plFiles, Class<? extends AbstractKeyValueFile> clazz) throws IOException {
 		Set<String> keysForRemoval = new HashSet<>();
 		for (Entry<String, String> tagFileEntry : tagFilesSvc.getAllEntries(pid, clazz).entrySet()) {
-			Path plFile = bagDir.resolve(tagFileEntry.getKey());
-			if (!Files.isRegularFile(plFile)) {
+			String relPath = tagFileEntry.getKey().substring("data/".length());
+			if (!sp.fileExists(pid, relPath)) {
 				keysForRemoval.add(tagFileEntry.getKey());
 			}
 		}
@@ -344,44 +322,8 @@ public class CompletionTask implements Callable<Void>{
 		}
 	}
 
-	/**
-	 * Extracts a the portion of a path relative to the bag directory.
-	 * 
-	 * @param file
-	 *            Path to a file
-	 * @return Relative path as String
-	 */
-	private String getDataRelPath(Path file) {
-		return FilenameHelper.normalizePathSeparators(bagDir.relativize(file).toString());
+	private String getDataRelPath(FileInfo file) {
+		return FilenameHelper.normalizePathSeparators("data/" + file.getRelFilepath());
 	}
 
-	/**
-	 * Enumerates files in a directory and its subdirectories.
-	 * 
-	 * @param dir
-	 *            Directory to walk
-	 * @return Set of files in that directory and its subdirectories.
-	 * @throws IOException
-	 */
-	private Set<Path> listFilesInDir(Path dir) throws IOException {
-		Set<Path> files = new HashSet<Path>();
-		
-		if (Files.isDirectory(dir)) {
-			try (DirectoryStream<Path> dirItems = Files.newDirectoryStream(dir)) {
-				for (Path dirItem : dirItems) {
-					if (Files.isDirectory(dirItem)) {
-						files.addAll(listFilesInDir(dirItem));
-					} else if (Files.isRegularFile(dirItem)){
-						files.add(dirItem.toAbsolutePath());
-					}
-				}
-			}
-		}
-		
-		return files;
-	}
-	
-	private Path getPayloadDir() {
-		return bagDir.resolve("data/");
-	}
 }

@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.publish.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -113,7 +114,7 @@ public interface PublishService {
 	 * @return The search results
 	 * @throws SolrServerException
 	 */
-	public SolrSearchResult getGroupObjects(Long groupId, Integer page) throws SolrServerException;
+	public SolrSearchResult getGroupObjects(Long groupId, Integer page) throws SolrServerException, IOException;
 	
 	/**
 	 * getPublishers
@@ -180,7 +181,7 @@ public interface PublishService {
 	 * @return The search results
 	 * @throws SolrServerException
 	 */
-	public SolrSearchResult getItemInformation(String[] ids) throws SolrServerException;
+	public SolrSearchResult getItemInformation(String[] ids) throws SolrServerException, IOException;
 
 	/**
 	 * publish

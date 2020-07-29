@@ -131,7 +131,7 @@ public class Description {
 	 * @return the value
 	 */
 	@NotNull(message="The description value may not be null")
-	@Size(max=4000, message="The description can only be a maximum of 4000 characters")
+//	@Size(max=4000, message="The description can only be a maximum of 4000 characters")
 	@XmlValue
 	public String getValue() {
 		return value;

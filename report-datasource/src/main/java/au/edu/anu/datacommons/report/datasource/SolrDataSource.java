@@ -86,8 +86,8 @@ public class SolrDataSource implements JRDataSource {
 		SolrDocument solrDocument = solrDocumentList.get(index);
 		Object object = solrDocument.get(jrField.getName());
 		if (object instanceof Collection) {
-			Collection collection = (Collection) object;
-			Iterator it = collection.iterator();
+			Collection<?> collection = (Collection<?>) object;
+			Iterator<?> it = collection.iterator();
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; it.hasNext(); i++) {
 				if (i > 0) {

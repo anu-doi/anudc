@@ -16,7 +16,7 @@
 						<table>
 							<xsl:for-each select="template/item">
 								<xsl:variable name="name" select="@name" />
-								<xsl:if test="$mData/data/*[name() = $name]">
+								<xsl:if test="$mData/data/*[name() = $name] and $name != 'uid'">
 									<tr>
 										<th valign="top"><xsl:value-of select="@label" /></th>
 										<td>
@@ -38,7 +38,11 @@
 												</xsl:when>
 												<xsl:otherwise>
 													<xsl:for-each select="$mData/data/*[name() = $name]">
-														<xsl:value-of disable-output-escaping="yes" select="options:replaceNewlineWithBr(text())" /><br />
+														<xsl:variable name="textvalue" select="text()"/>
+														<xsl:choose>
+															<xsl:when test="$name = 'websiteAddress'"><a href="{$textvalue}"><xsl:value-of disable-output-escaping="yes" select="$textvalue" /></a></xsl:when>
+															<xsl:otherwise><xsl:value-of disable-output-escaping="yes" select="options:replaceNewlineWithBr(text())" /></xsl:otherwise>
+														</xsl:choose><br />
 													</xsl:for-each>
 												</xsl:otherwise>
 											</xsl:choose>
@@ -46,7 +50,7 @@
 									</tr>
 								</xsl:if>
 								<xsl:if test="$modifiedData != ''">
-									<xsl:if test="$mModifiedData/data/*[name() = $name]">
+									<xsl:if test="$mModifiedData/data/*[name() = $name] and $name != 'uid'">
 										<tr>			
 											<th valign="top"><xsl:value-of select="@label" /> Modified</th>
 											<td>
@@ -68,7 +72,11 @@
 													</xsl:when>
 													<xsl:otherwise>
 														<xsl:for-each select="$mModifiedData/data/*[name() = $name]">
-															<xsl:value-of disable-output-escaping="yes" select="options:replaceNewlineWithBr(text())" /><br />
+															<xsl:variable name="textvalue" select="text()"/>
+															<xsl:choose>
+																<xsl:when test="$name = 'websiteAddress'"><a href="{$textvalue}"><xsl:value-of disable-output-escaping="yes" select="$textvalue" /></a></xsl:when>
+																<xsl:otherwise><xsl:value-of disable-output-escaping="yes" select="options:replaceNewlineWithBr(text())" /></xsl:otherwise>
+															</xsl:choose><br />
 														</xsl:for-each>
 													</xsl:otherwise>
 												</xsl:choose>
@@ -114,7 +122,11 @@
 					<xsl:for-each select="$table/column">
 						<td>
 							<xsl:variable name="colname" select="@name" />
-							<xsl:value-of disable-output-escaping="yes" select="$tabledata/*[name() = $colname]/text()" />
+							<xsl:variable name="colvalue" select="$tabledata/*[name() = $colname]/text()"/>
+							<xsl:choose>
+								<xsl:when test="$colname = 'relatedWebURL'"><a href="{$colvalue}"><xsl:value-of disable-output-escaping="yes" select="$colvalue" /></a></xsl:when>
+								<xsl:otherwise><xsl:value-of disable-output-escaping="yes" select="$colvalue" /></xsl:otherwise>
+							</xsl:choose>
 						</td>
 					</xsl:for-each>
 				</tr>
@@ -132,8 +144,12 @@
 				<xsl:for-each select="$table/column">
 					<strong class="text-uni"><xsl:value-of select="@label" /></strong><br />
 					<xsl:variable name="colname" select="@name" />
-					<xsl:value-of disable-output-escaping="yes" select="$tabledata/*[name() = $colname]/text()" />
-					<br />
+					<xsl:variable name="colvalue" select="$tabledata/*[name() = $colname]/text()"/>
+					<xsl:choose>
+						<xsl:when test="$colname = 'relatedWebURL'"><a href="{$colvalue}"><xsl:value-of disable-output-escaping="yes" select="$colvalue" /></a></xsl:when>
+						<xsl:otherwise><xsl:value-of disable-output-escaping="yes" select="$colvalue" /></xsl:otherwise>
+					</xsl:choose>
+					<br/>
 				</xsl:for-each>
 			</p><br />
 		</xsl:for-each>

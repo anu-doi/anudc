@@ -4,14 +4,14 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<form name="frmBasicSearch" action="<c:url value='/rest/search/advanced'></c:url>" method="get">
-	<p>
-		<fmt:bundle basename='global'>
-			<fmt:message var="searchItemsPerPage" key='search.resultsPerPage' />
-		</fmt:bundle>
-		<!-- Display a dropdown when a user's logged in allowing one to select filters such as Published, Personal, Team. Does not display for Guests. -->
-		<p>
-			Search:
+<form name="frmBasicSearch" class="anuform" action="<c:url value='/rest/search/advanced'></c:url>" method="get">
+	<fmt:bundle basename='global'>
+		<fmt:message var="searchItemsPerPage" key='search.resultsPerPage' />
+	</fmt:bundle>
+	<div class="clearfix">
+	<fieldset style="padding-right: 3%;">
+		<legend>Search ANU Data Commons</legend>
+		<div class="marginbottom margintop">Search
 			<c:if test="${not empty pageContext.request.remoteUser}">
 				<select name="filter" id="filter">
 					<option value="all" <c:if test="${param.filter == 'all'}">selected="selected" </c:if>>All of ANU Data Commons</option>
@@ -19,18 +19,12 @@
 					<option value="team" <c:if test="${param.filter == 'team'}">selected="selected" </c:if>>Team</option>
 				</select>
 			</c:if>
-		</p>
-		<p>
-		<input type="button" name="add-term" id="add-term" value="Add Field" onClick="addTableRow('searchTable')" />
-		</p>
+		</div>
 		<div id="search-terms">
 			<c:if test="${empty param['search-val']}">
-				<table id="searchTable" class="noborder bg-uni10">
+				<table id="searchTable" class="noborder">
 					<tr>
-						<th>Search field:</th>
-						<th>Search for:</th>
-					</tr>
-					<tr>
+						<td>Search field</td>
 						<td>
 							<select	name="value-type">
 								<option value="all">All</option>
@@ -45,20 +39,17 @@
 							</select>
 						</td>
 						<td>
-							<input type="text" name="search-val" />
+							<input type="text" size="45" name="search-val" />
 						</td>
 					</tr>
 				</table>
 			</c:if>
 			<c:if test="${not empty param['search-val']}">
-				<table id="searchTable" class="noborder bg-uni10">
-					<tr>
-						<th>Search field:</th>
-						<th>Search for:</th>
-					</tr>
+				<table id="searchTable" class="noborder">
 					<c:forEach items="${paramValues['search-val']}" var="searchVal" varStatus="searchStatus">
 						<c:if test="${not empty searchVal}">
 							<tr>
+								<td>Search field</td>
 								<td>
 									<select	name="value-type">
 										<option value="all">All</option>
@@ -73,7 +64,7 @@
 									</select>
 								</td>
 								<td>
-									<input type="text" name="search-val" value="${searchVal}" />
+									<input type="text" size="45" name="search-val" value="${searchVal}" />
 								</td>
 							</tr>
 						</c:if>
@@ -81,7 +72,10 @@
 				</table>
 			</c:if>
 		</div>
-		<input type="hidden" name="limit" value="<c:out value='${searchItemsPerPage}' />" />
-		<input type="submit" value="Search" />
-	</p>
+		<input type="button" name="add-term" id="add-term" value="Add Field" onClick="addTableRow('searchTable')" />
+	</fieldset>
+	<input type="hidden" name="limit" value="<c:out value='${searchItemsPerPage}' />" />
+	<input type="submit" class="right btn-medium btn-uni-grad" value="Search" />
+	<input class="right btn-uni-grad btn-medium marginright" type="button" onclick='location.href="<c:url value="/rest/search/advanced"/>"' value="Reset"/>
+	</div>
 </form>

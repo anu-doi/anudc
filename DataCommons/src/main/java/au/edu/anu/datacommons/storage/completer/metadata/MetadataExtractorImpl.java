@@ -33,6 +33,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.DefaultParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.slf4j.Logger;
@@ -73,7 +74,7 @@ public class MetadataExtractorImpl implements MetadataExtractor {
 	private void parse(InputStream dataStream) throws IOException, SAXException, TikaException {
 		try {
 			ContentHandler textHandler = new DefaultHandler();
-			Parser parser = new AutoDetectParser(new AutoDetectParser(), new FitsParser());
+			Parser parser = new AutoDetectParser(new DefaultParser(), new FitsParser());
 			ParseContext parseContext = new ParseContext();
 			parser.parse(dataStream, textHandler, this.metadata, parseContext);
 			LOGGER.trace("Parsing using Tika successful. {} metadata elements extracted.", metadata.size());

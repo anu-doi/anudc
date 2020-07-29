@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.services;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -37,8 +38,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
@@ -48,14 +49,16 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
+import com.sun.jersey.api.view.Viewable;
+
 import au.edu.anu.datacommons.admin.AdminService;
 import au.edu.anu.datacommons.data.db.model.Domains;
 import au.edu.anu.datacommons.data.db.model.Groups;
+import au.edu.anu.datacommons.data.db.model.Template;
 import au.edu.anu.datacommons.data.solr.SolrManager;
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
 import au.edu.anu.datacommons.exception.DataCommonsException;
-
-import com.sun.jersey.api.view.Viewable;
+import au.edu.anu.datacommons.security.service.TemplateService;
 
 /**
  * AdminResource
@@ -83,6 +86,27 @@ public class AdminResource {
 	@Resource(name = "adminServiceImpl")
 	private AdminService adminService;
 	
+	@Resource
+	TemplateService templateService;
+	
+	@GET
+	@Produces(MediaType.TEXT_HTML)
+	public Response getMainAdminPage() {
+		Map<String, Object> values = new HashMap<String, Object>();
+		List<Template> templates = templateService.getTemplates();
+		values.put("templates", templates);
+//		values.put("tmplt", template);
+//		values.put("item", fedoraObject);
+//		values.put("data", itemData);
+//		values.put("rdi", rdi);
+//		values.put("links", links);
+//		values.put("options", new SelectOptions());
+//		values.put("groups", new GroupOptions());
+		
+		Viewable viewable = new Viewable("/admin/admin-main.jsp", values);
+		return Response.ok(viewable).build();
+	}
+	
 	/**
 	 * listAllANUPublished
 	 *
@@ -103,7 +127,7 @@ public class AdminResource {
 		int numResults = 1000;
 		
 		Response response = null;
-		SolrServer solrServer = SolrManager.getInstance().getSolrServer();
+		SolrClient solrClient = SolrManager.getInstance().getSolrClient();
 		
 		SolrQuery solrQuery = new SolrQuery();
 		solrQuery.setQuery("published.all:*");
@@ -114,13 +138,13 @@ public class AdminResource {
 		
 		try {
 			SolrDocumentList documentList = new SolrDocumentList();
-			QueryResponse queryResponse = solrServer.query(solrQuery);
+			QueryResponse queryResponse = solrClient.query(solrQuery);
 			SolrDocumentList resultList = queryResponse.getResults();
 			long numFound = resultList.getNumFound();
 			documentList.addAll(resultList);
 			for (int i = numResults; i < numFound; i = i + numResults) {
 				solrQuery.setStart(i);
-				queryResponse = solrServer.query(solrQuery);
+				queryResponse = solrClient.query(solrQuery);
 				resultList = queryResponse.getResults();
 				documentList.addAll(resultList);
 			}
@@ -130,7 +154,7 @@ public class AdminResource {
 			model.put("resultSet", solrSearchResult);
 			response = Response.ok(new Viewable("/sitemap.jsp", model)).build();
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException | IOException e) {
 			LOGGER.error("Error retrieving results for page", e);
 			throw new DataCommonsException(502, "Error retrieving results for page");
 		}
@@ -170,8 +194,9 @@ public class AdminResource {
 	@Path("/domains")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public Response createDomain(@FormParam("domainName") String domainName) {
-		adminService.createDomain(domainName);
+	public Response createDomain(@FormParam("domainName") String domainName, @FormParam("domainId") Long domainId) {
+		LOGGER.debug("In domain post. Domain Id: {}, Domain Name: {}", domainId, domainName);
+		adminService.createOrEditDomain(domainId, domainName);
 		UriBuilder builder = UriBuilder.fromResource(this.getClass()).path("domains");
 		return Response.seeOther(builder.build()).build();
 	}
@@ -217,9 +242,10 @@ public class AdminResource {
 	@Path("/groups")
 	@Produces(MediaType.TEXT_HTML)
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public Response createDomain(@FormParam("groupName") String groupName, @FormParam("domain") Long domainId) {
-		LOGGER.info("In group post. Group Name: {}, Domain Id: {}", groupName, domainId);
-		adminService.createGroup(groupName, domainId);
+	public Response createGroup(@FormParam("groupName") String groupName, @FormParam("domain") Long domainId
+			, @FormParam("groupId") Long groupId) {
+		LOGGER.debug("In group post. Group Id: {}, Group Name: {}, Domain Id: {}", groupId, groupName, domainId);
+		adminService.createOrEditGroup(groupId, groupName, domainId);
 		UriBuilder builder = UriBuilder.fromResource(this.getClass()).path("groups");
 		return Response.seeOther(builder.build()).build();
 	}

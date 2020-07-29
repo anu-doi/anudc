@@ -20,6 +20,7 @@
  ******************************************************************************/
 package au.edu.anu.datacommons.embargo;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
 
@@ -30,14 +31,14 @@ import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ibm.icu.util.Calendar;
+
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAO;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.solr.dao.SolrSearchDAO;
 import au.edu.anu.datacommons.data.solr.dao.SolrSearchDAOImpl;
 import au.edu.anu.datacommons.data.solr.model.SolrSearchResult;
-
-import com.ibm.icu.util.Calendar;
 
 /**
  * EmbargoLifter
@@ -92,7 +93,7 @@ public class EmbargoLifter implements Runnable {
 				}
 			}
 		}
-		catch (SolrServerException e) {
+		catch (SolrServerException | IOException e) {
 			
 		}
 	}

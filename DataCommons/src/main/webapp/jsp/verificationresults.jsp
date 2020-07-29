@@ -5,8 +5,8 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 
 <anu:header id="1998" title="${it.results.bagId}"
-	description="DESCRIPTION" subject="SUBJECT" respOfficer="Doug Moncur"
-	respOfficerContact="doug.moncur@anu.edu.au" ssl="true">
+	description="DESCRIPTION" subject="SUBJECT" respOfficer="ANU Library" 
+	respOfficerContact="mailto:repository.admin@anu.edu.au" ssl="true">
 
 	<script type="text/javascript" src="<c:url value='/js/verificationresults.js' />"></script>
 	<script type="text/javascript">

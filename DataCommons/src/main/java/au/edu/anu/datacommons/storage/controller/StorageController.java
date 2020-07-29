@@ -30,6 +30,7 @@ import au.edu.anu.datacommons.storage.datafile.StagedDataFile;
 import au.edu.anu.datacommons.storage.info.FileInfo;
 import au.edu.anu.datacommons.storage.info.RecordDataSummary;
 import au.edu.anu.datacommons.storage.provider.StorageException;
+import au.edu.anu.datacommons.storage.verifier.VerificationResults;
 
 /**
  * @author Rahul Khanna
@@ -52,6 +53,8 @@ public interface StorageController {
 	boolean dirExists(String pid, String filepath) throws StorageException;
 
 	FileInfo getFileInfo(String pid, String filepath) throws IOException, StorageException;
+	
+	FileInfo getFileInfo(String pid, String filepath, int depth) throws IOException, StorageException;
 
 	RecordDataSummary getRecordDataSummary(String pid) throws IOException, StorageException;
 
@@ -65,4 +68,7 @@ public interface StorageController {
 
 	void deindexFiles(String pid) throws IOException, StorageException;
 
+	VerificationResults verifyIntegrity(String pid) throws IOException, StorageException;
+	
+	void fixIntegrity(String pid) throws IOException, StorageException;
 }

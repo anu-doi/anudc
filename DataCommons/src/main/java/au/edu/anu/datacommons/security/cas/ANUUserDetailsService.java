@@ -29,7 +29,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.userdetails.jdbc.JdbcDaoImpl;
@@ -87,6 +87,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 */
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		LOGGER.info("In loadUserByUsername");
 		username = username.toLowerCase();
 		
 		Set<GrantedAuthority> dbAuthsSet = new HashSet<GrantedAuthority>();
@@ -108,7 +109,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 		
 			throw new UsernameNotFoundException(
 					messages.getMessage("JdbcDaoImpl.noAuthority",
-							new Object[] {username}, "User {0} has no GrantedAuthority"), username);
+							new Object[] {username}, "User {0} has no GrantedAuthority"));
 		}
 		
 		return createUserDetails(username, null, dbAuths);
@@ -134,13 +135,11 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 * @return The custom user
 	 */
 	protected UserDetails createUserDetails(String username, UserDetails userDetails, List<GrantedAuthority> authorities) {
+		LOGGER.info("In createUserDetails");
 		UsersDAO usersDAO = new UsersDAOImpl();
 		Users users = usersDAO.getUserByName(username);
 		CustomUser user = null;
-		if (users != null) {
-			LOGGER.info("displayName: {})", users.getDisplayName());
-		}
-		else {
+		if (users == null) {
 			Users newUser = new Users();
 			newUser.setUsername(username);
 			newUser.setPassword(username);
@@ -148,9 +147,11 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 			newUser.setUser_type(new Long(1));
 			usersDAO.create(newUser);
 			users = usersDAO.getSingleById(newUser.getId());
-			LOGGER.info("New User displayName: {})", users.getDisplayName());
 		}
 		user = new CustomUser(users.getUsername(), users.getPassword(), true, true, true, true, authorities, users.getId(), users.getDisplayName());
+		
+		LOGGER.info("In createUserDetails returning display name: {}", user.getDisplayName());
+		
 		return user;
 	}
 
@@ -167,7 +168,7 @@ public class ANUUserDetailsService extends JdbcDaoImpl {
 	 * @param authorities A list of the users authorities
 	 */
 	protected void addCustomAuthorities(String username, List<GrantedAuthority> authorities) {
-		authorities.add(new GrantedAuthorityImpl("ROLE_ANU_USER"));
-		authorities.add(new GrantedAuthorityImpl("ROLE_REGISTERED"));
+		authorities.add(new SimpleGrantedAuthority("ROLE_ANU_USER"));
+		authorities.add(new SimpleGrantedAuthority("ROLE_REGISTERED"));
 	}
 }

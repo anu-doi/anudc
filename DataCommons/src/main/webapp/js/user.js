@@ -62,9 +62,11 @@ jQuery("#findPeople").live('click', function() {
 		url: "/DataCommons/rest/user/find",
 		dataType: "json",
 		data: {
+			registered: jQuery("input[name='registered']:checked").val(),
 			firstname: jQuery("#firstname").val(),
 			lastname: jQuery("#lastname").val(),
-			uniId: jQuery("#uniId").val()
+			uniId: jQuery("#uniId").val(),
+			email: jQuery("#email").val()
 		},
 		success: function(data) {
 			jQuery("#peopleList").text('');
@@ -79,7 +81,7 @@ jQuery("#findPeople").live('click', function() {
 			// Process the returned data
 			jQuery.map(data, function(item, i) {
 				var row = jQuery("<tr></tr>");
-				var radiobutton = jQuery("<input name='username' type='radio' />").attr("value",item.uniId);
+				var radiobutton = jQuery("<input name='username' type='radio' />").attr("value",item.username);
 				row.append(jQuery("<td></td>").html(radiobutton));
 				row.append(jQuery("<td></td>").text(item.uniId));
 				row.append(jQuery("<td></td>").text(item.displayName));
@@ -89,6 +91,22 @@ jQuery("#findPeople").live('click', function() {
 			jQuery("#peopleList").append(table);
 		}
 	});
+});
+
+/**
+ * 
+ * @returns
+ */
+jQuery("input[name='registered']").live('click', function() {
+	var id = jQuery(this).attr('id');
+	console.log(id);
+	if (id == "registered-true") {
+		jQuery("#uniId").val('');
+		jQuery("#uniId").attr('readonly', true);
+	}
+	else {
+		jQuery("#uniId").removeAttr('readonly');
+	}
 });
 
 /**

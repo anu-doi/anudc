@@ -97,8 +97,8 @@ public class RequiredPropertyValidator implements ConstraintValidator<RequiredPr
 		boolean hasValue = false;
 		
 		if (value instanceof Collection) {
-			Collection collection = (Collection) value;
-			Iterator it = collection.iterator();
+			Collection<?> collection = (Collection<?>) value;
+			Iterator<?> it = collection.iterator();
 			while (!hasValue && it.hasNext()) {
 				Object object = it.next();
 				try {
