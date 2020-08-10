@@ -1,8 +1,8 @@
 <#macro listvalues attr values>
 	<#list values as element>
 		<#if attr.selectCode?has_content>
-			<#assign optionValue=options(attr.selectCode, element.value)>
-			${optionValue.description}<#if element?has_next>; </#if>
+			<#assign optionValue=options(attr.selectCode, element.value)!"">
+			<#if optionValue?has_content>${optionValue.description}<#else>${element.value}</#if><#if element?has_next>; </#if>
 		<#elseif attr.fieldType.name=='Table'>
 			<div class="border-bottom border-primary">
 			<#list attr.columns as column>
