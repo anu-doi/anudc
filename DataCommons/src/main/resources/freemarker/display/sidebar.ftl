@@ -2,8 +2,9 @@
 <div class="col-sm-3">
 <#if tmplt.entityType.name == 'collection'>
 <div class="bg-uni25 border-top border-bottom border-primary mb-3 link-underline">
-	<#assign canEdit=security.checkPermission(2)>
-	<#if canEdit>
+	<#assign canView=security.checkPermission(1)>
+	<#assign filesPublic=item.isFilesPublic()>
+	<#if canView || item.filesPublic>
 	<p><a href="/DataCommons/rest/records/${item.object_id}/data/" class="text-link">Download data files</a></p>
 	<#else>
 	<p><a href="/DataCommons/rest/collreq?pid=${item.object_id}" class="text-link">Request data files</a></p>
