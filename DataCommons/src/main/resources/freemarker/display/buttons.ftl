@@ -9,7 +9,7 @@
 	<#if canDelete>
 	<button class="btn btn-primary mb-1" formmethod="post" formaction="/DataCommons/rest/display/delete/${item.object_id}" onclick="return confirmDelete();">Delete</button>
 	</#if>
-	<#if canPublish>
+	<#if canPublish && tmplt.entityType.name == 'collection'>
 	<input class="btn btn-primary mb-1" id="mintDoi" type="button" name="mintDoi" value="Mint DOI" onclick="if (confirm('This will mint a Digital Object Identifier for this collection. Are you sure?')) window.location='/DataCommons/rest/publish/mintdoi/${item.object_id}'" />
 	</#if>
 	<#if canEdit>
