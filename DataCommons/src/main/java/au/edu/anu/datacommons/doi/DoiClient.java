@@ -29,11 +29,16 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -45,11 +50,6 @@ import org.datacite.schema.kernel_4.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.edu.anu.datacommons.config.Config;
-import au.edu.anu.datacommons.config.PropertiesFile;
-import au.edu.anu.datacommons.doi.logging.ExtWebResourceLog;
-import au.edu.anu.datacommons.doi.logging.ExtWebResourceLogDao;
-
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -58,6 +58,11 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.client.apache.ApacheHttpClient;
 import com.sun.jersey.client.apache.config.DefaultApacheHttpClientConfig;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
+
+import au.edu.anu.datacommons.config.Config;
+import au.edu.anu.datacommons.config.PropertiesFile;
+import au.edu.anu.datacommons.doi.logging.ExtWebResourceLog;
+import au.edu.anu.datacommons.doi.logging.ExtWebResourceLogDao;
 
 /**
  * A Client that sends Digital Object Identifier (DOI) requests to a relevant service. Refer to <a
@@ -167,25 +172,20 @@ public class DoiClient {
 			throw new DoiException("Metadata for DOI not provided.");
 
 		ExtWebResourceLogDao logDao = null;
+		String prefix_doi = null;
 		try {
 			String url = generateLandingUri(pid).toString();
 			String xml = getMetadataAsStr(metadata);
-			
+			xml = xml.replace("<creators>", "<identifier identifierType=\"DOI\"></identifier><creators>"); //todo - find a better way? just string manipulation for now
 			LOGGER.trace("Minting url={}, xml={}.", new Object[] { url, xml });
 
 			// Build URI.
 			UriBuilder doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
-					"mint." + this.respFmt.toString() + "/");
-			doiUriBuilder = appendAppId(doiUriBuilder);
+					"metadata").path(doiConfig.getDatacitePrefix());
 			doiUriBuilder = appendDebug(doiUriBuilder);
-			doiUriBuilder = doiUriBuilder.queryParam("url", URLEncoder.encode(url, "UTF-8"));
 			URI doiUri = doiUriBuilder.build();
-
 			LOGGER.debug("Minting DOI using {}", doiUri.toString());
 			WebResource mintDoiResource = client.resource(doiUri);
-			MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
-			formData.add("xml", xml);
-
 			logDao = new ExtWebResourceLogDao();
 			ExtWebResourceLog extResLog = null;
 			try {
@@ -195,11 +195,63 @@ public class DoiClient {
 				LOGGER.warn("Unable to create log record to external service.");
 			}
 
-			Builder doiSvcReqBuilder = mintDoiResource.accept(getMediaTypeForResp());
-			doiSvcReqBuilder = doiSvcReqBuilder.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE);
-			doiSvcReqBuilder = appendSharedSecret(doiSvcReqBuilder);
-			ClientResponse resp = doiSvcReqBuilder.post(ClientResponse.class, formData);
-			processResponse(resp);
+			Builder doiSvcReqBuilder = mintDoiResource.accept(MediaType.TEXT_XML_TYPE);
+			doiSvcReqBuilder = doiSvcReqBuilder.type(MediaType.APPLICATION_XML_TYPE);
+			doiSvcReqBuilder = appendDataCiteSAuth(doiSvcReqBuilder);
+			ClientResponse response = doiSvcReqBuilder.accept(getMediaTypeForResp()).put(ClientResponse.class, xml);
+//			processResponse(response);
+			if(response.getStatusInfo().getStatusCode() == javax.ws.rs.core.Response.Status.CREATED.getStatusCode())
+			{
+			//Auto-generated DOI name successfully and registered metadata successfully 
+			//Next step is to register return url
+			LOGGER.info("Created Doi");
+			
+			ArrayList<String> headerLocation= new ArrayList<String>(response.getHeaders().get("Location"));
+			prefix_doi = headerLocation.get(0);
+			prefix_doi = prefix_doi.substring(prefix_doi.indexOf("metadata") + 9 , prefix_doi.length());
+			MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
+			formData.add("doi", prefix_doi);
+			formData.add("url", url);
+			
+			doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
+					"doi").path(prefix_doi);
+			doiUri = doiUriBuilder.build();
+			
+			LOGGER.debug("Registering Minted DOI using {}", doiUri.toString());
+			mintDoiResource = client.resource(doiUri);
+			Builder registerDoiSvcReqBuilder = mintDoiResource.accept(MediaType.TEXT_HTML_TYPE);
+			registerDoiSvcReqBuilder = registerDoiSvcReqBuilder.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE); 
+			registerDoiSvcReqBuilder = appendDataCiteSAuth(registerDoiSvcReqBuilder);
+			
+			response = registerDoiSvcReqBuilder.put(ClientResponse.class, formData);
+			
+			//put doi in a findable state
+			doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
+					"metadata").path(prefix_doi);
+			doiUri = doiUriBuilder.build();
+			LOGGER.debug("Findable Minted DOI using {}", doiUri.toString());
+			mintDoiResource = client.resource(doiUri);
+			Builder findableDoiSvcReqBuilder = mintDoiResource.accept(MediaType.TEXT_HTML_TYPE);
+			findableDoiSvcReqBuilder = findableDoiSvcReqBuilder.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE); 
+			findableDoiSvcReqBuilder = appendDataCiteSAuth(findableDoiSvcReqBuilder);
+			
+//			The MDS API doesn't directly understand state, but you can change a DOI from Findable to Registered by using the delete DOI API call.
+			//	https://support.datacite.org/docs/doi-states
+//			response = findableDoiSvcReqBuilder.delete(ClientResponse.class);// not needed
+			
+			//get doi url 
+			doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
+					"doi").path(prefix_doi);
+			doiUri = doiUriBuilder.build();
+			LOGGER.debug("Registering Minted DOI using {}", doiUri.toString());
+			mintDoiResource = client.resource(doiUri);
+			Builder getDoiSvcReqBuilder = mintDoiResource.accept(MediaType.TEXT_HTML_TYPE);
+			getDoiSvcReqBuilder = getDoiSvcReqBuilder.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE); 
+			getDoiSvcReqBuilder = appendDataCiteSAuth(getDoiSvcReqBuilder);
+			
+			response = getDoiSvcReqBuilder.get(ClientResponse.class);
+			}
+			processDataCiteResponse(response, prefix_doi);
 
 			try {
 				updateExtWebResourceLog(extResLog, this.doiResponseAsString);
@@ -208,7 +260,8 @@ public class DoiClient {
 				LOGGER.warn("Unable to update log record to external service.");
 			}
 
-			if (!doiResponse.getType().equalsIgnoreCase("success"))
+//			if (!doiResponse.getType().equalsIgnoreCase("success"))
+			if(doiResponseAsString.isEmpty())
 				throw new DoiException("DOI Service request failed. Server response: " + doiResponseAsString);
 		} catch (DoiException e) {
 			throw e;
@@ -271,8 +324,7 @@ public class DoiClient {
 			} else
 				resp = updateDoiResource.accept(getMediaTypeForResp()).get(ClientResponse.class);
 			processResponse(resp);
-			if (!doiResponse.getType().equalsIgnoreCase("success"))
-				throw new DoiException("DOI Service request failed. Server response: " + doiResponseAsString);
+			
 		} catch (Exception e) {
 			throw new DoiException("Unable to update DOI", e);
 		} finally {
@@ -358,8 +410,8 @@ public class DoiClient {
 
 			LOGGER.debug("Activating DOI using {}", doiUri.toString());
 			WebResource activateDoiResource = client.resource(doiUri);
-			ClientResponse resp = activateDoiResource.accept(getMediaTypeForResp()).get(ClientResponse.class);
-			processResponse(resp);
+			ClientResponse response = activateDoiResource.accept(getMediaTypeForResp()).get(ClientResponse.class);
+			processResponse(response);
 		} catch (Exception e) {
 			throw new DoiException("Unable to activate DOI", e);
 		} finally {
@@ -432,7 +484,7 @@ public class DoiClient {
 
 	private Builder appendSharedSecret(Builder doiSvcReqBuilder) {
 		if (doiConfig.getSharedSecret() != null && doiConfig.getSharedSecret().length() > 0) {
-
+ 
 			String appId = doiConfig.getAppId();
 			if (doiConfig.useTestPrefix()) {
 				appId = String.format("TEST%s", appId);
@@ -445,6 +497,15 @@ public class DoiClient {
 		return doiSvcReqBuilder;
 	}
 	
+	private Builder appendDataCiteSAuth(Builder doiSvcReqBuilder) {
+		if (doiConfig.getDataciteUsername() != null && doiConfig.getDataciteUsername().length() > 0) {
+			String authValue = String.format("%s:%s", doiConfig.getDataciteUsername(), doiConfig.getSharedSecret());
+			authValue = Base64.getEncoder().encodeToString(authValue.getBytes(StandardCharsets.UTF_8));
+			authValue = String.format("Basic %s", authValue);
+			doiSvcReqBuilder = doiSvcReqBuilder.header("Authorization", authValue);
+		}
+		return doiSvcReqBuilder;
+	}
 
 	/**
 	 * Appends a DOI to a URIBuilder object as a query parameter.
@@ -500,7 +561,8 @@ public class DoiClient {
 	private void processResponse(ClientResponse resp) {
 		this.doiResponseAsString = resp.getEntity(String.class);
 		LOGGER.trace("Server response: {}", doiResponseAsString);
-		if (this.getRespFmt() == ResponseFormat.XML) {
+		System.out.println(this.getRespFmt());
+//		if (this.getRespFmt() == ResponseFormat.XML) {
 			try {
 				this.doiResponse = (DoiResponse) doiResponseUnmarshaller.unmarshal(new StreamSource(new StringReader(
 						this.doiResponseAsString.substring(this.doiResponseAsString.indexOf("<?xml")))));
@@ -510,10 +572,26 @@ public class DoiClient {
 				LOGGER.warn(e.getMessage(), e);
 				this.doiResponse = null;
 			}
-		}
+//		}
 		LOGGER.debug("Response from server: ({}) {}", resp.getStatus(), this.doiResponseAsString);
 	}
 
+	private void processDataCiteResponse(ClientResponse resp, String prefix_doi) throws DoiException {
+//		this.doiResponseAsString = resp.getEntity(String.class);
+		LOGGER.trace("Server response: {}", doiResponseAsString);
+			try {
+				if (!(resp.getStatusInfo().getStatusCode() != Response.Status.ACCEPTED.getStatusCode() 
+						|| resp.getStatusInfo().getStatusCode() != Response.Status.CREATED.getStatusCode()
+						|| resp.getStatusInfo().getStatusCode() != Response.Status.OK.getStatusCode()))
+				{
+					throw new DoiException("DOI Service request failed. Server response: " + doiResponseAsString);
+				}
+				this.doiResponseAsString = prefix_doi;
+			} catch (StringIndexOutOfBoundsException e) {
+				this.doiResponse = null;
+			} 
+		LOGGER.debug("Response from server: ({}) {}", resp.getStatus(), this.doiResponseAsString);	
+	}
 	/**
 	 * Marshals a DataCite Resource object containing metadata about a record into a String.
 	 * 
