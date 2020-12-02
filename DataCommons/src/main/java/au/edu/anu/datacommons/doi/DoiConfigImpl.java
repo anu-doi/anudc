@@ -117,4 +117,19 @@ public class DoiConfigImpl implements DoiConfig {
 	public String getSharedSecret() {
 		return props.getProperty("doi.sharedSecret");
 	}
+
+	@Override
+	public String getDataciteUsername() {
+		return props.getProperty("doi.username");
+	}
+
+	@Override
+	public String getDatacitePassword() {
+		return props.getProperty("doi.password");
+	}
+
+	@Override
+	public String getDatacitePrefix() {
+		return props.getProperty("doi.prefix");
+	}
 }

@@ -107,4 +107,9 @@ public interface DoiConfig {
 	 * @return Shared Secret as String
 	 */
 	public String getSharedSecret();
+	
+	String getDataciteUsername();
+	String getDatacitePassword();
+	String getDatacitePrefix();
+	
 }

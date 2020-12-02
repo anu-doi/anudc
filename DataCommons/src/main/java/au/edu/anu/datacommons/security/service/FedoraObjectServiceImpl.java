@@ -1025,7 +1025,10 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			DoiClient doiClient = new DoiClient();
 			doiClient.mint(pid, doiResource);
 			
-			String mintedDoi = doiClient.getDoiResponse().getDoi();
+//			String mintedDoi = doiClient.getDoiResponse().getDoi();
+			String mintedDoi = doiClient.getDoiResponseAsString();
+			
+			
 			FedoraObject fedoraObject = getItemByPid(pid);
 			Map<String, List<String>> form = new HashMap<String, List<String>>();
 			
