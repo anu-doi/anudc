@@ -5,7 +5,7 @@
 				<#if dataValues?has_content>
 					<#list dataValues as val>
 					<div class="input-group">
-					<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip" value="${val.value}"<#if templateAttribute.required> required</#if> />
+					<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip" value="${val.value?html}"<#if templateAttribute.required> required</#if> />
 					<div class="input-group-append"><button type="button" class="btn btn-danger btn-remove">-</button></div>
 					</div>
 					</#list>
@@ -17,7 +17,7 @@
 				</#if>
 				<div><button type="button" class="btn btn-primary btn-add">+</button></div>
 			<#else>
-				<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip"<#if templateAttribute.required> required</#if> <#if dataValues?has_content>value="${dataValues?first.value}"</#if> <#if templateAttribute.name == "type">readonly="readonly"</#if>/>
+				<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip"<#if templateAttribute.required> required</#if> <#if dataValues?has_content>value="${dataValues?first.value?html}"</#if> <#if templateAttribute.name == "type">readonly="readonly"</#if>/>
 			</#if>
 			<#break>
 		<#case "TextArea">
@@ -143,7 +143,7 @@
 		<#assign childValue=val.getChildElementByName('${column.name}') >
 		<#switch column.fieldType.name>
 			<#case "TextField">
-				<div class="col"><input type="input" class="form-control" name="${column.name}" aria-label="${column.label}" title="${column.label}" value="<#if childValue?has_content>${childValue?first.value}</#if>"/></div>
+				<div class="col"><input type="input" class="form-control" name="${column.name}" aria-label="${column.label}" title="${column.label}" value="<#if childValue?has_content>${childValue?first.value?html}</#if>"/></div>
 				<#break>
 			<#case "TextArea">
 				<div class="col"><textarea type="input" class="form-control" name="${column.name}" aria-label="${column.label}" title="${column.label}"><#if childValue?has_content>${childValue?first.value}</#if></textarea></div>
