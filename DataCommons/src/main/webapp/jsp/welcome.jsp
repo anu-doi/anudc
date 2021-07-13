@@ -43,7 +43,7 @@
 	<div class="div1 box bg-grey10 colbox">
 	<img alt="Research data management" src='<c:url value="/static/image/homepage-research-data-management.jpg"/>' />
 		<div><h2><a class="nounderline" href="https://anulib.anu.edu.au/research-learn/research-data-management">Research data management
-		<img alt="External link" src='<c:url value="https://style.anu.edu.au/_anu/images/icons/web/link.png"/>' /></a></h2></div>
+		<img alt="External link" src='<c:url value="https://marketing-pages.anu.edu.au/_anu/images/icons/web/link.png"/>' /></a></h2></div>
 	</div>
 </anu:content>
 

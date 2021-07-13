@@ -6,7 +6,6 @@
 
 <c:url value="/" var="homeUrl" />
 
-<header>
 <anu:banner id="" ssl="true" primaryTitle="Data Commons" secondaryTitle="Library" primaryTitleUrl="${homeUrl}" secondaryTitleUrl="http://anulib.anu.edu.au/">
 	<anu:utilitymenu>
 		<sec:authorize access="isAuthenticated()">
@@ -35,6 +34,5 @@
 	</anu:topmenulinks>
 </anu:topmenu>
 
-</header>
 
 <anu:body />

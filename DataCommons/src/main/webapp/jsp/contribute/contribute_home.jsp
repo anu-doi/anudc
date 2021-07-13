@@ -33,7 +33,7 @@ The University has an open access policy that outline who can contribute materia
 		<div>
 			<img alt="Contribute your research" src='<c:url value="/static/image/contribute-your-research.jpg"/>' />
 			<div>
-				<h2><a class="nounderline" href="https://openresearch.anu.edu.au/node/34">Contribute your research <img alt="external link" src='<c:url value="https://style.anu.edu.au/_anu/images/icons/web/link.png"/>' /></a></h2>
+				<h2><a class="nounderline" href="https://openresearch.anu.edu.au/node/34">Contribute your research <img alt="external link" src='<c:url value="https://marketing-pages.anu.edu.au/_anu/images/icons/web/link.png"/>' /></a></h2>
 			</div>
 		</div>
 	</div>
@@ -44,7 +44,7 @@ The University has an open access policy that outline who can contribute materia
 		<div>
 			<img alt="Contribute your thesis" src='<c:url value="/static/image/contribute-your-thesis.jpg"/>' />
 			<div>
-				<h2><a class="nounderline" href="https://openresearch.anu.edu.au/node/33">Contribute your thesis <img alt="external link" src='<c:url value="https://style.anu.edu.au/_anu/images/icons/web/link.png"/>' /></a></h2>
+				<h2><a class="nounderline" href="https://openresearch.anu.edu.au/node/33">Contribute your thesis <img alt="external link" src='<c:url value="https://marketing-pages.anu.edu.au/_anu/images/icons/web/link.png"/>' /></a></h2>
 			</div>
 		</div>
 	</div>

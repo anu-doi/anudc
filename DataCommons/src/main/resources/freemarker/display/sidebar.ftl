@@ -18,7 +18,7 @@
 	<p>Identifier: ${item.object_id}</p>
 </div>
 </#if>
-<div class="border-top border-bottom border-primary mb-3">
+<div class="border-top border-bottom border-secondary mb-3">
 	<#if item.published!false>
 	Status: Published<br/>
 	Published to:
@@ -37,7 +37,7 @@
 	<#include "buttons.ftl" />
 </div>
 </#if>
-<div class="border-top border-bottom border-primary mb-3">
+<div class="border-top border-bottom border-secondary mb-3">
 	Related items
 	<ul class="list-unstyled link-underline">
 	<#list links as link>

@@ -15,7 +15,7 @@
 					<div class="input-group-append"><button type="button" class="btn btn-danger btn-remove">-</button></div>
 					</div>
 				</#if>
-				<div><button type="button" class="btn btn-primary btn-add">+</button></div>
+				<div><button type="button" class="btn btn-black btn-add">+</button></div>
 			<#else>
 				<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip"<#if templateAttribute.required> required</#if> <#if dataValues?has_content>value="${dataValues?first.value?html}"</#if> <#if templateAttribute.name == "type">readonly="readonly"</#if>/>
 			</#if>
@@ -35,7 +35,7 @@
 				<div class="input-group-append"><button type="button" class="btn btn-danger btn-remove">-</button></div>
 				</#if>
 				</div>
-				<div><button type="button" class="btn btn-primary btn-add">+</button></div>
+				<div><button type="button" class="btn btn-black btn-add">+</button></div>
 			<#else>
 				<textarea class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip" rows="3" <#if templateAttribute.required>required</#if>><#if dataValues?has_content>${dataValues?first.value}</#if></textarea>
 			</#if>
@@ -125,7 +125,7 @@
 	<div class="col-1"><button class="btn btn-danger btn-remove" type="button">-</button></div>
 	</div>
 	<div>
-		<button class="btn btn-primary btn-add" type="button">+</button>
+		<button class="btn btn-black btn-add" type="button">+</button>
 	</div>
 </#macro>
 
@@ -170,6 +170,6 @@
 	</div>
 	</#list>
 	<div>
-		<button class="btn btn-primary btn-add" type="button">+</button>
+		<button class="btn btn-black btn-add" type="button">+</button>
 	</div>
 </#macro>

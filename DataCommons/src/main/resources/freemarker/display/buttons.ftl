@@ -4,29 +4,29 @@
 	<#assign canReview=security.checkPermission(32)>
 	<#assign canPublish=security.checkPermission(64)>
 	<#if canEdit>
-	<a class="btn btn-primary mb-1" href="/DataCommons/rest/display/edit/${item.object_id}?style=full">Edit</a>
+	<a class="btn btn-outline-secondary mb-1" href="/DataCommons/rest/display/edit/${item.object_id}?style=full">Edit</a>
 	</#if>
 	<#if canDelete>
-	<button class="btn btn-primary mb-1" formmethod="post" formaction="/DataCommons/rest/display/delete/${item.object_id}" onclick="return confirmDelete();">Delete</button>
+	<button class="btn btn-outline-secondary mb-1" formmethod="post" formaction="/DataCommons/rest/display/delete/${item.object_id}" onclick="return confirmDelete();">Delete</button>
 	</#if>
 	<#if canPublish && tmplt.entityType.name == 'collection'>
-	<input class="btn btn-primary mb-1" id="mintDoi" type="button" name="mintDoi" value="Mint DOI" onclick="if (confirm('This will mint a Digital Object Identifier for this collection. Are you sure?')) window.location='/DataCommons/rest/publish/mintdoi/${item.object_id}'" />
+	<input class="btn btn-outline-secondary mb-1" id="mintDoi" type="button" name="mintDoi" value="Mint DOI" onclick="if (confirm('This will mint a Digital Object Identifier for this collection. Are you sure?')) window.location='/DataCommons/rest/publish/mintdoi/${item.object_id}'" />
 	</#if>
 	<#if canEdit>
-	<input class="btn btn-primary mb-1" type="button" id="validateButton" name="validateButton" value="Validation Check" onclick="window.location='/DataCommons/rest/publish/validate/${item.object_id}'" />
-	<input class="btn btn-primary mb-1" id="itemLinkButton" type="button" name="itemLinkButton" value="Link to Item" data-toggle="modal" data-target="#modalLink" />
-	<input class="btn btn-primary mb-1" id="editLinkButton" type="button" name="editLinkButton" value="Edit Item Links" data-toggle="modal" data-target="#modalEditLink" />
+	<input class="btn btn-outline-secondary mb-1" type="button" id="validateButton" name="validateButton" value="Validation Check" onclick="window.location='/DataCommons/rest/publish/validate/${item.object_id}'" />
+	<input class="btn btn-outline-secondary mb-1" id="itemLinkButton" type="button" name="itemLinkButton" value="Link to Item" data-toggle="modal" data-target="#modalLink" />
+	<input class="btn btn-outline-secondary mb-1" id="editLinkButton" type="button" name="editLinkButton" value="Edit Item Links" data-toggle="modal" data-target="#modalEditLink" />
 	</#if>
 	
 	<#if canPublish && item.publishReady??>
-	<input class="btn btn-primary mb-1" type="button" id="publishButton" name="publishButton" value="Publish" onclick="window.location='/DataCommons/rest/publish/${item.object_id}'" />
+	<input class="btn btn-outline-secondary mb-1" type="button" id="publishButton" name="publishButton" value="Publish" onclick="window.location='/DataCommons/rest/publish/${item.object_id}'" />
 	<#elseif canReview && item.reviewReady??>
 	<form id="formPublishReady" method="post" action="/DataCommons/rest/ready/publish/${item.object_id}">
-		<input class="btn btn-primary mb-1" type="submit" id="publishReadyButton" name="publishReadyButton" value="Ready for Publish"/>
+		<input class="btn btn-outline-secondary mb-1" type="submit" id="publishReadyButton" name="publishReadyButton" value="Ready for Publish"/>
 	</form>
 	<#elseif canEdit>
 	<form id="formReviewReady" method="post" action="/DataCommons/rest/ready/review/${item.object_id}">
-		<input class="btn btn-primary mb-1" type="submit" id="reviewReadyButton" name="reviewReadyButton" value="Ready for Review"/>
+		<input class="btn btn-outline-secondary mb-1" type="submit" id="reviewReadyButton" name="reviewReadyButton" value="Ready for Review"/>
 	</form>
 	</#if>
 	

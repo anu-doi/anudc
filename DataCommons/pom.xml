@@ -86,10 +86,22 @@
 		</dependency>
 		 -->
 		
-		<dependency>
+		<!-- <dependency>
 			<groupId>au.edu.anu.taglib</groupId>
 			<artifactId>anu-taglib</artifactId>
 			<version>1.9.1-SNAPSHOT</version>
+			<scope>runtime</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency> -->
+		<dependency>
+			<groupId>au.edu.anu.taglib</groupId>
+			<artifactId>anu-taglib</artifactId>
+			<version>1.10.0-SNAPSHOT</version>
 			<scope>runtime</scope>
 			<exclusions>
 				<exclusion>

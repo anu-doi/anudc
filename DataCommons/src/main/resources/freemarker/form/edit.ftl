@@ -3,8 +3,8 @@
 <@l.page title="Edit ${data.getFirstElementByName('name').value}">
 <form id="form" method="post">
 <div class="float-right">
-	<a href="/DataCommons/rest/display/${item.object_id}?layout=def:display" class="btn btn-primary">Return to Display</a>
-	<input class="btn btn-primary" type="submit" value="Submit"/>
+	<a href="/DataCommons/rest/display/${item.object_id}?layout=def:display" class="btn btn-outline-secondary">Return to Display</a>
+	<input class="btn btn-outline-secondary" type="submit" value="Submit"/>
 </div>
 <ul class="nav nav-tabs" id="form-tab" role="tablist">
 <#list tmplt.templateTabs as tab>
