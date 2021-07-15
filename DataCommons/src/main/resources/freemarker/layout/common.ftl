@@ -3,7 +3,7 @@
 <html>
 <head>
 	<title>${title?html}</title>
-	<link href="//marketing-pages.anu.edu.au/_anu/4/images/logos/anu.ico" rel="shortcut icon" type="image/x-icon"/>
+	<link href="//marketing-pages.anu.edu.au/_anu/4/logos/anu.ico" rel="shortcut icon" type="image/x-icon"/>
 	<link href="/DataCommons/static/css/sol.css" rel="stylesheet" type="text/css" media="screen" />
 	<link href="/DataCommons/static/css/easy-autocomplete.min.css" rel="stylesheet" type="text/css" media="screen" />
 	<link href="/DataCommons/static/css/anu-bootstrap.css" rel="stylesheet" type="text/css" media="screen" />

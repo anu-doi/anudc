@@ -22,7 +22,7 @@
 				</anu:box>
 				<div class='divline-dotted marginbottom'></div>
 				<anu:box style="uni">
-					<img src='//style.anu.edu.au/_anu/images/icons/silk/zoom.png' alt='search icon'/> <strong>
+					<img src='//marketing-pages.anu.edu.au/_anu/images/icons/silk/zoom.png' alt='search icon'/> <strong>
 					<a href='http://asiapacific.anu.edu.au/pambu/reels/'>Search reel lists</a></strong>
 	
 					<br />

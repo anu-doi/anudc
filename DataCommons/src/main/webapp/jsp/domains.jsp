@@ -31,7 +31,7 @@
 	<p>
 		<ul class="nobullet">
 			<c:forEach items="${it.domains}" var="domain">
-				<li>${domain.domain_name} [${domain.id}] <button id="btn-edit-${domain.id}" data-id="${domain.id}" data-name="${domain.domain_name}" class="edit-domain" title="Edit" aria-label="Edit ${domain.domain_name}"><img src="//style.anu.edu.au/_anu/images/icons/web/draw.png" alt="Edit" /></button></li>
+				<li>${domain.domain_name} [${domain.id}] <button id="btn-edit-${domain.id}" data-id="${domain.id}" data-name="${domain.domain_name}" class="edit-domain" title="Edit" aria-label="Edit ${domain.domain_name}"><img src="//marketing-pages.anu.edu.au/_anu/images/icons/web/draw.png" alt="Edit" /></button></li>
 			</c:forEach>
 		</ul>
 	</p>

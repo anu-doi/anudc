@@ -41,7 +41,7 @@
 	<p>
 		<ul class="nobullet">
 			<c:forEach items="${it.groups}" var="group">
-				<li>${group.group_name} [${group.id}] <button id="btn-edit-${group.id}" data-id="${group.id}" data-name="${group.group_name}" title="Edit" class="edit-group" aria-label="Edit ${group.group_name}"><img src="//style.anu.edu.au/_anu/images/icons/web/draw.png" alt="Edit" /></button></li>
+				<li>${group.group_name} [${group.id}] <button id="btn-edit-${group.id}" data-id="${group.id}" data-name="${group.group_name}" title="Edit" class="edit-group" aria-label="Edit ${group.group_name}"><img src="//marketing-pages.anu.edu.au/_anu/images/icons/web/draw.png" alt="Edit" /></button></li>
 			</c:forEach>
 		</ul>
 	</p>

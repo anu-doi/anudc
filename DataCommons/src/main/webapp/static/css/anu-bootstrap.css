@@ -10396,6 +10396,7 @@ header a {
 
 #bnr-right {
   margin-top: 20px;
+  padding: 5px 0px 10px 0px;
 }
 
 #bnr-gw2-search {
@@ -10463,6 +10464,13 @@ header a {
 
 .btn-outline-secondary {
   color: #000;
+  border-width: 2px;
+}
+
+.btn-outline-secondary:hover {
+  color: #be830e;
+  background-color: #000;
+  border-color: #000;
 }
 
 #bnr-low a:hover {
@@ -10475,10 +10483,14 @@ header a {
   margin-top: -5px;
 }
 
-.navbar-nav li a {
+.navbar-anu li a {
   /*font-size: 1.2em;*/
   letter-spacing: 0.5px;
   padding: 8px 12px 12px 12px;
+}
+
+#bnr-low li a {
+  font-size: 90% !important;
 }
 
 /*# sourceMappingURL=anu-bootstrap.css.map */

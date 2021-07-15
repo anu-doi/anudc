@@ -225,7 +225,7 @@ function addRow(qid, question, required) {
 	var deleteColumn = jQuery("<td></td>");
 	
 	var deleteImg = jQuery("<img/>", {
-		src: '//style.anu.edu.au/_anu/images/icons/silk/cross.png',
+		src: '//marketing-pages.anu.edu.au/_anu/images/icons/silk/cross.png',
 		title: 'Remove question ' + question,
 		click: function(e) {
 			removeRow(this);

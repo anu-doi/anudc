@@ -28,9 +28,9 @@
 		<tr>
 			<td><fmt:message key="contact.functional.name" /></td>
 			<td>
-				<div><img class="hpad absmiddle" src="//style.anu.edu.au/_anu/images/icons/web/mail.png" alt="Email"/><a href='mailto:<fmt:message key="contact.functional.email" />'><fmt:message key="contact.functional.email" /></a></div>
-				<div><img class="hpad absmiddle" src="//style.anu.edu.au/_anu/images/icons/web/phone.png" alt="Phone"/><fmt:message key="contact.functional.phone" /></div>
-				<div><img class="hpad absmiddle" src="//style.anu.edu.au/_anu/images/icons/web/link.png" alt="Link"/><a href='<c:url value="/"/>'><fmt:message key="contact.functional.website.title" /></a></div>
+				<div><img class="hpad absmiddle" src="//marketing-pages.anu.edu.au/_anu/images/icons/web/mail.png" alt="Email"/><a href='mailto:<fmt:message key="contact.functional.email" />'><fmt:message key="contact.functional.email" /></a></div>
+				<div><img class="hpad absmiddle" src="//marketing-pages.anu.edu.au/_anu/images/icons/web/phone.png" alt="Phone"/><fmt:message key="contact.functional.phone" /></div>
+				<div><img class="hpad absmiddle" src="//marketing-pages.anu.edu.au/_anu/images/icons/web/link.png" alt="Link"/><a href='<c:url value="/"/>'><fmt:message key="contact.functional.website.title" /></a></div>
 			</td>
 		</tr>
 	</table>
@@ -43,19 +43,21 @@
 		</tr>
 		<tr>
 			<td><div class="large"><fmt:message key="contact.director.name" /></div><fmt:message key="contact.director.title" /></td>
-			<td><img class="hpad absmiddle" src="//style.anu.edu.au/_anu/images/icons/web/mail.png" alt="Email"/><a href='mailto:<fmt:message key="contact.director.email" />'><fmt:message key="contact.director.email" /></a></td>
+			<td><img class="hpad absmiddle" src="//marketing-pages.anu.edu.au/_anu/images/icons/web/mail.png" alt="Email"/><a href='mailto:<fmt:message key="contact.director.email" />'><fmt:message key="contact.director.email" /></a></td>
 		</tr>
 		<tr>
 			<td><div class="large"><fmt:message key="contact.manager.name" /></div><fmt:message key="contact.manager.title" /></td>
 			<td>
-			<div><img class="hpad absmiddle" src="//style.anu.edu.au/_anu/images/icons/web/mail.png" alt="Email"/><a href='mailto:<fmt:message key="contact.manager.email" />'><fmt:message key="contact.manager.email" /></a></div>
-			<div><img class="hpad absmiddle" src="//style.anu.edu.au/_anu/images/icons/web/phone.png" alt="Phone"/><fmt:message key="contact.manager.phone" /></div>
+			<div><img class="hpad absmiddle" src="//marketing-pages.anu.edu.au/_anu/images/icons/web/mail.png" alt="Email"/><a href='mailto:<fmt:message key="contact.manager.email" />'><fmt:message key="contact.manager.email" /></a></div>
+			<div><img class="hpad absmiddle" src="//marketing-pages.anu.edu.au/_anu/images/icons/web/phone.png" alt="Phone"/><fmt:message key="contact.manager.phone" /></div>
 			</td>
 		</tr>
 	</table>
 	<div class="centre w280px anu-feedback-uni">
 		<a href="//eforms.anu.edu.au/Inifinit_Prod/Produces/wizard/8382ffaf-f52e-4f8a-bb5af-cbfe751d8b0">
-			<img src="//style.anu.edu.au/_anu/4/images/feedback/anu-feedback-uni.png" onmouseover="this.src='//style.anu.edu.au/_anu/4/images/feedback/anu-feedback-uni-over.png'" onmouseout="this.src='//style.anu.edu.au/_anu/4/images/feedback/anu-feedback-uni.png'" alt="University feedback"/>
+			<img src="//marketing-pages.anu.edu.au/_anu/4/images/feedback/anu-feedback-uni.png" onmouseover="this.src='//marketing-pages.anu.edu.au/_anu/4/images/feedback/anu-feedback-uni-over.png'" onmouseout="this.src='//marketing-pages.anu.edu.au/_anu/4/images/feedback/anu-feedback-uni.png'" alt="University feedback"/>
 		</a>
 	</div>
 </anu:content>
+
+<jsp:include page="../footer.jsp" />
