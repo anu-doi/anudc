@@ -1,6 +1,10 @@
 <#import "../layout/common.ftl" as c/>
 <#import "listvalues.ftl" as l/>
 <@c.page title="${data.getFirstElementByName('name').value}">
+<#assign canEdit=security.checkPermission(2)>
+<#assign canReview=security.checkPermission(32)>
+<#assign canPublish=security.checkPermission(64)>
+<#if canEdit || canReview || canPublish>
 <#if item.reviewReady??>
 <div class="container alert alert-info">
 This item is in the status ready for review
@@ -13,8 +17,9 @@ This item is in the status ready for publish
 </#if>
 <#if item.reviewReject??>
 <div class="container alert alert-info">
-This item is in the status more work required
+This item is in the status more work required.<br/>Reason: ${item.reviewReject.reason}
 </div>
+</#if>
 </#if>
 <#if errormessage??>
 <div class="container alert alert-danger" role="alert">
