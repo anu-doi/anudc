@@ -29,6 +29,27 @@
 		<input class="btn btn-outline-secondary mb-1" type="submit" id="reviewReadyButton" name="reviewReadyButton" value="Ready for Review"/>
 	</form>
 	</#if>
+	<#if canPublish && item.publishReady?? || canReview && item.reviewReady??>
+		<input class="btn btn-outline-secondary mb-1" type="button" id="rejectReasonButtton" name="rejectReasonButton" value="Reject" data-toggle="modal" data-target="#modalReject"/>
+		<div id="modalReject" class="modal fade" role="dialog" aria-labelledby="rejectModalTitle" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="rejectModalTitle">Reason for Rejection</h5>
+						<button type="button" class="close" data-discmiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<form id="formReviewReject" method="post" action="/DataCommons/rest/ready/reject/${item.object_id}">
+							<p><textarea id="rejectReason" style="width: 100%" name="rejectReason"></textarea></p>
+							<input id="rejectReviewButton" name="rejectReviewButton" type="submit" value="Submit" />
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</#if>
 	
 	
 	<div id="modalLink" class="modal fade" role="dialog" aria-labelledby="addReferenceModal" aria-hidden="true">
