@@ -7,7 +7,7 @@
 </#if>
 <form id="form" method="post">
 <div class="float-right">
-	<input class="btn btn-outline-secondary" type="submit" value="Submit"/>
+	<input class="btn btn-outline-secondary" type="submit" value="Save/Submit"/>
 </div>
 <ul class="nav nav-tabs" id="form-tab" role="tablist">
 <#list tmplt.templateTabs as tab>
