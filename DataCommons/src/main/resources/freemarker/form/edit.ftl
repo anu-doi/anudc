@@ -4,7 +4,7 @@
 <form id="form" method="post">
 <div class="float-right">
 	<a href="/DataCommons/rest/display/${item.object_id}?layout=def:display" class="btn btn-outline-secondary">Return to Display</a>
-	<input class="btn btn-outline-secondary" type="submit" value="Save/Submit"/>
+	<input class="btn btn-outline-secondary" type="submit" value="Save"/>
 </div>
 <ul class="nav nav-tabs" id="form-tab" role="tablist">
 <#list tmplt.templateTabs as tab>
