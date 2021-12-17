@@ -59,7 +59,7 @@
 					<#list dataValues as dataItem>
 					<#if dataItem.value == value.id.code><#assign found = "true"></#if>
 					</#list>
-					<#if value.deprecated?c != "true" || found = "true"><option value="${value.id.code}" <#if found = "true">selected</#if>>${value.description} - ${value.deprecated?then('deprecated','not deprecated')} - ${value.deprecated?c}</option></#if>
+					<#if value.deprecated?c != "true" || found = "true"><option value="${value.id.code}" <#if found = "true">selected</#if>>${value.description}</option></#if>
 				</#list>
 				</select>
 				<script type="text/javascript">
