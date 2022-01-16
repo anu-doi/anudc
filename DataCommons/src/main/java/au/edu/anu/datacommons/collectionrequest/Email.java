@@ -68,8 +68,8 @@ public class Email {
 
 	public Email(JavaMailSenderImpl mailSender) {
 		this.mailSender = mailSender;
-		this.setFromName("ANU Data Commons");
-		this.setFromEmail("no-reply@anu.edu.au");
+		this.setFromName(GlobalProps.getProperty("email.from.name"));
+		this.setFromEmail(GlobalProps.getProperty("email.from.address"));
 		this.recipients = new HashMap<String, String>();
 	}
 
@@ -161,8 +161,8 @@ public class Email {
 			mailSender.send(message);
 		} else {
 			LOGGER.info(
-					"email.debug.sendmail set to 'false' or not present in Global Properties. Following email not sent out.\r\nTO: {}\r\nSUBJECT: {}\r\nBODY: {}",
-					new Object[] { recipientsAsString(), subject, body });
+					"email.debug.sendmail set to 'false' or not present in Global Properties. Following email not sent out.\r\nFROM: {} ({})\r\nTO: {}\r\nSUBJECT: {}\r\nBODY: {}",
+					new Object[] { fromName, fromEmail, recipientsAsString(), subject, body });
 		}
 	}
 
