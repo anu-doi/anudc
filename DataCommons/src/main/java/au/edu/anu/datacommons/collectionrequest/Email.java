@@ -68,8 +68,8 @@ public class Email {
 
 	public Email(JavaMailSenderImpl mailSender) {
 		this.mailSender = mailSender;
-		this.setFromName("ANU Data Commons");
-		this.setFromEmail("no-reply@anu.edu.au");
+		this.setFromName(GlobalProps.getProperty("email.from.name"));
+		this.setFromEmail(GlobalProps.getProperty("email.from.address"));
 		this.recipients = new HashMap<String, String>();
 	}
 
