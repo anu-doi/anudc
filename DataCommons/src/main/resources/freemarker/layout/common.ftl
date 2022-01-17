@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta charset="utf-8" />
 	<title>${title?html}</title>
 	<link href="//style.anu.edu.au/_anu/4/images/logos/anu.ico" rel="shortcut icon" type="image/x-icon"/>
 	<link href="/DataCommons/static/css/sol.css" rel="stylesheet" type="text/css" media="screen" />
