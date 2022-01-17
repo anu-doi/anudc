@@ -2,6 +2,9 @@
 <#import "controls.ftl" as c />
 
 <@l.page title="New ${tmplt.name}">
+<#if tmplt.entityType.name == 'collection'>
+	<div class="mb-3">To make your submission to Data Commons, please complete the metadata in the tabs of this form. Once you submit the metadata form you will be able to upload files to the record.</div> 
+</#if>
 <form id="form" method="post">
 <div class="float-right">
 	<input class="btn btn-primary" type="submit" value="Submit"/>
