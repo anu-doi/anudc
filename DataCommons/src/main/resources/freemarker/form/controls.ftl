@@ -43,7 +43,11 @@
 		<#case "RadioButton">
 			<#assign radioOptions=options(templateAttribute.selectCode)>
 			<#list radioOptions as value>
-				<div><input value="${value.id.code}" name="${templateAttribute.name}" type="radio"<#if templateAttribute.required> required</#if> aria-label="${value.description}" <#if dataValues?has_content && dataValues?first.value == value.id.code>checked</#if>> ${value.description}</div>
+				<#assign found = "false">
+				<#if dataValues?has_content && dataValues?first.value == value.id.code>
+				        <#assign found = "true">
+				</#if>
+				<#if value.deprecated?c != "true" || found = "true"><div><input value="${value.id.code}" name="${templateAttribute.name}" type="radio"<#if templateAttribute.required> required</#if> aria-label="${value.description}" <#if found = "true">checked</#if>> ${value.description}</div></#if>
 			</#list>
 			<#break>
 		<#case "ComboBox">
@@ -51,7 +55,11 @@
 			<#if templateAttribute.multiValued>
 				<select id="${templateAttribute.name}" name="${templateAttribute.name}" multiple="multiple"<#if templateAttribute.required> required</#if>>
 				<#list comboOptions as value>
-					<option value="${value.id.code}" <#if dataValues?has_content><#list dataValues as dataItem><#if dataItem.value == value.id.code>selected</#if></#list></#if>>${value.description}</option>
+					<#assign found = "false">
+					<#list dataValues as dataItem>
+					<#if dataItem.value == value.id.code><#assign found = "true"></#if>
+					</#list>
+					<#if value.deprecated?c != "true" || found = "true"><option value="${value.id.code}" <#if found = "true">selected</#if>>${value.description}</option></#if>
 				</#list>
 				</select>
 				<script type="text/javascript">
@@ -61,7 +69,11 @@
 				<select class="form-control" name="${templateAttribute.name}" <#if templateAttribute.required>required</#if>>
 					<option value="">-- No Value Selected --</option>
 				<#list comboOptions as value>
-					<option value="${value.id.code}" <#if dataValues?has_content && dataValues?first.value == value.id.code>selected</#if>>${value.description}</option>
+					<#assign found = "false">
+					<#if dataValues?has_content && dataValues?first.value == value.id.code>
+						<#assign found = "true">
+					</#if>
+					<#if value.deprecated?c != "true" || found = "true"><option value="${value.id.code}" <#if found = "true">selected</#if>>${value.description}</option></#if>
 				</#list>
 				</select>
 			</#if>
@@ -110,7 +122,7 @@
 				<select class="form-control" name="${column.name} title="${column.label}"">
 					<option value="">-- No Value Selected --</option>
 				<#list comboOptions as value>
-					<option value="${value.id.code}">${value.description}</option>
+					<#if value.deprecated?c != "true"><option value="${value.id.code}">${value.description}</option></#if>
 				</#list>
 				</select>
 				</div>
@@ -154,7 +166,11 @@
 				<select class="form-control" name="${column.name}" title="${column.label}">
 					<option value="">-- No Value Selected --</option>
 				<#list comboOptions as value>
-					<option value="${value.id.code}" <#if childValue?has_content && value.id.code = childValue?first.value>selected="selected"</#if>>${value.description}</option>
+					<#assign found = "false">
+					<#if childValue?has_content && value.id.code = childValue?first.value>
+						<#assign found = "true">
+					</#if>
+					<#if value.deprecated?c != "true" || found = "true"><option value="${value.id.code}" <#if found = "true">selected</#if>>${value.description}</option></#if>
 				</#list>
 				</select>
 				</div>
