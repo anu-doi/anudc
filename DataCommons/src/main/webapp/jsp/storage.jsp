@@ -22,15 +22,16 @@
 <jsp:include page="/jsp/header.jsp" />
 
 <anu:content layout="full" title="${it.name}">
+	<c:url value="/rest/display/${it.fo.object_id}" var="displayURL">
+		<c:param name="layout">def:display</c:param>
+	</c:url>
 	<anu:breadcrumbs>
-		<c:url value="/rest/display/${it.fo.object_id}" var="displayURL">
-			<c:param name="layout">def:display</c:param>
-		</c:url>
 		<anu:crumb title="Display" href='${displayURL}' />
 		<anu:crumb title="Data" />
 	</anu:breadcrumbs>
 
 	<h2>${it.fo.object_id}</h2>
+	<a class="right" href="${displayURL}">Return to record</a>
 	<jsp:include page="/jsp/statusmessages.jsp">
 		<jsp:param value="${it}" name="it" />
 	</jsp:include>
