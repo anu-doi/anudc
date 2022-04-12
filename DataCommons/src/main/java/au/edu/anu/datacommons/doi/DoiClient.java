@@ -54,6 +54,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.WebResource.Builder;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.client.apache.ApacheHttpClient;
 import com.sun.jersey.client.apache.config.DefaultApacheHttpClientConfig;
@@ -197,59 +198,55 @@ public class DoiClient {
 
 			Builder doiSvcReqBuilder = mintDoiResource.accept(MediaType.TEXT_XML_TYPE);
 			doiSvcReqBuilder = doiSvcReqBuilder.type(MediaType.APPLICATION_XML_TYPE);
-			doiSvcReqBuilder = appendDataCiteSAuth(doiSvcReqBuilder);
 			ClientResponse response = doiSvcReqBuilder.accept(getMediaTypeForResp()).put(ClientResponse.class, xml);
 //			processResponse(response);
 			if(response.getStatusInfo().getStatusCode() == javax.ws.rs.core.Response.Status.CREATED.getStatusCode())
 			{
-			//Auto-generated DOI name successfully and registered metadata successfully 
-			//Next step is to register return url
-			LOGGER.info("Created Doi");
+				//Auto-generated DOI name successfully and registered metadata successfully 
+				//Next step is to register return url
+				LOGGER.info("Created Doi");
+				
+				ArrayList<String> headerLocation= new ArrayList<String>(response.getHeaders().get("Location"));
+				prefix_doi = headerLocation.get(0);
+				prefix_doi = prefix_doi.substring(prefix_doi.indexOf("metadata") + 9 , prefix_doi.length());
+				MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
+				formData.add("doi", prefix_doi);
+				formData.add("url", url);
+				
+				doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
+						"doi").path(prefix_doi);
+				doiUri = doiUriBuilder.build();
 			
-			ArrayList<String> headerLocation= new ArrayList<String>(response.getHeaders().get("Location"));
-			prefix_doi = headerLocation.get(0);
-			prefix_doi = prefix_doi.substring(prefix_doi.indexOf("metadata") + 9 , prefix_doi.length());
-			MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
-			formData.add("doi", prefix_doi);
-			formData.add("url", url);
-			
-			doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
-					"doi").path(prefix_doi);
-			doiUri = doiUriBuilder.build();
-			
-			LOGGER.debug("Registering Minted DOI using {}", doiUri.toString());
-			mintDoiResource = client.resource(doiUri);
-			Builder registerDoiSvcReqBuilder = mintDoiResource.accept(MediaType.TEXT_HTML_TYPE);
-			registerDoiSvcReqBuilder = registerDoiSvcReqBuilder.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE); 
-			registerDoiSvcReqBuilder = appendDataCiteSAuth(registerDoiSvcReqBuilder);
-			
-			response = registerDoiSvcReqBuilder.put(ClientResponse.class, formData);
-			
-			//put doi in a findable state
-			doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
-					"metadata").path(prefix_doi);
-			doiUri = doiUriBuilder.build();
-			LOGGER.debug("Findable Minted DOI using {}", doiUri.toString());
-			mintDoiResource = client.resource(doiUri);
-			Builder findableDoiSvcReqBuilder = mintDoiResource.accept(MediaType.TEXT_HTML_TYPE);
-			findableDoiSvcReqBuilder = findableDoiSvcReqBuilder.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE); 
-			findableDoiSvcReqBuilder = appendDataCiteSAuth(findableDoiSvcReqBuilder);
-			
-//			The MDS API doesn't directly understand state, but you can change a DOI from Findable to Registered by using the delete DOI API call.
-			//	https://support.datacite.org/docs/doi-states
-//			response = findableDoiSvcReqBuilder.delete(ClientResponse.class);// not needed
-			
-			//get doi url 
-			doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
-					"doi").path(prefix_doi);
-			doiUri = doiUriBuilder.build();
-			LOGGER.debug("Registering Minted DOI using {}", doiUri.toString());
-			mintDoiResource = client.resource(doiUri);
-			Builder getDoiSvcReqBuilder = mintDoiResource.accept(MediaType.TEXT_HTML_TYPE);
-			getDoiSvcReqBuilder = getDoiSvcReqBuilder.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE); 
-			getDoiSvcReqBuilder = appendDataCiteSAuth(getDoiSvcReqBuilder);
-			
-			response = getDoiSvcReqBuilder.get(ClientResponse.class);
+				LOGGER.debug("Registering Minted DOI using {}", doiUri.toString());
+				mintDoiResource = client.resource(doiUri);
+				Builder registerDoiSvcReqBuilder = mintDoiResource.accept(MediaType.TEXT_HTML_TYPE);
+				registerDoiSvcReqBuilder = registerDoiSvcReqBuilder.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE);
+				
+				response = registerDoiSvcReqBuilder.put(ClientResponse.class, formData);
+				
+				//put doi in a findable state
+				doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
+						"metadata").path(prefix_doi);
+				doiUri = doiUriBuilder.build();
+				LOGGER.debug("Findable Minted DOI using {}", doiUri.toString());
+				mintDoiResource = client.resource(doiUri);
+				Builder findableDoiSvcReqBuilder = mintDoiResource.accept(MediaType.TEXT_HTML_TYPE);
+				findableDoiSvcReqBuilder = findableDoiSvcReqBuilder.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE);
+				
+	//			The MDS API doesn't directly understand state, but you can change a DOI from Findable to Registered by using the delete DOI API call.
+				//	https://support.datacite.org/docs/doi-states
+	//			response = findableDoiSvcReqBuilder.delete(ClientResponse.class);// not needed
+				
+				//get doi url 
+				doiUriBuilder = UriBuilder.fromUri(doiConfig.getBaseUri()).path(
+						"doi").path(prefix_doi);
+				doiUri = doiUriBuilder.build();
+				LOGGER.debug("Registering Minted DOI using {}", doiUri.toString());
+				mintDoiResource = client.resource(doiUri);
+				Builder getDoiSvcReqBuilder = mintDoiResource.accept(MediaType.TEXT_HTML_TYPE);
+				getDoiSvcReqBuilder = getDoiSvcReqBuilder.type(MediaType.APPLICATION_FORM_URLENCODED_TYPE);
+				
+				response = getDoiSvcReqBuilder.get(ClientResponse.class);
 			}
 			processDataCiteResponse(response, prefix_doi);
 
@@ -261,7 +258,7 @@ public class DoiClient {
 			}
 
 //			if (!doiResponse.getType().equalsIgnoreCase("success"))
-			if(doiResponseAsString.isEmpty())
+			if(doiResponseAsString == null || doiResponseAsString.isEmpty())
 				throw new DoiException("DOI Service request failed. Server response: " + doiResponseAsString);
 		} catch (DoiException e) {
 			throw e;
@@ -496,16 +493,6 @@ public class DoiClient {
 		}
 		return doiSvcReqBuilder;
 	}
-	
-	private Builder appendDataCiteSAuth(Builder doiSvcReqBuilder) {
-		if (doiConfig.getDataciteUsername() != null && doiConfig.getDataciteUsername().length() > 0) {
-			String authValue = String.format("%s:%s", doiConfig.getDataciteUsername(), doiConfig.getSharedSecret());
-			authValue = Base64.getEncoder().encodeToString(authValue.getBytes(StandardCharsets.UTF_8));
-			authValue = String.format("Basic %s", authValue);
-			doiSvcReqBuilder = doiSvcReqBuilder.header("Authorization", authValue);
-		}
-		return doiSvcReqBuilder;
-	}
 
 	/**
 	 * Appends a DOI to a URIBuilder object as a query parameter.
@@ -579,17 +566,17 @@ public class DoiClient {
 	private void processDataCiteResponse(ClientResponse resp, String prefix_doi) throws DoiException {
 //		this.doiResponseAsString = resp.getEntity(String.class);
 		LOGGER.trace("Server response: {}", doiResponseAsString);
-			try {
-				if (!(resp.getStatusInfo().getStatusCode() != Response.Status.ACCEPTED.getStatusCode() 
-						|| resp.getStatusInfo().getStatusCode() != Response.Status.CREATED.getStatusCode()
-						|| resp.getStatusInfo().getStatusCode() != Response.Status.OK.getStatusCode()))
-				{
-					throw new DoiException("DOI Service request failed. Server response: " + doiResponseAsString);
-				}
-				this.doiResponseAsString = prefix_doi;
-			} catch (StringIndexOutOfBoundsException e) {
-				this.doiResponse = null;
-			} 
+		try {
+			if (!(resp.getStatusInfo().getStatusCode() != Response.Status.ACCEPTED.getStatusCode() 
+					|| resp.getStatusInfo().getStatusCode() != Response.Status.CREATED.getStatusCode()
+					|| resp.getStatusInfo().getStatusCode() != Response.Status.OK.getStatusCode()))
+			{
+				throw new DoiException("DOI Service request failed. Server response: " + doiResponseAsString);
+			}
+			this.doiResponseAsString = prefix_doi;
+		} catch (StringIndexOutOfBoundsException e) {
+			this.doiResponse = null;
+		}
 		LOGGER.debug("Response from server: ({}) {}", resp.getStatus(), this.doiResponseAsString);	
 	}
 	/**
@@ -707,5 +694,8 @@ public class DoiClient {
 			client = proxyClient;
 		else
 			client = noProxyClient;
+		
+		HTTPBasicAuthFilter authFilter = new HTTPBasicAuthFilter(doiConfig.getDataciteUsername(), doiConfig.getDatacitePassword());
+		client.addFilter(authFilter);
 	}
 }
