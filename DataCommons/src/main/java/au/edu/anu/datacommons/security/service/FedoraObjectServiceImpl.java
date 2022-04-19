@@ -1025,29 +1025,21 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			DoiClient doiClient = new DoiClient();
 			doiClient.mint(pid, doiResource);
 			
-//			String mintedDoi = doiClient.getDoiResponse().getDoi();
 			String mintedDoi = doiClient.getDoiResponseAsString();
 			
 			
 			FedoraObject fedoraObject = getItemByPid(pid);
-			Map<String, List<String>> form = new HashMap<String, List<String>>();
-			
 			Data data = getEditData(fedoraObject);
-			for (DataItem dataItem : data.getItems()) {
-				String name = dataItem.getName();
-				if (form.get(name) != null) {
-					form.get(name).add(dataItem.getValue());
-				}
-				else {
-					List<String> values = new ArrayList<String>();
-					values.add(dataItem.getValue());
-					form.put(name, values);
-				}
-			}
+			DataItem doiItem = new DataItem();
+			doiItem.setName("doi");
+			doiItem.setValue(mintedDoi);
+			data.getItems().add(doiItem);
 			
-			form.put("doi", Arrays.asList(mintedDoi));
+			au.edu.anu.datacommons.data.db.model.Template template = getTemplateByTemplateId(fedoraObject.getTmplt_id());
 			
-			saveEdit(fedoraObject, tmplt, form, rid);
+			SaveTransform saveTransform = new SaveTransform();
+			fedoraObject = saveTransform.saveData(template, fedoraObject, data, rid);
+			saveTransform.saveData(template, fedoraObject, data, rid);
 		}
 		catch (FedoraClientException | IOException e)
 		{

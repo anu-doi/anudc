@@ -75,11 +75,17 @@ public class SaveTransform {
 		Data newData = new Data();
 		newData.setItems(items);
 		
+		fedoraObject = saveData(template, fedoraObject, newData, rid);
+		
+		return fedoraObject;
+	}
+	
+	public FedoraObject saveData(Template template, FedoraObject fedoraObject, Data data, Long rid) throws FedoraClientException, JAXBException, IOException {
 		if (fedoraObject == null) {
-			fedoraObject = saveNewData(template, newData, rid);
+			fedoraObject = saveNewData(template, data, rid);
 		}
 		else {
-			fedoraObject = updateData(template, fedoraObject, newData, rid);
+			fedoraObject = updateData(template, fedoraObject, data, rid);
 		}
 		
 		return fedoraObject;
