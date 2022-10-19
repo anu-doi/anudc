@@ -11,7 +11,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" title="Results for ${param['field-select']}">
+<anu:content layout="doublewide" title="Results for ${fn:escapeXml(param['field-select'])}">
 	<c:set var="maxCharacters" value="200" />
 	<div id="divSearchResults">
 		<c:if test="${it.resultSet != null}">
