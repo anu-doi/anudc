@@ -16,7 +16,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>4.2.6.RELEASE</spring.version>
-		<springsecurity.version>4.1.0.RELEASE</springsecurity.version>
+		<springsecurity.version>4.2.13.RELEASE</springsecurity.version>
 		<jasperreports.version>4.7.0</jasperreports.version>
 		<freemarker.version>2.3.28</freemarker.version>
 	</properties>
