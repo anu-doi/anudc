@@ -1128,4 +1128,11 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 		data.getItems().add(dataItem);
 		return data;
 	}
+	
+	public void verifyActive(FedoraObject fedoraObject) throws FedoraClientException {
+		String state = FedoraBroker.getObjectState(fedoraObject.getObject_id());
+		if (!"A".equals(state)) {
+			throw new DataCommonsException(404, "The requested item has been deleted");
+		}
+	}
 }

@@ -156,6 +156,7 @@ public class DisplayResource
 			return Response.status(Status.NOT_FOUND).entity("Item not found").build();
 		}
 		try {
+			fedoraObjectService.verifyActive(fedoraObject);
 			Template template = fedoraObjectService.getTemplateByTemplateId(fedoraObject.getTmplt_id());
 			
 			template.getTemplateAttributes().sort(new TemplateAttributeSortByDisplay());

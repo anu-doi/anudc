@@ -373,4 +373,6 @@ public interface FedoraObjectService {
 	public Data getDataDifferences(Template template, Data editData, Data publisData);
 	
 	public Data getInitialData(Template template);
+	
+	public void verifyActive(FedoraObject fedoraObject) throws FedoraClientException;
 }
