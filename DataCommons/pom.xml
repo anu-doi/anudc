@@ -69,9 +69,9 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>postgresql</groupId>
+			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>9.1-901-1.jdbc4</version>
+			<version>42.6.0</version>
 		</dependency><!-- 
 		<dependency>
 			<groupId>au.edu.anu.taglib</groupId>
@@ -257,10 +257,15 @@
 			<artifactId>jsr311-api</artifactId>
 			<version>1.1.1</version>
 		</dependency>
-		<dependency>
+		<!--<dependency>
 			<groupId>javax.mail</groupId>
 			<artifactId>mail</artifactId>
 			<version>1.4.5</version>
+		</dependency>-->
+		<dependency>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>javax.mail</artifactId>
+			<version>1.6.2</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
