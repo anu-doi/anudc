@@ -72,14 +72,10 @@
 
 <anu:content layout="one-third">
 	<div class="box bdr-solid bdr-uni">
-		<a class="twitter-timeline" data-dnt="true" href="https://twitter.com/ANUOpenAccess" height="250px" data-widget-id="706691559580774403">Tweets by @ANUOpenAccess</a>
-		<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>  
- 	</div>
-	<div class="box bdr-solid bdr-uni">
 		<h3 class="nopadtop">Related links</h3>
 		<ul class="linklist single-multiple-list">
 			<li>
-				<a class="acton-tabs-link-processed" href="https://researchdata.ands.org.au/">Rsearch Data Australia</a>
+				<a class="acton-tabs-link-processed" href="https://researchdata.edu.au/">Research Data Australia</a>
 			</li>
 			<li>
 				<a class="acton-tabs-link-processed" href="https://ardc.edu.au/">Australian Research Data Commons</a>
