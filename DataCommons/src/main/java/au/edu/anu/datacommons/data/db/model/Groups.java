@@ -50,7 +50,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @Table(name="groups")
 @XmlRootElement(name="group")
-public class Groups {
+public class Groups implements Comparable<Groups> {
 	private Long id;
 	private String group_name;
 	
@@ -121,5 +121,11 @@ public class Groups {
 	 */
 	public void setGroup_name(String group_name) {
 		this.group_name = group_name;
+	}
+
+	@Override
+	public int compareTo(Groups o) {
+		return group_name.compareTo(o.getGroup_name());
+//		return 0;
 	}
 }

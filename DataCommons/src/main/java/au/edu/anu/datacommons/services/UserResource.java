@@ -24,6 +24,7 @@ package au.edu.anu.datacommons.services;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -187,6 +188,7 @@ public class UserResource {
 		Map<String, Object> model = new HashMap<String, Object>();
 		
 		List<Groups> groups = groupService.getAllowModifyGroups();
+		Collections.sort(groups);
 		model.put("groups", groups);
 		
 		List<PublishLocation> publishLocations = publishService.getPublishers();

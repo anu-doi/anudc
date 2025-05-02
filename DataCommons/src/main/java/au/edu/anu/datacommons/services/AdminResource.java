@@ -221,12 +221,7 @@ public class AdminResource {
 		});
 		model.put("domains", domains);
 		List<Groups> groups = adminService.getGroups();
-		Collections.sort(groups, new Comparator<Groups>() {
-			@Override
-			public int compare(Groups group1, Groups group2) {
-				return group1.getGroup_name().compareTo(group2.getGroup_name());
-			}
-		});
+		Collections.sort(groups);
 		model.put("groups", groups);
 		return Response.ok(new Viewable("/groups.jsp", model)).build();
 	}
