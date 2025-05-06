@@ -93,9 +93,13 @@ public class DoiResourceAdapterTest {
 			assertEquals(2, doiRes.getCreators().getCreator().size());
 
 			// Publisher
-			assertEquals(doiRes.getPublisher(), "The Australian National University Data Commons");
+			assertNotNull(doiRes.getPublisher());
+			assertEquals(doiRes.getPublisher().getValue(), "The Australian National University Data Commons");
 			// Publication Year
 			assertEquals(doiRes.getPublicationYear(), "2013");
+			
+			assertNotNull(doiRes.getSubjects());
+			assertEquals(doiRes.getSubjects().getSubject().get(0).getValue(),"400904 - Electronic device and system performance evaluation, testing and simulation");
 
 			LOGGER.trace(getResourceXmlAsString(doiRes));
 		} catch (JAXBException e) {

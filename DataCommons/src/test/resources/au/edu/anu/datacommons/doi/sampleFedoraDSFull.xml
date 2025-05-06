@@ -17,7 +17,7 @@
 	<coverageDateText>World War II</coverageDateText>
 	<principalInvestigator>Principal Investigator</principalInvestigator>
 	<anztoaSubject>pbr</anztoaSubject>
-	<licenceType>CC-BY-NC-SA</licenceType>
+	<licenceType code="CC-BY-4_0">CC-BY - Attribution (Version 4)</licenceType>
 	<licence>License</licence>
 	<fax>987654312</fax>
 	<dataMgmtPlan>yes</dataMgmtPlan>
@@ -54,7 +54,7 @@
 		<pubType>infouri</pubType>
 		<pubValue>info:fedora/abc</pubValue>
 	</publication>
-	<anzforSubject>180123</anzforSubject>
+	<anzforSubject code="400904">400904 - Electronic device and system performance evaluation, testing and simulation</anzforSubject>
 	<rightsStatement>Rights held in and over the data</rightsStatement>
 	<disposalDate>Disp Date</disposalDate>
 	<accessRights>Access Rights</accessRights>
@@ -64,4 +64,6 @@
 	<abbrName>Brief Title</abbrName>
 	<postalAddress>Contact Address</postalAddress>
 	<doi>10.5072/something</doi>
+	<accessRightsType code="open">Open</accessRightsType>
+ 	<licence>Licence for the record.</licence>
 </data>

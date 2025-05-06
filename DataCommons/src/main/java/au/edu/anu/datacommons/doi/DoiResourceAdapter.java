@@ -22,8 +22,12 @@
 package au.edu.anu.datacommons.doi;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.datacite.schema.kernel_4.DateType;
 import org.datacite.schema.kernel_4.DescriptionType;
 import org.datacite.schema.kernel_4.NameType;
 import org.datacite.schema.kernel_4.Resource;
@@ -33,15 +37,21 @@ import org.datacite.schema.kernel_4.Resource.Creators;
 import org.datacite.schema.kernel_4.Resource.Creators.Creator;
 import org.datacite.schema.kernel_4.Resource.Creators.Creator.CreatorName;
 import org.datacite.schema.kernel_4.Resource.Dates;
+import org.datacite.schema.kernel_4.Resource.Dates.Date;
 import org.datacite.schema.kernel_4.Resource.Descriptions;
 import org.datacite.schema.kernel_4.Resource.Descriptions.Description;
 import org.datacite.schema.kernel_4.Resource.Formats;
+import org.datacite.schema.kernel_4.Resource.GeoLocations;
+import org.datacite.schema.kernel_4.Resource.GeoLocations.GeoLocation;
 import org.datacite.schema.kernel_4.Resource.Identifier;
+import org.datacite.schema.kernel_4.Resource.Publisher;
 import org.datacite.schema.kernel_4.Resource.RelatedIdentifiers;
 import org.datacite.schema.kernel_4.Resource.ResourceType;
 import org.datacite.schema.kernel_4.Resource.RightsList;
+import org.datacite.schema.kernel_4.Resource.RightsList.Rights;
 import org.datacite.schema.kernel_4.Resource.Sizes;
 import org.datacite.schema.kernel_4.Resource.Subjects;
+import org.datacite.schema.kernel_4.Resource.Subjects.Subject;
 import org.datacite.schema.kernel_4.Resource.Titles;
 import org.datacite.schema.kernel_4.Resource.Titles.Title;
 import org.datacite.schema.kernel_4.TitleType;
@@ -59,6 +69,33 @@ import au.edu.anu.datacommons.xml.data.DataItem;
 public class DoiResourceAdapter {
 	private Data sourceData;
 	private Resource doiResource = new Resource();
+	
+	private static final Map<String, LicenceTypeForDOI> licenceTypes;
+	
+	static {
+		Map<String, LicenceTypeForDOI> aMap = new HashMap<String, LicenceTypeForDOI>();
+		aMap.put("CC-BY", new LicenceTypeForDOI("CC BY","http://creativecommons.org/licenses/by/3.0/au/deed.en","Creative Commons Attribution 3.0 International"));
+		aMap.put("CC-BY-4_0", new LicenceTypeForDOI("CC BY","http://creativecommons.org/licenses/by/4.0/","Creative Commons Attribution 4.0 International"));
+		aMap.put("CC BY-SA", new LicenceTypeForDOI("CC BY-SA","http://creativecommons.org/licenses/by-sa/3.0/au/deed.en","Creative Commons Share-Alike 3.0 International"));
+		aMap.put("CC BY-SA-4_0", new LicenceTypeForDOI("CC BY-SA","http://creativecommons.org/licenses/by-sa/4.0/","Creative Commons Share-Alike 4.0 International"));
+		aMap.put("CC BY-ND", new LicenceTypeForDOI("CC BY-ND","http://creativecommons.org/licenses/by-nd/3.0/au/deed.en","Creative Commons No Derivatives 3.0 International"));
+		aMap.put("CC BY-ND-4_0", new LicenceTypeForDOI("CC BY-ND","http://creativecommons.org/licenses/by-nd/4.0/","Creative Commons No Derivatives 4.0 International"));
+		aMap.put("CC BY-NC", new LicenceTypeForDOI("CC BY-NC","http://creativecommons.org/licenses/by-nc/3.0/au/deed.en","Creative Commons Non Commercial 3.0 International"));
+		aMap.put("CC BY-NC-4_0", new LicenceTypeForDOI("CC BY-NC","http://creativecommons.org/licenses/by-nc/4.0/","Creative Commons Non Commercial 4.0 International"));
+		aMap.put("CC BY-NC-SA", new LicenceTypeForDOI("CC BY-NC-SA","http://creativecommons.org/licenses/by-nc-sa/3.0/au/deed.en","Creative Commons Non Commercial-Share Alike 3.0 International"));
+		aMap.put("CC BY-NC-SA-4_0", new LicenceTypeForDOI("CC BY-NC-SA","http://creativecommons.org/licenses/by-nc-sa/4.0/","Creative Commons Non Commercial-Share Alike 4.0 International"));
+		aMap.put("CC BY-NC-ND", new LicenceTypeForDOI("CC BY-NC-ND","http://creativecommons.org/licenses/by-nc-nd/3.0/au/deed.en","Creative Commons Non Commercial-No Dervatives 3.0 International"));
+		aMap.put("CC BY-NC-ND-4_0", new LicenceTypeForDOI("CC BY-NC-ND","http://creativecommons.org/licenses/by-nc-nd/4.0/","reative Commons Non Commercial-No Dervatives 4.0 International"));
+		aMap.put("GPL", new LicenceTypeForDOI(null,"http://www.gnu.org/licenses/gpl.html","GNU General Public License"));
+		aMap.put("AusGoalRestrictive", new LicenceTypeForDOI(null,null,"AUSGoal Restrictive"));
+		aMap.put("NoLicence", new LicenceTypeForDOI(null,null,"No Licence"));
+		aMap.put("Unknown/Other", new LicenceTypeForDOI(null,null,"Other"));
+		licenceTypes = Collections.unmodifiableMap(aMap);
+	}
+//	
+//	private static final Map<String, LicenceTypeForDOI> licenceTypes = new HashMap<String, LicenceTypeForDOI>() {
+//		
+//	};
 
 	/**
 	 * Constructor specifying the Data object to adapt into a Resource object.
@@ -96,6 +133,7 @@ public class DoiResourceAdapter {
 	 */
 	private void generateResource() throws DoiException {
 		// Mandatory fields.
+		
 		Creators creators = getCreators();
 		if (creators == null) {
 			throw new DoiException(
@@ -110,7 +148,7 @@ public class DoiResourceAdapter {
 		}
 		doiResource.setTitles(titles);
 
-		String publisher = getPublisher();
+		Publisher publisher = getPublisher();
 		if (publisher == null) {
 			throw new DoiException(
 					"No publisher provided. Creators, titles, collection type, publisher and publication year are required for a DOI to be minted.");
@@ -143,6 +181,7 @@ public class DoiResourceAdapter {
 		doiResource.setVersion(getVersion());
 		doiResource.setRightsList(getRights());
 		doiResource.setDescriptions(getDescriptions());
+		doiResource.setGeoLocations(getGeoLocations());
 	}
 
 	/**
@@ -235,8 +274,10 @@ public class DoiResourceAdapter {
 	 *            Data object from which the publisher value will be read
 	 * @return Name of Publisher as String
 	 */
-	private String getPublisher() {
-		return getValueOfFirstElementByNameFromSource("citationPublisher");
+	private Publisher getPublisher() {
+		Publisher publisher = new Publisher();
+		publisher.setValue(getValueOfFirstElementByNameFromSource("citationPublisher"));
+		return publisher;
 	}
 
 	/**
@@ -251,7 +292,29 @@ public class DoiResourceAdapter {
 	}
 
 	private Subjects getSubjects() {
+		Subjects subjects = new Subjects();
+		
 		// TODO Implement.
+		List<DataItem> anzforSubjects = sourceData.getElementByName("anzforSubject");
+		for (DataItem item : anzforSubjects) {
+			Subject subject = new Subject();
+			subject.setSubjectScheme("ANZSRC Fields of Research");
+			subject.setSchemeURI("https://www.abs.gov.au/statistics/classifications/australian-and-new-zealand-standard-research-classification-anzsrc");
+			subject.setClassificationCode(item.getValue());
+			subject.setValue(item.getDescription());
+			subjects.getSubject().add(subject);
+		}
+
+		List<DataItem> keywords = sourceData.getElementByName("locSubject");
+		for (DataItem item : keywords) {
+			Subject subject = new Subject();
+			subject.setValue(item.getValue());
+			subjects.getSubject().add(subject);
+		}
+		
+		if (subjects.getSubject().size() > 0) {
+			return subjects;
+		}
 		return null;
 	}
 
@@ -261,7 +324,21 @@ public class DoiResourceAdapter {
 	}
 
 	private Dates getDates() {
-		// TODO Implement.
+		Dates dates = new Dates();
+		List<DataItem> coverageDates = sourceData.getElementByName("coverageDates");
+		for (DataItem coverageDate : coverageDates) {
+			List<DataItem> dateFroms = coverageDate.getChildElementByName("dateFrom");
+			String dateFrom = dateFroms.get(0).getValue();
+			List<DataItem> dateTos = coverageDate.getChildElementByName("dateTo");
+			String dateTo = dateTos.get(0).getValue();
+			Date date = new Date();
+			date.setDateType(DateType.COVERAGE);
+			date.setDateInformation(dateFrom+"/"+dateTo);
+			dates.getDate().add(date);
+		}
+		if (dates.getDate().size() > 0) {
+			return dates;
+		}
 		return null;
 	}
 
@@ -340,7 +417,20 @@ public class DoiResourceAdapter {
 	}
 
 	private Sizes getSizes() {
-		// TODO Implement
+		Sizes sizes = new Sizes();
+		DataItem dataSize = sourceData.getFirstElementByName("dataSize");
+		if (dataSize != null) {
+			sizes.getSize().add(dataSize.getValue());
+		}
+		
+		DataItem dataExtent = sourceData.getFirstElementByName("dataExtent");
+		if (dataSize != null) {
+			sizes.getSize().add(dataExtent.getValue() + " files");
+		}
+		
+		if (sizes.getSize().size() > 0) {
+			return sizes;
+		}
 		return null;
 	}
 
@@ -355,7 +445,36 @@ public class DoiResourceAdapter {
 	}
 
 	private RightsList getRights() {
-		// TODO Implement
+		RightsList rightsList = new RightsList();
+
+		DataItem licenceTypeDataItem = sourceData.getFirstElementByName("licenceType");
+		String value = licenceTypeDataItem.getValue();
+		LicenceTypeForDOI licenceType =  licenceTypes.get(value);
+		if (licenceType != null) {
+			rightsList.getRights().add(licenceType.getRight());
+			return rightsList;
+		}
+		DataItem licence = sourceData.getFirstElementByName("licence");
+		if(licence != null) {
+			Rights right = new Rights();
+			right.setValue(licence.getValue());
+			rightsList.getRights().add(right);
+		}
+		DataItem accessRightsType = sourceData.getFirstElementByName("accessRightsType");
+		if(accessRightsType != null) {
+			Rights right = new Rights();
+			right.setValue(accessRightsType.getDescription());
+			rightsList.getRights().add(right);
+		}
+		DataItem accessRights = sourceData.getFirstElementByName("accessRights");
+		if(accessRights != null) {
+			Rights right = new Rights();
+			right.setValue(accessRights.getValue());
+			rightsList.getRights().add(right);
+		}
+		if (rightsList.getRights().size() > 0) {
+			return rightsList;
+		}
 		return null;
 	}
 
@@ -386,6 +505,16 @@ public class DoiResourceAdapter {
 			descriptions.getDescription().addAll(list);
 		}
 		return descriptions;
+	}
+	
+	private GeoLocations getGeoLocations() {
+//		GeoLocations geoLocations = new GeoLocations();
+//		GeoLocation geoLocation = new GeoLocation();
+//		GeoLocation geoLocation = geoLocations.getGeoLocation().get(0);
+//		sourceData.getElementByName("");
+//		geoLocation.getGeoLocationPlaceOrGeoLocationPointOrGeoLocationBox()
+		
+		return null;
 	}
 
 	/**

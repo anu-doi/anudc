@@ -14,37 +14,37 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for titleType.
+ * <p>Java class for numberType.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="titleType">
+ * &lt;simpleType name="numberType">
  *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="AlternativeTitle"/>
- *     &lt;enumeration value="Subtitle"/>
- *     &lt;enumeration value="TranslatedTitle"/>
+ *     &lt;enumeration value="Article"/>
+ *     &lt;enumeration value="Chapter"/>
+ *     &lt;enumeration value="Report"/>
  *     &lt;enumeration value="Other"/>
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
  * 
  */
-@XmlType(name = "titleType")
+@XmlType(name = "numberType")
 @XmlEnum
-public enum TitleType {
+public enum NumberType {
 
-    @XmlEnumValue("AlternativeTitle")
-    ALTERNATIVE_TITLE("AlternativeTitle"),
-    @XmlEnumValue("Subtitle")
-    SUBTITLE("Subtitle"),
-    @XmlEnumValue("TranslatedTitle")
-    TRANSLATED_TITLE("TranslatedTitle"),
+    @XmlEnumValue("Article")
+    ARTICLE("Article"),
+    @XmlEnumValue("Chapter")
+    CHAPTER("Chapter"),
+    @XmlEnumValue("Report")
+    REPORT("Report"),
     @XmlEnumValue("Other")
     OTHER("Other");
     private final String value;
 
-    TitleType(String v) {
+    NumberType(String v) {
         value = v;
     }
 
@@ -52,8 +52,8 @@ public enum TitleType {
         return value;
     }
 
-    public static TitleType fromValue(String v) {
-        for (TitleType c: TitleType.values()) {
+    public static NumberType fromValue(String v) {
+        for (NumberType c: NumberType.values()) {
             if (c.value.equals(v)) {
                 return c;
             }
