@@ -37,6 +37,7 @@ import org.datacite.schema.kernel_4.Resource.Creators.Creator.CreatorName;
 import org.datacite.schema.kernel_4.Resource.Sizes;
 import org.datacite.schema.kernel_4.Resource.Titles;
 import org.datacite.schema.kernel_4.Resource.Titles.Title;
+import org.datacite.schema.kernel_4.Resource.Publisher;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -113,7 +114,14 @@ public class ResourceTest
 		
 		metadata.getCreators().getCreator().add(creator);
 		
-		metadata.setPublisher("Some random publisher");
+//		metadata.setPublisher("Some random publisher");
+		Publisher publisher = new Publisher();
+		publisher.setValue("Some random publisher");;
+//		Publishers publisher = new Publishers();
+		metadata.setPublisher(null);
+//		Publisher publisher = new Publisher();
+		
+		
 		metadata.setPublicationYear("2010");
 		
 		try
@@ -166,7 +174,9 @@ public class ResourceTest
 	}
 	
 	private void setPublisher(Resource res, String publisher) {
-		res.setPublisher(publisher);
+		Publisher publisherVal = new Publisher();
+		publisherVal.setValue(publisher);;
+		res.setPublisher(publisherVal);
 	}
 	
 	private void setPublicationYear(Resource res, String year) {

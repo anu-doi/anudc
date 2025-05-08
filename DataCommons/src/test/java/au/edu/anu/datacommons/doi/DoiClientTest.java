@@ -38,6 +38,7 @@ import org.datacite.schema.kernel_4.Resource.Creators;
 import org.datacite.schema.kernel_4.Resource.Creators.Creator;
 import org.datacite.schema.kernel_4.Resource.Creators.Creator.CreatorName;
 import org.datacite.schema.kernel_4.Resource.Identifier;
+import org.datacite.schema.kernel_4.Resource.Publisher;
 import org.datacite.schema.kernel_4.Resource.Titles;
 import org.datacite.schema.kernel_4.Resource.Titles.Title;
 import org.junit.After;
@@ -135,7 +136,9 @@ public class DoiClientTest extends JerseyTest
 			titles.getTitle().add(title);
 			res.setTitles(titles);
 			
-			res.setPublisher("Publisher 1");
+			Publisher publisher = new Publisher();
+			publisher.setValue("Publisher 1");
+			res.setPublisher(publisher);
 			res.setPublicationYear("1987");
 			
 			Identifier id = new Identifier();
@@ -224,7 +227,9 @@ public class DoiClientTest extends JerseyTest
 
 		metadata.getCreators().getCreator().add(creator);
 
-		metadata.setPublisher("Some random publisher");
+		Publisher publisher = new Publisher();
+		publisher.setValue("Some random publisher");
+		metadata.setPublisher(publisher);
 		metadata.setPublicationYear("2010");
 
 		return metadata;
