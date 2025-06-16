@@ -45,7 +45,7 @@
 		<#if link.fields['item'].value?starts_with("info:fedora/")>
 		<li>${link.fields['predicate'].value[26..]}:<br/><a href="/DataCommons/rest/display/${link.fields['item'].value[12..]}" class="text-link">${link.fields['title'].value}</a> [${link.fields['item'].value[12..]}]</li>
 		<#else>
-		${link.fields['title'].value}
+		${link.fields['item'].value}
 		</#if>
 	</#list>
 	</ul>

@@ -2,9 +2,9 @@ var editMode = false;
 
 jQuery(document).ready(function() {
 	var itemSearchWidth = $("#itemSearch").outerWidth();
-	console.log(itemSearchWidth);
+	//console.log(itemSearchWidth);
 	var externalLinkWidth = $("#linkExternal").outerWidth();
-	console.log(externalLinkWidth);
+	//console.log(externalLinkWidth);
 	
 	var options = {
 		url: function(phrase) {
@@ -27,10 +27,10 @@ jQuery(document).ready(function() {
 				enabled: true
 			},
 			onSelectItemEvent: function() {
-				console.log("In on select item event");
+				//console.log("In on select item event");
 				var selectedItemValue = $("#itemSearch").getSelectedItemData().item;
 				var selectedTitleValue = $("#itemSearch").getSelectedItemData().title;
-				console.log(selectedItemValue);
+				//console.log(selectedItemValue);
 				$("#itemIdentifier").html(selectedItemValue);
 				$("#itemId").html(selectedItemValue);
 				$("#itemName").html(selectedTitleValue);
@@ -72,13 +72,13 @@ jQuery(document).ready(function() {
 	$("#linkItemType").trigger('change');
 	
 	$("#editLinkButton").on('click', function(){
-		console.log("In editlink button")
+		//console.log("In editlink button")
 		getLinks();
 		
 	});
 	
 	$("#itemLinkButton").on('click', function(){
-		console.log('In item link button');
+		//console.log('In item link button');
 		jQuery("#itemIdentifier").text('None Selected');
 		jQuery("#itemName").text('None Selected');
 		jQuery("#itemId").val('');
@@ -156,11 +156,11 @@ function getPidFromInfo(pid) {
 }
 
 function editLink(item, row) {
-	console.log("In edit link");
+	//console.log("In edit link");
 	var title = getItemTitle(item);
-	console.log(title);
+	//console.log(title);
 	var relation = getRelationshipType(item.predicate);
-	console.log(relation);
+	//console.log(relation);
 	
 	$("#modalEditLink").modal('hide');
 	$("#linkItemType").val(item.type);
@@ -171,7 +171,7 @@ function editLink(item, row) {
 	editMode = 1;
 
 	$("#modalLink").modal('show');
-	console.log('after modal show?');
+	//console.log('after modal show?');
 	
 	if (pid) {
 		$("#itemIdentifier").text(pid);
@@ -191,13 +191,13 @@ function editLink(item, row) {
 }
 
 function deleteLink(item, row) {
-	console.log('In delete link');
+	//console.log('In delete link');
 	var pid = getPid();
-	console.log(pid);
+	//console.log(pid);
 	var relation = getRelationshipType(item.predicate);
-	console.log(relation);
+	//console.log(relation);
 	var urlStr = '/DataCommons/rest/display/removeLink/' + pid;
-	console.log(urlStr);
+	//console.log(urlStr);
 	jQuery.ajax({
 		type: "POST",
 		url: urlStr,
@@ -227,22 +227,22 @@ function getPid() {
 //});
 
 $("#formAddLink").submit(function() {
-	console.log("Submit!");
+	//console.log("Submit!");
 	var pid = getPid();
 	var urlStr = '';
 	if (editMode == 1) {
-		console.log('In edit mode');
+		//console.log('In edit mode');
 		urlStr = "/DataCommons/rest/display/editLink/" + pid;
 	}
 	else {
-		console.log('In add mode');
+		//console.log('In add mode');
 		urlStr = "/DataCommons/rest/display/addLink/" + pid;
 	}
 	var typeStr = $("#linkType").val();
 	var itemStr = $("#itemId").text();
 	var previousTypeStr = $("#previousLinkType").val();
 	
-	if (itemStr == '' || itemStr == 'None Selected') {
+	if (itemStr == '' || itemStr.trim() == 'None Selected') {
 		itemStr = $("#linkExternal").val();
 	}
 	$.ajax({
