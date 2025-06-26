@@ -47,6 +47,8 @@ jQuery(document).ready(function() {
 	$("#linkItemType").change(function() {
 		var cat1 = jQuery("#itemType").val();
 		var cat2 = jQuery("#linkItemType").val();
+		//console.log(cat1);
+		//console.log(cat2);
 		
 		$.ajax({
 			type: "GET",
@@ -161,9 +163,20 @@ function editLink(item, row) {
 	//console.log(title);
 	var relation = getRelationshipType(item.predicate);
 	//console.log(relation);
+	//console.log(item);
 	
 	$("#modalEditLink").modal('hide');
-	$("#linkItemType").val(item.type);
+	if (!item.type) {
+		//console.log("Item type is null");
+		alert("This link is unable to be edited, you will need to remove and add the link to modify it");
+		return;
+	}
+	// fix a case senstivitiy case selection issue
+	var matchingValue = $('#linkItemType option').filter(function() {
+		return this.value.toLowerCase() === item.type.toLowerCase();
+	}).attr('value');
+	$("#linkItemType").val(matchingValue);
+	//$("#linkItemType").val(item.type);
 	$("#linkItemType").trigger('change');
 	
 	var pid = getPidFromInfo(item.item);
