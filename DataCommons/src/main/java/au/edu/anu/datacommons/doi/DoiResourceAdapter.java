@@ -424,7 +424,7 @@ public class DoiResourceAdapter {
 		}
 		
 		DataItem dataExtent = sourceData.getFirstElementByName("dataExtent");
-		if (dataSize != null) {
+		if (dataExtent != null) {
 			sizes.getSize().add(dataExtent.getValue() + " files");
 		}
 		
