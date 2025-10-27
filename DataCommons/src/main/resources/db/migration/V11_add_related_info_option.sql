@@ -22,7 +22,7 @@ insert into template_attribute (id, template_id, name, field_type_id, label, too
 (243,1,'externalParty',5,'Related xxternal people and organisations','If appropriate, include identifiers for related external people and organisations ie. ROR',false,false,null,null,2, 47, 47, null, null);
 
 insert into template_attribute_column (template_attribute_id, name, label, field_type_id, select_code, column_order) values
-	(243,'partyIdType', 'Identifier type', 3, 'identifierType', 1)
+	(243,'partyIdType', 'Identifier type', 3, 'partyIdType', 1)
 	,(243,'partyIdValue', 'Identifier value', 1, null, 2)
 	,(243,'partyTitle', 'Title/Name', 1, null, 3)
 	,(243,'partyRelationType', 'Relationship type', 3, 'collectionPartyType', 4)
