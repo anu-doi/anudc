@@ -491,6 +491,26 @@
 				</relatedInfo>
 			</xsl:for-each>
 		</xsl:if>
+		<xsl:if test="data/externalParty">
+			<xsl:for-each select="data/externalParty">
+				<relatedInfo type="party">
+					<identifier>
+						<xsl:attribute name="type"><xsl:value-of select="partyIdType/@code" /></xsl:attribute>
+						<xsl:value-of select="partyIdValue" />
+					</identifier>
+					<xsl:if test="partyTitle">
+						<title>
+							<xsl:value-of select="partyTitle" />
+						</title>
+					</xsl:if>
+					<xsl:if test="partyRelationType">
+						<relation>
+							<xsl:attribute name="type"><xsl:value-of select="partyRelationType/@code" /></xsl:attribute>
+						</relation>
+					</xsl:if>
+				</relatedInfo>
+			</xsl:for-each>
+		</xsl:if>
 		<xsl:if test="data/type/text() = 'Collection'">
 			<xsl:if test="data/name">
 				<citationInfo>
