@@ -89,7 +89,7 @@
 		<dependency>
 			<groupId>au.edu.anu.taglib</groupId>
 			<artifactId>anu-taglib</artifactId>
-			<version>1.9.1-SNAPSHOT</version>
+			<version>1.11.0-SNAPSHOT</version>
 			<scope>runtime</scope>
 			<exclusions>
 				<exclusion>

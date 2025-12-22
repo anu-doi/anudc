@@ -8,6 +8,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="full" title="${it.title }">
 	Records:<br />
 	<ul class="nobullet noindent">
@@ -16,5 +17,5 @@
 	</c:forEach>
 	</ul>
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

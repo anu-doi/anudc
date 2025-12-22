@@ -23,9 +23,10 @@ jQuery(document).ready(function () {
  * Version	Date		Developer			Description
  * 0.1		20/08/2012	Genevieve Turner	Initial
  */
-jQuery("#groups").live('click', function() {
+//jQuery("#groups").live('click', function() {
+jQuery(document).on('click', "#groups", function() {
 	jQuery("#message").hide();
-	jQuery(".chk_perm").attr('checked', false);
+	jQuery(".chk_perm").prop('checked', false);
 	var value = jQuery("#groups").val();
 	var url =  "/DataCommons/rest/user/permissions/" + value;
 	if (jQuery("#peopleList").text()) {
@@ -41,7 +42,7 @@ jQuery("#groups").live('click', function() {
 		dataType: "json",
 		success: function(data) {
 			jQuery.map(data, function(item, i) {
-				jQuery(".chk_perm[value=" + item + "]").attr('checked',true);
+				jQuery(".chk_perm[value=" + item + "]").prop('checked',true);
 			});
 		}
 	});
@@ -53,7 +54,8 @@ jQuery("#groups").live('click', function() {
  * Version	Date		Developer			Description
  * 0.1		20/08/2012	Genevieve Turner	Initial
  */
-jQuery("#findPeople").live('click', function() {
+//jQuery("#findPeople").live('click', function() {
+jQuery(document).on('click', "#findPeople", function() {
 	jQuery("#message").hide();
 	jQuery("#updateGroups").hide();
 	jQuery("#permissions").hide();
@@ -73,7 +75,7 @@ jQuery("#findPeople").live('click', function() {
 			var table = jQuery("<table width='100%'></table>");
 			var headerrow = jQuery("<tr></tr>");
 			// Add a header
-			headerrow.append(jQuery("<th></th>"));
+			headerrow.append(jQuery("<th></th>").text('Select'));
 			headerrow.append(jQuery("<th></th>").text('Uni ID'));
 			headerrow.append(jQuery("<th></th>").text('Name'));
 			headerrow.append(jQuery("<th></th>").text('Email'));
@@ -81,7 +83,7 @@ jQuery("#findPeople").live('click', function() {
 			// Process the returned data
 			jQuery.map(data, function(item, i) {
 				var row = jQuery("<tr></tr>");
-				var radiobutton = jQuery("<input name='username' type='radio' />").attr("value",item.username);
+				var radiobutton = jQuery("<input name='username' type='radio' aria-label='select user'/>").attr("value",item.username);
 				row.append(jQuery("<td></td>").html(radiobutton));
 				row.append(jQuery("<td></td>").text(item.uniId));
 				row.append(jQuery("<td></td>").text(item.displayName));
@@ -97,7 +99,7 @@ jQuery("#findPeople").live('click', function() {
  * 
  * @returns
  */
-jQuery("input[name='registered']").live('click', function() {
+jQuery(document).on('click', "input[name='registered']", function() {
 	var id = jQuery(this).attr('id');
 	console.log(id);
 	if (id == "registered-true") {
@@ -115,7 +117,7 @@ jQuery("input[name='registered']").live('click', function() {
  * Version	Date		Developer			Description
  * 0.1		20/08/2012	Genevieve Turner	Initial
  */
-jQuery("input[name='username']").live('click', function() {
+jQuery(document).on('click', "input[name='username']", function() {
 	jQuery(".chk_perm").attr('checked',false);
 	jQuery("#updateGroups").show();
 	jQuery("#permissions").show();
@@ -160,7 +162,7 @@ jQuery("input[name='username']").live('click', function() {
  * Version	Date		Developer			Description
  * 0.1		20/08/2012	Genevieve Turner	Initial
  */
-jQuery("#updatePerm").live('click', function(){
+jQuery(document).on('click', "#updatePerm", function(){
 	var groupId = jQuery("#groups").val();
 	if (jQuery.isEmptyObject(groupId)) {
 		console.log('Object empty');

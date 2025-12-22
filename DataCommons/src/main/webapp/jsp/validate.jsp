@@ -10,6 +10,7 @@
 
 <jsp:include page="header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide">
 	<anu:breadcrumbs>
 		<c:url value="/rest/search" var="searchLink" />
@@ -27,11 +28,11 @@
 		Published to:<br />
 		${it.message}<br />
 	</c:if>
-	<form id="form" method="post" action="">
+	<form id="form" class="anuform" method="post" action="">
 		<c:forEach items="${it.publishLocations}" var="publishLocation">
 			<input type="radio" name="publish" value="${publishLocation.id}" />${publishLocation.code} - ${publishLocation.name} <br />
 		</c:forEach>
-		<input id="publishSubmit" type="submit" value="Check Validity" />
+		<input id="publishSubmit" class="btn btn-primary" type="submit" value="Check Validity" />
 	</form>
 	<c:if test="${not empty it.validateMessages}">
 		<p class="msg-info">
@@ -44,6 +45,6 @@
 		<p class="msg-success">Record successfully validated</p>
 	</c:if>
 </anu:content>
-
+</anu:container>
 
 <jsp:include page="footer.jsp" />

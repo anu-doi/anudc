@@ -239,7 +239,7 @@
                 }
             };
 
-            this.$input = $('<input type="text"/>')
+            this.$input = $('<input aria-label="Search" type="text"/>')
                 .attr('placeholder', this.config.texts.searchplaceholder);
 
             this.$noResultsItem = $('<div class="sol-no-results"/>').html(this.config.texts.noItemsAvailable).hide();

@@ -13,42 +13,59 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide" title="Publish multiple records">
 	<c:choose>
 		<c:when test="${not empty it.groups}">
-			<form id="groupForm" method="GET" action=""> 
-				Groups:<br/>
-				<select name="group">
-					<c:forEach var="group" items="${it.groups}">
-						<option value="${group.id}"
-						<c:if test="${param.group == group.id }">
-							selected="selected"
-						</c:if>
-							title="${group.group_name}"
-						>
-							${group.group_name}
-						</option>
-					</c:forEach>
-				</select>
-				<input type="submit" value="Find Records" />
+			<form id="groupForm" method="GET" action="">
+			<fieldset>
+				<legend>Groups:</legend>
+				<div class="field d-flex align-items-center justify-content-between">
+					<div class="d-flex align-items-center">
+						<select aria-label="Select Group" name="group">
+							<c:forEach var="group" items="${it.groups}">
+								<option value="${group.id}"
+								<c:if test="${param.group == group.id }">
+									selected="selected"
+								</c:if>
+									title="${group.group_name}"
+								>
+									${group.group_name}
+								</option>
+							</c:forEach>
+						</select>
+					</div>
+					<div class="field float-end">
+						<input class="btn btn-primary" type="submit" value="Find Records" />
+					</div>
+				</div>
+			</fieldset> 
 			</form>
 			<c:if test="${not empty it.results.documentList}">
 				<hr/>
 				<form id="publishForm" method="POST" action="">
-					Locations to Publish To:<br/>
+				<fieldset>
+					<legend>Locations to Publish To:</legend>
 					<label for="publishLocation" class="error">Please select location(s) to publish to<br/></label>
+					<div class="field">
 					<c:forEach var="publishLocation" items="${it.publishers}">
-						<input type="checkbox" name="publishLocation" value="${publishLocation.id}" class="required" /> ${publishLocation.name} <br/>
+						<input type="checkbox" name="publishLocation" aria-label="${publishLocation.name}" value="${publishLocation.id}" class="required" /> ${publishLocation.name} <br/>
 					</c:forEach>
-					<hr/>
-					<a href="#publishButton" onclick="selectAll('ids')">Select All Records</a> <a href="#publishButton" onclick="deselectAll('ids')">De-select All Records</a>
-					<input class="right" type="submit" id="publishButton" name="publishButton" value="Publish" />
-					<hr/>
-					Records to Publish:<br/>
+					</div>
+					<div class="field border-bottom border-top py-1 d-flex align-items-center justify-content-between">
+					<div class="d-flex align-items-center gap-2">
+					<a style="text-decoration: underline;" href="#publishButton" onclick="selectAll('ids')">Select All Records</a><a style="text-decoration: underline;" href="#publishButton" onclick="deselectAll('ids')">De-select All Records</a>
+					</div>
+					<input class="btn btn-primary" type="submit" id="publishButton" name="publishButton" value="Publish" />
+					</div>
+					<legend>Records to Publish:</legend>
 					<label for="ids" class="error">Please select record(s) to publish<br/></label>
-					<c:forEach items="${it.results.documentList}" var="row"> 
-						<input type="checkbox" name="ids" value="${row['id']}" class="required" />${row['unpublished.name']}&nbsp;&nbsp;<span class="text-grey50">[${row['id']}]</span><br/>
-					</c:forEach>
+					<div class="field">
+						<c:forEach items="${it.results.documentList}" var="row"> 
+							<input type="checkbox" aria-label="${row['id']}" name="ids" value="${row['id']}" class="required" />${row['unpublished.name']}&nbsp;&nbsp;<span class="text-grey50">[${row['id']}]</span><br/>
+						</c:forEach>
+					</div>
+				</fieldset>
 				</form>
 				
 				<c:set var="curPage" value="${(param.page == null ? 1 : param.page + 1)}" />
@@ -60,21 +77,21 @@
 					<c:param name="page" value="0" />
 					<c:param name="group" value="${param.group}" />
 				</c:url>
-				<a class="nounderline" href="${publishURL}">&lt;&lt;</a>
+				<a class="nounderline" aria-label="Previous page" href="${publishURL}">&lt;&lt;</a>
 				<c:if test="${start > 1}">...</c:if>
 				<c:forEach begin="${start}" end="${end}" var="i">
 					<c:url var="publishURL" value="/rest/publish/multiple">
 						<c:param name="page" value="${i - 1}" />
 						<c:param name="group" value="${param.group}" />
 					</c:url>
-					<a class="nounderline" href="${publishURL}">${i}</a>
+					<a class="nounderline" aria-label="page ${i}" href="${publishURL}">${i}</a>
 				</c:forEach>
 				<c:if test="${end < numPages}">...</c:if>
 				<c:url var="publishURL" value="/rest/publish/multiple">
 					<c:param name="page" value="${numPages}" />
 					<c:param name="group" value="${param.group}" />
 				</c:url>
-				<a class="nounderline" href="${publishURL}">&gt;&gt;</a>
+				<a class="nounderline" aria-label="Next page" href="${publishURL}">&gt;&gt;</a>
 			</c:if>
 		</c:when>
 		<c:otherwise>
@@ -82,5 +99,5 @@
 		</c:otherwise>
 	</c:choose>
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

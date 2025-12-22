@@ -16,7 +16,7 @@
 		<anu:crumb title="Catalogue search" href='${catalogueLink}' />
 		<anu:crumb title="Search Result" />
 	</anu:breadcrumbs>
-	<h1 class="doublewide nopadbottom nopadtop">Catalogue</h1>
+	<h1 class="doublewide pb-0 pt-0">Catalogue</h1>
 	
 	<hr />
 

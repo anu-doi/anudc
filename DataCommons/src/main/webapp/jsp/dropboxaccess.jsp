@@ -9,6 +9,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <c:choose>
 	<c:when test="${not empty it.dropbox}">
 		<anu:content layout="doublewide" title="Dropbox Access">
@@ -17,32 +18,40 @@
 			</jsp:include>
 
 			<form method="get" action="<c:url value='/rest/collreq/dropbox/access' />/${it.dropbox.accessCode}" class="anuform">
-				<p>
+				<fieldset>
+				<div class="field">
 					<label>Access Code</label>
+					<div class="field-span">
 					<c:out value="${it.dropbox.accessCode}" />
-				</p>
-				<p>
+					</div>
+				</div>
+				<div class="field">
 					<label>Status</label>
+					<div class="field-span">
 					<c:choose>
 						<c:when test="${it.dropbox.active == true}">
-							<img src="<c:url value='/images/accept.png' />" />&nbsp;Active
+							<img alt="Active status" src="<c:url value='/images/accept.png'/>" />&nbsp;Active
 						</c:when>
 						<c:otherwise>
-							<img src="<c:url value='/images/cancel.png' />" />&nbsp;Inactive
+							<img alt="Inactive status" src="<c:url value='/images/cancel.png'/>" />&nbsp;Inactive
 						</c:otherwise>
 					</c:choose>
-				</p>
-				<p>
+					</div>
+				</div>
+				<div class="field">
 					<label>Expires</label>
+					<div class="field-span">
 					<c:out value="${it.dropbox.expiry}" />
-				</p>
+					</div>
+				</div>
 				<p>
 					<label for="idP">Password</label>
 					<input type="password" name="p" id="idP" value="<c:out value='${param.p}' />" />
 				</p>
-				<p class="text-right">
-					<input type="submit" value="Submit" />
+				<p class="float-end">
+					<input class="btn btn-primary mr-1" type="submit" value="Submit" />
 				</p>
+				</fieldset>
 			</form>
 
 			<c:if test="${it.downloadables != null}">
@@ -86,5 +95,5 @@
 		</anu:content>
 	</c:otherwise>
 </c:choose>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

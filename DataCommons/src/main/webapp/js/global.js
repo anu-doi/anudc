@@ -47,7 +47,7 @@ jQuery(document).ready(function()
  * Version	Date		Developer			Description
  * 0.3		26/03/2012	Genevieve Turner	Created function
  */
-jQuery("#editSelect").live('change', function()
+jQuery(document).on('change',"#editSelect", function()
 {
 	var aURL = window.location.href.slice(0, window.location.href.indexOf('?'));
 	var paramhash = getURLVars();

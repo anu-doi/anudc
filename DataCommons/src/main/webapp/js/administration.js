@@ -4,20 +4,16 @@
 
 var editPopupStatus = 0;
 
-jQuery(".edit-group").live('click', function() {
+jQuery(document).on('click', ".edit-group", function() {
 	var groupId = jQuery(this).attr('data-id');
 	var groupName = jQuery(this).attr('data-name');
-	centrePopup("#popupEditGroup");
-	editPopupStatus = loadPopup("#popupEditGroup", editPopupStatus);
 	jQuery("#edit-group-id").val(groupId);
 	jQuery("#edit-group-name").val(groupName);
 });
 
-jQuery(".edit-domain").live('click', function() {
+jQuery(document).on('click', ".edit-domain", function() {
 	var domainId = jQuery(this).attr('data-id');
 	var domainName = jQuery(this).attr('data-name');
-	centrePopup(".popup-edit");
-	editPopupStatus = loadPopup(".popup-edit", editPopupStatus);
 	jQuery("#edit-domain-id").val(domainId);
 	jQuery("#edit-domain-name").val(domainName);
 });
@@ -30,7 +26,7 @@ jQuery(".edit-domain").live('click', function() {
 //	editPopupStatus = disablePopup("#popupEditGroup", editPopupStatus);
 //});
 
-jQuery(".popup-close").live('click', function(){
+/*jQuery(document).on('click', ".popup-close", function(){
 	editPopupStatus = disablePopup(".popup-edit", editPopupStatus);
 });
 
@@ -40,8 +36,8 @@ jQuery(document).keypress(function(e) {
 	}
 });
 
-jQuery("#backgroundPopup").live('click', function() {
+jQuery(document).on('click', "#backgroundPopup", function() {
 	if (editPopupStatus == 1) {
 		editPopupStatus = disablePopup(".popup-edit", editPopupStatus);
 	}
-});
+});*/

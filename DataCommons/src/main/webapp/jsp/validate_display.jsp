@@ -10,6 +10,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide" title="Validation Results">
 	<c:url value="/rest/publish/validate/multiple" var="validateURL" />
 	<a href="${validateURL}">Return to Request Validation Page</a><br/>
@@ -38,5 +39,5 @@
 		</c:forEach>
 	</c:forEach>
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

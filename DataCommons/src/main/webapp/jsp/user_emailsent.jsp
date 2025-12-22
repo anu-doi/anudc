@@ -11,9 +11,10 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide">
 An email has been sent regarding your details.
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />
 

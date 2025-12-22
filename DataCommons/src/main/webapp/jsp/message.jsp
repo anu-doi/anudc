@@ -11,8 +11,8 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide">
+<anu:content layout="narrow">
 	${it.message}<br/>
 </anu:content>
 
-<jsp:include page="/jsp/footer.jsp" />
+<!-- <jsp:include page="/jsp/footer.jsp" /> -->

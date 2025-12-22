@@ -23,12 +23,12 @@
  */
 jQuery(document).ready(function()
 {
-	jQuery(function(){
+/*	jQuery(function(){
 		jQuery('#anzforSubject2').combobox();
 		jQuery('#anzseoSubject2').combobox();
-	});
+	});*/
 
-	document.title = jQuery("#body > #content > .doublenarrow > h1").text();
+	document.title = jQuery("#main-content > #body > .container > div > h1").text();
 	
 	jQuery.validator.setDefaults({
 		ignore: "",
@@ -57,7 +57,7 @@ jQuery(document).ready(function()
 			}
 	);
 	
-	jQuery("#form").submit(function() {
+/*	jQuery("#form").submit(function() {
 		//for some reason this doesn't work?
 		//jQuery("select[multiple='multiple'] option").attr("selected", "true");
 		
@@ -69,9 +69,9 @@ jQuery(document).ready(function()
 			jQuery("#submitForm").attr('disabled','disabled');
 		}
 		return validated;
-	});
+	});*/
 	
-	(function(jQuery) {
+/*	(function(jQuery) {
 		jQuery.widget("ui.combobox", {
 			_create: function() {
 				var input,
@@ -158,7 +158,7 @@ jQuery(document).ready(function()
 				jQuery.Widget.prototype.destroy.call(this);
 			}
 		});
-	})(jQuery);
+	})(jQuery);*/
 });
 
 /**

@@ -16,8 +16,8 @@
 	</#if>
 	<#if canEdit>
 	<input class="btn btn-primary mb-1" type="button" id="validateButton" name="validateButton" value="Validation Check" onclick="window.location='/DataCommons/rest/publish/validate/${item.object_id}'" />
-	<input class="btn btn-primary mb-1" id="itemLinkButton" type="button" name="itemLinkButton" value="Link to Item" data-toggle="modal" data-target="#modalLink" />
-	<input class="btn btn-primary mb-1" id="editLinkButton" type="button" name="editLinkButton" value="Edit Item Links" data-toggle="modal" data-target="#modalEditLink" />
+	<input class="btn btn-primary mb-1" id="itemLinkButton" type="button" name="itemLinkButton" value="Link to Item" data-bs-toggle="modal" data-bs-target="#modalLink" />
+	<input class="btn btn-primary mb-1" id="editLinkButton" type="button" name="editLinkButton" value="Edit Item Links" data-bs-toggle="modal" data-bs-target="#modalEditLink" />
 	</#if>
 	
 	<#if canPublish && item.publishReady??>
@@ -33,13 +33,12 @@
 	</#if>
 	
 	
-	<div id="modalLink" class="modal fade" role="dialog" aria-labelledby="addReferenceModal" aria-hidden="true">
+	<div id="modalLink" class="modal fade" role="dialog" aria-labelledby="addReferenceModal" data-bs-backdrop="static" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered" role="document">
 			<div class="modal-content">
 				<div class="modal-header">
 				<h5 class="modal-title" id="addReferenceModal">Add Reference</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				<span aria-hidden="true">&times;</span>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
 				</button>
 				</div>
 				<div class="modal-body">
@@ -143,24 +142,22 @@
 							</div>
 						</div>
 						<div class="row">
-							<div class="col">
+							<div class="col-sm">
 								<label for="linkExternal">External Identifier</label>
 							</div>
-							<div class="col">
+							<div class="col-sm">
 								<input type="text" id="linkExternal" name="linkExternal" />
 							</div>
-						</div>
-						<div class="row">
-							<div class="col">
-								<input id="btnAddLink" type="submit" value="Submit" />
-							</div>
-							<!-- <div class="col">
-								<input type="text" id="linkExternal" name="linkExternal" />
-							</div> -->
 						</div>
 					</div>
 					<p></p>
 					</form>
+				</div>
+				<div class="modal-footer">
+					<button id="btnAddLink" type="submit" value="Submit" class="btn btn-primary"
+						form="formAddLink" data-bs-dismiss="modal">
+						<span>Submit</span>
+					</button>
 				</div>
 			</div>
 		</div>
@@ -170,8 +167,7 @@
 			<div class="modal-content">
 				<div class="modal-header">
 				<h5 class="modal-title" id="editLinkModal">Edit Links</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				<span aria-hidden="true">&times;</span>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
 				</button>
 				</div>
 				<div class="modal-body">

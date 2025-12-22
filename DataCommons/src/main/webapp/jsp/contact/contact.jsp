@@ -17,6 +17,9 @@
 
 <fmt:setBundle basename='global'/>
 
+<anu:container type="container">
+<div class="row">
+<div class="col">
 <anu:content layout="full" title="Contact">
 
 	<h2>Functional contacts</h2>
@@ -38,13 +41,13 @@
 	<h2>People</h2>
 	<table class="fullwidth">
 		<tr>
-			<th>Name</th>
-			<th>Contact Details</th>
+			<th scope="row">Name</th>
+			<th scope="row">Contact Details</th>
 		</tr>
-		<tr>
+<%-- 		<tr>
 			<td><div class="large"><fmt:message key="contact.director.name" /></div><fmt:message key="contact.director.title" /></td>
 			<td><img class="hpad absmiddle" src="//style.anu.edu.au/_anu/images/icons/web/mail.png" alt="Email"/><a href='mailto:<fmt:message key="contact.director.email" />'><fmt:message key="contact.director.email" /></a></td>
-		</tr>
+		</tr> --%>
 		<tr>
 			<td><div class="large"><fmt:message key="contact.manager.name" /></div><fmt:message key="contact.manager.title" /></td>
 			<td>
@@ -53,9 +56,8 @@
 			</td>
 		</tr>
 	</table>
-	<div class="centre w280px anu-feedback-uni">
-		<a href="//eforms.anu.edu.au/Inifinit_Prod/Produces/wizard/8382ffaf-f52e-4f8a-bb5af-cbfe751d8b0">
-			<img src="//style.anu.edu.au/_anu/4/images/feedback/anu-feedback-uni.png" onmouseover="this.src='//style.anu.edu.au/_anu/4/images/feedback/anu-feedback-uni-over.png'" onmouseout="this.src='//style.anu.edu.au/_anu/4/images/feedback/anu-feedback-uni.png'" alt="University feedback"/>
-		</a>
-	</div>
 </anu:content>
+</div>
+</div>
+</anu:container>
+<jsp:include page="/jsp/footer.jsp" />

@@ -11,16 +11,25 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide">
 	<c:if test="${not empty it.error}">
 		<anu:message type="error">${it.error}</anu:message><br/>
 	</c:if>
 	<form id="form" class="anuform" method="POST">
-		<label for="email">Email:</label>
-		<input type="text" id="email" name="email" />
-		<br/>
-		<input type="submit" value="Submit" />
+	<fieldset>
+			<div class="field">
+				<label for="email">Email:</label>
+				<div class="field-span">
+					<input class="text tfull" type="text" id="email" name="email" />
+				</div>
+			<br/>
+			</div>
+			<p class="float-end">
+			<input class="btn btn-primary " type="submit" value="Submit" />
+			</p>
+	</fieldset>
 	</form>
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

@@ -102,7 +102,7 @@ function getLinks() {
 		type: "GET",
 		url: urlStr,
 		success: function(data) {
-			var table = jQuery('<table></table>');
+			var table = jQuery('<table class="noborder"></table>');
 			
 			jQuery.map(data.results, function(item, i) {
 				var row = jQuery('<tr></tr>');
@@ -234,10 +234,6 @@ function getPid() {
 	var pid = pathArray[pathArray.length - 1];
 	return pid;
 }
-
-//$("#formAddLink").live('submit', function() {
-//	console.log("Submit!");
-//});
 
 $("#formAddLink").submit(function() {
 	//console.log("Submit!");

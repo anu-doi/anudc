@@ -4,10 +4,10 @@
 <html>
 	<head>
 		<link rel="stylesheet" type="text/css" href="<c:url value='/css/linkItem.css' />" />
-		<link rel="stylesheet" type="text/css" href="<c:url value='/css/jquery-ui-1.8.20.custom.css' />" />
+		<!-- <link rel="stylesheet" type="text/css" href="<c:url value='/css/jquery-ui-1.8.20.custom.css' />" -->
 		<script type="text/javascript" src="<c:url value='/js/linkItem.js' />"></script>
 		<script type="text/javascript" src="<c:url value='/js/popup.js' />"></script>
-		<script type="text/javascript" src="<c:url value='/js/jquery-ui-1.8.20.custom.min.js' />"></script>
+	<!--  <script type="text/javascript" src="<c:url value='/js/jquery-ui-1.8.20.custom.min.js' />"></script> -->
 	</head>
 	<body>
 		<p><input type="button" id="itemLinkButton" name="itemLinkButton" value="Link to Item" /></p>

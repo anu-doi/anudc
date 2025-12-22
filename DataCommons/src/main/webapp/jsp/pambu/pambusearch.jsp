@@ -10,7 +10,7 @@
 
 <jsp:include page="pambuheader.jsp" />
 <anu:content layout="doublewide">
-	<h1 class="doublewide nopadbottom">Catalogue</h1>
+	<h1 class="doublewide pb-0">Catalogue</h1>
 	<form name="longForm" method="post" action="">
 		<div class="doublewide nomargintop">
 			<h2>Search options</h2>

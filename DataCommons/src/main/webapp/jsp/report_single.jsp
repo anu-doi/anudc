@@ -5,26 +5,39 @@
 <anu:header id="1998" title="ANU Data Commons - Reports" description="description" subject="subject" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au"
 	ssl="true">
 
-	<link rel="stylesheet" type="text/css" href="<c:url value='/css/jquery-ui-1.8.20.custom.css' />" />
+	<link rel="stylesheet" type="text/css" href="<c:url value='/css/jquery-ui-1.12.1.custom.css' />" />
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/default.css' />" />
 	<script type="text/javascript" src="<c:url value='/js/report.js' />"></script>
-	<script type="text/javascript" src="<c:url value='/js/jquery-ui-1.8.20.custom.min.js' />"></script>
+	<script type="text/javascript" src="<c:url value='/js/jquery-ui.min.js' />"></script>
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublenarrow" title="Reports">
 	<form class="anuform" method="POST"  action="<c:url value='/rest/report' />">
-		<label for="itemSearch">Find Item</label><input type="text" id="itemSearch" name="itemSearch" /><br/>
-		<label for="name">Item Name</label><input readonly="readonly" type="text" id="name" name="name" /><br/>
-		<label for="pid">Item ID</label><input readonly="readonly" type="text" id="pid" name="pid" value="${it.pid}" /><br/>
+	<fieldset>
+		<div class="field">
+		<label for="itemSearch">Find Item</label><span><input type="text" id="itemSearch" name="itemSearch" /></span>
+		</div>
+		<div class="field">
+			<label for="name">Item Name</label><span><input readonly="readonly" type="text" id="name" name="name" /></span>
+		</div>
+		<div class="field">
+		<label for="pid">Item ID</label><span><input readonly="readonly" type="text" id="pid" name="pid" value="${it.pid}" /></span>
+		</div>
+		<div class="field">
 		<label for="format">Format</label>
+		<span>
 		<select id="format" name="format">
 			<option value="pdf">PDF</option>
 			<option value="html">HTML</option>
 		</select>
-		<br/>
+		</span>
+		</div>
+		<div class="field">
 		<label for="report">Report</label>
+		<span>
 		<select id="report" name="report">
 			<option value="1">All</option>
 			<option value="2">Modifications</option>
@@ -32,9 +45,13 @@
 			<option value="4">Logs</option>
 			<option value="5">Dropbox Access</option>
 		</select>
-		<br/>
-		<input type="submit" class="right" value="Get Report" />
+		</span>
+		</div>
+		<div class="float-end">
+			<input class="btn btn-primary mr-1" type="submit" class="right" value="Get Report" />
+		</div>
+		</fieldset>
 	</form>
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

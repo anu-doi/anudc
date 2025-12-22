@@ -10,8 +10,10 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide" title="Publication Results">
 	There was a problem publishing the selected records.  Either the records did not validate successfully prior to publish, or you do not have sufficient permissions to do so.
 </anu:content>
+</anu:container>
 
 <jsp:include page="/jsp/footer.jsp" />

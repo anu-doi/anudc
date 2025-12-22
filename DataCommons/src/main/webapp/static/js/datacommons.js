@@ -21,6 +21,22 @@ $(document).ready(function(){
 		}
 	});
 	
+	$("#form-tab a").click(function(e){
+		e.preventDefault();
+		
+		//Remove initial pagetabs-select and active classes and add the pagetabs-select
+		//to the clicked 'a'
+		$("#form-tab a").removeClass('pagetabs-select');
+		$("#form-tab a").removeClass('active');
+		$(this).addClass('pagetabs-select');
+		
+		//Get the target href and remove show active classes
+		const target = $(this).attr('href');
+		$('.tab-pane').removeClass('show active');
+		$(target).addClass('show active');
+		});
+
+	
 	$.validator.setDefaults({
 		ignore: [],
 		showErrors: function(errorMap, errorList) {

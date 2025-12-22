@@ -5,8 +5,8 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
 <c:if test="${not empty it.resultSet}">
-<anu:boxheader text="Related Items"/>
-<anu:box style="solid">
+<anu:boxheader text="Related"/>
+<anu:box style="bdr">
 	<ul class="noindent">
 	<c:forEach items="${it.resultSet}" var="result">
 		<fmt:bundle basename='global'>

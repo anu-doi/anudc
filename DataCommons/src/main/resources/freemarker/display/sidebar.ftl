@@ -1,7 +1,7 @@
 
 <div class="col-sm-3">
 <#if tmplt.entityType.name == 'collection'>
-<div class="bg-uni25 border-top border-bottom border-primary mb-3 link-underline">
+<div class="bg-tint border-top border-bottom border-primary mb-3 link-underline">
 	<#assign canView=security.checkPermission(1)>
 	<#assign canEdit=security.checkPermission(2)>
 	<#assign filesPublic=item.isFilesPublic()>

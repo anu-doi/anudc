@@ -13,7 +13,8 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" extraClass="nopadbottom">
+<anu:container type="container">
+<anu:content layout="doublewide" extraClass="pb-0">
 	<jsp:include page="/jsp/statusmessages.jsp">
 		<jsp:param value="${it}" name="it" />
 	</jsp:include>
@@ -21,47 +22,58 @@
 
 <anu:content layout="full" title="Questions">
 	<!-- Question Bank -->
-	<form method="post" name="questionBankForm" action="<c:url value='/rest/collreq/question' />" onsubmit="return validateAddQuestionForm()">
-		<p>
+	<form class="anuform" method="post" name="questionBankForm" action="<c:url value='/rest/collreq/question' />" onsubmit="return validateAddQuestionForm()">
+	<fieldset>
+		<div class="field">
 			<label for="idQuestion" class="req">New Question</label>
-			<input type="text" name="q" id="idQuestion" size="30" required="required" />
-		</p>
-		<p>
-			<input type="submit" name="submit" value="Add Question" />
-		</p>
-		<p>
-			<select multiple="multiple" id="idQuestionBank" size="10" style="width: 100%">
+			<div class="field-span">
+				<input class="text tfull" type="text" name="q" id="idQuestion" size="30" required="required" />
+			</div>
+		</div>
+		<div class="float-end">
+			<input class="btn btn-primary" type="submit" name="submit" value="Add Question" />
+		</div>
+		<div class="field">
+			<select class="w-100 mt-2 mr-2" multiple="multiple" id="idQuestionBank" size="10">
 				<c:forEach var="iQuestion" items="${it.questions}">
 					<option value="${iQuestion.id}" title="${iQuestion.questionText}">
 						<c:out value="${iQuestion.questionText}" />
 					</option>
 				</c:forEach>
 			</select>
-		</p>
+		</div>
+		</fieldset>
 	</form>
 </anu:content>
 
 <anu:content layout="full" title="Question Management">
 	<p>Please select a group or item to retrieve questions for.  The questions can be sorted via drag and drop.</p>
-	<form name="pidQuestions" method="post" action="<c:url value='/rest/collreq/question' />">
-	<p>
+	<form class="anuform" name="pidQuestions" method="post" action="<c:url value='/rest/collreq/question' />">
+	<fieldset>
+	<div class="field">
 		<label>Group</label>
+		<div class="field-span">
 		<select name="group" id="group">
 			<option value="">--No Value Selected--</option>
 			<c:forEach items="${it.groups}" var="group">
 				<option value="${group.id}" title="${group.group_name}">${group.group_name}</option>
 			</c:forEach>
 		</select>
-		<input type="button" value="Get Questions" onclick="ajaxGetGroupQuestions()" />
-	</p>
-	<p>
+		<input class="btn btn-primary" type="button" value="Get Questions" onclick="ajaxGetGroupQuestions()" />
+		</div>
+		
+	</div>
+	<div class="field">
 		<label>Item ID</label>
+		<div class="field-span">
 		<input type="text" name="pid" id="pid" value="<c:out value='${param.pid}' />" />
-		<input type="button" value="Get Questions" onclick="ajaxGetPidQuestions(document.pidQuestions.pid.value)" />
-	</p>
+		<input class="btn btn-primary" type="button" value="Get Questions" onclick="ajaxGetPidQuestions(document.pidQuestions.pid.value)" />
+		</div>
+		
+	</div>
 		<div>
-			<input type="button" value="Add" onclick="addQuestions('#idPidQ')" />
-			<input type="button" value="Remove" onclick="removeQuestions('#idPidQ')" />
+			<input class="btn btn-primary" type="button" value="Add" onclick="addQuestions('#idPidQ')" />
+			<input class="btn btn-danger" type="button" value="Remove" onclick="removeQuestions('#idPidQ')" />
 		</div>
 		<div>
 			<table id="questionTable">
@@ -78,11 +90,12 @@
 			</table>
 		</div>
 		<div>
-			<input type="submit" name="submit" value="Save" />
+			<input class="btn btn-primary" type="submit" name="submit" value="Save" />
 		</div>
+	</fieldset>
 	</form>
 </anu:content>
-
+</anu:container>
 <script type="text/javascript">
 	jQuery(document).ready(ajaxGetPidQuestions(document.pidQuestions.pid.value));
 </script>

@@ -10,6 +10,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="full" title="Review Lists Available">
 	<fmt:bundle basename='global'>
 		<fmt:message var="rejectedTitle" key="review.rejected.title" />
@@ -20,5 +21,5 @@
 	<a href='<c:url value="/rest/ready/list/review" />'>${reviewReadyTitle}</a><br />
 	<a href='<c:url value="/rest/ready/list/publish" />'>${publishReadyTitle}</a><br />
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

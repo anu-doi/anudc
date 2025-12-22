@@ -91,8 +91,8 @@
 					</p>
 
 					<p>
-						<label>Reason</label>
-						<textarea name="reason" maxlength="250" rows="5" cols="50"></textarea>
+						<label for="reason">Reason</label>
+						<textarea id="reason" name="reason" maxlength="250" rows="5" cols="50"></textarea>
 					</p>
 					<p class="instruction">Max 250 chars.</p>
 					<!-- Button to be conditionally displayed based on user permissions. -->

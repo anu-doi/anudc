@@ -11,17 +11,20 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" extraClass="nopadbottom" title="Login">
+<anu:container type="container">
+<div class="row">
+<div class="col">
+<anu:content layout="doublewide" extraClass="pb-0" title="Login">
 	<c:if test="${not empty error}">
 		<div id="login-error" class="msg-error">${error}</div>
 	</c:if>
 
 	<form class="anuform labelwide" name="frmLogin" method="post" onsubmit="usernameToLowerCase()" action='<c:url value="/login" />'>
 		<fieldset>
-			<p>
+			<div class="field">
 				<label for="username">Uni ID or Email</label>
 				<input type="text" class="text tfull" name="username" value="" size="60" autofocus="autofocus">
-			</p>
+			</div>
 			<p class="instruction">ANU Uni ID (e.g. u1234567, a123456) or external Email address (e.g. john.smith@gmail.com)</p>
 			<p>
 				<label for="password">Password</label>
@@ -29,7 +32,7 @@
 			</p>
 			<p>
 			<p class="text-right">
-				<input name="submit" type="submit" value="Login" />
+				<input class="anu-btn btn-small" name="submit" type="submit" value="Login" />
 			</p>
 	
 		</fieldset>
@@ -38,5 +41,7 @@
 	<a href="<c:url value='/rest/user/forgotpassword' />">Forgot Password</a>
 
 </anu:content>
-
+</div>
+</div>
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

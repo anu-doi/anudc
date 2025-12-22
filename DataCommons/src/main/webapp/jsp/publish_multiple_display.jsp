@@ -10,6 +10,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide" title="Publication Results">
 	<c:forEach var="item" items="${it.information.documentList}">
 		<strong>${item['unpublished.name']}</strong><br/>
@@ -34,5 +35,5 @@
 		</c:choose>
 	</c:forEach>
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

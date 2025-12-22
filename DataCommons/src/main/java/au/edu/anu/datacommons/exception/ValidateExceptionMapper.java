@@ -21,6 +21,7 @@
 
 package au.edu.anu.datacommons.exception;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,9 +82,12 @@ public class ValidateExceptionMapper implements ExceptionMapper<ValidateExceptio
 	@Override
 	public Response toResponse(ValidateException e) {
 		Response resp;
+		List<String> refererUrl = headers.getRequestHeader("Referer");
+		String prevPageUrl = refererUrl.get(0);
 		if (headers.getAcceptableMediaTypes().contains(MediaType.TEXT_HTML_TYPE)) {
 			Map<String, Object> model = new HashMap<String, Object>();
 			model.put("messages", e.getMessages());
+			model.put("prevUrl", prevPageUrl);
 			Viewable viewable = new Viewable("/error.jsp", model);
 			resp = Response.status(Status.BAD_REQUEST).entity(viewable).build();
 		} else if (headers.getAcceptableMediaTypes().contains(MediaType.APPLICATION_JSON_TYPE)) {

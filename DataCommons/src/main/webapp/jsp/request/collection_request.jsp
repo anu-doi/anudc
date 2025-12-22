@@ -13,26 +13,29 @@
 <jsp:include page="/jsp/header.jsp" />
 
 <!-- Form for submitting a Collection Request -->
+<anu:container type='container'>
 <anu:content layout="full" title="Data collection request">
 	<jsp:include page="/jsp/statusmessages.jsp">
 		<jsp:param value="${it}" name="it" />
 	</jsp:include>
 	<p>To request access to data collections and review your request activity you must first login using your ANU ID and password or your registered account details.</p>
 	<p>Once logged in, please enter the identifier of the item you wish to access (e.g. anudc:2652) and submit your request.</p>
-	<form name="collReqSubmitForm" class="anuform labelfull" method="post" action="<c:url value='/rest/collreq/' />">
-		<p>
+	<form name="collReqSubmitForm" class="anuform" method="post" action="<c:url value='/rest/collreq/' />">
+		<fieldset>
+		<div class="field">
 			<label class="req" for="idPid">Item ID</label>
-			<input class="text" type="text" id="idPid" name="pid" value="<c:out value='${param.pid}' />" <c:if test="${not empty param.pid}">readonly="readonly"</c:if> />
+			<input class="text mr-2" type="text" id="idPid" name="pid" value="<c:out value='${param.pid}' />" <c:if test="${not empty param.pid}">readonly="readonly"</c:if> />
 			<c:if test="${empty param.pid}">
-				<input type="button" onclick="ajaxGetPidInfo(document.collReqSubmitForm.pid.value)" value="Submit request" />
+				<input class="btn btn-primary" type="button" onclick="ajaxGetPidInfo(document.collReqSubmitForm.pid.value)" value="Submit request" />
 			</c:if>
-		</p>
+		</div>
 		<p id="idQuestionsContainer">
 			<!-- Container for questions that need to be answered as part of collection request. -->
 		</p>
-		<p class="text-right">
-			<input type="submit" value="Request Access">
+		<p class="float-end mr-2">
+			<input class="btn btn-primary" type="submit" value="Request Access">
 		<p>
+		</fieldset>
 	</form>
 	<hr />
 	<h2>Data collection request summary</h2>
@@ -88,8 +91,8 @@
 		<td><c:out value="${appReq.creator.username}" /></td>
 		<td><fmt:formatDate value="${appReq.timestamp}" pattern="dd MMM yyyy"/></td>
 		<td><c:out value="${appReq.expiry}" /></td>
-		<td><input type="checkbox" <c:if test="${appReq.notifyOnPickup == true}">checked="checked"</c:if> /></td>
-		<td><input type="checkbox" <c:if test="${appReq.active == true}">checked="checked"</c:if> /></td>
+		<td><input aria-label="Notification checkbox" type="checkbox" <c:if test="${appReq.notifyOnPickup == true}">checked="checked"</c:if> /></td>
+		<td><input aria-label="Active checkbox" type="checkbox" <c:if test="${appReq.active == true}">checked="checked"</c:if> /></td>
 		<td><a href="<c:url value='/rest/collreq' />/${appReq.collectionRequest.id}"><c:out value="${appReq.collectionRequest.id}" /></a></td>
 	</tr>
 	<tr>
@@ -99,6 +102,7 @@
 </c:forEach>
 </anu:content>
 
+</anu:container>
 <script type="text/javascript">
 	jQuery(document).ready(ajaxGetPidInfo(document.collReqSubmitForm.pid.value));
 </script>

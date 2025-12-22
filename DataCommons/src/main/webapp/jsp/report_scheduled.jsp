@@ -12,6 +12,7 @@
 
 <jsp:include page="header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide">
 	<h1>Scheduled Reports</h1>
 	<p><a href="<c:url value="/rest/report/schedule" />">Schedule another report to run</a></p>
@@ -39,5 +40,5 @@
 		</c:forEach>
 	</table>
 </anu:content>
-
+</anu:container>
 <jsp:include page="footer.jsp" />

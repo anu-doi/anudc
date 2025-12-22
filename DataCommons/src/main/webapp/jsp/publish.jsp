@@ -10,6 +10,7 @@
 
 <jsp:include page="header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide">
 	<h1>Publishing Page</h1>
 	<c:if test="${not empty it.message}">
@@ -21,13 +22,13 @@
 			<c:forEach items="${it.publishLocations}" var="publishLocation">
 				<input type="checkbox" name="publish" value="${publishLocation.id}" />${publishLocation.code} - ${publishLocation.name} <br />
 			</c:forEach>
-			<input id="publishSubmit" type="submit" value="Publish" />
+			<input class="btn btn-primary" id="publishSubmit" type="submit" value="Publish" />
 		</form>
 	</c:if>
 	<c:if test="${empty it.publishLocations}">
 		You do not have permission to publish to any locations for this item.
 	</c:if>
 </anu:content>
-
+</anu:container>
 
 <jsp:include page="footer.jsp" />

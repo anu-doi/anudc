@@ -20,6 +20,7 @@ AjaxSolr.AutocompleteWidget = AjaxSolr.AbstractTextWidget.extend({
       }
 
       self.requestSent = false;
+	  $(self.target).find('input').autocomplete();
       $(self.target).find('input').autocomplete('destroy').autocomplete({
         source: list,
         select: function(event, ui) {

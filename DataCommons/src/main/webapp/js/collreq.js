@@ -38,41 +38,45 @@ function ajaxGetPidInfo(pid)
 		jQuery.each(qList.question, function(id, question) {
 			console.log(question);
 
-			var pQuestion = jQuery("<div></div>");
-			var labelDiv = jQuery("<div></div>");
-			var label = jQuery("<label></label>").text(question.question);
-			if (question.required) {
-				label.attr("class", "req");
-			}
-			labelDiv.append(label);
-			pQuestion.append(labelDiv);
-
 			if (question.options.length > 0) {
+				var pQuestion = jQuery("<fieldset class=\"radiofield required\"></div>");
+				var legend = jQuery("<legend></legend>").text(question.question);
+				if (question.required) {
+						legend.attr("class", "req");
+					}
+				pQuestion.append(legend);
+				var optionDiv = jQuery("<div class=\"radiobox\"></div>");
 				jQuery.each(question.options, function (id, value) {
 					console.log(value);
-					var optionDiv = jQuery("<div></div>");
+					var labelDiv = jQuery("<label></label>");
 					var radioButton = jQuery("<input type='radio'>").attr("name", "q"+question.id).attr("value", value);
-
 					if (question.required) {
 						radioButton.attr("class", "required");
 					}
 					optionDiv.append(radioButton);
 					var radioButtonLabel = value;
-					optionDiv.append(radioButtonLabel);
+					labelDiv.append(radioButtonLabel);
+					optionDiv.append(labelDiv);
 					pQuestion.append(optionDiv);
 				});
-				pQuestion.append(jQuery("<div>"))
+				pQuestion.append(jQuery("<div>"));
 			} else {
+				var pQuestion = jQuery("<div class=\"field\"></div>");
+				/*var labelDiv = jQuery("<div class=\"field\"></div>");*/
+				var label = jQuery("<label></label>").text(question.question);
+					if (question.required) {
+						label.attr("class", "req");
+					}
+				pQuestion.append(label);
 				var textField = jQuery("<textarea rows='5' cols='50' maxlength='255'></textarea>").attr("name", "q" + question.id);
 				if (question.required) {
-					textField.attr("class", "required fullwidth");
+					textField.attr("class", "required tfull");
 				}
 				else {
-					textField.attr("class", "fullwidth");
+					textField.attr("class", "tfull");
 				}
-				var answerDiv = jQuery("<div></div>");
-				answerDiv.append(textField);
-				pQuestion.append(answerDiv);
+				pQuestion.append(textField);
+				/*pQuestion.append(labelDiv);*/
 			}
 			
 			jQuery("#idQuestionsContainer").append(pQuestion);

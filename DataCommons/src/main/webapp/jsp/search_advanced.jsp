@@ -11,7 +11,7 @@
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
-
+<anu:container type="container">
 <anu:content layout="full" title="Advanced Search">
 	<c:set var="maxCharacters" value="200" />
 	<div id="divAdvancedSearch">
@@ -55,5 +55,5 @@
 		</c:if>
 	</div>
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

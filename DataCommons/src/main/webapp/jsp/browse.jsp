@@ -12,6 +12,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide" title="Browse">
 	<fmt:bundle basename='global'>
 		<fmt:message var="searchItemsPerPage" key='search.resultsPerPage' />
@@ -78,5 +79,5 @@
 	</c:if>
 
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

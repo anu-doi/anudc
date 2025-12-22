@@ -10,7 +10,10 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="full" extraClass="nopadbottom" title="Login">
+<anu:container type="container">
+<div class="row">
+<div class="col">
+<anu:content layout="full" extraClass="pb-0" title="Login"><!-- extraClass="nopadbottom" -->
 	<c:if test="${not empty error}">
 		<div id="login-error" class="msg-error">${error}</div>
 	</c:if>
@@ -21,70 +24,89 @@
 		</p>
 		<fieldset>
 		<legend>Login</legend>
-		<p>
-			<label for="username">ANU ID</label>
-			<input type="text" class="text tfull" name="username" value="" autofocus="autofocus" size="40">
-		</p>
-		<p>
-			<label for="j_password">Password</label>
-			<input type='password' name='password' size="40" class="text tfull" />
-		</p>
-		<p>
+		<div class="field">
+			<label class="req" for="j_username">ANU ID</label>
+			<span>
+			<input type="text" class="text tfull" id="j_username" name="username" value="" autofocus="autofocus" size="40" aria-required="true">
+			</span>
+		</div>
+		<div class="field">
+			<label class="req" for="j_password">Password</label>
+			<span>
+			<input type='password' name='password' id="j_password" size="40" class="text tfull" aria-required="true"/>
+			</span>
+		</div>
+		<div class="field">
 			<a href="<c:url value='/rest/user/forgotpassword' />">Forgot your password?</a>
-		</p>
+		</div>
 		</fieldset>
-		<p class="text-right">
-			<input name="submit" type="submit" value="Login" />
+		<p class="float-end">
+			<input class="btn btn-small btn-primary" name="submit" type="submit" value="Login" />
 		</p>
 		<%--	<a href="<c:url value='/rest/user/new' />">Register</a> --%>
 	</form>
 </anu:content>
+</div>
 
 <anu:content layout="full" extraClass="">
 	<div>External users can register for an account</div>
-	<form class="anuform" name="frmRegister" method="post" action='<c:url value="/rest/user/new" />' class="margintop">
+	<form class="anuform" name="frmRegister" method="post" action='<c:url value="/rest/user/new" />'>
 		<fieldset>
 		<legend>Register</legend>
-		<p>
+		<div class="field">
 		<label for="firstname" class="req">First Name</label>
-		<input type="text" id="firstname" name="firstname" class="required text tfull"/>
-		</p>
-		<p>
+		<span>
+		<input type="text" id="firstname" name="firstname" class="required text tfull" aria-required="true"/>
+		</span>
+		</div>
+		<div class="field">
 		<label for="lastname" class="req">Last Name</label>
-		<input type="text" id="lastname" name="lastname" class="required text tfull"/>
-		</p>
-		<p>
-		
+		<span>
+		<input type="text" id="lastname" name="lastname" class="required text tfull" aria-required="true"/>
+		</span>
+		</div>
+		<div class="field">
 		<label for="email" class="req">Email</label>
-		<input type="text" id="email" name="email" class="required email text tfull"/>
-		</p>
-		<p>
-		
+		<span>
+		<input type="text" id="email" name="email" class="required email text tfull" aria-required="true"/>
+		</span>
+		</div>
+		<div class="field">		
 		<label for="password" class="req">Password</label>
-		<input type="password" id="password" name="password" class="required text tfull"/>
-		</p>
-		<p>
+		<span>
+		<input type="password" id="password" name="password" class="required text tfull" aria-required="true"/>
+		</span>
+		</div>
+		<div class="field">
 		
 		<label for="password2" class="req">Repeat Password</label>
-		<input type="password" id="password2" name="password2" class="required text tfull"/>
-		</p>
-		<p>
+		<span>
+		<input type="password" id="password2" name="password2" class="required text tfull" aria-required="true"/>
+		</span>
+		</div>
+		<div class="field">
 		<label for="institution">Institutional Affiliation</label>
+		<span>
 		<input type="text" id="institution" name="institution" class="text tfull"/>
-		</p>
-		<p>
+		</span>
+		</div>
+		<div class="field">
 		<label for="address">Address</label>
-		<textarea id="address" name="address" class="text tfull"></textarea>
-		</p>
-		<p>
+		<textarea id="address" name="address" class="tfull"></textarea>
+		</div>
+		<div class="field">
 		<label for="phone">Phone</label>
+		<span>
 		<input type="text" id="phone" name="phone" class="text tfull"/>
-		</p>
+		</span>
+		</div>
 		</fieldset>
-		<p class="text-right">
-		<input type="submit" value="Register" />
+		<p class="float-end">
+		<input class="btn btn-small btn-primary" type="submit" value="Register" />
 		</p>
 	</form>
 </anu:content>
 
+</div>
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

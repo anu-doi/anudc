@@ -4,18 +4,20 @@
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<anu:header id="1998" title="Page" description="Administration links page" subject="administration" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au"
+<anu:header id="1998" title="Admin Page" description="Administration links page" subject="administration" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au"
 	ssl="true">
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/default.css' />" />
-	<link rel="stylesheet" type="text/css" href="<c:url value='/css/jquery-ui-1.8.20.custom.css' />" />
+	<link rel="stylesheet" type="text/css" href="<c:url value='/css/jquery-ui-1.12.1.custom.css' />" />
 	<script type="text/javascript" src="<c:url value='/js/jquery.validate.min.js' />"></script>
-	<script type="text/javascript" src="<c:url value='/js/jquery-ui-1.8.20.custom.min.js' />"></script>
+<!-- <script type="text/javascript" src="<c:url value='/js/jquery-ui-1.8.20.custom.min.js' />"></script> -->
 	<script type="text/javascript" src="<c:url value='/js/global.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/page.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/prepopulate.js' />"></script>
 </anu:header>
 
 <jsp:include page="../header.jsp" />
+
+<anu:container type="container">
 
 <anu:content layout="full" title="Administration">
 <c:if test="${it.templates != null}">
@@ -56,4 +58,5 @@
 </sec:authorize>
 </anu:content>
 
+</anu:container>
 <jsp:include page="../footer.jsp" />

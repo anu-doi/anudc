@@ -388,7 +388,7 @@ jQuery(document).keypress(function(e) {
  * 0.5		24/07/2012	Genevieve Turner (GT)	Moved loadPopup,centrePopup and disablePopup functions to popup.js
  * 0.7		28/08/2012	Genevieve Turner (GT)	Added amendments for enabling the addition of nla identifiers
  */
-jQuery("#formAddLink").live('submit', function() {
+jQuery(document).on('submit', "#formAddLink", function() {
 	var pid = getPid();
 	var urlStr = '';
 	if (editMode == 1) {

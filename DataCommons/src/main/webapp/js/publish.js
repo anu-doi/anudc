@@ -39,7 +39,7 @@ jQuery(document).ready(function()
  */
 function selectAll(value) {
 	console.log('Select All: ' + value);
-	jQuery("input[name='" + value + "']").attr('checked', true);
+	jQuery("input[name='" + value + "']").prop('checked', true);
 };
 
 /**
@@ -54,5 +54,5 @@ function selectAll(value) {
  */
 function deselectAll(value) {
 	console.log('De-select All: ' + value);
-	jQuery("input[name='" + value + "']").attr('checked', false);
+	jQuery("input[name='" + value + "']").prop('checked', false);
 };

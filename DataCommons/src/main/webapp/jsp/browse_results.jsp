@@ -11,6 +11,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide" title="Results for ${fn:escapeXml(param['field-select'])}">
 	<c:set var="maxCharacters" value="200" />
 	<div id="divSearchResults">
@@ -50,5 +51,5 @@
 		</c:if>
 	</div>
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

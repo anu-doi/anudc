@@ -13,7 +13,9 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
-<anu:content layout="doublewide" title="User Information">
+<anu:container type="container">
+	<div class="row">
+<anu:content layout="two-third" title="User Information">
 	<div>
 		<table width="100%">
 			<tr>
@@ -51,23 +53,23 @@
 	<c:if test="${it.user.user_type == 2}">
 		<c:url value="/rest/user/update" var="updateUserLink" />
 		<p>
-		<input class="right" type="button" id="updateuser" name="updateuser" value="Update Details" onclick="window.location='${updateUserLink}'" />
+		<input class="float-end btn btn-primary" type="button" id="updateuser" name="updateuser" value="Update Details" onclick="window.location='${updateUserLink}'" />
 		</p>
 	</c:if>
 </anu:content>
 
 <anu:content layout="narrow">
-		<anu:boxheader text="Groups you belong to"/>
-	<anu:box style="solid">
-		<select id="groups" size="5" style="width:170px;">
+		<anu:boxheader borderColour="tint" text="Groups you belong to"/>
+	<anu:box style="bdr" styleColour="gold">
+		<select id="groups" size="5" style="width:100%;">
 			<c:forEach items="${it.groups}" var="group">
 				<option value="${group.id}">${group.group_name}</option>
 			</c:forEach>
 		</select>
 	</anu:box>
 	<c:if test="${fn:length(it.groups) > 0}">
-		<anu:boxheader text="Selected Group Permissions"/>
-		<anu:box style="solid">
+		<anu:boxheader borderColour="tint" text="Selected Group Permissions"/>
+		<anu:box style="bdr" styleColour="gold">
 			<input type="checkbox" disabled="disabled" name="group_perm" class="chk_perm" value="1"/>READ<br/>
 			<input type="checkbox" disabled="disabled" name="group_perm" class="chk_perm" value="2"/>WRITE<br/>
 			<input type="checkbox" disabled="disabled" name="group_perm" class="chk_perm" value="8"/>DELETE<br/>
@@ -77,5 +79,6 @@
 		</anu:box>
 	</c:if>
 </anu:content>
-
+</div>
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

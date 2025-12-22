@@ -3,6 +3,7 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
+
 <anu:header id="1998" title="Error" description="description" subject="subject" respOfficer="ANU Library" respOfficerContact="mailto:repository.admin@anu.edu.au" ssl="true">
 	<script type="text/javascript" src="<c:url value='/js/global.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/login.js' />"></script>
@@ -10,8 +11,16 @@
 </anu:header>
 
 <jsp:include page="header.jsp" />
+<anu:container type="container">
 <anu:content layout="doublenarrow">
-	<c:choose>
+
+	<c:url value="${it.prevUrl}" var="displayValue">
+	</c:url>
+	<anu:breadcrumbs>
+		<anu:crumb title="Display" href="${displayValue}" />
+		<anu:crumb title="Data" />
+	</anu:breadcrumbs>
+	<c:choose> 
 		<c:when test="${not empty it.messages}">
 			<p>
 				<c:forEach var="message" items="${it.messages}">
@@ -27,4 +36,5 @@
 		</c:otherwise>
 	</c:choose>
 </anu:content>
+</anu:container>
 <jsp:include page="footer.jsp" />

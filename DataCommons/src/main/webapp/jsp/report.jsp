@@ -11,6 +11,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublenarrow" title="Reports">
 	<sec:authorize access="hasRole('ROLE_ADMIN')">
 	<p><a href="<c:url value="/rest/report/scheduled" />">Schedule Reports</a></p>
@@ -24,5 +25,5 @@
 		<li><a href="<c:url value="/rest/report/webservice" />">Web Service Reports</a></li>
 	</ul>
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

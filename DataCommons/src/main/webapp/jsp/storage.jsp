@@ -21,6 +21,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="full" title="${it.name}">
 	<c:url value="/rest/display/${it.fo.object_id}" var="displayURL">
 		<c:param name="layout">def:display</c:param>
@@ -31,18 +32,21 @@
 	</anu:breadcrumbs>
 
 	<h2>${it.fo.object_id}</h2>
-	<a class="right" href="${displayURL}">Return to record</a>
+	<div class="row">
+		<div class="col">
+			<a class="float-end" href="${displayURL}">Return to record</a>
+		</div>
+	</div>
 	<jsp:include page="/jsp/statusmessages.jsp">
 		<jsp:param value="${it}" name="it" />
 	</jsp:include>
 	<img id="loading" src="<c:url value='/images/ajax-loader.gif' />" style="display: none"></img>
 </anu:content>
 
-<div class="full nopadtop" id="files" class="list_view">
+<div class="col-md-6 col-lg-12 col-sm-12" id="files" class="list_view">
 	<c:choose>
 		<c:when test="${not empty it.rdi}">
 			<p class="msg-info">Record contains approximately ${it.rdi.recordNumFiles} file(s) totalling ${it.rdi.recordFriendlySize}.</p>
-			
 			<form name="frmFiles" action="?action=zip" method="post" class="anuform">
 				<!-- Navigation Breadcrumbs -->
 				<div class="nav-breadcrumbs">
@@ -71,7 +75,7 @@
 					
 					
 					<!-- Actions -->
-					<div id="div-action-icons" class="right text-right">
+					<div id="div-action-icons" class="float-end">
 						<sec:authorize access="isAuthenticated()">
 							<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
 								<!-- Create Folder icon -->
@@ -100,10 +104,10 @@
 				<table id="tblFiles" class="w-doublewide tbl-row-bdr noborder bdr-top-solid anu-long-area tbl-files">
 					<tr class="anu-sticky-header">
 						<th class="col-checkbox"><input id="selectall" type="checkbox" /></th>
-						<th class="col-filename">Name</th>
-						<th class="col-filetype">Type</th>
-						<th class="col-filesize">Size</th>
-						<th class="col-action-icons">&nbsp;</th>
+						<th>Name</th>
+						<th>Type</th>
+						<th>Size</th>
+						<th>&nbsp;</th>
 					</tr>
 					
 					<c:forEach var="iFile" items="${it.fileInfo.getChildren('name')}" varStatus="stat">
@@ -263,7 +267,7 @@
 	<!-- External references -->
 	<sec:authorize access="isAuthenticated()">
 		<sec:authorize access="hasPermission(#fedoraObject,'WRITE') or hasPermission(#fedoraObject,'ADMINISTRATION')">
-			<button onclick="addExtRef()">Add External Reference</button>
+			<button class="btn btn-primary" onclick="addExtRef()">Add External Reference</button>
 		</sec:authorize>
 	</sec:authorize>
 	
@@ -326,5 +330,6 @@
 		</c:when>
 	</c:choose>
 </div>
+</anu:container>
 
 <jsp:include page="/jsp/footer.jsp" />

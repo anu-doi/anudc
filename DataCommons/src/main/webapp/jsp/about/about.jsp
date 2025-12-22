@@ -9,13 +9,15 @@
 	<link rel="stylesheet" type="text/css" href="<c:url value='/css/default.css' />" />
 </anu:header>
 
-<jsp:include page="../header.jsp" />
+<jsp:include page="/jsp/header.jsp" />
 
 <fmt:bundle basename='global'>
 	<fmt:message var="rejectedTitle" key="review.rejected.title" />
 </fmt:bundle>
 
 <fmt:setBundle basename='global'/>
+
+<anu:container type="container">
 
 <anu:content layout="full" title="About Data Commons at ANU">
 <p>The Australian National University, through its <a  href="<c:url value='/' />">Data Commons</a> repository collects, maintains, preserves, promotes and disseminates research data from the ANU community. </p>
@@ -45,3 +47,6 @@
 		<li>Promotes visibility of the University's research data. Publications deposited in Data Commons are visible and accessible through other services such as <a href="https://researchdata.edu.au">Research Data Australia</a>.</li>
 	</ul>
 </anu:content>
+</anu:container>
+
+<jsp:include page="/jsp/footer.jsp" />

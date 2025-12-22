@@ -5,19 +5,19 @@
 				<#if dataValues?has_content>
 					<#list dataValues as val>
 					<div class="input-group">
-					<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip" value="${val.value?html}"<#if templateAttribute.required> required</#if> />
+					<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}"  <#if templateAttribute.tooltip??> aria-describedby="${templateAttribute.name}.tooltip"</#if> value="${val.value?html}"<#if templateAttribute.required> required</#if> />
 					<div class="input-group-append"><button type="button" class="btn btn-danger btn-remove">-</button></div>
 					</div>
 					</#list>
 				<#else>
 					<div class="input-group">
-					<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip"<#if templateAttribute.required> required</#if> />
+					<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" <#if templateAttribute.tooltip??>aria-describedby="${templateAttribute.name}.tooltip"</#if> <#if templateAttribute.required> required</#if> />
 					<div class="input-group-append"><button type="button" class="btn btn-danger btn-remove">-</button></div>
 					</div>
 				</#if>
 				<div><button type="button" class="btn btn-primary btn-add">+</button></div>
 			<#else>
-				<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip"<#if templateAttribute.required> required</#if> <#if dataValues?has_content>value="${dataValues?first.value?html}"</#if> <#if templateAttribute.name == "type">readonly="readonly"</#if>/>
+				<input type="input" class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" <#if templateAttribute.tooltip??>aria-describedby="${templateAttribute.name}.tooltip"</#if> <#if templateAttribute.required> required</#if> <#if dataValues?has_content>value="${dataValues?first.value?html}"</#if> <#if templateAttribute.name == "type">readonly="readonly"</#if>/>
 			</#if>
 			<#break>
 		<#case "TextArea">
@@ -26,18 +26,18 @@
 				<#if dataValues?has_content>
 					<#list dataValues as val>
 						<div class="input-group">
-							<textarea class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip" rows="3" <#if templateAttribute.required>required</#if>${val.value}</textarea>
+							<textarea class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" <#if templateAttribute.tooltip??>aria-describedby="${templateAttribute.name}.tooltip"</#if> rows="3" <#if templateAttribute.required>required</#if>${val.value}</textarea>
 						</div>
 						<div class="input-group-append"><button type="button" class="btn btn-danger btn-remove">-</button></div>
 					</#list>
 				<#else>
-				<textarea class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip" rows="3" <#if templateAttribute.required>required</#if>><#if dataValues?has_content>${dataValues?first.value}</#if></textarea>
+				<textarea class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" <#if templateAttribute.tooltip??>aria-describedby="${templateAttribute.name}.tooltip"</#if> rows="3" <#if templateAttribute.required>required</#if>><#if dataValues?has_content>${dataValues?first.value}</#if></textarea>
 				<div class="input-group-append"><button type="button" class="btn btn-danger btn-remove">-</button></div>
 				</#if>
 				</div>
 				<div><button type="button" class="btn btn-primary btn-add">+</button></div>
 			<#else>
-				<textarea class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" aria-describedby="${templateAttribute.name}.tooltip" rows="3" <#if templateAttribute.required>required</#if>><#if dataValues?has_content>${dataValues?first.value}</#if></textarea>
+				<textarea class="form-control" id="${templateAttribute.name}" name="${templateAttribute.name}" <#if templateAttribute.tooltip??>aria-describedby="${templateAttribute.name}.tooltip"</#if> rows="3" <#if templateAttribute.required>required</#if>><#if dataValues?has_content>${dataValues?first.value}</#if></textarea>
 			</#if>
 			<#break>
 		<#case "RadioButton">
@@ -47,7 +47,7 @@
 				<#if dataValues?has_content && dataValues?first.value == value.id.code>
 				        <#assign found = "true">
 				</#if>
-				<#if value.deprecated?c != "true" || found = "true"><div><input value="${value.id.code}" name="${templateAttribute.name}" type="radio"<#if templateAttribute.required> required</#if> aria-label="${value.description}" <#if found = "true">checked</#if>> ${value.description}</div></#if>
+				<#if value.deprecated?c != "true" || found = "true"><div><input id="${value.id.code}" value="${value.id.code}" name="${templateAttribute.name}" type="radio"<#if templateAttribute.required> required</#if> aria-label="${value.description}" <#if found = "true">checked</#if>> ${value.description}</div></#if>
 			</#list>
 			<#break>
 		<#case "ComboBox">
@@ -66,7 +66,7 @@
 					$("#${templateAttribute.name}").searchableOptionList();
 				</script>
 			<#else>
-				<select class="form-control" name="${templateAttribute.name}" <#if templateAttribute.required>required</#if>>
+				<select id="${templateAttribute.name}" class="form-control" name="${templateAttribute.name}" <#if templateAttribute.required>required</#if>>
 					<option value="">-- No Value Selected --</option>
 				<#list comboOptions as value>
 					<#assign found = "false">
@@ -80,7 +80,7 @@
 			<#break>
 		<#case "Group">
 			<#assign groupOptions=groups()>
-			<select class="form-control" name="${templateAttribute.name}" <#if templateAttribute.required>required</#if>>
+			<select id="${templateAttribute.name}" class="form-control" name="${templateAttribute.name}" <#if templateAttribute.required>required</#if>>
 				<option value="">-- No Value Selected --</option>
 			<#list groupOptions as value>
 				<option value="${value.id}" <#if dataValues?has_content && dataValues?first.value == value.id?string>selected</#if>>${value.group_name}</option>
@@ -119,7 +119,7 @@
 			<#case "ComboBox">
 				<div class="col">
 				<#assign comboOptions=options(column.selectCode)>
-				<select class="form-control" name="${column.name} title="${column.label}"">
+				<select class="form-control" name="${column.name}" title="${column.label}">
 					<option value="">-- No Value Selected --</option>
 				<#list comboOptions as value>
 					<#if value.deprecated?c != "true"><option value="${value.id.code}">${value.description}</option></#if>

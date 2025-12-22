@@ -13,6 +13,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide" title="Update User Information">
 	<c:if test="${not empty it.error}">
 		<anu:message type="error">${it.error}</anu:message><br/>
@@ -51,9 +52,9 @@
 		<textarea id="address" name="address">${it.user.user_registered.address}</textarea>
 		</p>
 		<p>
-		<input type="submit" value="Submit" />
+		<input class="btn btn-primary" type="submit" value="Submit" />
 		</p>
 	</form>
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

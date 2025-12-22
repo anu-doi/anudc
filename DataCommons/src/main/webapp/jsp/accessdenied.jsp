@@ -9,8 +9,9 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide">
 	You do not have permissions to access this feature.
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

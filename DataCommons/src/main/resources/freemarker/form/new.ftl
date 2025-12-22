@@ -6,12 +6,15 @@
 	<div class="mb-3">To make your submission to Data Commons, please complete the metadata in the tabs of this form. Once you submit the metadata form you will be able to upload files to the record.</div> 
 </#if>
 <form id="form" method="post">
-<div class="float-right">
+<div class="float-end">
 	<input class="btn btn-primary" type="submit" value="Save/Submit"/>
 </div>
-<ul class="nav nav-tabs" id="form-tab" role="tablist">
+<div class="pagetabs-nav-tint">
+<ul id="form-tab" role="tablist">
 <#list tmplt.templateTabs as tab>
-	<li class="nav-item"><a class="nav-link <#if tab?index == 0>active</#if>" id="nav-${tab.name}-tab" data-toggle="tab" href="#nav-${tab.name}" role="tab" aria-controls="nav-${tab.name}" aria-selected="true">${tab.label}</a></li>
+	<li>
+		<a class="<#if tab?index == 0>pagetabs-select</#if>" id="nav-${tab.name}-tab" data-bs-toggle="tab"  data-bs-target="#nav-${tab.name}" href="#nav-${tab.name}" role="tab" aria-controls="nav-${tab.name}" aria-selected="true">${tab.label}</a>
+	</li>
 </#list>
 </ul>
 <#assign currentTab=tmplt.templateTabs?first>
@@ -25,13 +28,14 @@
 </#if>
 	<#-- <div>${attr.name} - ${attr.label} - ${attr.fieldType.name} - Tab ${attr.tab.name}</div> -->
 	<div class="form-group">
-		<label class="font-weight-bold<#if attr.required> required</#if>" for="${attr.name}">${attr.label}</label>
+		<label class="fw-bold<#if attr.required> required</#if>" for="${attr.name}">${attr.label}</label>
 		<#if attr.tooltip??>
 			<div><small id="${attr.name}.tooltip">${attr.tooltip}</small></div>
 		</#if>
 		<@c.renderField attr data.getElementByName(attr.name)/>
 	</div>
 </#list>
+</div>
 </div>
 </div>
 </form>

@@ -8,8 +8,8 @@
 
 	<link href="<c:url value='/css/ajaxsolr.css' />" rel="stylesheet" type="text/css"></link>
 	<link href="<c:url value='/css/default.css' />" rel="stylesheet" type="text/css"></link>
-	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.24/jquery-ui.min.js"></script>
-	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.24/themes/smoothness/jquery-ui.css">
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
 	<script type="text/javascript" src="<c:url value='/js/solrjs/Core.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/solrjs/AbstractManager.js' />"></script>
 	<script type="text/javascript" src="<c:url value='/js/solrjs/Manager.jquery.js' />"></script>
@@ -32,17 +32,22 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="full">
-<div class="clear box20 bg-uni25 bdr-top-solid bdr-white bdr-medium nomargin nomarginbottom">
-	<div class="bigsearch nopadtop padbottom">
+<anu:container type="container">
+<div class="bg-tint p-1 rounded">
+<div class="welcome-search-box overlap-child">
 		<div id="search">
-			<input id="query" class="ui-autocomplete-input" type="text" name="query" autocomplete="off" role="textbox" aria-autocomplete="list" aria-haspopup="true" />
+			<input id="query" aria-label="search data" class="ui-autocomplete-input text w70" type="text" name="query" autocomplete="off" role="textbox" aria-autocomplete="list" aria-haspopup="true" style="border: 3px solid white;padding: 12px;border-radius: 4px;"/>
 		</div>
 	</div>
-	<div>Include: <input id="show-titles" name="show-titles" type="checkbox" data-section="title-section" class="show-section" checked /> Titles <input id="show-authors" name="show-authors" type="checkbox" data-section="author-section" class="show-section" checked /> Authors <input id="show-extension" name="show-extension" type="checkbox" data-section="extension-section" class="show-section" checked /> File extensions</div>
+	<div>Include: <input id="show-titles" name="show-titles" type="checkbox" data-section="title-section" class="show-section" checked aria-label="show titles"/> Titles <input id="show-authors" name="show-authors" type="checkbox" aria-label="show authors" data-section="author-section" class="show-section" checked /> Authors <input id="show-extension" name="show-extension" aria-label="show extensions" type="checkbox" data-section="extension-section" class="show-section" checked /> File extensions</div>
 </div>
+</anu:container>
 </anu:content>
 
+<anu:container type="container">
+<div class="row">
 <anu:content layout="doublewide" title="Search results">
 	<div id="result">
 		<div id="navigation">
@@ -53,32 +58,34 @@
 	</div>
 </anu:content>
 
-<anu:content layout="narrow">
+<anu:content layout="one-third">
 	<div>
 		<h4>Current search options</h4>
 		<ul id="selection" class="nobullet"></ul>
 	</div>
 
 	<div id="title-section">
-	<anu:boxheader text="Titles"/>
-	<anu:box style="solid">
+	<anu:boxheader borderColour="tint" text="Titles"/>
+	<anu:box style="bdr" styleColour="gold">
 		<div id="title_str"></div>
 	</anu:box>
 	</div>
 	
 	<div id="author-section">
-	<anu:boxheader text="Authors"/>
-	<anu:box style="solid">
+	<anu:boxheader borderColour="tint" text="Authors"/>
+	<anu:box style="bdr" styleColour="gold">
 		<div id="author_str"></div>
 	</anu:box>
 	</div>
 	
 	<div id="extension-section">
-	<anu:boxheader text="File Extensions"/>
-	<anu:box style="solid">
+	<anu:boxheader  borderColour="tint"  text="File Extensions"/>
+	<anu:box style="bdr" styleColour="gold">
 		<div id="ext"></div>
 	</anu:box>
 	</div>
 </anu:content>
-
+</div>
+</anu:container>
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

@@ -12,6 +12,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="full" title="Import your data">
 	<!-- Create a form for each metadata provider. -->
 	<c:forEach var="iProvider" items="${it.providers}">
@@ -20,16 +21,18 @@
 				<legend><c:out value="${iProvider.friendlyName}" /></legend>
 					<!-- Create a textfield for each required parameter for the metadata provider. -->
 					<c:forEach var="iParam" items="${iProvider.requiredParams}">
-						<p>
-							<label><c:out value="${iParam.friendlyName}" /></label>
-							<input type="text" class="text tfull" size="60" name="${iParam.name}">
-						</p>
+						<div class="field">
+							<label for="${iParam.name}"><c:out value="${iParam.friendlyName}" /></label>
+						<div class="field-span">
+							<input id="${iParam.name}" type="text" class="text tfull" size="60" name="${iParam.name}">
+						</div>
+						</div>
 					</c:forEach>
 				<input type="hidden" name="provider" value="${iProvider.fqClassName}">
-				<p class="text-center"><input type="submit" value="Submit"></p>
+				<p class="text-center"><input class="btn btn-primary" type="submit" value="Submit"></p>
 			</fieldset>
 		</form>
 	</c:forEach>
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

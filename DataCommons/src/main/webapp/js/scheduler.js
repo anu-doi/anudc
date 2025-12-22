@@ -27,7 +27,8 @@ jQuery(document).ready(function() {
 	});
 });
 
-jQuery("#report").live('change', function() {
+jQuery(document).on('click','#report', function() {
+/*jQuery("#report").live('change', function() {*/
 	console.log('report is changed');
 	var reportId = jQuery("#report").val();
 	if (reportId == '') {
@@ -86,7 +87,7 @@ function processData(data) {
 function processPid(item, reportParams) {
 	reportParams.append('<label for="pid"/>').text('Identifier');
 	reportParams.append(' ');
-	reportParams.append('<input id="pid" name="pid"/>');
+	reportParams.append('<input class="ml-1" id="pid" name="pid"/>');
 }
 
 function processRid(item, reportParams) {

@@ -11,7 +11,7 @@
 	<div class="clearfix">
 	<fieldset style="padding-right: 3%;">
 		<legend>Search ANU Data Commons</legend>
-		<div class="marginbottom margintop">Search
+		<div class="mb-1 mt-1">Search
 			<c:if test="${not empty pageContext.request.remoteUser}">
 				<select name="filter" id="filter">
 					<option value="all" <c:if test="${param.filter == 'all'}">selected="selected" </c:if>>All of ANU Data Commons</option>
@@ -24,9 +24,9 @@
 			<c:if test="${empty param['search-val']}">
 				<table id="searchTable" class="noborder">
 					<tr>
-						<td>Search field</td>
+						<td id="searchFieldLabel">Search field</td>
 						<td>
-							<select	name="value-type">
+							<select aria-labelledby="searchFieldLabel" name="value-type">
 								<option value="all">All</option>
 								<option value="type">Type</option>
 								<option value="name">Title</option>
@@ -39,7 +39,7 @@
 							</select>
 						</td>
 						<td>
-							<input type="text" size="45" name="search-val" />
+							<input aria-labelledby="searchFieldLabel" type="text" class="text tfull" size="45" name="search-val" />
 						</td>
 					</tr>
 				</table>
@@ -72,10 +72,10 @@
 				</table>
 			</c:if>
 		</div>
-		<input type="button" name="add-term" id="add-term" value="Add Field" onClick="addTableRow('searchTable')" />
+		<input class="btn btn-primary" type="button" name="add-term" id="add-term" value="Add Field" onClick="addTableRow('searchTable')" />
 	</fieldset>
 	<input type="hidden" name="limit" value="<c:out value='${searchItemsPerPage}' />" />
-	<input type="submit" class="right btn-medium btn-uni-grad" value="Search" />
-	<input class="right btn-uni-grad btn-medium marginright" type="button" onclick='location.href="<c:url value="/rest/search/advanced"/>"' value="Reset"/>
+	<input type="submit" class="float-end btn btn-medium btn-primary" value="Search" />
+	<input class="float-end btn btn-medium btn-primary mr-1" type="button" onclick='location.href="<c:url value="/rest/search/advanced"/>"' value="Reset"/>
 	</div>
 </form>

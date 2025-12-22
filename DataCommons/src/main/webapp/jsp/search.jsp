@@ -10,18 +10,20 @@
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
-
-<anu:content layout="full">
+<anu:container type="container">
+<anu:container type="container-fluid">
 	<c:set var="maxCharacters" value="200" />
 	<div id="divBasicSearch">
 		<jsp:include page="/jsp/searchbox.jsp" />
 	</div>
+</anu:container>
+<anu:container type="container">
 	<div id="divSearchResults">
 		<h1>Search results</h1>
 		<c:if test="${it.resultSet != null}">
 			<c:set var="offsetTo" value="${param.offset + param.limit}" />
 			<c:if test="${offsetTo > it.resultSet.numFound}"><c:set var="offsetTo" value="#{it.resultSet.numFound}" /></c:if>
-			<anu:message type="info" extraClass="marginbottom">Displaying ${param.offset} to ${offsetTo} of ${it.resultSet.numFound}</anu:message>
+			<anu:message type="info" extraClass="mb-1">Displaying ${param.offset} to ${offsetTo} of ${it.resultSet.numFound}</anu:message>
 			<c:forEach items="${it.resultSet.documentList}" var="row">
 				<article>
 				<c:choose>
@@ -57,6 +59,6 @@
 			</jsp:include>
 		</c:if>
 	</div>
-</anu:content>
-
+</anu:container>
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />

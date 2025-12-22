@@ -12,7 +12,7 @@
 </anu:header>
 
 <jsp:include page="/jsp/header.jsp" />
-
+<anu:container type="container">
 <anu:content layout="doublewide" title="Validate multiple records">
 	<c:choose>
 		<c:when test="${not empty it.groups}">
@@ -22,38 +22,53 @@
 				</p>
 			</c:if>
 			<form id="groupForm" method="GET" action=""> 
-				Groups:<br/>
-				<select name="group">
-					<c:forEach var="group" items="${it.groups}">
-						<option value="${group.id}"
-						<c:if test="${param.group == group.id }">
-							selected="selected"
-						</c:if>
-							title="${group.group_name}"
-						>
-							${group.group_name}
-						</option>
-					</c:forEach>
-				</select>
-				<input type="submit" value="Find Records" />
+			<fieldset>
+				<legend>Groups:</legend>
+				<div class="field d-flex align-items-center justify-content-between">
+					<div class="d-flex align-items-center">
+						<select aria-label="Select Group" name="group">
+							<c:forEach var="group" items="${it.groups}">
+								<option value="${group.id}"
+								<c:if test="${param.group == group.id }">
+									selected="selected"
+								</c:if>
+									title="${group.group_name}"
+								>
+									${group.group_name}
+								</option>
+							</c:forEach>
+						</select>
+					</div>
+					<div class="field float-end">
+						<input class="btn btn-primary" type="submit" value="Find Records" />
+					</div>
+				</div>
+			</fieldset>
 			</form>
 			<c:if test="${not empty it.results.documentList}">
 				<hr/>
 				<form id="validateForm" method="POST" action="">
-					Locations to Validate:<br/>
+				<fieldset>
+					<legend>Locations to Validate:</legend>
 					<label for="publishLocation" class="error">Please select location(s) to perform validation on<br/></label>
+					
+					<div class="field">
 					<c:forEach var="publishLocation" items="${it.publishers}">
-						<input type="checkbox" name="publishLocation" value="${publishLocation.id}" class="required" /> ${publishLocation.name} <br/>
+						<input type="checkbox" aria-label="${publishLocation.name}" name="publishLocation" value="${publishLocation.id}" class="required" /> ${publishLocation.name} <br/>
 					</c:forEach>
-					<hr/>
-					<a href="#validateButton" onclick="selectAll('ids')">Select All Records</a> <a href="#validateButton" onclick="deselectAll('ids')">De-select All Records</a>
-					<input class="right" type="submit" id="validateButton" name="validateButton" value="Validate" />
-					<hr/>
-					Records to Validate:<br/>
+					</div>
+					<div class="field border-bottom border-top d-flex py-1 align-items-center justify-content-between">
+					<div class="d-flex align-items-center gap-2">
+					<a style="text-decoration: underline;" href="#validateButton" onclick="selectAll('ids')">Select All Records</a> <a style="text-decoration: underline;" href="#validateButton" onclick="deselectAll('ids')">De-select All Records</a>
+					</div>
+					<input class="btn btn-primary" type="submit" id="validateButton" name="validateButton" value="Validate" />
+					</div>
+					<legend>Records to Validate:</legend>
 					<label for="ids" class="error">Please select record(s) to validate<br/></label>
 					<c:forEach items="${it.results.documentList}" var="row"> 
-						<input type="checkbox" name="ids" value="${row['id']}" class="required" />${row['unpublished.name']}&nbsp;&nbsp;<span class="text-grey50">[${row['id']}]</span><br/>
+						<input type="checkbox" aria-label="${row['id']}" name="ids" value="${row['id']}" class="required" />${row['unpublished.name']}&nbsp;&nbsp;<span class="text-grey50">[${row['id']}]</span><br/>
 					</c:forEach>
+				</fieldset>
 				</form>
 				
 				<c:set var="curPage" value="${(param.page == null ? 1 : param.page + 1)}" />
@@ -65,21 +80,21 @@
 					<c:param name="page" value="0" />
 					<c:param name="group" value="${param.group}" />
 				</c:url>
-				<a class="nounderline" href="${validateURL}">&lt;&lt;</a>
+				<a class="nounderline" aria-label="Previous page" href="${validateURL}">&lt;&lt;</a>
 				<c:if test="${start > 1}">...</c:if>
 				<c:forEach begin="${start}" end="${end}" var="i">
 					<c:url var="validateURL" value="/rest/publish/validate/multiple">
 						<c:param name="page" value="${i - 1}" />
 						<c:param name="group" value="${param.group}" />
 					</c:url>
-					<a class="nounderline" href="${validateURL}">${i}</a>
+					<a class="nounderline" aria-label="page ${i}" href="${validateURL}">${i}</a>
 				</c:forEach>
 				<c:if test="${end < numPages}">...</c:if>
 				<c:url var="validateURL" value="/rest/publish/validate/multiple">
 					<c:param name="page" value="${numPages}" />
 					<c:param name="group" value="${param.group}" />
 				</c:url>
-				<a class="nounderline" href="${validateURL}">&gt;&gt;</a>
+				<a class="nounderline" aria-label="Next page" href="${validateURL}">&gt;&gt;</a>
 			</c:if>
 		</c:when>
 		<c:otherwise>
@@ -87,5 +102,5 @@
 		</c:otherwise>
 	</c:choose>
 </anu:content>
-
+</anu:container>
 <jsp:include page="/jsp/footer.jsp" />
