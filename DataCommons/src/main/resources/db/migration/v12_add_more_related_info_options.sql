@@ -50,11 +50,11 @@ insert into template_attribute_column (template_attribute_id, name, label, field
 	(245,'activityIdType', 'Identifier type', 3, 'activityIdType', 1)
 	,(245,'activityIdValue', 'Identifier value', 1, null, 2)
 	,(245,'activityTitle', 'Title/Name', 1, null, 3)
-	,(245,'activityRelationType', 'Relationship type', 3, 'collectionActivityType', 4)
+	,(245,'activityRelationType', 'Relationship type', 3, 'collectionActivityType', 4);
 
 -- Make the person type available and mandatory
 insert into select_code (select_name, code, description, deprecated) values 
-	('personSubType', 'person', 'Person', false)
+	('personSubType', 'person', 'Person', false);
 
 update template_attribute
 set field_type_id = 4
