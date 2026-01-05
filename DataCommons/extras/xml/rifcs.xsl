@@ -49,7 +49,15 @@
 					<xsl:when test="translate(data/type/text(), $ucLetters, $lcLetters) = 'party'">
 						<party>
 							<xsl:attribute name="type">
-								<xsl:value-of select="data/subType/text()" />
+								<xsl:choose>
+									<xsl:when test="$mSubTypeCode">
+										<xsl:value-of select="$mSubTypeCode" />
+									</xsl:when>
+									<xsl:otherwise>
+										<xsl:value-of select="$mSubType" />
+									</xsl:otherwise>
+								</xsl:choose>
+							<!-- 	<xsl:value-of select="data/subType/text()" /> -->
 							</xsl:attribute>
 							<xsl:call-template name="process" />
 						</party>
@@ -506,6 +514,46 @@
 					<xsl:if test="partyRelationType">
 						<relation>
 							<xsl:attribute name="type"><xsl:value-of select="partyRelationType/@code" /></xsl:attribute>
+						</relation>
+					</xsl:if>
+				</relatedInfo>
+			</xsl:for-each>
+		</xsl:if>
+		<xsl:if test="data/externalCollection">
+			<xsl:for-each select="data/externalCollection">
+				<relatedInfo type="collection">
+					<identifier>
+						<xsl:attribute name="type"><xsl:value-of select="collectionIdType/@code" /></xsl:attribute>
+						<xsl:value-of select="collectionIdValue" />
+					</identifier>
+					<xsl:if test="collectionTitle">
+						<title>
+							<xsl:value-of select="collectionTitle" />
+						</title>
+					</xsl:if>
+					<xsl:if test="collectionRelationType">
+						<relation>
+							<xsl:attribute name="type"><xsl:value-of select="collectionRelationType/@code" /></xsl:attribute>
+						</relation>
+					</xsl:if>
+				</relatedInfo>
+			</xsl:for-each>
+		</xsl:if>
+		<xsl:if test="data/externalActivity">
+			<xsl:for-each select="data/externalActivity">
+				<relatedInfo type="activity">
+					<identifier>
+						<xsl:attribute name="type"><xsl:value-of select="activityIdType/@code" /></xsl:attribute>
+						<xsl:value-of select="activityIdValue" />
+					</identifier>
+					<xsl:if test="activityTitle">
+						<title>
+							<xsl:value-of select="activityTitle" />
+						</title>
+					</xsl:if>
+					<xsl:if test="activityRelationType">
+						<relation>
+							<xsl:attribute name="type"><xsl:value-of select="activityRelationType/@code" /></xsl:attribute>
 						</relation>
 					</xsl:if>
 				</relatedInfo>

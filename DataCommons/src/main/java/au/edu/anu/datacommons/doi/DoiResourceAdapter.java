@@ -448,11 +448,13 @@ public class DoiResourceAdapter {
 		RightsList rightsList = new RightsList();
 
 		DataItem licenceTypeDataItem = sourceData.getFirstElementByName("licenceType");
-		String value = licenceTypeDataItem.getValue();
-		LicenceTypeForDOI licenceType =  licenceTypes.get(value);
-		if (licenceType != null) {
-			rightsList.getRights().add(licenceType.getRight());
-			return rightsList;
+		if (null != licenceTypeDataItem) {
+			String value = licenceTypeDataItem.getValue();
+			LicenceTypeForDOI licenceType =  licenceTypes.get(value);
+			if (licenceType != null) {
+				rightsList.getRights().add(licenceType.getRight());
+				return rightsList;
+			}
 		}
 		DataItem licence = sourceData.getFirstElementByName("licence");
 		if(licence != null) {

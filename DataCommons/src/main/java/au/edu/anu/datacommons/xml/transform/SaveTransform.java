@@ -133,6 +133,7 @@ public class SaveTransform {
 	}
 	private FedoraObject updateData(Template template, FedoraObject fedoraObject, Data data, Long rid) throws IOException, JAXBException, FedoraClientException {
 		setName(data);
+		ensureTypeSet(template, data);
 		Map<String, Object> properties = new HashMap<String, Object>();
 		properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		
@@ -358,5 +359,21 @@ public class SaveTransform {
 		GenericDAO<AuditObject,Long> auditDao = new GenericDAOImpl<AuditObject,Long>(AuditObject.class);
 		auditDao.create(auditObject);
 		
+	}
+	
+	public void ensureTypeSet(Template template, Data data) {
+		DataItem dataItem = data.getFirstElementByName("type");
+		if (null == dataItem) {
+			String entityType = template.getEntityType().getName();
+			DataItem typeItem = new DataItem();
+			typeItem.setName("type");
+			typeItem.setValue(entityType);
+			data.getItems().add(typeItem);
+		}
+		else {
+			LOGGER.info("Something in dataItem");
+			LOGGER.info("Data item value: {}", dataItem.getValue());
+		}
+//		return;)
 	}
 }
