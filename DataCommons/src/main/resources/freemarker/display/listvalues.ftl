@@ -7,7 +7,7 @@
 			<div class="border-bottom border-primary">
 			<#list attr.columns as column>
 				<div>
-				<label class="font-weight-bold">${column.label}</label>
+				<label class="fw-bold">${column.label}</label>
 				<#list element.childValues as childVal>
 					<#if childVal.name == column.name>
 						<#if column.extra?has_content && column.extra?contains("link")><a href="${childVal.value}" class="text-link"></#if>${childVal.value}<#if column.extra?has_content && column.extra?contains("link")></a></#if>

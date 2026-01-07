@@ -510,14 +510,14 @@ fieldset {
   border: 0;
 }
 
-legend {
+/* legend {
   float: left;
   width: 100%;
   padding: 0;
   margin-bottom: 0.5rem;
   line-height: inherit;
   font-size: calc(1.275rem + 0.3vw);
-}
+} */
 @media (min-width: 1200px) {
   legend {
     font-size: 1.5rem;
@@ -20904,6 +20904,13 @@ table tbody tr.even {
   background-color: #fff9e6;
   border-color: #fc3;
   background-position: right center !important;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -5px;
+  margin-left: -5px;
 }
 
 .form-row > .col,
