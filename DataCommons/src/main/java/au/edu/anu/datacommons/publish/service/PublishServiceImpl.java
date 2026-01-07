@@ -932,7 +932,9 @@ public class PublishServiceImpl implements PublishService {
 					UsersDAO usersDAO = new UsersDAOImpl();
 					Users recipient = usersDAO.getUserByName(recipientSid.getPrincipal());
 					LOGGER.debug("Recipient email address: {}", recipient.getEmail());
-					recipientEmails.add(recipient.getEmail());
+					// We need to check for when the email is null due to the person leaving the university					if (recipient.getEmail() != null && recipient.getEmail().length() > 0) {
+						recipientEmails.add(recipient.getEmail());
+					}
 				}
 			}
 			
