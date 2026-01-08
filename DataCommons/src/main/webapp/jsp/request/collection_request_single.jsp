@@ -54,7 +54,6 @@
 		<!-- Answers -->
 		<c:if test="${not empty it.collReq.answers}">
 			<hr />
-			<div>${it.collReq.answers}</div>
 			<p>
 			<c:forEach var="answer" items="${it.collReq.answers}">
 				<div onclick="jQuery(this).next('div').slideToggle()" style="cursor: pointer"> 				

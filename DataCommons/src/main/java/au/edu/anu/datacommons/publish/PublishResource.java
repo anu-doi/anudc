@@ -132,6 +132,7 @@ public class PublishResource {
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("publishLocations", publishLocations);
 		
+		model.put("item", pid);
 		Viewable viewable = new Viewable("/publish.jsp", model);
 		
 		return Response.ok(viewable).build();

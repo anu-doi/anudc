@@ -20,36 +20,36 @@
 
 <anu:container type="container" extraClass="pb-2">
 	<div class="pt-2">
-		<div class="row equal">
+		<div class="row equal g-4">
 			<anu:content layout="one-third">
-				<div class="bg-tint p-1 mb-2">
+				<div class="bg-tint p-1 mb-2 h-100">
 					<div>
 						<img class="w-100" alt="Contribute your research data" src='<c:url value="/static/image/contribute.jpg"/>' />
 						<div>
-							<h4><a class="nounderline" href='<c:url value="/rest/contribute/data"/>'>Contribute your research data</a></h4>
+							<h2><a class="nounderline" href='<c:url value="/rest/contribute/data"/>'>Contribute your research data</a></h2>
 						</div>
 					</div>
 			</div>
 			</anu:content>
 
 			<anu:content layout="one-third">
-					<div class="bg-tint p-1 mb-2">
+					<div class="bg-tint p-1 mb-2 h-100">
 						<img class="w-100" alt="Data search" src='<c:url value="/static/image/data-search.jpg"/>' />
 						<div>
-							<h4><a class="nounderline" href='<c:url value="/rest/upload/search"/>'>Data search</a></h4>
+							<h2><a class="nounderline" href='<c:url value="/rest/upload/search"/>'>Data search</a></h2>
 						</div>
 					</div>
 			</anu:content>
 
 			<anu:content layout="one-third">
-				<div class="bg-tint p-1 mb-2">
+				<div class="bg-tint p-1 mb-2 h-100">
 				<img class="w-100" alt="Research data management" src='<c:url value="/static/image/homepage-research-data-management.jpg"/>' />
 					<div>
-					<h4>
+					<h2>
 					<a class="nounderline" href="https://anulib.anu.edu.au/research-learn/research-data-management">Research data management
 					<img alt="External link" src='<c:url value="https://style.anu.edu.au/_anu/images/icons/web/link.png"/>' />
 					</a>
-					</h4>
+					</h2>
 					</div>
 					</div>
 			</anu:content>

@@ -510,14 +510,14 @@ fieldset {
   border: 0;
 }
 
-/* legend {
+legend {
   float: left;
   width: 100%;
   padding: 0;
   margin-bottom: 0.5rem;
   line-height: inherit;
   font-size: calc(1.275rem + 0.3vw);
-} */
+}
 @media (min-width: 1200px) {
   legend {
     font-size: 1.5rem;
@@ -19717,6 +19717,9 @@ button.anu-button-gold-gradient:focus-visible {
   letter-spacing: 0.1em;
   margin: 0;
   font-size: 1.2em;
+  float: none;
+  width: inherit;
+  line-height: inherit;
 }
 .anuform input.btn-tiny,
 .anuform-inline-black input.btn-tiny,
@@ -21114,6 +21117,13 @@ h6 a::after,
   --bs-alert-bg: #f5f5f5;
   --bs-alert-border-color: var(--bs-light-border-subtle);
   --bs-alert-link-color: var(--bs-light-text-emphasis);
+}
+
+.anuform > fieldset > * > fieldset.radiofield > legend.req::after {
+  content: " *";
+  color: red;
+  font-weight: 700;
+  vertical-align: text-top;
 }
 
 /*# sourceMappingURL=anu-bootstrap.css.map */

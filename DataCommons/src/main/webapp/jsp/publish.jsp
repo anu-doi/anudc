@@ -12,6 +12,13 @@
 
 <anu:container type="container">
 <anu:content layout="doublewide">
+	<c:url value="/rest/display/${it.item}" var="displayURL">
+		<c:param name="layout">def:display</c:param>
+	</c:url>
+	<anu:breadcrumbs>
+		<anu:crumb title="Display" href='${displayURL}' />
+		<anu:crumb title="Data" />
+	</anu:breadcrumbs>
 	<h1>Publishing Page</h1>
 	<c:if test="${not empty it.message}">
 		Published to:<br />

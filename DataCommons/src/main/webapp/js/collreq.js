@@ -39,7 +39,7 @@ function ajaxGetPidInfo(pid)
 			console.log(question);
 
 			if (question.options.length > 0) {
-				var pQuestion = jQuery("<fieldset class=\"radiofield required\"></div>");
+				var pQuestion = jQuery("<fieldset class=\"radiofield\"></div>");
 				var legend = jQuery("<legend></legend>").text(question.question);
 				if (question.required) {
 						legend.attr("class", "req");
