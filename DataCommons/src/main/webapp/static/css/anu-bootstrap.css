@@ -21126,4 +21126,13 @@ h6 a::after,
   vertical-align: text-top;
 }
 
+#docs div {
+  padding: 0.5em 0;
+}
+
+#docs p {
+  color: #666666;
+  word-wrap: break-word;
+}
+
 /*# sourceMappingURL=anu-bootstrap.css.map */

@@ -4,7 +4,7 @@
 <%@ taglib prefix="anu" uri="http://www.anu.edu.au/taglib"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 
-<anu:container type="container-fluid">
+<anu:container type="container">
 		<div id="dcWelcomeSearch" class="bg-tint p-0 overlap-child b-1 rounded">
 		<div class="welcome-search-box">
 			<div>

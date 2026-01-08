@@ -56,7 +56,8 @@
 		</div>
 	</div>
 </anu:container>
-<div class="row">
+<anu:container type="container">
+	<div class="row">
 			<anu:content layout="two-third">
 				<c:if test="${it.resultSet != null and it.resultSet.numFound > 0}">
 					<hr/>
@@ -99,5 +100,6 @@
 					</div>
 			</anu:content>
 		</div>
+</anu:container>
 </anu:container>
 <jsp:include page="/jsp/footer.jsp" />

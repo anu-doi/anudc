@@ -91,7 +91,7 @@
 								
 								var fileUrl = "../records/" + doc.id.replace("/", "/data/");
 								var output = '<div><h4><a href=\'' + fileUrl + '\'>' + doc.name + '.' + doc.ext  + '</a></h4>';
-								output += "<p class='text-grey'>" + snippet + '</p></div>';
+								output += "<p>" + snippet + '</p></div>';
 								return output;
 							},
 
