@@ -22,6 +22,7 @@
 package au.edu.anu.datacommons.security.service;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +33,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
+import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Template;
 import au.edu.anu.datacommons.storage.info.RecordDataSummary;
@@ -375,4 +377,10 @@ public interface FedoraObjectService {
 	public Data getInitialData(Template template);
 	
 	public void verifyActive(FedoraObject fedoraObject) throws FedoraClientException;
+	
+	public Date getFirstModified(FedoraObject fedoraObject);
+	
+	public Date getFirstPublished(FedoraObject fedoraObject);
+	
+	public Date getLastPublished(FedoraObject fedoraObject);
 }

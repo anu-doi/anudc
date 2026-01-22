@@ -26,7 +26,7 @@ import static java.text.MessageFormat.format;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +51,8 @@ import org.springframework.stereotype.Service;
 import com.sun.jersey.api.client.ClientResponse;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
+import au.edu.anu.datacommons.data.db.dao.AuditObjectDAO;
+import au.edu.anu.datacommons.data.db.dao.AuditObjectDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.ExternalLinkDAO;
 import au.edu.anu.datacommons.data.db.dao.ExternalLinkDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.FedoraObjectDAOImpl;
@@ -60,6 +62,7 @@ import au.edu.anu.datacommons.data.db.dao.LinkTypeDAO;
 import au.edu.anu.datacommons.data.db.dao.LinkTypeDAOImpl;
 import au.edu.anu.datacommons.data.db.dao.TemplateDAO;
 import au.edu.anu.datacommons.data.db.dao.TemplateDAOImpl;
+import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.ExternalLinkPattern;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Groups;
@@ -1135,4 +1138,44 @@ public class FedoraObjectServiceImpl implements FedoraObjectService {
 			throw new DataCommonsException(404, "The requested item has been deleted");
 		}
 	}
+	
+	public Date getFirstModified(FedoraObject fedoraObject) {
+		AuditObjectDAO auditObjectDAO = new AuditObjectDAOImpl(AuditObject.class);
+		AuditObject created = auditObjectDAO.getFirstRecord(fedoraObject, AuditObject.MODIFIED);
+		if (created != null) {
+			LOGGER.info("Create date: {}", created.getLog_date());
+			return created.getLog_date();
+		}
+		else {
+			LOGGER.info("No created date found");
+		}
+		return null;
+	}
+	
+	public Date getFirstPublished(FedoraObject fedoraObject) {
+		AuditObjectDAO auditObjectDAO = new AuditObjectDAOImpl(AuditObject.class);
+		AuditObject created = auditObjectDAO.getFirstRecord(fedoraObject, AuditObject.PUBLISH);
+		if (created != null) {
+			LOGGER.info("Create date: {}", created.getLog_date());
+			return created.getLog_date();
+		}
+		else {
+			LOGGER.info("No created date found");
+		}
+		return null;
+	}
+	
+	public Date getLastPublished(FedoraObject fedoraObject) {
+		AuditObjectDAO auditObjectDAO = new AuditObjectDAOImpl(AuditObject.class);
+		AuditObject lastPublished =  auditObjectDAO.getLastRecord(fedoraObject, AuditObject.PUBLISH);
+		if (lastPublished != null) {
+			LOGGER.info("Last Published Date: {}", lastPublished.getLog_date());
+			return lastPublished.getLog_date();
+		}
+		else {
+			LOGGER.info("No published date found");
+		}
+		return null;
+	}
+	
 }

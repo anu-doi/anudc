@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +69,7 @@ import com.yourmediashelf.fedora.client.FedoraClientException;
 import au.edu.anu.datacommons.comparator.TemplateAttributeSortByDisplay;
 import au.edu.anu.datacommons.comparator.TemplateAttributeSortByTab;
 import au.edu.anu.datacommons.comparator.TemplateTabSortByTabOrder;
+import au.edu.anu.datacommons.data.db.model.AuditObject;
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
 import au.edu.anu.datacommons.data.db.model.Template;
 import au.edu.anu.datacommons.exception.DataCommonsException;
@@ -192,6 +194,10 @@ public class DisplayResource
 			RecordDataSummary rdi = fedoraObjectService.getRecordDataSummary(fedoraObject);
 			List<Result> links = fedoraObjectService.getLinks(fedoraObject);
 			
+			Date firstModified = fedoraObjectService.getFirstModified(fedoraObject);
+			Date firstPublished = fedoraObjectService.getFirstPublished(fedoraObject);
+			Date lastPublished = fedoraObjectService.getLastPublished(fedoraObject);
+			
 			values.put("tmplt", template);
 			values.put("item", fedoraObject);
 			values.put("rdi", rdi);
@@ -200,6 +206,9 @@ public class DisplayResource
 			values.put("groups", new GroupOptions());
 			values.put("security",new SecurityCheck(fedoraObject));
 			values.put("errormessage", errorMessage);
+			values.put("created", firstModified);
+			values.put("firstPublished", firstPublished);
+			values.put("lastPublished", lastPublished);
 			
 			Viewable viewable = new Viewable("/display/display.ftl", values);
 			return Response.ok(viewable).build();

@@ -1,9 +1,9 @@
 
 <div class="col-sm-3">
+<#assign canEdit=security.checkPermission(2)>
 <#if tmplt.entityType.name == 'collection'>
 <div class="bg-tint border-top border-bottom border-primary mb-3 link-underline">
 	<#assign canView=security.checkPermission(1)>
-	<#assign canEdit=security.checkPermission(2)>
 	<#assign filesPublic=item.isFilesPublic()>
 	<#if canView || item.filesPublic>
 	<p><a href="/DataCommons/rest/records/${item.object_id}/data/" class="text-link"><#if canEdit>Upload/</#if>Download data files</a></p>
@@ -19,9 +19,20 @@
 	<p>Identifier: ${item.object_id}</p>
 </div>
 </#if>
+<#if canEdit && created??>
+<div class="border-top border-bottom border-primary mb-3">
+First Created: ${created}
+</div>
+</#if>
 <div class="border-top border-bottom border-primary mb-3">
 	<#if item.published!false>
 	Status: Published<br/>
+	<#if firstPublished?? && canEdit>
+	First Published: ${firstPublished} <br/>
+	</#if>
+	<#if lastPublished?? && canEdit>
+	Last Published: ${lastPublished} <br/>
+	</#if>
 	Published to:
 	<ul id="published-list" class="list-dash">
 	<#list item.publishedLocations as location>

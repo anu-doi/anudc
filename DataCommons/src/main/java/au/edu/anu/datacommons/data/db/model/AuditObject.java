@@ -50,6 +50,12 @@ import javax.persistence.Table;
 @Entity
 @Table(name="audit_object")
 public class AuditObject {
+	public static String MODIFIED = "MODIFIED";
+	public static String REVIEW_READY = "REVIEW_READY";
+	public static String PUBLISH_READY = "PUBLISH_READY";
+	public static String PUBLISH = "PUBLISH";
+	
+	
 	Long id_;
 	Date log_date_;
 	String log_type_;
