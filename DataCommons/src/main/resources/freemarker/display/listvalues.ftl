@@ -5,7 +5,7 @@
 			<#if optionValue?has_content>${optionValue.description}<#else>${element.value}</#if><#if element?has_next>; </#if>
 		<#elseif attr.fieldType.name=='Table'>
 			<div class="border-bottom border-primary">
-			<#list attr.columns as column>
+			<#list attr.columns?sort_by("columnOrder") as column>
 				<div>
 				<label class="fw-bold">${column.label}</label>
 				<#list element.childValues as childVal>

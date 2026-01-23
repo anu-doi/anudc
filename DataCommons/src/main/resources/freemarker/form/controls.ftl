@@ -101,14 +101,14 @@
 
 <#macro renderTable templateAttribute>
 	<div class="form-row">
-	<#list templateAttribute.columns as column>
+	<#list templateAttribute.columns?sort_by("columnOrder") as column>
 		<div class="col">${column.label}</div>
 	</#list>
 	<div class="col-1"></div>
 	</div>
 	<div class="form-row input-group table-group">
 	
-	<#list templateAttribute.columns as column>
+	<#list templateAttribute.columns?sort_by("columnOrder") as column>
 		<#switch column.fieldType.name>
 			<#case "TextField">
 				<div class="col"><input type="input" class="form-control" name="${column.name}" aria-label="${column.label}" placeholder="${column.label}" title="${column.label}" value=""/></div>
@@ -143,7 +143,7 @@
 
 <#macro renderTableWithRows templateAttribute dataValues={}>
 	<div class="row">
-	<#list templateAttribute.columns as column>
+	<#list templateAttribute.columns?sort_by("columnOrder") as column>
 		<div class="col-sm">${column.label}</div>
 	</#list>
 	<div class="col-1"></div>
@@ -151,7 +151,7 @@
 	<#list dataValues as val>
 	<div class="form-row input-group">
 	
-	<#list templateAttribute.columns as column>
+	<#list templateAttribute.columns?sort_by("columnOrder") as column>
 		<#assign childValue=val.getChildElementByName('${column.name}') >
 		<#switch column.fieldType.name>
 			<#case "TextField">
