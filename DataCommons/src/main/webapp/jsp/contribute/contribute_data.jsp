@@ -24,7 +24,7 @@
 		<div>
 			<h2>Related Guidance 
 			</h2>
-			This handy <a style="color: #146ebd;" href="https://openresearch.anu.edu.au/files/guidance/Submitting-to-Data-Commons-Quick-Guide.pdf">quick guide</a> or a <a style="color: #146ebd;" href="https://openresearch.anu.edu.au/files/guidance/Submitting_to_Data_Commons_repository.pdf">full guide</a> will assist you in contributing your data to the data repository
+			This handy <a style="color: #146ebd;" href="https://anulib.anu.edu.au/files/2024-08/Submitting-to-Data-Commons-Quick-Guide.pdf">quick guide</a> or a <a style="color: #146ebd;" href="https://anulib.anu.edu.au/files/2024-08/Submitting_to_Data_Commons_repository.pdf">full guide</a> will assist you in contributing your data to the data repository
 		</div>
 </anu:box>
 </anu:content>
