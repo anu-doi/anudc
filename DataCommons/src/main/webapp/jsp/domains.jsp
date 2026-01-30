@@ -21,8 +21,8 @@
 		<form class="anuform" method="POST">
 			<fieldset>
 			<div class="field">
-			<label class="req" for="domainname">New Domain Name</label>
-			<span><input type="text" maxlength="255" name="domainname" id="domainname" class="text tfull" /></span>
+			<label class="req" for="domainName">New Domain Name</label>
+			<span><input type="text" maxlength="255" name="domainName" id="domainName" class="text tfull" /></span>
 			</div>
 			</fieldset>
 			<p class="float-end"><input class="btn btn-primary" type="submit" value="Add" /></p>
