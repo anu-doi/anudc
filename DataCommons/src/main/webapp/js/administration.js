@@ -7,6 +7,17 @@ var editPopupStatus = 0;
 jQuery(document).on('click', ".edit-group", function() {
 	var groupId = jQuery(this).attr('data-id');
 	var groupName = jQuery(this).attr('data-name');
+	
+	var urlStr= "/DataCommons/rest/admin/groups/" + groupId+ "/parent";
+	
+	jQuery.ajax({
+		type: "GET",
+		url: urlStr,
+		success: function(data) {
+			jQuery("#edit-domain").val(data.id);
+		}
+	});
+	
 	jQuery("#edit-group-id").val(groupId);
 	jQuery("#edit-group-name").val(groupName);
 });
@@ -17,6 +28,46 @@ jQuery(document).on('click', ".edit-domain", function() {
 	jQuery("#edit-domain-id").val(domainId);
 	jQuery("#edit-domain-name").val(domainName);
 });
+
+
+jQuery(document).on('click', ".delete-domain", function() {
+	var domain = jQuery(this).attr('data-id');
+	
+	var urlStr= "/DataCommons/rest/admin/domains/" + domain + "/delete";
+	
+	jQuery.ajax({
+		type: "DELETE",
+		url: urlStr,
+		success: function(data) {
+			console.log("Domain deleted");
+			location.reload();
+		},
+		error: function(data) {
+			alert("Unable to delete domain.");
+		}
+	});
+});
+
+
+jQuery(document).on('click', ".delete-group", function() {
+	var group = jQuery(this).attr('data-id');
+	
+	var urlStr= "/DataCommons/rest/admin/groups/" + group + "/delete";
+	
+	jQuery.ajax({
+		type: "DELETE",
+		url: urlStr,
+		success: function(data) {
+			console.log("Group deleted");
+			location.reload();
+		},
+		error: function(data) {
+			alert("Unable to delete group.");
+		}
+	});
+	
+});
+
 
 //jQuery("#popupEditGroupClose").live('click', function(){
 //	editGroupPopupStatus = disablePopup("#popupEditGroup", editGroupPopupStatus);

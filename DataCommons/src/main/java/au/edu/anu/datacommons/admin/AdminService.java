@@ -67,4 +67,28 @@ public interface AdminService {
 	 * @param domainId The id of the domain to create
 	 */
 	public void createOrEditGroup(Long groupId, String groupName, Long domainId);
+	
+	/**
+	 * Get a groups parent domain
+	 * 
+	 * @param groupId The id of the group to retrieve the parent for
+	 * @return The domain
+	 */
+	public Domains getGroupParent(Long groupId);
+	
+	/**
+	 * Delete the domain
+	 * 
+	 * @param domainId The id of domain to delete
+	 * @return Whether the domain was deleted
+	 */
+	public boolean deleteDomain(Long domainId);
+
+	/**
+	 * Delete the group
+	 * 
+	 * @param groupId THe id of the group to delete
+	 * @return Whether the group was deleted
+	 */
+	public boolean deleteGroup(Long groupId);
 }

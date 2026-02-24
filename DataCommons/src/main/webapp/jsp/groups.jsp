@@ -45,7 +45,14 @@
 	<p>
 		<ul class="nobullet">
 			<c:forEach items="${it.groups}" var="group">
-				<li>${group.group_name} [${group.id}] <button id="btn-edit-${group.id}" data-id="${group.id}" data-name="${group.group_name}" title="Edit" class="edit-group" aria-label="Edit ${group.group_name}" data-bs-toggle="modal" data-bs-target="#popupEditGroup"><img src="//style.anu.edu.au/_anu/images/icons/web/draw.png" alt="Edit" /></button></li>
+				<li>${group.group_name} [${group.id}] <button id="btn-edit-${group.id}" data-id="${group.id}" data-name="${group.group_name}" title="Edit" class="edit-group" aria-label="Edit ${group.group_name}" data-bs-toggle="modal" data-bs-target="#popupEditGroup"><img src="//style.anu.edu.au/_anu/images/icons/web/draw.png" alt="Edit" /></button>
+					<button id="btn-delete-${group.id}" class="delete-group" data-id="${group.id}" alt="Delete" aria-label="Delete ${group.group_name}" title="delete">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+						  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+						  <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+						</svg>
+					</button>
+				</li>
 			</c:forEach>
 		</ul>
 	</p>
@@ -62,6 +69,12 @@
 						<fieldset>
 							<div class="field"><label for="edit-group-id">ID</label><span><input id="edit-group-id" name="groupId" type="text" class="text tfull" value="" readonly /></span></div>
 							<div class="field"><label for="edit-group-name">Name</label><span><input id="edit-group-name" name="groupName" type="text" class="text tfull" value="" /></span></div>
+							<div class="field"><label for="edit-domain">Domain</label>
+			<span><select id="edit-domain" name="domain">
+				<c:forEach items="${it.domains}" var="domain">
+					<option value="${domain.id}">${domain.domain_name}</option>
+				</c:forEach>
+			</select></span></div>
 						</fieldset>
 				<p class="float-end"><input class="btn btn-primary" type="submit" value="Edit"/></p>	
 					</form>

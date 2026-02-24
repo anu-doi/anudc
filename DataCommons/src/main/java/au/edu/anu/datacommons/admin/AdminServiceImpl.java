@@ -110,7 +110,7 @@ public class AdminServiceImpl implements AdminService {
 			createGroup(groupName, domainId);
 		}
 		else {
-			editGroup(groupId, groupName);
+			editGroup(groupId, groupName, domainId);
 		}
 	}
 	
@@ -134,11 +134,78 @@ public class AdminServiceImpl implements AdminService {
 		permissionService.initializeGroupPermissions(group, domain);
 	}
 	
-	public void editGroup(Long groupId, String groupName) {
-		LOGGER.debug("Edit group '{}' to '{}'");
+	public void editGroup(Long groupId, String groupName, Long domainId) {
+		LOGGER.debug("Edit group '{}'", groupId);
 		GenericDAO<Groups, Long> groupsDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
 		Groups group = groupsDAO.getSingleById(groupId);
 		group.setGroup_name(groupName);
 		groupsDAO.update(group);
+		
+		if (domainId != null) {
+			GenericDAO<Domains, Long> domainsDAO = new GenericDAOImpl<Domains, Long>(Domains.class);
+			Domains domain = domainsDAO.getSingleById(domainId);
+			permissionService.setGroupParent(group, domain);
+			
+			if (domain == null) {
+				throw new DataCommonsException(400, "No domain found");
+			}
+			
+		}
+	}
+	
+	public Domains getGroupParent(Long groupId) {
+		LOGGER.debug("Get group parent for group '{}'", groupId);
+		GenericDAO<Groups, Long> groupsDAO = new GenericDAOImpl<Groups, Long>(Groups.class);
+		Groups group = groupsDAO.getSingleById(groupId);
+		
+		Long domainId = permissionService.getGroupParent(group);
+		
+
+		GenericDAO<Domains, Long> domainDao = new GenericDAOImpl<Domains, Long>(Domains.class);
+		Domains domain = domainDao.getSingleById(domainId);
+		
+		return domain;
+	}
+	
+	public boolean deleteDomain(Long domainId) {
+		LOGGER.debug("Delete domain '{}'", domainId);
+		GenericDAO<Domains, Long> domainDao = new GenericDAOImpl<Domains, Long>(Domains.class);
+		Domains domain = domainDao.getSingleById(domainId);
+		
+		if (domain != null) {
+			boolean noChildren = permissionService.deleteIfNoChildren(domain);
+			
+			LOGGER.debug("Permissions deleted: {}", noChildren);
+			if (noChildren) {
+				domainDao.delete(domain.getId());
+				return true;
+			}
+		}
+		else {
+			LOGGER.error("Unable to find domain with id: {}", domainId);
+		}
+		
+		return false;
+	}
+
+	public boolean deleteGroup(Long groupId) {
+		LOGGER.debug("Delete group '{}'", groupId);
+		GenericDAO<Groups, Long> groupDao = new GenericDAOImpl<Groups, Long>(Groups.class);
+		Groups group = groupDao.getSingleById(groupId);
+		
+		if (group != null) {
+			boolean noChildren = permissionService.deleteIfNoChildren(group);
+			
+			LOGGER.debug("No children: {}", noChildren);
+			if (noChildren) {
+				groupDao.delete(group.getId());
+				return true;
+			}
+		}
+		else {
+			LOGGER.error("Unable to find group with id: {}", groupId);
+		}
+		
+		return false;
 	}
 }

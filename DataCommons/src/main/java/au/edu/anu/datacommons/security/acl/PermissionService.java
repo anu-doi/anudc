@@ -705,4 +705,112 @@ public class PermissionService {
 			}
 		}
 	}
+	
+	public Long getGroupParent(Groups group) {
+		ObjectIdentity group_oi = new ObjectIdentityImpl(Groups.class, group.getId());
+		MutableAcl groupAcl = null;
+		
+		try {
+			groupAcl = (MutableAcl) aclService.readAclById(group_oi);
+		}
+		catch (NotFoundException nfe) {
+			groupAcl = aclService.createAcl(group_oi);
+		}
+		Acl parentAcl = groupAcl.getParentAcl();
+		Long domainId = (Long)parentAcl.getObjectIdentity().getIdentifier();
+		
+		return domainId;
+	}
+	
+	public void setGroupParent(Groups group, Domains domain) {
+		Sid adminSid = new GrantedAuthoritySid("ROLE_ADMIN");
+		
+		ObjectIdentity group_oi = new ObjectIdentityImpl(Groups.class, group.getId());
+		MutableAcl groupAcl = null;
+		try {
+			groupAcl = (MutableAcl) aclService.readAclById(group_oi);
+		}
+		catch (NotFoundException nfe) {
+			groupAcl = aclService.createAcl(group_oi);
+		}
+
+		ObjectIdentity domain_oi = new ObjectIdentityImpl(Domains.class, domain.getId());
+		MutableAcl domainAcl = null;
+		try {
+			domainAcl = (MutableAcl) aclService.readAclById(domain_oi);
+		}
+		catch (NotFoundException nfe) {
+			// If the domain does not exit in acl_object_identity add the row
+			domainAcl = aclService.createAcl(domain_oi);
+		}
+		if (!groupAcl.getParentAcl().equals(domainAcl)) {
+			groupAcl.setEntriesInheriting(true);
+			groupAcl.setOwner(adminSid);
+			groupAcl.setParent(domainAcl);
+			aclService.updateAcl(groupAcl);
+		}
+	}
+	
+	public boolean deleteIfNoChildren(Domains domain) {
+		ObjectIdentity domain_oi = new ObjectIdentityImpl(Domains.class, domain.getId());
+
+		try {
+			MutableAcl domainAcl = (MutableAcl) aclService.readAclById(domain_oi);
+			if (domainAcl == null) {
+				// no children to delete so we can say they were deleted
+				aclService.deleteAcl(domain_oi, false);
+				return true;
+			}
+			List<ObjectIdentity> children = aclService.findChildren(domain_oi);
+			if (children == null) {
+				// no children to delete so we can say they were deleted
+				aclService.deleteAcl(domain_oi, false);
+				return true;
+			}
+			if (children.size() > 0) {
+				return false;
+			}
+			
+		}
+		catch (Exception e) {
+			LOGGER.error("Unable to find domain", e);
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean deleteIfNoChildren(Groups group) {
+		ObjectIdentity group_oi = new ObjectIdentityImpl(Domains.class, group.getId());
+
+		try {
+			MutableAcl groupAcl = null;
+			try {
+				groupAcl = (MutableAcl) aclService.readAclById(group_oi);
+			}
+			catch (NotFoundException e) {
+				LOGGER.info("No Acl found for group {}", group.getId());
+			}
+			if (groupAcl == null) {
+				// no children to delete so we can say they were deleted
+				// since there are no permissions it doesn't seem to remove the item?
+				aclService.deleteAcl(group_oi, false);
+				return true;
+			}
+			List<ObjectIdentity> children = aclService.findChildren(group_oi);
+			if (children == null) {
+				// no children to delete so we can say they were deleted
+				aclService.deleteAcl(group_oi, false);
+				return true;
+			}
+			if (children.size() > 0) {
+				return false;
+			}
+			
+		}
+		catch (Exception e) {
+			LOGGER.error("Unable to find domain", e);
+			return false;
+		}
+		return true;
+	}
 }

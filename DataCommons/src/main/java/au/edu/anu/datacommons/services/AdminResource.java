@@ -29,13 +29,16 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 
 import org.apache.solr.client.solrj.SolrClient;
@@ -243,5 +246,38 @@ public class AdminResource {
 		adminService.createOrEditGroup(groupId, groupName, domainId);
 		UriBuilder builder = UriBuilder.fromResource(this.getClass()).path("groups");
 		return Response.seeOther(builder.build()).build();
+	}
+	
+	@GET
+	@Path("/groups/{groupId}/parent")
+	@Produces(MediaType.APPLICATION_JSON)
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public Response getGroupsParentDomain(@PathParam("groupId") Long groupId) {
+		Domains domain = adminService.getGroupParent(groupId);
+		
+		return Response.ok(domain).build();
+	}
+	
+	@DELETE
+	@Path("/domains/{domainId}/delete")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public Response deleteDomain(@PathParam("domainId") Long domainId) {
+		boolean domainDeleted = adminService.deleteDomain(domainId);
+		if (!domainDeleted) {
+			return Response.status(Status.CONFLICT).build();
+		}
+
+		return Response.ok().build();
+	}
+	
+	@DELETE
+	@Path("/groups/{groupId}/delete")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public Response deleteGroup(@PathParam("groupId") Long groupId) {
+		boolean groupDeleted = adminService.deleteGroup(groupId);
+		if (!groupDeleted) {
+			return Response.status(Status.CONFLICT).build();
+		}
+		return Response.ok().build();
 	}
 }
