@@ -42,6 +42,7 @@ public class RecordDataSummary {
 	private long recordNumFiles;
 	private long dirSize;
 	private long dirNumFiles;
+	private String errorMessage;
 	
 	private Collection<String> extRefs;
 
@@ -106,5 +107,13 @@ public class RecordDataSummary {
 	
 	public String getDirFriendlySize() {
 		return Util.byteCountToDisplaySize(this.dirSize);
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
 	}
 }

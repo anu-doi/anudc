@@ -66,6 +66,7 @@ import com.sun.jersey.multipart.FormDataMultiPart;
 import com.yourmediashelf.fedora.client.FedoraClientException;
 
 import au.edu.anu.datacommons.data.db.model.FedoraObject;
+import au.edu.anu.datacommons.exception.DataCommonsException;
 import au.edu.anu.datacommons.security.AccessLogRecord.Operation;
 import au.edu.anu.datacommons.storage.datafile.StagedDataFile;
 import au.edu.anu.datacommons.storage.info.FileInfo;
@@ -164,7 +165,7 @@ public class StorageResource extends AbstractStorageResource {
 			}
 		}
 		fedoraObjectService.getItemByPidWriteAccess(pid);
-
+		path = DcStorage.sanitizeFileName(path);
 		if (src.equals("jupload")) {
 			resp = processJUpload(pid, path);
 		} else {
@@ -450,6 +451,9 @@ public class StorageResource extends AbstractStorageResource {
 			if (path == null || path.length() == 0 || storageController.dirExists(pid, path)) {
 				LOGGER.info("User {} ({}) requested list of files in {}/data/{}", getCurUsername(), getRemoteIp(), pid, path);
 				RecordDataSummary rdi = storageController.getRecordDataSummary(pid);
+				
+				String manifestErrorMessage = rdi.getErrorMessage();
+				
 				FileInfo fileInfo = null;
 				if (storageController.dirExists(pid, "")) {
 					fileInfo = storageController.getFileInfo(pid, path);
@@ -462,6 +466,7 @@ public class StorageResource extends AbstractStorageResource {
 					model.put("parents", getParents(fileInfo));
 					model.put("path", path);
 					model.put("isFilesPublic", fo.isFilesPublic().toString());
+					model.put("messages", manifestErrorMessage);
 					resp = Response.ok(new Viewable(template, model)).build();
 				} else {
 					resp = Response.ok(rdi).build();
@@ -472,7 +477,10 @@ public class StorageResource extends AbstractStorageResource {
 			} else {
 				throw new NotFoundException(uriInfo.getAbsolutePath());
 			}
-		} catch (IOException | StorageException e) {
+		} catch(NullPointerException e) {
+			LOGGER.error(e.getMessage(), e);
+			throw new DataCommonsException(500, "This item has an invalid metadata (manifest-md5) file. Please contact Systems Administrators.|"+fo.getObject_id());
+		}	catch (IOException | StorageException e) {
 			LOGGER.error(e.getMessage(), e);
 			resp = Response.ok(e.getMessage()).build();
 		}
@@ -489,7 +497,6 @@ public class StorageResource extends AbstractStorageResource {
 
 	private Response createUploadFilesResponse(String pid, String path, String template) {
 		Response resp;
-		
 		FedoraObject fo = fedoraObjectService.getItemByPidWriteAccess(pid);
 		if (fo == null) {
 			throw new NotFoundException(uriInfo.getAbsolutePath());

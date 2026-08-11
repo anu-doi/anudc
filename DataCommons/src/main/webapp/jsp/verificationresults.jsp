@@ -16,6 +16,7 @@
 
 <jsp:include page="/jsp/header.jsp" />
 
+<anu:container type="container">
 <anu:content layout="doublewide"
 	title="Verification Results - [${it.results.bagId}]">
 	<jsp:include page="/jsp/statusmessages.jsp">
@@ -24,7 +25,7 @@
 
 	<p>Timestamp: <c:out value="${it.results.timestamp}" /></p>
 	<p>Message Count: <c:out value="${fn:length(it.results.messages)}" /></p>
-	<p><input id="btnReverify" type="button" value="Reverify" /><input id="btnFixIssues" type="button" value="Fix Issues" /></p>
+	<p><input id="btnReverify" class="btn btn-primary" type="button" value="Reverify" /><input id="btnFixIssues" class="btn btn-primary" type="button" value="Fix Issues" /></p>
 	
 	<table class="small w-doublewide">
 		<tr>
@@ -43,5 +44,6 @@
 		</c:forEach>
 	</table>
 </anu:content>
+</anu:container>
 
 <jsp:include page="/jsp/footer.jsp" />

@@ -102,5 +102,17 @@ public final class DcStorage {
 	public static String convertToDiskSafe(String source) {
 		return source.trim().toLowerCase().replaceAll("\\*|\\?|\\\\|:|/|\\s", "_");
 	}
+	
+	/**
+	 * Utility method that sanitizes the filename against a newline character and carriage return character for use in a file or directory name. 
+	 * If there is one, this method replaces it with "" character.
+	 * 
+	 * @param source
+	 *            Source string to validate
+	 * @return source string or sanitized source string
+	 */
+	public static String sanitizeFileName(String source) {
+		return source.replaceAll("[\\r\\n\\uF00D\\uF00A]+", " ");
+	}
 
 }
