@@ -34,18 +34,18 @@
 	<bean id="customAuthenticationEntryPoint" class="au.edu.anu.datacommons.security.CustomAuthenticationEntryPoint" />
 	
 	<security:authentication-manager alias="authenticationManager">
-	 	<security:authentication-provider ref="ldapAuthProvider" />
+	 	<!-- <security:authentication-provider ref="ldapAuthProvider" /> -->
 		<security:authentication-provider ref="daoAuthenticationProvider" />
 		<security:authentication-provider ref="preauthAuthProvider" />
 	</security:authentication-manager>
 	
-	<security:ldap-server url="${ldap.uri}" manager-dn="" manager-password="" />
+	<!-- <security:ldap-server url="${ldap.uri}" manager-dn="" manager-password="" /> -->
 	
-	<bean id="contextSource" class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
+	<!-- <bean id="contextSource" class="org.springframework.security.ldap.DefaultSpringSecurityContextSource">
 		<constructor-arg value="${ldap.uri}" />
-	<!-- 	<property name="userDn" value="" /> -->
-		<property name="password" value="password" />
-	</bean>
+	 	<property name="userDn" value="" /> -->
+	<!--	<property name="password" value="password" />
+	</bean>-->
 
 	<!-- Preauth begin -->
 	<bean id="preauthAuthProvider" class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
@@ -62,7 +62,7 @@
 	
 	<!-- Preauth end -->
     
-	<bean id="ldapAuthProvider" class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
+	<!-- <bean id="ldapAuthProvider" class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
 		<constructor-arg>
 			<bean class="org.springframework.security.ldap.authentication.BindAuthenticator">
 				<constructor-arg ref="contextSource" />
@@ -79,7 +79,7 @@
 		</constructor-arg>
 	</bean>
 	
-	<bean id="ldapUserDetailsContextMapper" class="au.edu.anu.datacommons.security.ldap.ANUUserDetailsContextMapper" />
+	<bean id="ldapUserDetailsContextMapper" class="au.edu.anu.datacommons.security.ldap.ANUUserDetailsContextMapper" />  -->
 	
 	
 	<bean id="authenticationSuccessHandler" class="au.edu.anu.datacommons.security.CustomSuccessHandler">

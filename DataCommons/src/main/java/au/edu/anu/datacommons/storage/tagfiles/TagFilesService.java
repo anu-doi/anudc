@@ -33,6 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
@@ -69,6 +70,12 @@ public class TagFilesService {
 	private long writeFreq;
 	private int cacheSize;
 	
+	private final Map<String, String> manifestErrorItems = new ConcurrentHashMap<>();
+	
+	public String getManifestErrorMessage(String pid) {
+		return manifestErrorItems.get(pid);
+	}
+
 	/**
 	 * Runnable task class that writes changes to disk in another thread.
 	 */
@@ -162,7 +169,7 @@ public class TagFilesService {
 	 */
 	public Map<String, String> getAllEntries(String pid, Class<? extends AbstractKeyValueFile> clazz)
 			throws IOException {
-		loadPid(pid);
+		loadPidWithRefresh(pid);
 		Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFilesMap = pidMap.get(pid);
 		AbstractKeyValueFile keyValueFile = tagFilesMap.get(clazz);
 		return Collections.unmodifiableMap(keyValueFile);
@@ -201,12 +208,24 @@ public class TagFilesService {
 	 *             when unable to read values from file (if tag file not already loaded in memory)
 	 */
 	public String getEntryValue(String pid, Class<? extends AbstractKeyValueFile> clazz, String key) throws IOException {
-		loadPid(pid);
+		loadPidWithRefresh(pid);
 		Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFilesMap = pidMap.get(pid);
 		AbstractKeyValueFile keyValueFile = tagFilesMap.get(clazz);
 		return keyValueFile.get(key);
 	}
 	
+	//Add comments - here
+	private void loadPidWithRefresh(String pid) throws IOException {
+		synchronized(pidMap) {
+			if(manifestErrorItems.containsKey(pid)) {
+				pidMap.remove(pid);
+			}
+			if (!pidMap.containsKey(pid)) {
+				pidMap.put(pid, readTagFiles(pid));
+			}		
+		}
+	}
+
 	/**
 	 * Returns if a tag file contains the specified key.
 	 * 
@@ -320,6 +339,7 @@ public class TagFilesService {
 			throws IOException {
 		Map<Class<? extends AbstractKeyValueFile>, AbstractKeyValueFile> tagFiles = new HashMap<>();
 		StorageProvider storageProvider;
+		boolean manifestErrorFound = false;
 		try {
 			storageProvider = providerResolver.getStorageProvider(pid);
 		} catch (StorageException e) {
@@ -341,8 +361,13 @@ public class TagFilesService {
 		tagFiles.put(ExtRefsTagFile.class,
 				new ExtRefsTagFile(storageProvider.readTagFileStream(pid, ExtRefsTagFile.FILEPATH)));
 		// Manifest MD5
-		tagFiles.put(ManifestMd5TagFile.class,
-				new ManifestMd5TagFile(storageProvider.readTagFileStream(pid, ManifestMd5TagFile.FILEPATH)));
+		try {
+			tagFiles.put(ManifestMd5TagFile.class,
+					new ManifestMd5TagFile(storageProvider.readTagFileStream(pid, ManifestMd5TagFile.FILEPATH)));
+		} catch (Exception e) {
+			manifestErrorFound = true;
+			manifestErrorItems.put(pid, "This item has an invalid metadata (manifest-md5) file. Please contact Systems Administrators.");
+		}
 		// File Metadata
 		tagFiles.put(FileMetadataTagFile.class,
 				new FileMetadataTagFile(storageProvider.readTagFileStream(pid, FileMetadataTagFile.FILEPATH)));
@@ -359,6 +384,12 @@ public class TagFilesService {
 		tagFiles.put(VirusScanTagFile.class,
 				new VirusScanTagFile(storageProvider.readTagFileStream(pid, VirusScanTagFile.FILEPATH)));
 
+		if(!manifestErrorFound) {
+			manifestErrorItems.remove(pid);
+			synchronized(pidMap) {
+				pidMap.remove(pid);
+			}
+		}
 		return tagFiles;
 	}
 
