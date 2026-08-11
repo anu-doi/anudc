@@ -22,7 +22,6 @@
 package au.edu.anu.datacommons.exception;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.Context;
@@ -76,19 +75,9 @@ public class DataCommonsExceptionMapper implements ExceptionMapper<DataCommonsEx
 	@Override
 	public Response toResponse(DataCommonsException e) {
 		Response resp;
-		List<String> refererUrl = headers.getRequestHeader("Referer");
-		String prevPageUrl = null;
-		String[] parts = e.getErrorMessage().split("\\|", 2);
-
 		if (headers.getAcceptableMediaTypes().contains(MediaType.TEXT_HTML_TYPE)) {
 			Map<String, Object> model = new HashMap<String, Object>();
-			model.put("messages", parts[0]);
-			if (refererUrl == null) {
-				prevPageUrl = "/rest/display/"+parts[1];
-			} else { 
-				prevPageUrl = refererUrl.get(0); 
-			}
-			model.put("prevUrl", prevPageUrl);
+			model.put("messages", e.getErrorMessage());
 			Viewable viewable = new Viewable("/error.jsp", model);
 			resp = Response.status(Status.BAD_REQUEST).entity(viewable).build();
 		} else {

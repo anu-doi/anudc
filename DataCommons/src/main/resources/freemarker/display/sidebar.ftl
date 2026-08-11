@@ -6,13 +6,7 @@
 	<#assign canView=security.checkPermission(1)>
 	<#assign filesPublic=item.isFilesPublic()>
 	<#if canView || item.filesPublic>
-	<p>
-		<#if isDisabled>
-			<#if canEdit>Upload/</#if>Download data files
-		<#else>
-			<a href="/DataCommons/rest/records/${item.object_id}/data/" class="text-link"><#if canEdit>Upload/</#if>Download data files</a>
-		</#if>
-	</p>
+	<p><a href="/DataCommons/rest/records/${item.object_id}/data/" class="text-link"><#if canEdit>Upload/</#if>Download data files</a></p>
 	<#else>
 	<p><a href="/DataCommons/rest/collreq?pid=${item.object_id}" class="text-link">Request data files</a></p>
 	</#if>

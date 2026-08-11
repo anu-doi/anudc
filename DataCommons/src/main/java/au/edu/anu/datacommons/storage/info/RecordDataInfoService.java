@@ -53,7 +53,6 @@ public class RecordDataInfoService {
 		rdi.setPid(pid);
 		setNumSizeOfFilesInRecord(rdi, pid);
 		rdi.setExtRefs(tagFilesSvc.getAllEntries(pid, ExtRefsTagFile.class).values());
-		rdi.setErrorMessage(tagFilesSvc.getManifestErrorMessage(pid));
 		return rdi;
 	}
 	

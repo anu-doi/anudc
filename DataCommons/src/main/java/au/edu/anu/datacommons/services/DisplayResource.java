@@ -193,8 +193,6 @@ public class DisplayResource
 			}
 			RecordDataSummary rdi = fedoraObjectService.getRecordDataSummary(fedoraObject);
 			List<Result> links = fedoraObjectService.getLinks(fedoraObject);
-			String manifestErrorMessage = rdi.getErrorMessage();
-			boolean isDisabled = manifestErrorMessage !=null && !manifestErrorMessage.isEmpty();
 			
 			Date firstModified = fedoraObjectService.getFirstModified(fedoraObject);
 			Date firstPublished = fedoraObjectService.getFirstPublished(fedoraObject);
@@ -207,11 +205,10 @@ public class DisplayResource
 			values.put("options", new SelectOptions());
 			values.put("groups", new GroupOptions());
 			values.put("security",new SecurityCheck(fedoraObject));
-			values.put("errormessage", manifestErrorMessage);
+			values.put("errormessage", errorMessage);
 			values.put("created", firstModified);
 			values.put("firstPublished", firstPublished);
 			values.put("lastPublished", lastPublished);
-			values.put("isDisabled", isDisabled);
 			
 			Viewable viewable = new Viewable("/display/display.ftl", values);
 			return Response.ok(viewable).build();
