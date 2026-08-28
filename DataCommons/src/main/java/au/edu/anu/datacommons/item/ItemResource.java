@@ -136,6 +136,8 @@ public class ItemResource {
 			}
 			RecordDataSummary rdi = fedoraObjectService.getRecordDataSummary(fedoraObject);
 			List<Result> links = fedoraObjectService.getLinks(fedoraObject);
+			String manifestErrorMessage = rdi.getErrorMessage();
+			boolean isDisabled = manifestErrorMessage !=null && !manifestErrorMessage.isEmpty();
 			
 			values.put("tmplt", template);
 			values.put("item", fedoraObject);
@@ -144,7 +146,8 @@ public class ItemResource {
 			values.put("options", new SelectOptions());
 			values.put("groups", new GroupOptions());
 			values.put("security",new SecurityCheck(fedoraObject));
-//			values.put("errormessage", errorMessage);
+			values.put("errormessage", manifestErrorMessage);
+			values.put("isDisabled", isDisabled);
 			
 			Viewable viewable = new Viewable("/display/display.ftl", values);
 			return Response.ok(viewable).build();
